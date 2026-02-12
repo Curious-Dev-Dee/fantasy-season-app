@@ -1,87 +1,41 @@
 import { supabase } from "./supabase.js";
 
-/* =========================
-   PAGE DETECTION
-========================= */
-
-const isLoginPage = window.location.pathname.includes("login");
-const isSignupPage = window.location.pathname.includes("signup");
-
-const primaryButton = document.querySelector(".auth-btn.primary");
-const errorText = document.querySelector(".auth-error");
-
-/* =========================
-   UI HELPERS
-========================= */
-
-function showError(message) {
-  if (!errorText) return;
-  errorText.textContent = message;
-  errorText.style.display = "block";
-}
-
-function clearError() {
-  if (!errorText) return;
-  errorText.textContent = "";
-  errorText.style.display = "none";
-}
-
-function setLoadingState(isLoading) {
-  if (!primaryButton) return;
-
-  if (isLoading) {
-    primaryButton.disabled = true;
-    primaryButton.classList.add("loading");
-    primaryButton.innerHTML = `
-      <span class="spinner"></span>
-      <span>Authenticating...</span>
-    `;
-  } else {
-    primaryButton.disabled = false;
-    primaryButton.classList.remove("loading");
-    primaryButton.innerHTML = `
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon" />
-      <span>Continue with Google</span>
-    `;
-  }
-}
-
-/* =========================
-   GOOGLE SIGN IN
-========================= */
+const googleBtn = document.getElementById("googleLoginBtn");
+const spinner = googleBtn?.querySelector(".spinner");
+const btnText = googleBtn?.querySelector(".btn-text");
 
 async function signInWithGoogle() {
-  clearError();
-  setLoadingState(true);
+  if (!googleBtn) return;
 
-  const redirectUrl = window.location.origin + "/home.html";
+  try {
+    // Disable button
+    googleBtn.disabled = true;
+    googleBtn.classList.add("loading");
+    spinner?.classList.remove("hidden");
+    btnText.textContent = "Signing in...";
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: redirectUrl,
-    },
-  });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/home.html",
+      },
+    });
 
-  if (error) {
-    console.error(error);
-    showError("Authentication failed. Please try again.");
-    setLoadingState(false);
+    if (error) {
+      throw error;
+    }
+  } catch (err) {
+    console.error("Google login error:", err);
+    alert("Login failed. Please try again.");
+
+    // Reset button state
+    googleBtn.disabled = false;
+    googleBtn.classList.remove("loading");
+    spinner?.classList.add("hidden");
+    btnText.textContent = "Continue with Google";
   }
 }
 
-/* =========================
-   INIT
-========================= */
-
-if ((isLoginPage || isSignupPage) && primaryButton) {
-  primaryButton.addEventListener("click", signInWithGoogle);
+if (googleBtn) {
+  googleBtn.addEventListener("click", signInWithGoogle);
 }
-
-/* =========================
-   PAGE FADE IN
-========================= */
-
-window.addEventListener("DOMContentLoaded", () => {
-  document.body.classList.add("page-loaded");
-});
