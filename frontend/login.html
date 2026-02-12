@@ -5,72 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cricket Experts</title>
 
-  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/auth.css" />
 </head>
-
 <body>
 
-  <div class="auth-app">
+  <div class="auth-container fade-in">
 
-    <!-- =========================
-         BRAND HEADER
-    ========================== -->
-    <header class="auth-header">
-      <h1 class="brand-name">Cricket Experts</h1>
+    <!-- HERO -->
+    <section class="hero">
+      <h1 class="hero-title">
+        Cricket Experts
+      </h1>
 
-      <p class="brand-tagline">
-        Think you know cricket?<br>
-        <strong>Prove it on the field.</strong>
+      <p class="hero-tagline">
+        This is not for everyone.
+        <span class="accent">Accept the challenge.</span>
       </p>
 
-      <p class="brand-subtext">
-        This isn’t luck-based fantasy.<br>
-        It’s cricket IQ, strategy, and instinct.
+      <p class="hero-support">
+        Build your XI. Compete on knowledge.
+        Let your cricket decisions speak.
       </p>
-    </header>
+    </section>
 
-    <!-- =========================
-         AUTH CARD
-    ========================== -->
-    <main class="auth-card">
+    <!-- LOGIN CARD -->
+    <section class="auth-card">
 
-      <h2 class="auth-title">Enter the challenge</h2>
+      <p class="card-heading">Step into the arena</p>
 
-      <!-- ERROR MESSAGE -->
-      <p class="auth-error" style="display: none;"></p>
-
-      <!-- GOOGLE LOGIN BUTTON -->
-      <button class="auth-btn primary">
-        Continue with Google
+      <button id="googleLoginBtn" class="google-btn">
+        <span class="google-icon">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
+        </span>
+        <span class="btn-text">Continue with Google</span>
+        <span class="spinner hidden"></span>
       </button>
 
-      <p class="auth-trust">
-        Secure login via Google.<br>
-        No passwords. No spam.
+      <p class="login-alt">
+        Already competing?
+        <a href="signup.html">Log in</a>
       </p>
 
-      <!-- SECONDARY ACTION -->
-      <div class="auth-links">
-        <a href="signup.html" class="link-btn">
-          New here? Join the league
-        </a>
-      </div>
+    </section>
 
-    </main>
-
-    <!-- =========================
-         FOOTER BRANDING
-    ========================== -->
-    <div class="auth-footer muted">
-      <p>Sponsored by <strong>Red Zone & Co</strong></p>
-      <p>Powered by <strong>Flake Brothers</strong></p>
-      <p class="auth-prize">Real rewards for real experts</p>
-    </div>
+    <!-- FOOTER -->
+    <footer class="minimal-footer">
+      © 2026 Cricket Experts
+    </footer>
 
   </div>
 
-  <!-- IMPORTANT: must be module -->
   <script type="module" src="auth.js"></script>
-
 </body>
 </html>
