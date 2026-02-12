@@ -1,0 +1,487 @@
+/* =========================
+   RESET & BASE
+========================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0b0f14;
+  color: #e6e6e6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* =========================
+   APP CONTAINER
+========================= */
+.app {
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0b0f14;
+}
+
+/* =========================
+   HEADER
+========================= */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(180deg, #0f1623, #0b0f14);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1e2635;
+}
+
+.tournament-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.edit-note {
+  font-size: 11px;
+  color: #8b8b8b;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #9be15d;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.link-btn.subtle {
+  color: #b5b5b5;
+}
+
+/* =========================
+   TOGGLE
+========================= */
+.edit-toggle {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  position: sticky;
+  top: 52px;
+  background: #0b0f14;
+  z-index: 15;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #1e2635;
+  background: #111827;
+  color: #8b8b8b;
+  font-size: 13px;
+}
+
+.toggle-btn.active {
+  border-color: #9be15d;
+  color: #fff;
+  background: #1f2937;
+}
+
+/* =========================
+   CONTENT
+========================= */
+.content {
+  padding: 16px;
+  flex: 1;
+}
+
+/* =========================
+   TEAM SUMMARY
+========================= */
+.team-summary {
+  background: #111827;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid #1e2635;
+  font-size: 12px;
+  margin-bottom: 12px;
+  color: #e6e6e6;
+}
+
+.sticky-summary {
+  position: sticky;
+  top: 108px;
+  z-index: 10;
+}
+
+.subs-preview {
+  color: #f3c969;
+  margin-top: 4px;
+}
+
+/* =========================
+   MODES
+========================= */
+.edit-mode {
+  display: none;
+}
+
+.edit-mode.active {
+  display: block;
+}
+
+/* =========================
+   PLAYER LIST
+========================= */
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* =========================
+   PLAYER CARD
+========================= */
+.player-card {
+  background: #0f1623;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #1e2635;
+}
+
+.player-card.selected {
+  border: 1.5px solid #9be15d;
+  background: linear-gradient(
+    180deg,
+    rgba(155, 225, 93, 0.08),
+    rgba(15, 22, 35, 0.95)
+  );
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1f2937;
+  margin-right: 10px;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.player-team {
+  font-size: 12px;
+  color: #8b8b8b;
+}
+
+.player-credit {
+  font-size: 13px;
+  margin-right: 10px;
+}
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+.player-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.player-actions button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  background: #1f2937;
+  color: #fff;
+}
+
+.btn-captain.active {
+  background: #9be15d;
+  color: #000;
+}
+
+.btn-vice.active {
+  background: #7cc4ff;
+  color: #000;
+}
+
+.btn-remove {
+  background: #2a1414;
+  color: #ff7b7b;
+}
+
+.btn-add {
+  background: #0f2a1d;
+  color: #9be15d;
+}
+
+/* =========================
+   CHANGE MODE FILTERS
+========================= */
+.change-filters {
+  margin-bottom: 12px;
+}
+
+.change-filters input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #1e2635;
+  background: #0f1623;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.role-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.role-filters button {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 10px;
+  border: 1px solid #1e2635;
+  background: #111827;
+  color: #8b8b8b;
+  font-size: 12px;
+}
+
+/* =========================
+   SAVE BAR
+========================= */
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 14px 16px;
+  background: #0f1623;
+  border-top: 1px solid #1e2635;
+  text-align: center;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.save-bar.disabled .save-btn {
+  background: #1f2937;
+  color: #777;
+}
+
+.save-bar.enabled .save-btn {
+  background: #9be15d;
+  color: #000;
+}
+
+.save-hint {
+  font-size: 12px;
+  color: #8b8b8b;
+  margin-top: 6px;
+}
+
+/* =========================
+   EDIT HEADER FIX
+========================= */
+.edit-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 140px;
+  align-items: center;
+}
+
+/* BACK BUTTON */
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: #1f2937;
+  color: #9be15d;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* CENTER TITLE */
+.edit-header .tournament-name {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* RIGHT NOTE */
+.edit-header .edit-note {
+  text-align: right;
+  font-size: 11px;
+  color: #8b8b8b;
+}
+
+/* =========================
+   EDIT TEAM HEADER FIX
+========================= */
+
+.edit-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 40px 1fr 120px;
+  align-items: center;
+  padding: 14px 16px;
+  background: linear-gradient(
+    180deg,
+    #0f1623 0%,
+    #0b0f14 100%
+  );
+  border-bottom: 1px solid #1e2635;
+}
+
+/* BACK ICON BUTTON */
+.icon-back {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #1f2937;
+  color: #9be15d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+/* CENTER TITLE */
+.header-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* RIGHT NOTE */
+.edit-note {
+  text-align: right;
+  font-size: 11px;
+  color: #8b8b8b;
+}
+
+/* =========================
+   TEAM SUMMARY STATES
+========================= */
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.summary-row.roles {
+  margin-top: 6px;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.role {
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+/* OK */
+.ok {
+  color: #9be15d;
+}
+
+/* WARNING */
+.warn {
+  color: #f3c969;
+}
+
+/* ERROR */
+.error {
+  color: #ff7b7b;
+}
+
+/* CREDIT STATES */
+.credit-count.warn {
+  color: #f3c969;
+}
+
+.credit-count.error {
+  color: #ff7b7b;
+}
+
+/* SUBS PREVIEW */
+.subs-preview {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #f3c969;
+}
+
+/* =========================
+   PREMIUM SUMMARY LAYOUT
+========================= */
+.summary-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #8b8b8b;
+}
+
+.credit-count {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.summary-roles {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.role {
+  flex: 1;
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 8px;
+  font-size: 11px;
+  background: #0f1623;
+}
+
+.role.ok {
+  color: #9be15d;
+}
+
+.role.warn {
+  color: #f3c969;
+}
+
+.role.error {
+  color: #ff7b7b;
+}

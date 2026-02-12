@@ -1,0 +1,163 @@
+/* =========================
+   RESET & BASE
+========================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0b0f14;
+  color: #e6e6e6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* =========================
+   APP CONTAINER
+========================= */
+.app {
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #0b0f14;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   HEADER (ACCOUNT)
+========================= */
+.app-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #0f1623, #0b0f14);
+  border-bottom: 1px solid #1e2635;
+}
+
+.tournament-name {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #9be15d;
+  text-decoration: none;
+}
+
+.link-btn.subtle {
+  color: #9be15d;
+}
+
+/* =========================
+   CONTENT
+========================= */
+.content {
+  padding: 16px;
+  flex: 1;
+}
+
+/* =========================
+   CARD
+========================= */
+.card {
+  background: linear-gradient(180deg, #111827, #0f1623);
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #1e2635;
+}
+
+/* =========================
+   PROFILE AVATAR
+========================= */
+.profile-avatar {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.team-avatar.large {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #1f2937;
+  border: 2px solid #9be15d;
+  margin: 0 auto 10px;
+}
+
+.profile-avatar .link-btn {
+  font-size: 13px;
+}
+
+/* =========================
+   FORM FIELDS
+========================= */
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: #8b8b8b;
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #1e2635;
+  background: #0f1623;
+  color: #fff;
+  font-size: 14px;
+}
+
+.field input::placeholder {
+  color: #6b7280;
+}
+
+/* =========================
+   HINT TEXT
+========================= */
+.hint-text {
+  font-size: 11px;
+  color: #8b8b8b;
+  margin-top: 6px;
+}
+
+/* =========================
+   BACK BUTTON
+========================= */
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: #1f2937;
+  color: #9be15d;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================
+   SAVE STATUS
+========================= */
+.save-status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #9be15d;
+  text-align: center;
+}
+
+.save-status.hidden {
+  display: none;
+}

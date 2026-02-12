@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cricket Experts · Fixtures</title>
+
+  <link rel="stylesheet" href="css/fixtures.css" />
+  <link rel="stylesheet" href="css/bottom-nav.css" />
+
+</head>
+
+<body>
+
+<div class="fixtures-app page-with-nav">
+
+  <header class="fixtures-header">
+    <button class="back-btn" onclick="window.location.href='home.html'">←</button>
+    <h1>Fixtures</h1>
+    <span></span>
+  </header>
+
+  <!-- FILTERS -->
+  <!-- FILTERS -->
+<section class="filters-section">
+
+  <div class="filter-bar">
+
+    <div class="filter-dropdown">
+      <button class="filter-btn" id="statusBtn">
+        Status ▾
+      </button>
+      <div class="dropdown-panel hidden" id="statusPanel">
+        <div id="statusFilters" class="filter-options"></div>
+      </div>
+    </div>
+
+    <div class="filter-dropdown">
+      <button class="filter-btn" id="teamBtn">
+        Teams ▾
+      </button>
+      <div class="dropdown-panel hidden" id="teamPanel">
+        <div id="teamFilters" class="filter-options"></div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+
+  <!-- MATCH LIST -->
+  <main id="matchesContainer" class="matches-container">
+    Loading matches...
+  </main>
+
+</div>
+<nav class="bottom-nav">
+  <a href="home.html">
+    Home
+  </a>
+  <a href="fixtures.html" class="active">
+    Fixtures
+  </a>
+  <a href="prediction.html">
+    Prediction
+  </a>
+  <a href="more.html">
+    More
+  </a>
+</nav>
+
+<script type="module" src="fixtures.js"></script>
+
+</body>
+</html>

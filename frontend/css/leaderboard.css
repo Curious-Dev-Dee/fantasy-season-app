@@ -1,0 +1,77 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(145deg, #0c1117, #0e141b);
+  color: #fff;
+}
+
+.leaderboard-app {
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* HEADER */
+
+.leaderboard-header {
+  margin-bottom: 20px;
+}
+
+.leaderboard-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* SUMMARY */
+
+.leaderboard-summary {
+  background: linear-gradient(145deg, #111827, #0f172a);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* LIST */
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leader-row {
+  background: linear-gradient(145deg, #111827, #0f172a);
+  padding: 14px 16px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.leader-rank {
+  font-size: 14px;
+  font-weight: 600;
+  width: 40px;
+}
+
+.leader-team {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.leader-points {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Highlight current user */
+
+.leader-row.you {
+  background: rgba(154,224,0,0.08);
+  border: 1px solid rgba(154,224,0,0.3);
+}

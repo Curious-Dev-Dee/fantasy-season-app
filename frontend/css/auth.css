@@ -1,0 +1,218 @@
+/* =====================================
+   ELITE PRIVATE FANTASY AUTH SYSTEM
+===================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Segoe UI", Roboto, sans-serif;
+
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(154, 224, 0, 0.05),
+      transparent 40%
+    ),
+    #0b0f14;
+
+  color: #f3f4f6;
+  display: flex;
+  justify-content: center;
+}
+
+/* =========================
+   APP CONTAINER
+========================= */
+
+.auth-app {
+  width: 100%;
+  max-width: 420px;
+  padding: 70px 26px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* =========================
+   BRAND
+========================= */
+
+.auth-header {
+  text-align: center;
+}
+
+.brand-name {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.9px;
+}
+
+.brand-tagline {
+  margin-top: 30px;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.brand-tagline strong {
+  color: #9AE000;
+  font-weight: 600;
+}
+
+.brand-subtext {
+  margin-top: 18px;
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.auth-card {
+  position: relative;
+  margin-top: 80px;
+  padding: 42px 30px;
+  border-radius: 24px;
+
+  background: linear-gradient(
+    180deg,
+    #141922,
+    #10151c
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.04);
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+
+  animation: fadeUp 0.45s ease forwards;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+/* Elite accent bar */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #9AE000;
+  border-radius: 3px;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 36px;
+  color: #d1d5db;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.auth-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+
+  background: #9AE000;
+  color: #0b0f14;
+
+  box-shadow:
+    0 6px 20px rgba(154, 224, 0, 0.25),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+
+  transition: all 0.2s ease;
+}
+
+.auth-btn:hover {
+  background: #8cd200;
+  transform: translateY(-1px);
+}
+
+.auth-btn:active {
+  transform: translateY(0);
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   SUPPORT TEXT
+========================= */
+
+.auth-trust {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: #8b95a1;
+}
+
+/* =========================
+   LINKS
+========================= */
+
+.auth-links {
+  margin-top: 26px;
+  text-align: center;
+}
+
+.link-btn {
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #9AE000;
+  transition: opacity 0.2s ease;
+}
+
+.link-btn:hover {
+  opacity: 0.7;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.auth-footer {
+  margin-top: 80px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.auth-prize {
+  margin-top: 8px;
+  color: #9AE000;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

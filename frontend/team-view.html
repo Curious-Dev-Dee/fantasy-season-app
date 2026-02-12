@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cricket Experts · My XI</title>
+
+  <link rel="stylesheet" href="css/team-view.css" />
+</head>
+
+<body>
+
+<div class="team-view-app">
+
+  <header class="team-view-header">
+    <button class="back-btn" onclick="window.location.href='home.html'">←</button>
+    <h1 class="team-title" id="teamTitle">My XI</h1>
+    <span></span>
+  </header>
+
+  <main class="team-field" id="teamContainer">
+    <!-- Players will be injected dynamically -->
+  </main>
+
+  <footer class="team-status" id="teamStatus">
+    Loading team...
+  </footer>
+
+</div>
+
+<script type="module" src="team-view.js"></script>
+
+</body>
+</html>

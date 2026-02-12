@@ -1,0 +1,183 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(145deg, #0c1117, #0e141b);
+  color: #fff;
+}
+
+.fixtures-app {
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* HEADER */
+
+.fixtures-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.fixtures-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.back-btn {
+  background: #1f2937;
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* FILTERS */
+
+.filters-section {
+  background: linear-gradient(145deg, #111827, #0f172a);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.filter-group {
+  margin-bottom: 14px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  padding: 6px 10px;
+  background: #1f2937;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.filter-chip.active {
+  background: #9AE000;
+  color: #000;
+  font-weight: 600;
+}
+
+/* MATCH CARDS */
+
+.matches-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.match-card {
+  background: linear-gradient(145deg, #111827, #0f172a);
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.match-teams {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.match-time {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.match-status {
+  display: inline-block;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* STATUS COLORS */
+
+.status-upcoming {
+  background: rgba(154,224,0,0.15);
+  color: #9AE000;
+}
+
+.status-locked {
+  background: rgba(255,193,7,0.15);
+  color: #FFC107;
+}
+
+.status-completed {
+  background: rgba(59,130,246,0.15);
+  color: #3B82F6;
+}
+
+.status-abandoned {
+  background: rgba(239,68,68,0.15);
+  color: #EF4444;
+}
+
+/* =========================
+   PREMIUM DROPDOWN FILTERS
+========================= */
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+}
+
+.filter-dropdown {
+  position: relative;
+  flex: 1;
+}
+
+.filter-btn {
+  width: 100%;
+  background: #1f2937;
+  border: none;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: #263141;
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  right: 0;
+  background: linear-gradient(145deg, #111827, #0f172a);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  z-index: 10;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.dropdown-panel.hidden {
+  display: none;
+}
