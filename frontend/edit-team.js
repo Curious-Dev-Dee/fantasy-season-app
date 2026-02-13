@@ -3,6 +3,13 @@ import { supabase } from "./supabase.js";
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
 // =========================
+// GLOBAL STATE
+// =========================
+let lastLockedPlayers = [];
+let lastTotalSubsUsed = 0;
+let isFirstLock = true;
+
+// =========================
 // AUTH
 // =========================
 async function getCurrentUser() {
@@ -94,6 +101,34 @@ document.addEventListener("click", e => {
 });
 
 // =========================
+// LOAD LAST LOCKED SNAPSHOT
+// =========================
+async function loadLastLockedSnapshot(userId) {
+  const { data: snapshot } = await supabase
+    .from("user_match_teams")
+    .select("id, total_subs_used")
+    .eq("user_id", userId)
+    .order("locked_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!snapshot) {
+    isFirstLock = true;
+    return;
+  }
+
+  isFirstLock = false;
+  lastTotalSubsUsed = snapshot.total_subs_used;
+
+  const { data: players } = await supabase
+    .from("user_match_team_players")
+    .select("player_id")
+    .eq("user_match_team_id", snapshot.id);
+
+  lastLockedPlayers = players.map(p => String(p.player_id));
+}
+
+// =========================
 // SUMMARY
 // =========================
 function updateSummary() {
@@ -112,6 +147,37 @@ function updateSummary() {
   const hasC = document.querySelector(".btn-captain.active");
   const hasVC = document.querySelector(".btn-vice.active");
 
+  // =========================
+  // SUB CALCULATION
+  // =========================
+  let subsUsed = 0;
+  let remainingSubs = 80 - lastTotalSubsUsed;
+
+  if (!isFirstLock) {
+    const currentPlayers = [...players].map(p => p.dataset.id);
+    subsUsed = currentPlayers.filter(
+      p => !lastLockedPlayers.includes(p)
+    ).length;
+  }
+
+  let subsHTML = "";
+
+  if (isFirstLock) {
+    subsHTML = `
+      <div style="margin-top:8px;">
+        <strong>Subs:</strong> Unlimited (before first match lock)
+      </div>
+    `;
+  } else {
+    subsHTML = `
+      <div style="margin-top:8px;">
+        <strong>Subs Used:</strong> ${subsUsed}
+        &nbsp; | &nbsp;
+        <strong>Remaining:</strong> ${remainingSubs}
+      </div>
+    `;
+  }
+
   summary.innerHTML = `
     <div style="display:flex; justify-content:space-between;">
       <span>Credits</span>
@@ -123,9 +189,18 @@ function updateSummary() {
       <span>AR ${roles.AR}</span>
       <span>BOWL ${roles.BOWL}</span>
     </div>
+    ${subsHTML}
   `;
 
-  if (players.length === 11 && credits <= 100 && hasC && hasVC) {
+  let canSave = players.length === 11 && credits <= 100 && hasC && hasVC;
+
+  if (!isFirstLock) {
+    if (subsUsed > remainingSubs) {
+      canSave = false;
+    }
+  }
+
+  if (canSave) {
     saveBar.classList.add("enabled");
     saveBar.classList.remove("disabled");
     saveBtn.textContent = "Save team";
@@ -248,9 +323,19 @@ async function saveSeasonTeam() {
     if (card.querySelector(".btn-vice.active")) viceCaptainId = card.dataset.id;
   });
 
-  if (players.length !== 11) return;
-  if (!captainId || !viceCaptainId) return;
-  if (captainId === viceCaptainId) return;
+  if (!isFirstLock) {
+    const currentPlayers = [...players].map(p => p.dataset.id);
+    const subsUsed = currentPlayers.filter(
+      p => !lastLockedPlayers.includes(p)
+    ).length;
+
+    const remainingSubs = 80 - lastTotalSubsUsed;
+
+    if (subsUsed > remainingSubs) {
+      alert(`You only have ${remainingSubs} substitutions remaining.`);
+      return;
+    }
+  }
 
   const { data: existing } = await supabase
     .from("user_fantasy_teams")
@@ -307,6 +392,10 @@ async function saveSeasonTeam() {
 // INIT
 // =========================
 async function init() {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  await loadLastLockedSnapshot(user.id);
   await loadPlayers();
   await loadSavedSeasonTeam();
 }

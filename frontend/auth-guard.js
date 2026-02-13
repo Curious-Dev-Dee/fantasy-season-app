@@ -20,7 +20,7 @@ async function protectPage() {
   if (!existingProfile) {
     await supabase.from("user_profiles").insert({
       user_id: user.id,
-      display_name:
+      full_name:
         user.user_metadata?.full_name ||
         user.user_metadata?.name ||
         user.email,

@@ -117,7 +117,10 @@ if (lastSnapshot) {
 }
 
 
-  if (totalSubsUsed > 80) return;
+if (totalSubsUsed > 80) {
+  subsUsed = 0;
+  totalSubsUsed = 80;
+}
 
   const { data: snapshot, error } = await supabase
     .from("user_match_teams")
