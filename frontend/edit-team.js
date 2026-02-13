@@ -35,6 +35,7 @@ const myXI = document.getElementById("myXIList");
 const pool = document.getElementById("playerPoolList");
 
 const saveBar = document.querySelector(".save-bar");
+const saveBtn = document.querySelector(".save-btn");
 const summary = document.querySelector(".team-summary");
 
 const toggleButtons = document.querySelectorAll(".toggle-btn");
@@ -156,7 +157,6 @@ function renderMyXI() {
         <strong>${player.name}</strong>
         <span>${player.role} · ${player.credit} cr</span>
       </div>
-
       <div style="display:flex; gap:6px;">
         <button class="cv-btn ${isCaptain ? "active" : ""}">C</button>
         <button class="cv-btn ${isVice ? "active" : ""}">VC</button>
@@ -229,10 +229,7 @@ function canAddPlayer(player) {
 }
 
 function getCreditsUsed() {
-  return selectedPlayers.reduce(
-    (sum, p) => sum + Number(p.credit),
-    0
-  );
+  return selectedPlayers.reduce((sum, p) => sum + Number(p.credit), 0);
 }
 
 function getRoleCount() {
@@ -244,8 +241,7 @@ function getRoleCount() {
 function getTeamCount() {
   const count = {};
   selectedPlayers.forEach(p => {
-    count[p.real_team_id] =
-      (count[p.real_team_id] || 0) + 1;
+    count[p.real_team_id] = (count[p.real_team_id] || 0) + 1;
   });
   return count;
 }
@@ -258,29 +254,9 @@ function updateSummary() {
   const credits = getCreditsUsed();
   const roles = getRoleCount();
 
-  let subsHTML = "";
-
-  if (isFirstLock) {
-    subsHTML = `<div><strong>Subs:</strong> Unlimited</div>`;
-  } else {
-    const subsUsed = selectedPlayers
-      .map(p => p.id)
-      .filter(id => !lastLockedPlayers.includes(id)).length;
-
-    const remaining = 80 - lastTotalSubsUsed;
-
-    subsHTML = `
-      <div>
-        <strong>Subs Used:</strong> ${subsUsed} |
-        <strong>Remaining:</strong> ${remaining}
-      </div>
-    `;
-  }
-
   summary.innerHTML = `
     <div>Credits: ${credits} / 100</div>
     <div>WK ${roles.WK} | BAT ${roles.BAT} | AR ${roles.AR} | BOWL ${roles.BOWL}</div>
-    ${subsHTML}
   `;
 
   validateSave(roles, credits);
@@ -311,32 +287,74 @@ function validateSave(roles, credits) {
 }
 
 /* =========================
-   SNAPSHOT
+   SAVE TEAM
 ========================= */
 
-async function loadLastLockedSnapshot(userId) {
-  const { data } = await supabase
-    .from("user_match_teams")
-    .select("id, total_subs_used")
-    .eq("user_id", userId)
-    .order("locked_at", { ascending: false })
-    .limit(1)
+saveBtn.addEventListener("click", async () => {
+  if (!saveBar.classList.contains("enabled")) return;
+  await saveTeamToDatabase();
+});
+
+async function saveTeamToDatabase() {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const { data: existingTeam } = await supabase
+    .from("user_fantasy_teams")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("tournament_id", TOURNAMENT_ID)
     .maybeSingle();
 
-  if (!data) {
-    isFirstLock = true;
-    return;
+  let teamId;
+  const totalCredits = getCreditsUsed();
+
+  if (!existingTeam) {
+    const { data: newTeam } = await supabase
+      .from("user_fantasy_teams")
+      .insert({
+        user_id: user.id,
+        tournament_id: TOURNAMENT_ID,
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .select()
+      .single();
+
+    teamId = newTeam.id;
+
+  } else {
+    teamId = existingTeam.id;
+
+    await supabase
+      .from("user_fantasy_teams")
+      .update({
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .eq("id", teamId);
   }
 
-  isFirstLock = false;
-  lastTotalSubsUsed = data.total_subs_used;
+  await supabase
+    .from("user_fantasy_team_players")
+    .delete()
+    .eq("user_fantasy_team_id", teamId);
 
-  const { data: players } = await supabase
-    .from("user_match_team_players")
-    .select("player_id")
-    .eq("user_match_team_id", data.id);
+  const playerRows = selectedPlayers.map(p => ({
+    user_fantasy_team_id: teamId,
+    player_id: p.id
+  }));
 
-  lastLockedPlayers = players.map(p => String(p.player_id));
+  await supabase
+    .from("user_fantasy_team_players")
+    .insert(playerRows);
+
+  saveBtn.textContent = "Saved ✓";
+  setTimeout(() => {
+    saveBtn.textContent = "Save Team";
+  }, 1500);
 }
 
 /* =========================
@@ -366,6 +384,7 @@ async function loadSavedSeasonTeam() {
 
   const ids = players.map(p => String(p.player_id));
   selectedPlayers = allPlayers.filter(p => ids.includes(p.id));
+
   updateUI();
 }
 
