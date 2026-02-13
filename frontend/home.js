@@ -11,7 +11,6 @@ const rankElement = document.getElementById("userRank");
 const subsElement = document.getElementById("subsRemaining");
 const matchTeamsElement = document.getElementById("matchTeams");
 const matchTimeElement = document.getElementById("matchTime");
-const leaderboardContainer = document.getElementById("leaderboardContainer");
 const tournamentNameElement = document.getElementById("tournamentName");
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
@@ -19,19 +18,37 @@ const viewXiBtn = document.getElementById("viewXiBtn");
 let countdownInterval;
 
 /* =========================
-   INIT
+   INIT (With New User Fix)
 ========================= */
 async function initHome() {
+  // 1. Wait a split second to let the Google login "land"
+  await new Promise(resolve => setTimeout(resolve, 500));
+
   const { data: { session } } = await supabase.auth.getSession();
   
+  // 2. If no session, wait for an auth change event (back-up for slow connections)
   if (!session) {
-    window.location.href = "login.html";
-    return;
+    supabase.auth.onAuthStateChange((event, newSession) => {
+      if (newSession) {
+        startDashboard(newSession.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        window.location.href = "login.html";
+      }
+    });
+    
+    // Final check: if still nothing, go to login
+    const finalCheck = await supabase.auth.getSession();
+    if (!finalCheck.data.session) {
+        window.location.href = "login.html";
+        return;
+    }
+  } else {
+    startDashboard(session.user.id);
   }
+}
 
-  const userId = session.user.id;
-
-  // Reveal dashboard and hide any loaders immediately
+async function startDashboard(userId) {
+  // Reveal dashboard and hide loader
   document.querySelector('.app-container').style.visibility = 'visible';
   const loader = document.getElementById('loadingOverlay');
   if (loader) loader.style.display = 'none';
@@ -41,7 +58,7 @@ async function initHome() {
 }
 
 /* =========================
-   PROFILE (NON-BLOCKING)
+   PROFILE LOGIC
 ========================= */
 async function loadProfile(userId) {
   const { data: profile } = await supabase
@@ -50,12 +67,12 @@ async function loadProfile(userId) {
     .eq("user_id", userId)
     .maybeSingle();
 
-  // If no profile, we just use defaults
   if (profile) {
     renderProfile(profile);
   } else {
+    // New User default view
     welcomeText.textContent = "Welcome back, Expert";
-    teamNameElement.textContent = "Set your team name";
+    teamNameElement.textContent = "Set your team name in 'More'";
   }
 }
 
@@ -86,6 +103,7 @@ async function loadDashboard(userId) {
   if (!activeTournament) return;
   tournamentNameElement.textContent = activeTournament.name;
 
+  // Pulling live stats from your dashboard_summary table
   const { data: summary } = await supabase
     .from("dashboard_summary")
     .select("*")
@@ -94,6 +112,9 @@ async function loadDashboard(userId) {
     .maybeSingle();
 
   scoreElement.textContent = summary?.total_points ?? 0;
+  // Use 'rank' if available, otherwise keep the default dash
+  rankElement.textContent = summary?.rank ? `#${summary.rank}` : "—";
+  subsElement.textContent = summary?.subs_remaining ?? 80;
 
   const { data: upcomingMatch } = await supabase
     .from("matches")
@@ -118,18 +139,21 @@ async function loadDashboard(userId) {
     startCountdown(upcomingMatch.start_time);
   } else {
     matchTeamsElement.textContent = "No upcoming match";
+    matchTimeElement.textContent = "Stay tuned!";
   }
 }
 
 function startCountdown(startTime) {
-  clearInterval(countdownInterval);
+  if (countdownInterval) clearInterval(countdownInterval);
   const matchTime = new Date(startTime).getTime();
+  
   function updateCountdown() {
     const now = new Date().getTime();
     const distance = matchTime - now;
     if (distance <= 0) {
       clearInterval(countdownInterval);
-      matchTimeElement.textContent = "Match Starting"; return;
+      matchTimeElement.textContent = "Match Starting"; 
+      return;
     }
     const hours = Math.floor(distance / (1000 * 60 * 60));
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
