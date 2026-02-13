@@ -2,107 +2,289 @@ import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
-// =========================
-// GLOBAL STATE
-// =========================
+/* =========================
+   TEAM RULES
+========================= */
+
+const MAX_PLAYERS = 11;
+const MAX_CREDITS = 100;
+const MAX_PER_TEAM = 6;
+
+const ROLE_MIN = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+const ROLE_MAX = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
+
+/* =========================
+   STATE
+========================= */
+
+let selectedPlayers = [];
+let allPlayers = [];
 let lastLockedPlayers = [];
 let lastTotalSubsUsed = 0;
 let isFirstLock = true;
 
-// =========================
-// AUTH
-// =========================
+/* =========================
+   DOM
+========================= */
+
+const myXI = document.querySelector(".myxi-mode .player-list");
+const pool = document.querySelector(".change-mode .player-list");
+const saveBtn = document.querySelector(".save-btn");
+const saveBar = document.querySelector(".save-bar");
+const summary = document.querySelector(".team-summary");
+
+/* =========================
+   AUTH
+========================= */
+
 async function getCurrentUser() {
   const { data } = await supabase.auth.getUser();
   return data.user;
 }
 
-// =========================
-// DOM
-// =========================
-const toggleButtons = document.querySelectorAll(".toggle-btn");
-const editModes = document.querySelectorAll(".edit-mode");
-const myXI = document.querySelector(".myxi-mode .player-list");
-const pool = document.querySelector(".change-mode .player-list");
-const saveBtn = document.querySelector(".save-btn");
+/* =========================
+   INIT
+========================= */
 
-// =========================
-// MODE TOGGLE
-// =========================
-toggleButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    toggleButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+async function init() {
+  const user = await getCurrentUser();
+  if (!user) return;
 
-    editModes.forEach(m => m.classList.remove("active"));
-    document.querySelector(`.${btn.dataset.mode}-mode`)?.classList.add("active");
+  await loadLastLockedSnapshot(user.id);
+  await loadPlayers();
+  await loadSavedSeasonTeam();
+  updateUI();
+}
 
-    updateSummary();
-  });
-});
+init();
 
-// =========================
-// CAPTAIN / VC
-// =========================
-document.addEventListener("click", e => {
-  const t = e.target;
+/* =========================
+   LOAD PLAYERS
+========================= */
 
-  if (t.classList.contains("btn-captain")) {
-    document.querySelectorAll(".btn-captain.active")
-      .forEach(b => b.classList.remove("active"));
-    t.classList.add("active");
-  }
+async function loadPlayers() {
+  const { data } = await supabase
+    .from("players")
+    .select("id, name, role, credit, real_team_id")
+    .eq("is_active", true);
 
-  if (t.classList.contains("btn-vice")) {
-    document.querySelectorAll(".btn-vice.active")
-      .forEach(b => b.classList.remove("active"));
-    t.classList.add("active");
-  }
-});
+  allPlayers = data;
+  renderPool();
+}
 
-// =========================
-// ADD / REMOVE
-// =========================
-document.addEventListener("click", e => {
-  const t = e.target;
+/* =========================
+   RENDER POOL
+========================= */
 
-  if (t.classList.contains("btn-add")) {
-    const card = t.closest(".player-card");
-    card.classList.add("selected");
-    t.remove();
+function renderPool() {
+  pool.innerHTML = "";
 
-    const actions = document.createElement("div");
-    actions.className = "player-actions";
-    actions.innerHTML = `
-      <button class="btn-captain">C</button>
-      <button class="btn-vice">VC</button>
-      <button class="btn-remove">−</button>
-    `;
-
-    card.appendChild(actions);
-    myXI.appendChild(card);
-    updateSummary();
-  }
-
-  if (t.classList.contains("btn-remove")) {
-    const card = t.closest(".player-card");
-
-    card.classList.remove("selected");
-    card.querySelector(".player-actions")?.remove();
-
-    const addBtn = document.createElement("button");
-    addBtn.className = "btn-add";
-    addBtn.textContent = "+";
-    card.appendChild(addBtn);
-
+  allPlayers.forEach(player => {
+    const card = createPlayerCard(player);
     pool.appendChild(card);
-    updateSummary();
-  }
-});
+  });
+}
 
-// =========================
-// LOAD LAST LOCKED SNAPSHOT
-// =========================
+/* =========================
+   CREATE CARD
+========================= */
+
+function createPlayerCard(player) {
+  const card = document.createElement("div");
+  card.className = "player-card";
+  card.dataset.id = player.id;
+
+  card.innerHTML = `
+    <div class="player-info">
+      <strong>${player.name}</strong>
+      <span>${player.role} · ${player.credit} cr</span>
+    </div>
+    <button class="action-btn"></button>
+  `;
+
+  updateCardState(card, player);
+
+  return card;
+}
+
+/* =========================
+   UPDATE CARD STATE
+========================= */
+
+function updateCardState(card, player) {
+  const btn = card.querySelector(".action-btn");
+  const isSelected = selectedPlayers.some(p => p.id === player.id);
+
+  if (isSelected) {
+    btn.textContent = "Remove";
+    btn.className = "action-btn remove";
+    btn.onclick = () => removePlayer(player.id);
+  } else {
+    btn.textContent = "Add";
+    btn.className = "action-btn add";
+
+    if (canAddPlayer(player)) {
+      btn.disabled = false;
+      btn.onclick = () => addPlayer(player);
+    } else {
+      btn.disabled = true;
+    }
+  }
+}
+
+/* =========================
+   ADD PLAYER
+========================= */
+
+function addPlayer(player) {
+  if (!canAddPlayer(player)) return;
+
+  selectedPlayers.push(player);
+  updateUI();
+}
+
+/* =========================
+   REMOVE PLAYER
+========================= */
+
+function removePlayer(playerId) {
+  selectedPlayers = selectedPlayers.filter(p => p.id !== playerId);
+  updateUI();
+}
+
+/* =========================
+   VALIDATION
+========================= */
+
+function canAddPlayer(player) {
+  if (selectedPlayers.length >= MAX_PLAYERS) return false;
+
+  const creditsUsed = getCreditsUsed();
+  if (creditsUsed + Number(player.credit) > MAX_CREDITS) return false;
+
+  const roleCount = getRoleCount();
+  if (roleCount[player.role] >= ROLE_MAX[player.role]) return false;
+
+  const teamCount = getTeamCount();
+  if (teamCount[player.real_team_id] >= MAX_PER_TEAM) return false;
+
+  return true;
+}
+
+function getCreditsUsed() {
+  return selectedPlayers.reduce((sum, p) => sum + Number(p.credit), 0);
+}
+
+function getRoleCount() {
+  const count = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+  selectedPlayers.forEach(p => count[p.role]++);
+  return count;
+}
+
+function getTeamCount() {
+  const count = {};
+  selectedPlayers.forEach(p => {
+    count[p.real_team_id] = (count[p.real_team_id] || 0) + 1;
+  });
+  return count;
+}
+
+/* =========================
+   UI UPDATE
+========================= */
+
+function updateUI() {
+  renderMyXI();
+  renderPool();
+  updateSummary();
+}
+
+/* =========================
+   RENDER MY XI
+========================= */
+
+function renderMyXI() {
+  myXI.innerHTML = "";
+
+  selectedPlayers.forEach(player => {
+    const card = document.createElement("div");
+    card.className = "player-card selected";
+    card.innerHTML = `
+      <div class="player-info">
+        <strong>${player.name}</strong>
+        <span>${player.role} · ${player.credit} cr</span>
+      </div>
+      <button class="action-btn remove">Remove</button>
+    `;
+    card.querySelector("button").onclick = () => removePlayer(player.id);
+    myXI.appendChild(card);
+  });
+}
+
+/* =========================
+   SUMMARY
+========================= */
+
+function updateSummary() {
+  const credits = getCreditsUsed();
+  const roleCount = getRoleCount();
+
+  let subsHTML = "";
+
+  if (isFirstLock) {
+    subsHTML = `<div><strong>Subs:</strong> Unlimited</div>`;
+  } else {
+    const subsUsed = selectedPlayers
+      .map(p => p.id)
+      .filter(id => !lastLockedPlayers.includes(id)).length;
+
+    const remaining = 80 - lastTotalSubsUsed;
+
+    subsHTML = `
+      <div>
+        <strong>Subs Used:</strong> ${subsUsed} |
+        <strong>Remaining:</strong> ${remaining}
+      </div>
+    `;
+  }
+
+  summary.innerHTML = `
+    <div>Credits: ${credits} / 100</div>
+    <div>WK ${roleCount.WK} | BAT ${roleCount.BAT} | AR ${roleCount.AR} | BOWL ${roleCount.BOWL}</div>
+    ${subsHTML}
+  `;
+
+  validateSaveButton(roleCount, credits);
+}
+
+/* =========================
+   SAVE VALIDATION
+========================= */
+
+function validateSaveButton(roleCount, credits) {
+  let valid = true;
+
+  if (selectedPlayers.length !== 11) valid = false;
+  if (credits > MAX_CREDITS) valid = false;
+
+  for (let role in ROLE_MIN) {
+    if (roleCount[role] < ROLE_MIN[role]) valid = false;
+  }
+
+  if (!valid) {
+    saveBar.classList.add("disabled");
+    saveBar.classList.remove("enabled");
+    return;
+  }
+
+  saveBar.classList.add("enabled");
+  saveBar.classList.remove("disabled");
+}
+
+/* =========================
+   LAST LOCKED SNAPSHOT
+========================= */
+
 async function loadLastLockedSnapshot(userId) {
   const { data: snapshot } = await supabase
     .from("user_match_teams")
@@ -128,128 +310,10 @@ async function loadLastLockedSnapshot(userId) {
   lastLockedPlayers = players.map(p => String(p.player_id));
 }
 
-// =========================
-// SUMMARY
-// =========================
-function updateSummary() {
-  const players = myXI.querySelectorAll(".player-card");
-  const summary = document.querySelector(".team-summary");
-  const saveBar = document.querySelector(".save-bar");
+/* =========================
+   LOAD SAVED TEAM
+========================= */
 
-  let credits = 0;
-  let roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-
-  players.forEach(p => {
-    credits += Number(p.dataset.credit);
-    roles[p.dataset.role]++;
-  });
-
-  const hasC = document.querySelector(".btn-captain.active");
-  const hasVC = document.querySelector(".btn-vice.active");
-
-  // =========================
-  // SUB CALCULATION
-  // =========================
-  let subsUsed = 0;
-  let remainingSubs = 80 - lastTotalSubsUsed;
-
-  if (!isFirstLock) {
-    const currentPlayers = [...players].map(p => p.dataset.id);
-    subsUsed = currentPlayers.filter(
-      p => !lastLockedPlayers.includes(p)
-    ).length;
-  }
-
-  let subsHTML = "";
-
-  if (isFirstLock) {
-    subsHTML = `
-      <div style="margin-top:8px;">
-        <strong>Subs:</strong> Unlimited (before first match lock)
-      </div>
-    `;
-  } else {
-    subsHTML = `
-      <div style="margin-top:8px;">
-        <strong>Subs Used:</strong> ${subsUsed}
-        &nbsp; | &nbsp;
-        <strong>Remaining:</strong> ${remainingSubs}
-      </div>
-    `;
-  }
-
-  summary.innerHTML = `
-    <div style="display:flex; justify-content:space-between;">
-      <span>Credits</span>
-      <strong>${credits.toFixed(1)} / 100</strong>
-    </div>
-    <div style="display:flex; justify-content:space-between; margin-top:6px;">
-      <span>WK ${roles.WK}</span>
-      <span>BAT ${roles.BAT}</span>
-      <span>AR ${roles.AR}</span>
-      <span>BOWL ${roles.BOWL}</span>
-    </div>
-    ${subsHTML}
-  `;
-
-  let canSave = players.length === 11 && credits <= 100 && hasC && hasVC;
-
-  if (!isFirstLock) {
-    if (subsUsed > remainingSubs) {
-      canSave = false;
-    }
-  }
-
-  if (canSave) {
-    saveBar.classList.add("enabled");
-    saveBar.classList.remove("disabled");
-    saveBtn.textContent = "Save team";
-  } else {
-    saveBar.classList.add("disabled");
-    saveBar.classList.remove("enabled");
-    saveBtn.textContent = "Fix your XI to save";
-  }
-}
-
-// =========================
-// LOAD PLAYERS
-// =========================
-async function loadPlayers() {
-  const { data, error } = await supabase
-    .from("players")
-    .select("id, name, role, credit")
-    .eq("is_active", true)
-    .order("credit", { ascending: false });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  pool.innerHTML = "";
-
-  data.forEach(player => {
-    const card = document.createElement("div");
-    card.className = "player-card";
-    card.dataset.id = player.id;
-    card.dataset.role = player.role;
-    card.dataset.credit = player.credit;
-
-    card.innerHTML = `
-      <div class="player-info">
-        <strong>${player.name}</strong>
-        <span>${player.role} · ${player.credit} cr</span>
-      </div>
-      <button class="btn-add">+</button>
-    `;
-
-    pool.appendChild(card);
-  });
-}
-
-// =========================
-// LOAD SAVED TEAM
-// =========================
 async function loadSavedSeasonTeam() {
   const user = await getCurrentUser();
   if (!user) return;
@@ -269,146 +333,6 @@ async function loadSavedSeasonTeam() {
     .eq("user_fantasy_team_id", team.id);
 
   const savedIds = players.map(p => String(p.player_id));
-
-  document.querySelectorAll(".change-mode .player-card")
-    .forEach(card => {
-      if (savedIds.includes(card.dataset.id)) {
-        card.classList.add("selected");
-        card.querySelector(".btn-add")?.remove();
-
-        const actions = document.createElement("div");
-        actions.className = "player-actions";
-        actions.innerHTML = `
-          <button class="btn-captain">C</button>
-          <button class="btn-vice">VC</button>
-          <button class="btn-remove">−</button>
-        `;
-
-        card.appendChild(actions);
-        myXI.appendChild(card);
-      }
-    });
-
-  myXI.querySelectorAll(".player-card").forEach(card => {
-    if (card.dataset.id === String(team.captain_id)) {
-      card.querySelector(".btn-captain")?.classList.add("active");
-    }
-    if (card.dataset.id === String(team.vice_captain_id)) {
-      card.querySelector(".btn-vice")?.classList.add("active");
-    }
-  });
-
-  updateSummary();
-}
-
-// =========================
-// SAVE
-// =========================
-async function saveSeasonTeam() {
-  const user = await getCurrentUser();
-  if (!user) return;
-
-  const players = myXI.querySelectorAll(".player-card");
-
-  const playerIds = [];
-  let totalCredits = 0;
-  let captainId = null;
-  let viceCaptainId = null;
-
-  players.forEach(card => {
-    playerIds.push(card.dataset.id);
-    totalCredits += Number(card.dataset.credit);
-
-    if (card.querySelector(".btn-captain.active")) captainId = card.dataset.id;
-    if (card.querySelector(".btn-vice.active")) viceCaptainId = card.dataset.id;
-  });
-
-  if (!isFirstLock) {
-    const currentPlayers = [...players].map(p => p.dataset.id);
-    const subsUsed = currentPlayers.filter(
-      p => !lastLockedPlayers.includes(p)
-    ).length;
-
-    const remainingSubs = 80 - lastTotalSubsUsed;
-
-    if (subsUsed > remainingSubs) {
-      alert(`You only have ${remainingSubs} substitutions remaining.`);
-      return;
-    }
-  }
-
-  const { data: existing } = await supabase
-    .from("user_fantasy_teams")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("tournament_id", TOURNAMENT_ID)
-    .maybeSingle();
-
-  let teamId;
-
-  if (existing) {
-    await supabase
-      .from("user_fantasy_teams")
-      .update({
-        captain_id: captainId,
-        vice_captain_id: viceCaptainId,
-        total_credits: totalCredits,
-      })
-      .eq("id", existing.id);
-
-    await supabase
-      .from("user_fantasy_team_players")
-      .delete()
-      .eq("user_fantasy_team_id", existing.id);
-
-    teamId = existing.id;
-  } else {
-    const { data } = await supabase
-      .from("user_fantasy_teams")
-      .insert({
-        user_id: user.id,
-        tournament_id: TOURNAMENT_ID,
-        captain_id: captainId,
-        vice_captain_id: viceCaptainId,
-        total_credits: totalCredits,
-      })
-      .select()
-      .single();
-
-    teamId = data.id;
-  }
-
-  const rows = playerIds.map(id => ({
-    user_fantasy_team_id: teamId,
-    player_id: id,
-  }));
-
-  await supabase.from("user_fantasy_team_players").insert(rows);
-
-  alert("Team saved successfully.");
-}
-
-// =========================
-// INIT
-// =========================
-async function init() {
-  const user = await getCurrentUser();
-  if (!user) return;
-
-  await loadLastLockedSnapshot(user.id);
-  await loadPlayers();
-  await loadSavedSeasonTeam();
-}
-
-init();
-
-if (saveBtn) {
-  saveBtn.addEventListener("click", async () => {
-    const saveBar = saveBtn.closest(".save-bar");
-    if (!saveBar.classList.contains("enabled")) return;
-
-    saveBtn.disabled = true;
-    await saveSeasonTeam();
-    saveBtn.disabled = false;
-  });
+  selectedPlayers = allPlayers.filter(p => savedIds.includes(p.id));
+  updateUI();
 }
