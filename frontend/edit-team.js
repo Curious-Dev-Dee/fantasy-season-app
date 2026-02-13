@@ -27,17 +27,15 @@ let lastLockedPlayers = [];
 let lastTotalSubsUsed = 0;
 let isFirstLock = true;
 
-/* ===== FILTER STATE ===== */
+let teamMap = {};
 
 let filters = {
   search: "",
   role: "ALL",
   teams: [],
   credit: null,
-  upcomingOnly: false
+  selectedMatchTeamIds: []
 };
-
-let nextMatchTeamIds = [];
 
 /* =========================
    DOM
@@ -119,7 +117,8 @@ async function init() {
   if (!user) return;
 
   await loadPlayers();
-  await loadNextMatchTeams();
+  await loadTeams();
+  await loadNextMatches();
   await loadLastLockedSnapshot(user.id);
   await loadSavedSeasonTeam(user.id);
 
@@ -145,76 +144,80 @@ async function loadPlayers() {
 }
 
 /* =========================
-   NEXT MATCH
+   LOAD TEAMS
 ========================= */
 
-async function loadNextMatchTeams() {
+async function loadTeams() {
+  const { data } = await supabase
+    .from("real_teams")
+    .select("id, short_code");
+
+  if (!data) return;
+
+  data.forEach(team => {
+    teamMap[team.id] = team.short_code;
+  });
+}
+
+/* =========================
+   LOAD NEXT 5 MATCHES
+========================= */
+
+async function loadNextMatches() {
   const { data } = await supabase
     .from("matches")
     .select("*")
     .eq("status", "upcoming")
     .order("start_time", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .limit(5);
 
   if (!data) return;
 
-  nextMatchTeamIds = [data.team_a_id, data.team_b_id];
+  buildMatchDropdown(data);
 }
 
 /* =========================
-   LOAD LOCK SNAPSHOT
+   BUILD MATCH DROPDOWN
 ========================= */
 
-async function loadLastLockedSnapshot(userId) {
-  const { data } = await supabase
-    .from("user_match_teams")
-    .select("id, total_subs_used")
-    .eq("user_id", userId)
-    .order("locked_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+function buildMatchDropdown(matches) {
+  if (!matchMenu) return;
 
-  if (!data) {
-    isFirstLock = true;
-    return;
-  }
+  matchMenu.innerHTML = "";
 
-  isFirstLock = false;
-  lastTotalSubsUsed = data.total_subs_used;
+  matches.forEach(match => {
 
-  const { data: players } = await supabase
-    .from("user_match_team_players")
-    .select("player_id")
-    .eq("user_match_team_id", data.id);
+    const teamA = teamMap[match.team_a_id] || "T1";
+    const teamB = teamMap[match.team_b_id] || "T2";
 
-  lastLockedPlayers = players ? players.map(p => p.player_id) : [];
-}
+    const div = document.createElement("div");
+    div.textContent = `${teamA} vs ${teamB}`;
 
-/* =========================
-   LOAD SAVED TEAM
-========================= */
+    div.addEventListener("click", () => {
 
-async function loadSavedSeasonTeam(userId) {
-  const { data: team } = await supabase
-    .from("user_fantasy_teams")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("tournament_id", TOURNAMENT_ID)
-    .maybeSingle();
+      const teams = [match.team_a_id, match.team_b_id];
 
-  if (!team) return;
+      const alreadySelected =
+        filters.selectedMatchTeamIds.some(id =>
+          teams.includes(id)
+        );
 
-  captainId = team.captain_id;
-  viceCaptainId = team.vice_captain_id;
+      if (alreadySelected) {
+        filters.selectedMatchTeamIds =
+          filters.selectedMatchTeamIds.filter(
+            id => !teams.includes(id)
+          );
+        div.style.background = "";
+      } else {
+        filters.selectedMatchTeamIds.push(...teams);
+        div.style.background = "#9be15d33";
+      }
 
-  const { data: players } = await supabase
-    .from("user_fantasy_team_players")
-    .select("player_id")
-    .eq("user_fantasy_team_id", team.id);
+      renderAll();
+    });
 
-  const ids = players ? players.map(p => p.player_id) : [];
-  selectedPlayers = allPlayers.filter(p => ids.includes(p.id));
+    matchMenu.appendChild(div);
+  });
 }
 
 /* =========================
@@ -225,11 +228,12 @@ function buildTeamDropdown() {
   if (!teamMenu) return;
 
   const uniqueTeams = [...new Set(allPlayers.map(p => p.real_team_id))];
+
   teamMenu.innerHTML = "";
 
   uniqueTeams.forEach(teamId => {
     const div = document.createElement("div");
-    div.textContent = teamId;
+    div.textContent = teamMap[teamId] || teamId;
 
     div.addEventListener("click", () => {
       if (filters.teams.includes(teamId)) {
@@ -292,25 +296,16 @@ if (searchInput) {
 
 document.querySelectorAll(".role-filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
+
     document.querySelectorAll(".role-filter-btn")
       .forEach(b => b.classList.remove("active"));
 
     btn.classList.add("active");
     filters.role = btn.dataset.role;
+
     renderAll();
   });
 });
-
-if (matchMenu) {
-  matchMenu.querySelectorAll("div").forEach(div => {
-    div.addEventListener("click", () => {
-      const type = div.dataset.match;
-      filters.upcomingOnly = type === "next";
-      matchMenu.classList.remove("show");
-      renderAll();
-    });
-  });
-}
 
 /* =========================
    APPLY FILTERS
@@ -335,8 +330,8 @@ function applyFilters(players) {
         Number(p.credit) !== filters.credit)
       return false;
 
-    if (filters.upcomingOnly &&
-        !nextMatchTeamIds.includes(p.real_team_id))
+    if (filters.selectedMatchTeamIds.length &&
+        !filters.selectedMatchTeamIds.includes(p.real_team_id))
       return false;
 
     return true;
@@ -392,10 +387,6 @@ function renderPool() {
     pool.appendChild(card);
   });
 }
-
-/* =========================
-   MY XI RENDER
-========================= */
 
 function renderMyXI() {
   myXI.innerHTML = "";
@@ -530,93 +521,3 @@ function renderSummary() {
 
   validateSave(roleCount, credits);
 }
-
-/* =========================
-   SAVE VALIDATION
-========================= */
-
-function validateSave(roleCount, credits) {
-  let valid = true;
-
-  if (selectedPlayers.length !== 11) valid = false;
-  if (!captainId || !viceCaptainId) valid = false;
-  if (credits > MAX_CREDITS) valid = false;
-
-  for (let r in ROLE_MIN) {
-    if (roleCount[r] < ROLE_MIN[r]) valid = false;
-  }
-
-  saveBar.classList.toggle("enabled", valid);
-  saveBar.classList.toggle("disabled", !valid);
-}
-
-/* =========================
-   SAVE
-========================= */
-
-saveBtn.addEventListener("click", async () => {
-  if (!saveBar.classList.contains("enabled")) return;
-
-  const user = await getCurrentUser();
-  if (!user) return;
-
-  const totalCredits = selectedPlayers.reduce(
-    (sum, p) => sum + Number(p.credit),
-    0
-  );
-
-  const { data: existing } = await supabase
-    .from("user_fantasy_teams")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("tournament_id", TOURNAMENT_ID)
-    .maybeSingle();
-
-  let teamId;
-
-  if (!existing) {
-    const { data: newTeam } = await supabase
-      .from("user_fantasy_teams")
-      .insert({
-        user_id: user.id,
-        tournament_id: TOURNAMENT_ID,
-        captain_id: captainId,
-        vice_captain_id: viceCaptainId,
-        total_credits: totalCredits
-      })
-      .select()
-      .single();
-
-    teamId = newTeam.id;
-  } else {
-    teamId = existing.id;
-
-    await supabase
-      .from("user_fantasy_teams")
-      .update({
-        captain_id: captainId,
-        vice_captain_id: viceCaptainId,
-        total_credits: totalCredits
-      })
-      .eq("id", teamId);
-  }
-
-  await supabase
-    .from("user_fantasy_team_players")
-    .delete()
-    .eq("user_fantasy_team_id", teamId);
-
-  const rows = selectedPlayers.map(p => ({
-    user_fantasy_team_id: teamId,
-    player_id: p.id
-  }));
-
-  await supabase
-    .from("user_fantasy_team_players")
-    .insert(rows);
-
-  saveBtn.textContent = "Saved ✓";
-  setTimeout(() => {
-    saveBtn.textContent = "Save Team";
-  }, 1200);
-});
