@@ -5,20 +5,27 @@ import { supabase } from "./supabase.js";
 ========================= */
 const modal = document.getElementById("profileModal");
 const saveBtn = document.getElementById("saveProfileBtn");
+
 const fullNameInput = document.getElementById("fullNameInput");
 const teamNameInput = document.getElementById("teamNameInput");
 const teamPhotoInput = document.getElementById("teamPhotoInput");
+
 const avatarElement = document.getElementById("teamAvatar");
 const welcomeText = document.getElementById("welcomeText");
 const teamNameElement = document.getElementById("userTeamName");
+
 const scoreElement = document.getElementById("userScore");
 const rankElement = document.getElementById("userRank");
 const subsElement = document.getElementById("subsRemaining");
+
 const matchTeamsElement = document.getElementById("matchTeams");
 const matchTimeElement = document.getElementById("matchTime");
+
 const leaderboardContainer = document.getElementById("leaderboardContainer");
 const leaderboardLink = document.getElementById("leaderboardLink");
+
 const tournamentNameElement = document.getElementById("tournamentName");
+
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
 
@@ -29,30 +36,29 @@ let countdownInterval;
 ========================= */
 async function initHome() {
   const { data: { session } } = await supabase.auth.getSession();
-  // If no session, redirect to login page immediately
   if (!session) {
     window.location.href = "login.html"; 
     return;
   }
 
   const userId = session.user.id;
+
   await loadProfile(userId);
   await loadDashboard(userId);
 }
 
 /* =========================
-   PROFILE LOGIC
+   PROFILE
 ========================= */
 async function loadProfile(userId) {
-  // Fetch profile
   const { data: profile } = await supabase
     .from("user_profiles")
     .select("*")
     .eq("user_id", userId)
     .maybeSingle();
 
-  // FIX: If profile doesn't exist (!) or is incomplete, show the modal
-  if (!profile || profile.profile_completed === false) {
+  // Trigger popup if no record exists OR profile_completed is false
+  if (!profile || !profile.profile_completed) {
     modal.classList.remove("hidden");
   } else {
     renderProfile(profile);
@@ -68,6 +74,7 @@ function renderProfile(profile) {
     const { data } = supabase.storage
       .from("team-avatars")
       .getPublicUrl(profile.team_photo_url);
+
     avatarElement.style.backgroundImage = `url(${data.publicUrl})`;
     avatarElement.style.backgroundSize = "cover";
     avatarElement.style.backgroundPosition = "center";
@@ -78,11 +85,12 @@ function renderProfile(profile) {
 saveBtn.addEventListener("click", async () => {
   const { data: { session } } = await supabase.auth.getSession();
   const userId = session?.user.id;
+
   const fullName = fullNameInput.value.trim();
   const teamName = teamNameInput.value.trim();
 
   if (!fullName || !teamName) {
-    alert("Please enter your Name and Team Name.");
+    alert("Please fill in both Name and Team Name.");
     return;
   }
 
@@ -90,7 +98,7 @@ saveBtn.addEventListener("click", async () => {
   saveBtn.textContent = "Saving...";
 
   try {
-    // Upsert handles both new users and updating existing incomplete profiles
+    // We only send columns that actually exist in your table
     const { error } = await supabase
       .from("user_profiles")
       .upsert({
@@ -98,22 +106,23 @@ saveBtn.addEventListener("click", async () => {
         full_name: fullName,
         team_name: teamName,
         profile_completed: true,
-        updated_at: new Date()
+        is_active: true
       });
 
     if (error) throw error;
 
     modal.classList.add("hidden");
-    location.reload(); // Reload to refresh all dashboard data with new profile info
+    location.reload(); 
+
   } catch (error) {
-    alert("Error: " + error.message);
+    alert("Error saving profile: " + error.message);
     saveBtn.disabled = false;
     saveBtn.textContent = "Save & Continue";
   }
 });
 
 /* =========================
-   DASHBOARD & OTHER LOGIC
+   DASHBOARD
 ========================= */
 async function loadDashboard(userId) {
   const { data: activeTournament } = await supabase
@@ -122,19 +131,19 @@ async function loadDashboard(userId) {
     .maybeSingle();
 
   if (!activeTournament) return;
+
   const tournamentId = activeTournament.id;
   tournamentNameElement.textContent = activeTournament.name;
 
-  // SUMMARY
   const { data: summary } = await supabase
     .from("dashboard_summary")
     .select("*")
     .eq("user_id", userId)
     .eq("tournament_id", tournamentId)
     .maybeSingle();
+
   scoreElement.textContent = summary?.total_points ?? 0;
 
-  // SUBS LOGIC
   const { data: lastSnapshot } = await supabase
     .from("user_match_teams")
     .select("total_subs_used")
@@ -152,7 +161,6 @@ async function loadDashboard(userId) {
     remaining <= 0 ? disableEditButton() : enableEditButton();
   }
 
-  // UPCOMING MATCH
   const { data: upcomingMatch } = await supabase
     .from("matches")
     .select("*")
@@ -176,9 +184,9 @@ async function loadDashboard(userId) {
     startCountdown(upcomingMatch.start_time);
   } else {
     matchTeamsElement.textContent = "No upcoming match";
+    matchTimeElement.textContent = "";
   }
 
-  // LEADERBOARD
   const { data: leaderboard } = await supabase
     .from("leaderboard_view")
     .select("*")
@@ -187,12 +195,19 @@ async function loadDashboard(userId) {
 
   if (leaderboard?.length) {
     leaderboardContainer.innerHTML = "";
-    leaderboard.forEach(row => { if (row.user_id === userId) rankElement.textContent = `#${row.rank}`; });
+    leaderboard.forEach(row => {
+      if (row.user_id === userId) rankElement.textContent = `#${row.rank}`;
+    });
+
     leaderboard.slice(0, 5).forEach(row => {
       const div = document.createElement("div");
       div.classList.add("leader-row");
       if (row.user_id === userId) div.classList.add("you");
-      div.innerHTML = `<span>${row.rank}</span><span>${row.team_name}</span><span>${row.total_points}</span>`;
+      div.innerHTML = `
+        <span>${row.rank}</span>
+        <span>${row.team_name}</span>
+        <span>${row.total_points}</span>
+      `;
       leaderboardContainer.appendChild(div);
     });
   }
@@ -230,7 +245,6 @@ function startCountdown(startTime) {
   countdownInterval = setInterval(updateCountdown, 1000);
 }
 
-// EVENT LISTENERS
 if (leaderboardLink) leaderboardLink.addEventListener("click", () => window.location.href = "leaderboard.html");
 editButton.addEventListener("click", () => window.location.href = "team-builder.html");
 viewXiBtn.addEventListener("click", () => window.location.href = "team-view.html");
