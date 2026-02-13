@@ -1,128 +1,91 @@
-// 1. CONFIGURATION
+// CONFIGURATION
 const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-// Double check this key in your Supabase Dashboard (Settings -> API -> service_role)
-const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...ZYYrXkE"; 
+const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"; 
+const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
 const matchSelect = document.getElementById("matchSelect");
 const processBtn = document.getElementById("processBtn");
 const scoreboardInput = document.getElementById("scoreboardInput");
-const statusBox = document.getElementById("statusBox");
+const statusDiv = document.getElementById("status");
 
+/**
+ * Loads matches and maps team names for the dropdown
+ */
 async function loadMatches() {
-    const tournamentId = "e0416509-f082-4c11-8277-ec351bdc046d";
-
     try {
-        console.log("Starting Database Fetch...");
+        updateStatus("Fetching matches...", "loading");
 
-        const matchRes = await fetch(`${SUPABASE_URL}/rest/v1/matches?tournament_id=eq.${tournamentId}&select=*`, {
-            method: 'GET',
-            mode: 'cors', // Force CORS mode
-            headers: {
-                'apikey': SERVICE_ROLE_KEY,
-                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-                'Content-Type': 'application/json'
-            }
+        // 1. Fetch Matches
+        const matchRes = await fetch(`${SUPABASE_URL}/rest/v1/matches?tournament_id=eq.${TOURNAMENT_ID}&select=*&order=match_number.asc`, {
+            headers: { 'apikey': SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SERVICE_ROLE_KEY}` }
         });
-
-        if (!matchRes.ok) throw new Error(`Matches Fetch Failed: ${matchRes.statusText}`);
+        if (!matchRes.ok) throw new Error("Failed to load matches");
         const matches = await matchRes.json();
 
-        const teamRes = await fetch(`${SUPABASE_URL}/rest/v1/real_teams?tournament_id=eq.${tournamentId}&select=id,short_code`, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'apikey': SERVICE_ROLE_KEY,
-                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-                'Content-Type': 'application/json'
-            }
+        // 2. Fetch Teams (to show short codes like 'IND' instead of UUIDs)
+        const teamRes = await fetch(`${SUPABASE_URL}/rest/v1/real_teams?tournament_id=eq.${TOURNAMENT_ID}&select=id,short_code`, {
+            headers: { 'apikey': SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SERVICE_ROLE_KEY}` }
         });
-
-        if (!teamRes.ok) throw new Error(`Teams Fetch Failed: ${teamRes.statusText}`);
         const teams = await teamRes.json();
+        const teamMap = Object.fromEntries(teams.map(t => [t.id, t.short_code]));
 
-        const teamMap = {};
-        teams.forEach(t => { teamMap[t.id] = t.short_code; });
+        // 3. Populate Select
+        matchSelect.innerHTML = matches.length 
+            ? matches.map(m => `<option value="${m.id}">Match ${m.match_number}: ${teamMap[m.team_a_id] || 'TBA'} vs ${teamMap[m.team_b_id] || 'TBA'} (${m.venue})</option>`).join('')
+            : '<option value="">No matches found</option>';
 
-        matchSelect.innerHTML = "";
-        if (!matches.length) {
-            matchSelect.innerHTML = "<option>No matches found</option>";
-            return;
-        }
-
-        matches.forEach(match => {
-            const option = document.createElement("option");
-            option.value = match.id;
-            const teamA = teamMap[match.team_a_id] || "TBA";
-            const teamB = teamMap[match.team_b_id] || "TBA";
-            option.textContent = `Match ${match.match_number} • ${teamA} vs ${teamB}`;
-            matchSelect.appendChild(option);
-        });
-
-        console.log("Successfully Loaded Matches.");
-
+        updateStatus("", ""); // Clear loading status
     } catch (err) {
-        console.error("Database Connection Error:", err);
-        matchSelect.innerHTML = "<option>Error: Check Console (F12)</option>";
-        showStatus("Connection Error: Check API Keys and Network.", "error");
+        console.error(err);
+        updateStatus("Connection Error: Check console for details.", "error");
     }
 }
 
-// ... (keep your existing processBtn listener and showStatus helper below)
-loadMatches();
 /**
- * Handles the click event to send JSON to the Edge Function
+ * Sends data to Supabase Edge Function
  */
 processBtn.addEventListener("click", async () => {
     const matchId = matchSelect.value;
-    const rawInput = scoreboardInput.value.trim();
+    const jsonStr = scoreboardInput.value.trim();
 
-    // Basic Validation
-    if (!matchId || !rawInput) {
-        showStatus("Error: Select a match and paste JSON.", "error");
-        return;
+    if (!matchId || !jsonStr) {
+        return updateStatus("Please select a match and paste JSON.", "error");
     }
 
     try {
-        showStatus("Processing points... Please wait.", "status");
-        
-        const scoreboardJson = JSON.parse(rawInput);
+        updateStatus("Processing match data... Please wait.", "loading");
+        processBtn.disabled = true;
 
-        // Call the Edge Function
+        const scoreboard = JSON.parse(jsonStr);
+
         const res = await fetch(`${SUPABASE_URL}/functions/v1/process_match_points`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${SERVICE_ROLE_KEY}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
             },
-            body: JSON.stringify({
-                match_id: matchId,
-                scoreboard: scoreboardJson
-            })
+            body: JSON.stringify({ match_id: matchId, scoreboard: scoreboard })
         });
 
-        const resultText = await res.text();
+        const result = await res.json();
 
         if (res.ok) {
-            showStatus("✅ Success! Match points and leaderboard updated.", "success");
-            scoreboardInput.value = ""; // Clear input
+            updateStatus("✅ Success! Player stats and user points updated.", "success");
+            scoreboardInput.value = ""; 
         } else {
-            throw new Error(resultText);
+            throw new Error(result.error || "Processing failed");
         }
-
     } catch (err) {
-        console.error("Processing Error:", err);
-        showStatus("❌ Error: " + err.message, "error");
+        updateStatus("Error: " + err.message, "error");
+    } finally {
+        processBtn.disabled = false;
     }
 });
 
-/**
- * UI helper to show messages
- */
-function showStatus(msg, type) {
-    statusBox.className = ""; // Reset classes
-    statusBox.classList.add(type);
-    statusBox.textContent = msg;
-    statusBox.style.display = "block";
+function updateStatus(msg, type) {
+    statusDiv.textContent = msg;
+    statusDiv.className = type;
+    statusDiv.style.display = msg ? "block" : "none";
 }
 
 // Initial Load

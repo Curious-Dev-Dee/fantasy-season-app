@@ -3,49 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Match Scoring</title>
+    <title>Points Processing Portal</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        textarea { height: 200px; font-family: monospace; }
-        button { background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #1d4ed8; }
-        #statusBox { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
-        .status { background: #e0e7ff; color: #4338ca; }
-        .success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; display: block !important; }
-        .error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; display: block !important; }
-        .hidden { display: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; padding: 40px; color: #1c1e21; }
+        .card { max-width: 700px; margin: auto; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #1d4ed8; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
+        label { display: block; margin: 20px 0 8px; font-weight: 600; font-size: 14px; }
+        select, textarea { width: 100%; padding: 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 16px; transition: border-color 0.2s; }
+        select:focus, textarea:focus { outline: none; border-color: #1d4ed8; }
+        textarea { height: 180px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 13px; resize: vertical; }
+        button { width: 100%; background: #1d4ed8; color: white; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 24px; transition: background 0.2s; }
+        button:hover { background: #1e40af; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        #status { margin-top: 20px; padding: 12px; border-radius: 6px; display: none; font-size: 14px; text-align: center; }
+        .error { display: block !important; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .success { display: block !important; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .loading { display: block !important; background: #f1f5f9; color: #475569; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🏏 Points Processing Portal</h1>
-    <p>Select a match and paste the scorecard JSON to update player stats and user points.</p>
-    <hr>
+<div class="card">
+    <h2>🏏 Match Points Processor</h2>
+    
+    <label for="matchSelect">Select Match</label>
+    <select id="matchSelect">
+        <option value="">Connecting to database...</option>
+    </select>
 
-    <div class="form-group">
-        <label for="matchSelect">Select Match</label>
-        <select id="matchSelect">
-            <option>Loading matches...</option>
-        </select>
-    </div>
+    <label for="scoreboardInput">Scorecard JSON</label>
+    <textarea id="scoreboardInput" placeholder='Paste your scoreboard JSON data here...'></textarea>
 
-    <div class="form-group">
-        <label for="scoreboardInput">Scorecard JSON</label>
-        <textarea id="scoreboardInput" placeholder='Paste JSON here... e.g. { "players": [...] }'></textarea>
-    </div>
+    <button id="processBtn">Process & Update Leaderboard</button>
 
-    <button id="processBtn">Process Points & Update Leaderboard</button>
-
-    <div id="statusBox" class="hidden"></div>
+    <div id="status"></div>
 </div>
 
 <script src="admin.js"></script>
-
 </body>
 </html>
