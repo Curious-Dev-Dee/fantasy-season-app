@@ -63,37 +63,41 @@ body {
   color: #9AE000;
 }
 
-/* STATS GRID */
-/* STATS GRID - REFINED */
+/* STATS – CLEAN DASHBOARD STYLE */
 
 .stats-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 18px 24px;
+  padding-top: 4px;
 }
 
 .stat {
-  background: rgba(255,255,255,0.015);
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
+  text-align: left;
+  padding: 0;
+  background: none;
 }
 
 .stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: #9ca3af;
-  letter-spacing: 0.3px;
+  margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 18px;  /* Reduced from 26px */
+  font-size: 18px;
   font-weight: 600;
-  margin-top: 4px;
+  color: #ffffff;
+}
+
+.stat-rank .stat-value {
+  color: #9AE000;
 }
 
 .stat-subs {
   grid-column: span 2;
-  background: rgba(255,255,255,0.02);
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 
