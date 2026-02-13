@@ -23,7 +23,6 @@ let selectedPlayers = [];
 let captainId = null;
 let viceCaptainId = null;
 
-/* SUBS STATE */
 let lastLockedPlayers = [];
 let lastTotalSubsUsed = 0;
 let isFirstLock = true;
@@ -96,7 +95,7 @@ async function loadPlayers() {
 }
 
 /* =========================
-   LOAD LAST LOCKED SNAPSHOT
+   LOAD LAST LOCK
 ========================= */
 
 async function loadLastLockedSnapshot(userId) {
@@ -146,9 +145,7 @@ async function loadSavedSeasonTeam(userId) {
     .select("player_id")
     .eq("user_fantasy_team_id", team.id);
 
-  if (!players) return;
-
-  const ids = players.map(p => p.player_id);
+  const ids = players ? players.map(p => p.player_id) : [];
   selectedPlayers = allPlayers.filter(p => ids.includes(p.id));
 }
 
@@ -170,10 +167,10 @@ function renderPool() {
   pool.innerHTML = "";
 
   allPlayers.forEach(player => {
+    const selected = selectedPlayers.some(p => p.id === player.id);
+
     const card = document.createElement("div");
     card.className = "player-card";
-
-    const selected = selectedPlayers.some(p => p.id === player.id);
 
     card.innerHTML = `
       <div class="player-info">
@@ -212,11 +209,11 @@ function renderMyXI() {
   myXI.innerHTML = "";
 
   selectedPlayers.forEach(player => {
-    const card = document.createElement("div");
-    card.className = "player-card selected";
-
     const isC = captainId === player.id;
     const isVC = viceCaptainId === player.id;
+
+    const card = document.createElement("div");
+    card.className = "player-card selected";
 
     card.innerHTML = `
       <div class="player-info">
@@ -360,3 +357,74 @@ function validateSave(roleCount, credits) {
   saveBar.classList.toggle("enabled", valid);
   saveBar.classList.toggle("disabled", !valid);
 }
+
+/* =========================
+   SAVE TO DB
+========================= */
+
+saveBtn.addEventListener("click", async () => {
+  if (!saveBar.classList.contains("enabled")) return;
+
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const totalCredits = selectedPlayers.reduce(
+    (sum, p) => sum + Number(p.credit),
+    0
+  );
+
+  const { data: existing } = await supabase
+    .from("user_fantasy_teams")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("tournament_id", TOURNAMENT_ID)
+    .maybeSingle();
+
+  let teamId;
+
+  if (!existing) {
+    const { data: newTeam } = await supabase
+      .from("user_fantasy_teams")
+      .insert({
+        user_id: user.id,
+        tournament_id: TOURNAMENT_ID,
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .select()
+      .single();
+
+    teamId = newTeam.id;
+  } else {
+    teamId = existing.id;
+
+    await supabase
+      .from("user_fantasy_teams")
+      .update({
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .eq("id", teamId);
+  }
+
+  await supabase
+    .from("user_fantasy_team_players")
+    .delete()
+    .eq("user_fantasy_team_id", teamId);
+
+  const rows = selectedPlayers.map(p => ({
+    user_fantasy_team_id: teamId,
+    player_id: p.id
+  }));
+
+  await supabase
+    .from("user_fantasy_team_players")
+    .insert(rows);
+
+  saveBtn.textContent = "Saved ✓";
+  setTimeout(() => {
+    saveBtn.textContent = "Save Team";
+  }, 1200);
+});
