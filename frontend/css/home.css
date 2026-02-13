@@ -14,19 +14,27 @@ body {
 .app-header h1 {
   font-size: 20px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 /* CARD BASE */
+
 .card {
   background: linear-gradient(145deg, #111827, #0f172a);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 18px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
 }
 
 /* USER CARD */
+
 .user-info {
   display: flex;
   align-items: center;
@@ -34,31 +42,39 @@ body {
 }
 
 .team-avatar {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #1c2430, #0f141b);
-  border: 2px solid rgba(154,224,0,0.6);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border: 2px solid rgba(154,224,0,0.5);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
   cursor: pointer;
 }
 
 .welcome-text {
   font-size: 14px;
   color: #9ca3af;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .team-subtitle {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: #9AE000;
 }
 
-/* STATS */
+/* STATS GRID */
+
 .stats-card {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.stat {
+  background: rgba(255,255,255,0.02);
+  padding: 14px;
+  border-radius: 12px;
   text-align: center;
 }
 
@@ -68,12 +84,18 @@ body {
 }
 
 .stat-value {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
-/* UPCOMING */
+.stat-subs {
+  grid-column: span 2;
+  background: rgba(154,224,0,0.05);
+}
+
+/* UPCOMING MATCH */
+
 .section-label {
   font-size: 13px;
   color: #9AE000;
@@ -81,15 +103,15 @@ body {
 }
 
 .match-teams {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 6px 0;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 8px 0;
 }
 
 .match-time {
   font-size: 14px;
   color: #9ca3af;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .match-actions {
@@ -98,59 +120,66 @@ body {
 }
 
 .primary-btn {
-  flex: 1;
-  padding: 12px;
+  flex: 1.2;
+  padding: 13px;
   background: #9AE000;
   border: none;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .primary-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .secondary-btn {
-  flex: 1;
-  padding: 12px;
+  flex: 0.8;
+  padding: 13px;
   background: #1f2937;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   color: #fff;
   font-weight: 500;
   cursor: pointer;
 }
 
 /* LEADERBOARD */
+
 .leaderboard-card h3 {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .leader-row {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.leader-row span:first-child {
+  font-weight: 600;
+  opacity: 0.7;
 }
 
 .leader-row.you {
   background: rgba(154,224,0,0.08);
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 10px;
+  padding: 12px;
   font-weight: 600;
 }
 
 .leaderboard-link {
   text-align: center;
-  margin-top: 14px;
+  margin-top: 16px;
   font-size: 14px;
   color: #9AE000;
   cursor: pointer;
 }
 
 /* MODAL */
+
 .modal {
   position: fixed;
   inset: 0;
@@ -166,6 +195,7 @@ body {
   border-radius: 14px;
   width: 90%;
   max-width: 360px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .modal-content input {
