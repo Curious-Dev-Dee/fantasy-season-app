@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cricket Experts · Edit Team</title>
 
-  <!-- PAGE CSS -->
   <link rel="stylesheet" href="css/team-builder.css" />
 </head>
 
@@ -13,48 +12,33 @@
 
   <div class="app edit-team-app">
 
-    <!-- =========================
-         HEADER
-    ========================== -->
+    <!-- HEADER -->
     <header class="edit-header">
       <a href="home.html" class="icon-back">←</a>
       <h1 class="header-title">Edit Team</h1>
       <span class="edit-note">Next match</span>
     </header>
 
-    <!-- =========================
-         MODE TOGGLE
-    ========================== -->
+    <!-- TOGGLE -->
     <div class="edit-toggle">
       <button class="toggle-btn active" data-mode="myxi">My XI</button>
       <button class="toggle-btn" data-mode="change">Change Players</button>
     </div>
 
-    <!-- =========================
-         CONTENT
-    ========================== -->
+    <!-- CONTENT -->
     <main class="content edit-content">
 
-      <!-- TEAM SUMMARY -->
-      <div class="team-summary sticky-summary">
-        <!-- JS fills dynamically -->
-      </div>
+      <!-- SUMMARY -->
+      <div class="team-summary sticky-summary"></div>
 
-      <!-- =========================
-           MY XI MODE
-      ========================== -->
+      <!-- MY XI -->
       <section class="edit-mode myxi-mode active">
-        <div class="player-list">
-          <!-- JS injects selected players -->
-        </div>
+        <div class="player-list" id="myXIList"></div>
       </section>
 
-      <!-- =========================
-           CHANGE PLAYERS MODE
-      ========================== -->
+      <!-- CHANGE PLAYERS -->
       <section class="edit-mode change-mode">
 
-        <!-- FILTERS -->
         <div class="change-filters">
           <input
             type="text"
@@ -63,7 +47,7 @@
           />
 
           <div class="role-filters">
-            <button class="role-filter-btn" data-role="ALL">All</button>
+            <button class="role-filter-btn active" data-role="ALL">All</button>
             <button class="role-filter-btn" data-role="WK">WK</button>
             <button class="role-filter-btn" data-role="BAT">BAT</button>
             <button class="role-filter-btn" data-role="AR">AR</button>
@@ -71,17 +55,13 @@
           </div>
         </div>
 
-        <div class="player-list">
-          <!-- JS loads all players here -->
-        </div>
+        <div class="player-list" id="playerPoolList"></div>
 
       </section>
 
     </main>
 
-    <!-- =========================
-         SAVE BAR
-    ========================== -->
+    <!-- SAVE -->
     <footer class="save-bar disabled">
       <button class="save-btn">Save Team</button>
       <p class="save-hint">Team locks automatically at match start</p>
@@ -89,7 +69,6 @@
 
   </div>
 
-  <!-- LOGIC -->
   <script type="module" src="edit-team.js"></script>
   <script type="module" src="auth-guard.js"></script>
 

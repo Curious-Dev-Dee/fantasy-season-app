@@ -19,6 +19,10 @@ const ROLE_MAX = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
 
 let selectedPlayers = [];
 let allPlayers = [];
+
+let captainId = null;
+let viceCaptainId = null;
+
 let lastLockedPlayers = [];
 let lastTotalSubsUsed = 0;
 let isFirstLock = true;
@@ -27,8 +31,9 @@ let isFirstLock = true;
    DOM
 ========================= */
 
-const myXI = document.querySelector(".myxi-mode .player-list");
-const pool = document.querySelector(".change-mode .player-list");
+const myXI = document.getElementById("myXIList");
+const pool = document.getElementById("playerPoolList");
+
 const saveBar = document.querySelector(".save-bar");
 const summary = document.querySelector(".team-summary");
 
@@ -36,7 +41,7 @@ const toggleButtons = document.querySelectorAll(".toggle-btn");
 const editModes = document.querySelectorAll(".edit-mode");
 
 /* =========================
-   TOGGLE FIX
+   TOGGLE
 ========================= */
 
 toggleButtons.forEach(btn => {
@@ -99,6 +104,9 @@ function renderPool() {
   allPlayers.forEach(player => {
     const card = document.createElement("div");
     card.className = "player-card";
+
+    const isSelected = selectedPlayers.some(p => p.id === player.id);
+
     card.innerHTML = `
       <div class="player-info">
         <strong>${player.name}</strong>
@@ -108,7 +116,6 @@ function renderPool() {
     `;
 
     const btn = card.querySelector("button");
-    const isSelected = selectedPlayers.some(p => p.id === player.id);
 
     if (isSelected) {
       btn.textContent = "Remove";
@@ -131,7 +138,7 @@ function renderPool() {
 }
 
 /* =========================
-   MY XI
+   RENDER MY XI
 ========================= */
 
 function renderMyXI() {
@@ -140,16 +147,28 @@ function renderMyXI() {
   selectedPlayers.forEach(player => {
     const card = document.createElement("div");
     card.className = "player-card selected";
+
+    const isCaptain = captainId === player.id;
+    const isVice = viceCaptainId === player.id;
+
     card.innerHTML = `
       <div class="player-info">
         <strong>${player.name}</strong>
         <span>${player.role} · ${player.credit} cr</span>
       </div>
-      <button class="action-btn remove">Remove</button>
+
+      <div style="display:flex; gap:6px;">
+        <button class="cv-btn ${isCaptain ? "active" : ""}">C</button>
+        <button class="cv-btn ${isVice ? "active" : ""}">VC</button>
+        <button class="action-btn remove">Remove</button>
+      </div>
     `;
 
-    card.querySelector("button").onclick = () =>
-      removePlayer(player.id);
+    const [cBtn, vcBtn, removeBtn] = card.querySelectorAll("button");
+
+    cBtn.onclick = () => setCaptain(player.id);
+    vcBtn.onclick = () => setViceCaptain(player.id);
+    removeBtn.onclick = () => removePlayer(player.id);
 
     myXI.appendChild(card);
   });
@@ -167,6 +186,26 @@ function addPlayer(player) {
 
 function removePlayer(id) {
   selectedPlayers = selectedPlayers.filter(p => p.id !== id);
+
+  if (captainId === id) captainId = null;
+  if (viceCaptainId === id) viceCaptainId = null;
+
+  updateUI();
+}
+
+/* =========================
+   C / VC
+========================= */
+
+function setCaptain(id) {
+  if (viceCaptainId === id) viceCaptainId = null;
+  captainId = id;
+  updateUI();
+}
+
+function setViceCaptain(id) {
+  if (captainId === id) captainId = null;
+  viceCaptainId = id;
   updateUI();
 }
 
@@ -255,6 +294,7 @@ function validateSave(roles, credits) {
   let valid = true;
 
   if (selectedPlayers.length !== 11) valid = false;
+  if (!captainId || !viceCaptainId) valid = false;
   if (credits > MAX_CREDITS) valid = false;
 
   for (let r in ROLE_MIN) {
@@ -315,6 +355,9 @@ async function loadSavedSeasonTeam() {
     .maybeSingle();
 
   if (!team) return;
+
+  captainId = team.captain_id;
+  viceCaptainId = team.vice_captain_id;
 
   const { data: players } = await supabase
     .from("user_fantasy_team_players")

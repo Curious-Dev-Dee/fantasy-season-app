@@ -99,7 +99,7 @@ body {
 }
 
 /* =========================
-   EDIT MODE CONTROL (FIX)
+   EDIT MODE CONTROL
 ========================= */
 .edit-mode {
   display: none;
@@ -165,17 +165,8 @@ body {
   flex: 1;
 }
 
-.player-name {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.player-credit {
-  font-size: 13px;
-}
-
 /* =========================
-   STRICT ACTION BUTTONS
+   ACTION BUTTONS
 ========================= */
 
 .action-btn {
@@ -213,6 +204,27 @@ body {
 .action-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* =========================
+   C / VC BUTTONS
+========================= */
+
+.cv-btn {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background: #1f2937;
+  color: #aaa;
+  font-size: 11px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.cv-btn.active {
+  background: #9be15d;
+  color: #000;
+  border-color: #9be15d;
 }
 
 /* =========================
