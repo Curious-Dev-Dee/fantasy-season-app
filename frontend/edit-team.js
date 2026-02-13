@@ -55,8 +55,17 @@ const editModes = document.querySelectorAll(".edit-mode");
 
 const searchInput = document.getElementById("playerSearch");
 
+const matchToggle = document.getElementById("matchToggle");
+const matchMenu = document.getElementById("matchMenu");
+
+const teamToggle = document.getElementById("teamToggle");
+const teamMenu = document.getElementById("teamMenu");
+
+const creditToggle = document.getElementById("creditToggle");
+const creditMenu = document.getElementById("creditMenu");
+
 /* =========================
-   TOGGLE
+   TOGGLE TAB
 ========================= */
 
 toggleButtons.forEach(btn => {
@@ -69,6 +78,28 @@ toggleButtons.forEach(btn => {
     if (target) target.classList.add("active");
   });
 });
+
+/* =========================
+   DROPDOWN TOGGLES
+========================= */
+
+if (matchToggle && matchMenu) {
+  matchToggle.addEventListener("click", () => {
+    matchMenu.classList.toggle("show");
+  });
+}
+
+if (teamToggle && teamMenu) {
+  teamToggle.addEventListener("click", () => {
+    teamMenu.classList.toggle("show");
+  });
+}
+
+if (creditToggle && creditMenu) {
+  creditToggle.addEventListener("click", () => {
+    creditMenu.classList.toggle("show");
+  });
+}
 
 /* =========================
    AUTH
@@ -132,7 +163,7 @@ async function loadNextMatchTeams() {
 }
 
 /* =========================
-   LOAD LAST LOCK
+   LOAD LOCK SNAPSHOT
 ========================= */
 
 async function loadLastLockedSnapshot(userId) {
@@ -187,22 +218,20 @@ async function loadSavedSeasonTeam(userId) {
 }
 
 /* =========================
-   FILTER BUILDERS
+   BUILD TEAM DROPDOWN
 ========================= */
 
 function buildTeamDropdown() {
-  const uniqueTeams = [...new Set(allPlayers.map(p => p.real_team_id))];
-  const teamMenu = document.getElementById("teamMenu");
-
   if (!teamMenu) return;
 
+  const uniqueTeams = [...new Set(allPlayers.map(p => p.real_team_id))];
   teamMenu.innerHTML = "";
 
   uniqueTeams.forEach(teamId => {
     const div = document.createElement("div");
     div.textContent = teamId;
 
-    div.onclick = () => {
+    div.addEventListener("click", () => {
       if (filters.teams.includes(teamId)) {
         filters.teams = filters.teams.filter(t => t !== teamId);
         div.style.background = "";
@@ -211,36 +240,41 @@ function buildTeamDropdown() {
         div.style.background = "#9be15d33";
       }
       renderAll();
-    };
+    });
 
     teamMenu.appendChild(div);
   });
 }
 
+/* =========================
+   BUILD CREDIT DROPDOWN
+========================= */
+
 function buildCreditDropdown() {
+  if (!creditMenu) return;
+
   const credits = [...new Set(allPlayers.map(p => Number(p.credit)))]
     .sort((a,b)=>a-b);
-
-  const creditMenu = document.getElementById("creditMenu");
-  if (!creditMenu) return;
 
   creditMenu.innerHTML = "";
 
   const allDiv = document.createElement("div");
   allDiv.textContent = "All";
-  allDiv.onclick = () => {
+  allDiv.addEventListener("click", () => {
     filters.credit = null;
+    creditMenu.classList.remove("show");
     renderAll();
-  };
+  });
   creditMenu.appendChild(allDiv);
 
   credits.forEach(value => {
     const div = document.createElement("div");
     div.textContent = value;
-    div.onclick = () => {
+    div.addEventListener("click", () => {
       filters.credit = value;
+      creditMenu.classList.remove("show");
       renderAll();
-    };
+    });
     creditMenu.appendChild(div);
   });
 }
@@ -258,24 +292,25 @@ if (searchInput) {
 
 document.querySelectorAll(".role-filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-
     document.querySelectorAll(".role-filter-btn")
       .forEach(b => b.classList.remove("active"));
 
     btn.classList.add("active");
-
     filters.role = btn.dataset.role;
     renderAll();
   });
 });
 
-document.querySelectorAll("#matchMenu div").forEach(div => {
-  div.addEventListener("click", () => {
-    const type = div.dataset.match;
-    filters.upcomingOnly = type === "next";
-    renderAll();
+if (matchMenu) {
+  matchMenu.querySelectorAll("div").forEach(div => {
+    div.addEventListener("click", () => {
+      const type = div.dataset.match;
+      filters.upcomingOnly = type === "next";
+      matchMenu.classList.remove("show");
+      renderAll();
+    });
   });
-});
+}
 
 /* =========================
    APPLY FILTERS
@@ -357,6 +392,10 @@ function renderPool() {
     pool.appendChild(card);
   });
 }
+
+/* =========================
+   MY XI RENDER
+========================= */
 
 function renderMyXI() {
   myXI.innerHTML = "";
@@ -449,7 +488,7 @@ function canAddPlayer(player) {
 }
 
 /* =========================
-   SUMMARY WITH SUBS
+   SUMMARY
 ========================= */
 
 function renderSummary() {
@@ -512,7 +551,7 @@ function validateSave(roleCount, credits) {
 }
 
 /* =========================
-   SAVE TO DB
+   SAVE
 ========================= */
 
 saveBtn.addEventListener("click", async () => {
