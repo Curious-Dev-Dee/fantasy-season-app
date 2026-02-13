@@ -64,41 +64,45 @@ body {
 }
 
 /* STATS – CLEAN DASHBOARD STYLE */
+/* STATS – TRUE SINGLE LINE STRIP */
 
 .stats-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px 24px;
-  padding-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  gap: 16px;
 }
 
-.stat {
-  text-align: left;
-  padding: 0;
-  background: none;
+.stat-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .stat-label {
   font-size: 12px;
   color: #9ca3af;
-  margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #ffffff;
 }
 
-.stat-rank .stat-value {
+.stat-value.highlight {
   color: #9AE000;
 }
 
-.stat-subs {
-  grid-column: span 2;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+.divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
 }
+
 
 
 /* UPCOMING MATCH */
