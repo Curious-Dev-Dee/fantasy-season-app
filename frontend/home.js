@@ -3,55 +3,45 @@ import { supabase } from "./supabase.js";
 /* =========================
    ELEMENTS
 ========================= */
-const modal = document.getElementById("profileModal");
-const saveBtn = document.getElementById("saveProfileBtn");
-const fullNameInput = document.getElementById("fullNameInput");
-const teamNameInput = document.getElementById("teamNameInput");
-const teamPhotoInput = document.getElementById("teamPhotoInput");
-
 const avatarElement = document.getElementById("teamAvatar");
 const welcomeText = document.getElementById("welcomeText");
 const teamNameElement = document.getElementById("userTeamName");
-
 const scoreElement = document.getElementById("userScore");
 const rankElement = document.getElementById("userRank");
 const subsElement = document.getElementById("subsRemaining");
-
 const matchTeamsElement = document.getElementById("matchTeams");
 const matchTimeElement = document.getElementById("matchTime");
-
 const leaderboardContainer = document.getElementById("leaderboardContainer");
-const leaderboardLink = document.getElementById("leaderboardLink");
 const tournamentNameElement = document.getElementById("tournamentName");
-
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
 
 let countdownInterval;
 
 /* =========================
-   INIT (Wait for Auth)
+   INIT
 ========================= */
 async function initHome() {
-  // We use onAuthStateChange to catch the session for brand new users
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if (session) {
-      const userId = session.user.id;
-      // Show the app container now that we are verified
-      document.querySelector('.app-container').style.visibility = 'visible';
-      if (typeof window.hideLoading === 'function') window.hideLoading();
-      
-      await loadProfile(userId);
-      await loadDashboard(userId);
-    } else {
-      // If absolutely no session after auth settles, redirect
-      window.location.href = "login.html";
-    }
-  });
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const userId = session.user.id;
+
+  // Reveal dashboard and hide any loaders immediately
+  document.querySelector('.app-container').style.visibility = 'visible';
+  const loader = document.getElementById('loadingOverlay');
+  if (loader) loader.style.display = 'none';
+
+  await loadProfile(userId);
+  await loadDashboard(userId);
 }
 
 /* =========================
-   PROFILE LOGIC
+   PROFILE (NON-BLOCKING)
 ========================= */
 async function loadProfile(userId) {
   const { data: profile } = await supabase
@@ -60,25 +50,24 @@ async function loadProfile(userId) {
     .eq("user_id", userId)
     .maybeSingle();
 
-  // If new user (no record) or record is marked incomplete
-  if (!profile || profile.profile_completed === false) {
-    modal.classList.remove("hidden");
-    modal.style.display = "flex";
-  } else {
+  // If no profile, we just use defaults
+  if (profile) {
     renderProfile(profile);
+  } else {
+    welcomeText.textContent = "Welcome back, Expert";
+    teamNameElement.textContent = "Set your team name";
   }
 }
 
 function renderProfile(profile) {
   const firstName = profile.full_name?.trim().split(" ")[0] || "Expert";
-  welcomeText.textContent = `Welcome back, Expert ${firstName}`;
-  teamNameElement.textContent = profile.team_name || "—";
+  welcomeText.textContent = `Welcome back, ${firstName}`;
+  teamNameElement.textContent = profile.team_name || "Set your team name";
 
   if (profile.team_photo_url) {
     const { data } = supabase.storage
       .from("team-avatars")
       .getPublicUrl(profile.team_photo_url);
-
     avatarElement.style.backgroundImage = `url(${data.publicUrl})`;
     avatarElement.style.backgroundSize = "cover";
     avatarElement.style.backgroundPosition = "center";
@@ -86,49 +75,7 @@ function renderProfile(profile) {
 }
 
 /* =========================
-   SAVE ACTION (Fixed for your table)
-========================= */
-saveBtn.addEventListener("click", async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
-
-  const fullName = fullNameInput.value.trim();
-  const teamName = teamNameInput.value.trim();
-
-  if (!fullName || !teamName) {
-    alert("Please enter both Name and Team Name.");
-    return;
-  }
-
-  saveBtn.disabled = true;
-  saveBtn.textContent = "Saving...";
-
-  try {
-    // We only send columns that exist in your table
-    // Removed updated_at to fix the 400 error from your screenshot
-    const { error } = await supabase
-      .from("user_profiles")
-      .upsert({
-        user_id: session.user.id,
-        full_name: fullName,
-        team_name: teamName,
-        profile_completed: true,
-        is_active: true
-      });
-
-    if (error) throw error;
-
-    modal.classList.add("hidden");
-    location.reload(); 
-  } catch (error) {
-    alert("Save Error: " + error.message);
-    saveBtn.disabled = false;
-    saveBtn.textContent = "Save & Continue";
-  }
-});
-
-/* =========================
-   DASHBOARD & OTHER LOGIC
+   DASHBOARD LOGIC
 ========================= */
 async function loadDashboard(userId) {
   const { data: activeTournament } = await supabase
@@ -147,23 +94,6 @@ async function loadDashboard(userId) {
     .maybeSingle();
 
   scoreElement.textContent = summary?.total_points ?? 0;
-
-  const { data: lastSnapshot } = await supabase
-    .from("user_match_teams")
-    .select("total_subs_used")
-    .eq("user_id", userId)
-    .order("locked_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!lastSnapshot) {
-    subsElement.textContent = "Unlimited";
-    enableEditButton();
-  } else {
-    const remaining = 80 - lastSnapshot.total_subs_used;
-    subsElement.textContent = remaining;
-    remaining <= 0 ? disableEditButton() : enableEditButton();
-  }
 
   const { data: upcomingMatch } = await supabase
     .from("matches")
@@ -191,18 +121,6 @@ async function loadDashboard(userId) {
   }
 }
 
-function disableEditButton() {
-  editButton.textContent = "XI Locked";
-  editButton.style.pointerEvents = "none";
-  editButton.style.opacity = "0.6";
-}
-
-function enableEditButton() {
-  editButton.textContent = "Edit XI";
-  editButton.style.pointerEvents = "auto";
-  editButton.style.opacity = "1";
-}
-
 function startCountdown(startTime) {
   clearInterval(countdownInterval);
   const matchTime = new Date(startTime).getTime();
@@ -222,8 +140,7 @@ function startCountdown(startTime) {
   countdownInterval = setInterval(updateCountdown, 1000);
 }
 
-// Navigation events
-if (leaderboardLink) leaderboardLink.addEventListener("click", () => window.location.href = "leaderboard.html");
+// Event Listeners
 editButton.addEventListener("click", () => window.location.href = "team-builder.html");
 viewXiBtn.addEventListener("click", () => window.location.href = "team-view.html");
 
