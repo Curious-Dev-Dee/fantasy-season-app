@@ -17,14 +17,14 @@ const ROLE_MAX = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
    STATE
 ========================= */
 
-let selectedPlayers = [];
 let allPlayers = [];
+let selectedPlayers = [];
 
 let captainId = null;
 let viceCaptainId = null;
 
 /* =========================
-   DOM
+   DOM (MATCHES YOUR HTML)
 ========================= */
 
 const myXI = document.getElementById("myXIList");
@@ -38,7 +38,7 @@ const toggleButtons = document.querySelectorAll(".toggle-btn");
 const editModes = document.querySelectorAll(".edit-mode");
 
 /* =========================
-   TOGGLE
+   SAFE TOGGLE
 ========================= */
 
 toggleButtons.forEach(btn => {
@@ -46,10 +46,9 @@ toggleButtons.forEach(btn => {
     toggleButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    editModes.forEach(mode => mode.classList.remove("active"));
-    document
-      .querySelector(`.${btn.dataset.mode}-mode`)
-      .classList.add("active");
+    editModes.forEach(m => m.classList.remove("active"));
+    const target = document.querySelector(`.${btn.dataset.mode}-mode`);
+    if (target) target.classList.add("active");
   });
 });
 
@@ -59,11 +58,11 @@ toggleButtons.forEach(btn => {
 
 async function getCurrentUser() {
   const { data } = await supabase.auth.getUser();
-  return data.user;
+  return data?.user || null;
 }
 
 /* =========================
-   INIT
+   INIT (STRICT ORDER)
 ========================= */
 
 async function init() {
@@ -71,8 +70,8 @@ async function init() {
   if (!user) return;
 
   await loadPlayers();
-  await loadSavedSeasonTeam(user);
-  updateUI();
+  await loadSavedSeasonTeam(user.id);
+  renderAll();
 }
 
 init();
@@ -88,7 +87,7 @@ async function loadPlayers() {
     .eq("is_active", true);
 
   if (error) {
-    console.error(error);
+    console.error("Player load error:", error);
     return;
   }
 
@@ -96,17 +95,57 @@ async function loadPlayers() {
 }
 
 /* =========================
+   LOAD SAVED TEAM
+========================= */
+
+async function loadSavedSeasonTeam(userId) {
+  const { data: team } = await supabase
+    .from("user_fantasy_teams")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("tournament_id", TOURNAMENT_ID)
+    .maybeSingle();
+
+  if (!team) return;
+
+  captainId = team.captain_id;
+  viceCaptainId = team.vice_captain_id;
+
+  const { data: players } = await supabase
+    .from("user_fantasy_team_players")
+    .select("player_id")
+    .eq("user_fantasy_team_id", team.id);
+
+  if (!players) return;
+
+  const ids = players.map(p => p.player_id);
+  selectedPlayers = allPlayers.filter(p => ids.includes(p.id));
+}
+
+/* =========================
+   RENDER ALL
+========================= */
+
+function renderAll() {
+  renderMyXI();
+  renderPool();
+  renderSummary();
+}
+
+/* =========================
    RENDER POOL
 ========================= */
 
 function renderPool() {
+  if (!pool) return;
+
   pool.innerHTML = "";
 
   allPlayers.forEach(player => {
     const card = document.createElement("div");
     card.className = "player-card";
 
-    const isSelected = selectedPlayers.some(p => p.id === player.id);
+    const selected = selectedPlayers.some(p => p.id === player.id);
 
     card.innerHTML = `
       <div class="player-info">
@@ -118,7 +157,7 @@ function renderPool() {
 
     const btn = card.querySelector("button");
 
-    if (isSelected) {
+    if (selected) {
       btn.textContent = "Remove";
       btn.className = "action-btn remove";
       btn.onclick = () => removePlayer(player.id);
@@ -127,7 +166,6 @@ function renderPool() {
       btn.className = "action-btn add";
 
       if (canAddPlayer(player)) {
-        btn.disabled = false;
         btn.onclick = () => addPlayer(player);
       } else {
         btn.disabled = true;
@@ -143,14 +181,16 @@ function renderPool() {
 ========================= */
 
 function renderMyXI() {
+  if (!myXI) return;
+
   myXI.innerHTML = "";
 
   selectedPlayers.forEach(player => {
     const card = document.createElement("div");
     card.className = "player-card selected";
 
-    const isCaptain = captainId === player.id;
-    const isVice = viceCaptainId === player.id;
+    const isC = captainId === player.id;
+    const isVC = viceCaptainId === player.id;
 
     card.innerHTML = `
       <div class="player-info">
@@ -158,8 +198,8 @@ function renderMyXI() {
         <span>${player.role} · ${player.credit} cr</span>
       </div>
       <div style="display:flex; gap:6px;">
-        <button class="cv-btn ${isCaptain ? "active" : ""}">C</button>
-        <button class="cv-btn ${isVice ? "active" : ""}">VC</button>
+        <button class="cv-btn ${isC ? "active" : ""}">C</button>
+        <button class="cv-btn ${isVC ? "active" : ""}">VC</button>
         <button class="action-btn remove">Remove</button>
       </div>
     `;
@@ -179,9 +219,8 @@ function renderMyXI() {
 ========================= */
 
 function addPlayer(player) {
-  if (!canAddPlayer(player)) return;
   selectedPlayers.push(player);
-  updateUI();
+  renderAll();
 }
 
 function removePlayer(id) {
@@ -190,7 +229,7 @@ function removePlayer(id) {
   if (captainId === id) captainId = null;
   if (viceCaptainId === id) viceCaptainId = null;
 
-  updateUI();
+  renderAll();
 }
 
 /* =========================
@@ -200,13 +239,13 @@ function removePlayer(id) {
 function setCaptain(id) {
   if (viceCaptainId === id) viceCaptainId = null;
   captainId = id;
-  updateUI();
+  renderAll();
 }
 
 function setViceCaptain(id) {
   if (captainId === id) captainId = null;
   viceCaptainId = id;
-  updateUI();
+  renderAll();
 }
 
 /* =========================
@@ -216,57 +255,57 @@ function setViceCaptain(id) {
 function canAddPlayer(player) {
   if (selectedPlayers.length >= MAX_PLAYERS) return false;
 
-  const credits = getCreditsUsed();
+  const credits = selectedPlayers.reduce(
+    (sum, p) => sum + Number(p.credit),
+    0
+  );
+
   if (credits + Number(player.credit) > MAX_CREDITS) return false;
 
-  const roleCount = getRoleCount();
+  const roleCount = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+  selectedPlayers.forEach(p => roleCount[p.role]++);
+
   if (roleCount[player.role] >= ROLE_MAX[player.role]) return false;
 
-  const teamCount = getTeamCount();
+  const teamCount = {};
+  selectedPlayers.forEach(p => {
+    teamCount[p.real_team_id] =
+      (teamCount[p.real_team_id] || 0) + 1;
+  });
+
   if (teamCount[player.real_team_id] >= MAX_PER_TEAM) return false;
 
   return true;
-}
-
-function getCreditsUsed() {
-  return selectedPlayers.reduce((sum, p) => sum + Number(p.credit), 0);
-}
-
-function getRoleCount() {
-  const count = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  selectedPlayers.forEach(p => count[p.role]++);
-  return count;
-}
-
-function getTeamCount() {
-  const count = {};
-  selectedPlayers.forEach(p => {
-    count[p.real_team_id] = (count[p.real_team_id] || 0) + 1;
-  });
-  return count;
 }
 
 /* =========================
    SUMMARY
 ========================= */
 
-function updateSummary() {
-  const credits = getCreditsUsed();
-  const roles = getRoleCount();
+function renderSummary() {
+  if (!summary) return;
+
+  const credits = selectedPlayers.reduce(
+    (sum, p) => sum + Number(p.credit),
+    0
+  );
+
+  const roleCount = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+  selectedPlayers.forEach(p => roleCount[p.role]++);
 
   summary.innerHTML = `
     <div>Credits: ${credits} / 100</div>
-    <div>WK ${roles.WK} | BAT ${roles.BAT} | AR ${roles.AR} | BOWL ${roles.BOWL}</div>
+    <div>WK ${roleCount.WK} | BAT ${roleCount.BAT} | AR ${roleCount.AR} | BOWL ${roleCount.BOWL}</div>
   `;
 
-  validateSave(roles, credits);
+  validateSave(roleCount, credits);
 }
 
 /* =========================
    SAVE VALIDATION
 ========================= */
 
-function validateSave(roles, credits) {
+function validateSave(roleCount, credits) {
   let valid = true;
 
   if (selectedPlayers.length !== 11) valid = false;
@@ -274,16 +313,11 @@ function validateSave(roles, credits) {
   if (credits > MAX_CREDITS) valid = false;
 
   for (let r in ROLE_MIN) {
-    if (roles[r] < ROLE_MIN[r]) valid = false;
+    if (roleCount[r] < ROLE_MIN[r]) valid = false;
   }
 
-  if (!valid) {
-    saveBar.classList.remove("enabled");
-    saveBar.classList.add("disabled");
-  } else {
-    saveBar.classList.remove("disabled");
-    saveBar.classList.add("enabled");
-  }
+  saveBar.classList.toggle("enabled", valid);
+  saveBar.classList.toggle("disabled", !valid);
 }
 
 /* =========================
@@ -296,7 +330,12 @@ saveBtn.addEventListener("click", async () => {
   const user = await getCurrentUser();
   if (!user) return;
 
-  const { data: existingTeam } = await supabase
+  const totalCredits = selectedPlayers.reduce(
+    (sum, p) => sum + Number(p.credit),
+    0
+  );
+
+  const { data: existing } = await supabase
     .from("user_fantasy_teams")
     .select("*")
     .eq("user_id", user.id)
@@ -304,9 +343,8 @@ saveBtn.addEventListener("click", async () => {
     .maybeSingle();
 
   let teamId;
-  const totalCredits = getCreditsUsed();
 
-  if (!existingTeam) {
+  if (!existing) {
     const { data: newTeam } = await supabase
       .from("user_fantasy_teams")
       .insert({
@@ -320,9 +358,8 @@ saveBtn.addEventListener("click", async () => {
       .single();
 
     teamId = newTeam.id;
-
   } else {
-    teamId = existingTeam.id;
+    teamId = existing.id;
 
     await supabase
       .from("user_fantasy_teams")
@@ -339,53 +376,17 @@ saveBtn.addEventListener("click", async () => {
     .delete()
     .eq("user_fantasy_team_id", teamId);
 
-  const playerRows = selectedPlayers.map(p => ({
+  const rows = selectedPlayers.map(p => ({
     user_fantasy_team_id: teamId,
     player_id: p.id
   }));
 
   await supabase
     .from("user_fantasy_team_players")
-    .insert(playerRows);
+    .insert(rows);
 
   saveBtn.textContent = "Saved ✓";
   setTimeout(() => {
     saveBtn.textContent = "Save Team";
-  }, 1500);
+  }, 1200);
 });
-
-/* =========================
-   LOAD SAVED TEAM
-========================= */
-
-async function loadSavedSeasonTeam(user) {
-  const { data: team } = await supabase
-    .from("user_fantasy_teams")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("tournament_id", TOURNAMENT_ID)
-    .maybeSingle();
-
-  if (!team) return;
-
-  captainId = team.captain_id;
-  viceCaptainId = team.vice_captain_id;
-
-  const { data: players } = await supabase
-    .from("user_fantasy_team_players")
-    .select("player_id")
-    .eq("user_fantasy_team_id", team.id);
-
-  const ids = players.map(p => String(p.player_id));
-  selectedPlayers = allPlayers.filter(p => ids.includes(p.id));
-}
-
-/* =========================
-   UPDATE
-========================= */
-
-function updateUI() {
-  renderMyXI();
-  renderPool();
-  updateSummary();
-}
