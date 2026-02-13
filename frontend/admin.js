@@ -1,79 +1,75 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
+const SERVICE_ROLE_KEY = "YOUR_SERVICE_ROLE_KEY"; // Ensure this is your secret key
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const matchSelect = document.getElementById("matchSelect");
+const processBtn = document.getElementById("processBtn");
+const scoreboardInput = document.getElementById("scoreboardInput");
+const statusBox = document.getElementById("statusBox");
+
+// Load matches from the database to populate the dropdown
+async function loadMatches() {
+  const tournamentId = "e0416509-f082-4c11-8277-ec351bdc046d"; 
+  
+  // Querying matches and joining with real_teams to get short_codes
+  const query = `tournament_id=eq.${tournamentId}&select=id,match_number,venue,team_a:real_teams!team_a_id(short_code),team_b:real_teams!team_b_id(short_code)`;
+  
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/matches?${query}`, {
+    headers: {
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`
+    }
+  });
+
+  const matches = await res.json();
+  matchSelect.innerHTML = "";
+
+  if (!matches.length) {
+    matchSelect.innerHTML = "<option>No matches found</option>";
+    return;
+  }
+
+  matches.forEach(match => {
+    const option = document.createElement("option");
+    option.value = match.id;
+    // Format: Match 19 • AUS vs ZIM • Venue
+    const teamA = match.team_a?.short_code || "TBA";
+    const teamB = match.team_b?.short_code || "TBA";
+    option.textContent = `Match ${match.match_number} • ${teamA} vs ${teamB} • ${match.venue}`;
+    matchSelect.appendChild(option);
+  });
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+processBtn.addEventListener("click", async () => {
+  const matchId = matchSelect.value;
+  const rawInput = scoreboardInput.value.trim();
+
+  if (!matchId || !rawInput) return alert("Select match and paste JSON.");
+
+  statusBox.classList.remove("hidden");
+  statusBox.textContent = "Processing...";
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const scoreboardJson = JSON.parse(rawInput);
 
-    const { match_id, scoreboard } = await req.json()
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/process_match_points`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`
+      },
+      body: JSON.stringify({ match_id: matchId, scoreboard: scoreboardJson })
+    });
 
-    // 1. Get all players for name matching
-    const { data: players } = await supabase.from('players').select('id, name')
-    
-    // 2. Clear existing stats for this match (to allow re-processing)
-    await supabase.from('player_match_stats').delete().eq('match_id', match_id)
-
-    const statsToInsert = []
-
-    // 3. Process scoreboard JSON (assuming a standard structure)
-    for (const p of scoreboard.players) {
-      const dbPlayer = players?.find(dp => dp.name === p.name)
-      if (!dbPlayer) continue
-
-      // Point Logic
-      const runs = p.runs || 0
-      const wickets = p.wickets || 0
-      const catches = p.catches || 0
-      
-      // Basic Point Calculation Formula
-      const fantasyPoints = (runs * 1) + (wickets * 25) + (catches * 8)
-
-      statsToInsert.push({
-        match_id,
-        player_id: dbPlayer.id,
-        runs,
-        wickets,
-        catches,
-        fantasy_points: fantasyPoints
-      })
+    if (res.ok) {
+      statusBox.textContent = "Match processed successfully.";
+      scoreboardInput.value = "";
+    } else {
+      const err = await res.text();
+      throw new Error(err);
     }
-
-    // 4. Insert Player Stats
-    const { error: statsError } = await supabase.from('player_match_stats').insert(statsToInsert)
-    if (statsError) throw statsError
-
-    // 5. Calculate User Match Points (including Captain 2x and VC 1.5x)
-    // This logic joins user teams with the stats we just inserted
-    const { data: userTeams } = await supabase
-      .from('user_match_teams')
-      .select('id, user_id, captain_id, vice_captain_id')
-      .eq('match_id', match_id)
-
-    for (const team of userTeams || []) {
-       // SQL logic usually handles this better, but here is the process:
-       // 1. Sum up all player points in the user's match team
-       // 2. Add extra 1x for Captain, 0.5x for VC
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
-
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+  } catch (err) {
+    statusBox.textContent = "Error: " + err.message;
   }
-})
+});
+
+loadMatches();
