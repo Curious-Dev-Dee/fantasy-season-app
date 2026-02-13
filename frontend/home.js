@@ -56,7 +56,7 @@ async function loadProfile(userId) {
     .from("user_profiles")
     .select("*")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (!profile) return;
 
@@ -86,54 +86,6 @@ function renderProfile(profile) {
   }
 }
 
-/* SAVE PROFILE */
-
-saveBtn.addEventListener("click", async () => {
-
-  const fullName = fullNameInput.value.trim();
-  const teamName = teamNameInput.value.trim();
-
-  if (!fullName || !teamName) {
-    alert("Name and Team Name are mandatory.");
-    return;
-  }
-
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session.user;
-
-  let photoPath = null;
-
-  if (teamPhotoInput.files.length > 0) {
-    const file = teamPhotoInput.files[0];
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${user.id}.${fileExt}`;
-
-    const { error } = await supabase.storage
-      .from("team-avatars")
-      .upload(fileName, file, { upsert: true });
-
-    if (error) {
-      alert("Image upload failed.");
-      return;
-    }
-
-    photoPath = fileName;
-  }
-
-  await supabase
-    .from("user_profiles")
-    .update({
-      full_name: fullName,
-      team_name: teamName,
-      team_photo_url: photoPath,
-      profile_completed: true
-    })
-    .eq("user_id", user.id);
-
-  modal.classList.add("hidden");
-  initHome();
-});
-
 /* =========================
    DASHBOARD
 ========================= */
@@ -143,7 +95,7 @@ async function loadDashboard(userId) {
   const { data: activeTournament } = await supabase
     .from("active_tournament")
     .select("*")
-    .single();
+    .maybeSingle();
 
   if (!activeTournament) return;
 
@@ -157,10 +109,28 @@ async function loadDashboard(userId) {
     .select("*")
     .eq("user_id", userId)
     .eq("tournament_id", tournamentId)
-    .single();
+    .maybeSingle();
 
   scoreElement.textContent = summary?.total_points ?? 0;
-  subsElement.textContent = summary?.subs_remaining ?? 80;
+
+  /* =========================
+     SUB DISPLAY FIX
+  ========================== */
+
+  const { data: lastSnapshot } = await supabase
+    .from("user_match_teams")
+    .select("total_subs_used")
+    .eq("user_id", userId)
+    .order("locked_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!lastSnapshot) {
+    subsElement.textContent = "Unlimited";
+  } else {
+    const remaining = 80 - lastSnapshot.total_subs_used;
+    subsElement.textContent = remaining;
+  }
 
   /* UPCOMING MATCH */
 
@@ -171,7 +141,7 @@ async function loadDashboard(userId) {
     .gt("start_time", new Date().toISOString())
     .order("start_time", { ascending: true })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (upcomingMatch) {
 
@@ -282,47 +252,6 @@ editButton.addEventListener("click", () => {
 
 viewXiBtn.addEventListener("click", () => {
   window.location.href = "team-view.html";
-});
-
-/* =========================
-   AVATAR UPDATE
-========================= */
-
-avatarElement.addEventListener("click", async () => {
-
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-
-  input.onchange = async () => {
-
-    const file = input.files[0];
-    if (!file) return;
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session.user;
-
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${user.id}.${fileExt}`;
-
-    const { error } = await supabase.storage
-      .from("team-avatars")
-      .upload(fileName, file, { upsert: true });
-
-    if (error) {
-      alert("Upload failed.");
-      return;
-    }
-
-    await supabase
-      .from("user_profiles")
-      .update({ team_photo_url: fileName })
-      .eq("user_id", user.id);
-
-    initHome();
-  };
-
-  input.click();
 });
 
 initHome();
