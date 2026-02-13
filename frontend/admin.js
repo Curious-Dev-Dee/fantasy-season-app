@@ -1,78 +1,74 @@
 // 1. CONFIGURATION
 const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...ZYYrXkE"; // Ensure this is your full secret key
+// Double check this key in your Supabase Dashboard (Settings -> API -> service_role)
+const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...ZYYrXkE"; 
 
-// 2. DOM ELEMENTS
 const matchSelect = document.getElementById("matchSelect");
 const processBtn = document.getElementById("processBtn");
 const scoreboardInput = document.getElementById("scoreboardInput");
 const statusBox = document.getElementById("statusBox");
 
-/**
- * Loads matches and team names from the database
- * strictly using the IDs verified in our previous steps.
- */
 async function loadMatches() {
     const tournamentId = "e0416509-f082-4c11-8277-ec351bdc046d";
 
     try {
-        console.log("Fetching data for tournament:", tournamentId);
+        console.log("Starting Database Fetch...");
 
-        // Fetch Matches
-        const matchRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/matches?tournament_id=eq.${tournamentId}&select=*&order=match_number.asc`,
-            {
-                headers: {
-                    apikey: SERVICE_ROLE_KEY,
-                    Authorization: `Bearer ${SERVICE_ROLE_KEY}`
-                }
+        const matchRes = await fetch(`${SUPABASE_URL}/rest/v1/matches?tournament_id=eq.${tournamentId}&select=*`, {
+            method: 'GET',
+            mode: 'cors', // Force CORS mode
+            headers: {
+                'apikey': SERVICE_ROLE_KEY,
+                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json'
             }
-        );
+        });
+
+        if (!matchRes.ok) throw new Error(`Matches Fetch Failed: ${matchRes.statusText}`);
         const matches = await matchRes.json();
 
-        // Fetch Teams to map names to IDs
-        const teamRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/real_teams?tournament_id=eq.${tournamentId}&select=id,short_code`,
-            {
-                headers: {
-                    apikey: SERVICE_ROLE_KEY,
-                    Authorization: `Bearer ${SERVICE_ROLE_KEY}`
-                }
+        const teamRes = await fetch(`${SUPABASE_URL}/rest/v1/real_teams?tournament_id=eq.${tournamentId}&select=id,short_code`, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'apikey': SERVICE_ROLE_KEY,
+                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json'
             }
-        );
+        });
+
+        if (!teamRes.ok) throw new Error(`Teams Fetch Failed: ${teamRes.statusText}`);
         const teams = await teamRes.json();
 
-        // Create a lookup map: { "team-uuid": "IND" }
         const teamMap = {};
         teams.forEach(t => { teamMap[t.id] = t.short_code; });
 
-        // Clear dropdown
         matchSelect.innerHTML = "";
-
-        if (!matches || matches.length === 0) {
-            matchSelect.innerHTML = "<option>No matches found in database</option>";
+        if (!matches.length) {
+            matchSelect.innerHTML = "<option>No matches found</option>";
             return;
         }
 
-        // Populate dropdown
         matches.forEach(match => {
             const option = document.createElement("option");
             option.value = match.id;
-
-            const teamA = teamMap[match.team_a_id] || "Unknown";
-            const teamB = teamMap[match.team_b_id] || "Unknown";
-            
-            // Result: "Match 13 • IND vs NAM • Ahmedabad"
-            option.textContent = `Match ${match.match_number} • ${teamA} vs ${teamB} • ${match.venue}`;
+            const teamA = teamMap[match.team_a_id] || "TBA";
+            const teamB = teamMap[match.team_b_id] || "TBA";
+            option.textContent = `Match ${match.match_number} • ${teamA} vs ${teamB}`;
             matchSelect.appendChild(option);
         });
 
+        console.log("Successfully Loaded Matches.");
+
     } catch (err) {
-        console.error("Initialization Error:", err);
-        matchSelect.innerHTML = "<option>Error connecting to database</option>";
+        console.error("Database Connection Error:", err);
+        matchSelect.innerHTML = "<option>Error: Check Console (F12)</option>";
+        showStatus("Connection Error: Check API Keys and Network.", "error");
     }
 }
 
+// ... (keep your existing processBtn listener and showStatus helper below)
+loadMatches();
 /**
  * Handles the click event to send JSON to the Edge Function
  */
