@@ -14,7 +14,7 @@
   <div class="app edit-team-app">
 
     <!-- =========================
-         HEADER (CENTERED)
+         HEADER
     ========================== -->
     <header class="edit-header">
       <a href="home.html" class="icon-back">←</a>
@@ -35,25 +35,18 @@
     ========================== -->
     <main class="content edit-content">
 
-      <!-- TEAM SUMMARY (STICKY) -->
+      <!-- TEAM SUMMARY -->
       <div class="team-summary sticky-summary">
-        <!-- JS fills this -->
+        <!-- JS fills dynamically -->
       </div>
 
       <!-- =========================
            MY XI MODE
       ========================== -->
       <section class="edit-mode myxi-mode active">
-
         <div class="player-list">
-          <!--
-            IMPORTANT:
-            - Do NOT hardcode players here anymore
-            - JS will insert real players from Supabase
-            - Leaving empty is CORRECT
-          -->
+          <!-- JS injects selected players -->
         </div>
-
       </section>
 
       <!-- =========================
@@ -63,17 +56,23 @@
 
         <!-- FILTERS -->
         <div class="change-filters">
-          <input type="text" placeholder="Search player" />
+          <input
+            type="text"
+            id="playerSearch"
+            placeholder="Search player"
+          />
+
           <div class="role-filters">
-            <button data-role="WK">WK</button>
-            <button data-role="BAT">BAT</button>
-            <button data-role="AR">AR</button>
-            <button data-role="BOWL">BOWL</button>
+            <button class="role-filter-btn" data-role="ALL">All</button>
+            <button class="role-filter-btn" data-role="WK">WK</button>
+            <button class="role-filter-btn" data-role="BAT">BAT</button>
+            <button class="role-filter-btn" data-role="AR">AR</button>
+            <button class="role-filter-btn" data-role="BOWL">BOWL</button>
           </div>
         </div>
 
         <div class="player-list">
-          <!-- JS will load available players here -->
+          <!-- JS loads all players here -->
         </div>
 
       </section>
@@ -84,14 +83,15 @@
          SAVE BAR
     ========================== -->
     <footer class="save-bar disabled">
-      <button class="save-btn">Fix your XI to save</button>
+      <button class="save-btn">Save Team</button>
       <p class="save-hint">Team locks automatically at match start</p>
     </footer>
 
   </div>
 
   <!-- LOGIC -->
-<script type="module" src="edit-team.js"></script>
-<script type="module" src="auth-guard.js"></script>
+  <script type="module" src="edit-team.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+
 </body>
 </html>

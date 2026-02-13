@@ -3,7 +3,7 @@ import { supabase } from "./supabase.js";
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
 /* =========================
-   TEAM RULES
+   RULES
 ========================= */
 
 const MAX_PLAYERS = 11;
@@ -29,9 +29,27 @@ let isFirstLock = true;
 
 const myXI = document.querySelector(".myxi-mode .player-list");
 const pool = document.querySelector(".change-mode .player-list");
-const saveBtn = document.querySelector(".save-btn");
 const saveBar = document.querySelector(".save-bar");
 const summary = document.querySelector(".team-summary");
+
+const toggleButtons = document.querySelectorAll(".toggle-btn");
+const editModes = document.querySelectorAll(".edit-mode");
+
+/* =========================
+   TOGGLE FIX
+========================= */
+
+toggleButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    toggleButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    editModes.forEach(mode => mode.classList.remove("active"));
+    document
+      .querySelector(`.${btn.dataset.mode}-mode`)
+      .classList.add("active");
+  });
+});
 
 /* =========================
    AUTH
@@ -68,8 +86,7 @@ async function loadPlayers() {
     .select("id, name, role, credit, real_team_id")
     .eq("is_active", true);
 
-  allPlayers = data;
-  renderPool();
+  allPlayers = data || [];
 }
 
 /* =========================
@@ -80,127 +97,41 @@ function renderPool() {
   pool.innerHTML = "";
 
   allPlayers.forEach(player => {
-    const card = createPlayerCard(player);
+    const card = document.createElement("div");
+    card.className = "player-card";
+    card.innerHTML = `
+      <div class="player-info">
+        <strong>${player.name}</strong>
+        <span>${player.role} · ${player.credit} cr</span>
+      </div>
+      <button class="action-btn"></button>
+    `;
+
+    const btn = card.querySelector("button");
+    const isSelected = selectedPlayers.some(p => p.id === player.id);
+
+    if (isSelected) {
+      btn.textContent = "Remove";
+      btn.className = "action-btn remove";
+      btn.onclick = () => removePlayer(player.id);
+    } else {
+      btn.textContent = "Add";
+      btn.className = "action-btn add";
+
+      if (canAddPlayer(player)) {
+        btn.disabled = false;
+        btn.onclick = () => addPlayer(player);
+      } else {
+        btn.disabled = true;
+      }
+    }
+
     pool.appendChild(card);
   });
 }
 
 /* =========================
-   CREATE CARD
-========================= */
-
-function createPlayerCard(player) {
-  const card = document.createElement("div");
-  card.className = "player-card";
-  card.dataset.id = player.id;
-
-  card.innerHTML = `
-    <div class="player-info">
-      <strong>${player.name}</strong>
-      <span>${player.role} · ${player.credit} cr</span>
-    </div>
-    <button class="action-btn"></button>
-  `;
-
-  updateCardState(card, player);
-
-  return card;
-}
-
-/* =========================
-   UPDATE CARD STATE
-========================= */
-
-function updateCardState(card, player) {
-  const btn = card.querySelector(".action-btn");
-  const isSelected = selectedPlayers.some(p => p.id === player.id);
-
-  if (isSelected) {
-    btn.textContent = "Remove";
-    btn.className = "action-btn remove";
-    btn.onclick = () => removePlayer(player.id);
-  } else {
-    btn.textContent = "Add";
-    btn.className = "action-btn add";
-
-    if (canAddPlayer(player)) {
-      btn.disabled = false;
-      btn.onclick = () => addPlayer(player);
-    } else {
-      btn.disabled = true;
-    }
-  }
-}
-
-/* =========================
-   ADD PLAYER
-========================= */
-
-function addPlayer(player) {
-  if (!canAddPlayer(player)) return;
-
-  selectedPlayers.push(player);
-  updateUI();
-}
-
-/* =========================
-   REMOVE PLAYER
-========================= */
-
-function removePlayer(playerId) {
-  selectedPlayers = selectedPlayers.filter(p => p.id !== playerId);
-  updateUI();
-}
-
-/* =========================
-   VALIDATION
-========================= */
-
-function canAddPlayer(player) {
-  if (selectedPlayers.length >= MAX_PLAYERS) return false;
-
-  const creditsUsed = getCreditsUsed();
-  if (creditsUsed + Number(player.credit) > MAX_CREDITS) return false;
-
-  const roleCount = getRoleCount();
-  if (roleCount[player.role] >= ROLE_MAX[player.role]) return false;
-
-  const teamCount = getTeamCount();
-  if (teamCount[player.real_team_id] >= MAX_PER_TEAM) return false;
-
-  return true;
-}
-
-function getCreditsUsed() {
-  return selectedPlayers.reduce((sum, p) => sum + Number(p.credit), 0);
-}
-
-function getRoleCount() {
-  const count = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  selectedPlayers.forEach(p => count[p.role]++);
-  return count;
-}
-
-function getTeamCount() {
-  const count = {};
-  selectedPlayers.forEach(p => {
-    count[p.real_team_id] = (count[p.real_team_id] || 0) + 1;
-  });
-  return count;
-}
-
-/* =========================
-   UI UPDATE
-========================= */
-
-function updateUI() {
-  renderMyXI();
-  renderPool();
-  updateSummary();
-}
-
-/* =========================
-   RENDER MY XI
+   MY XI
 ========================= */
 
 function renderMyXI() {
@@ -216,9 +147,68 @@ function renderMyXI() {
       </div>
       <button class="action-btn remove">Remove</button>
     `;
-    card.querySelector("button").onclick = () => removePlayer(player.id);
+
+    card.querySelector("button").onclick = () =>
+      removePlayer(player.id);
+
     myXI.appendChild(card);
   });
+}
+
+/* =========================
+   ADD / REMOVE
+========================= */
+
+function addPlayer(player) {
+  if (!canAddPlayer(player)) return;
+  selectedPlayers.push(player);
+  updateUI();
+}
+
+function removePlayer(id) {
+  selectedPlayers = selectedPlayers.filter(p => p.id !== id);
+  updateUI();
+}
+
+/* =========================
+   VALIDATION
+========================= */
+
+function canAddPlayer(player) {
+  if (selectedPlayers.length >= MAX_PLAYERS) return false;
+
+  const credits = getCreditsUsed();
+  if (credits + Number(player.credit) > MAX_CREDITS) return false;
+
+  const roleCount = getRoleCount();
+  if (roleCount[player.role] >= ROLE_MAX[player.role]) return false;
+
+  const teamCount = getTeamCount();
+  if (teamCount[player.real_team_id] >= MAX_PER_TEAM) return false;
+
+  return true;
+}
+
+function getCreditsUsed() {
+  return selectedPlayers.reduce(
+    (sum, p) => sum + Number(p.credit),
+    0
+  );
+}
+
+function getRoleCount() {
+  const count = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+  selectedPlayers.forEach(p => count[p.role]++);
+  return count;
+}
+
+function getTeamCount() {
+  const count = {};
+  selectedPlayers.forEach(p => {
+    count[p.real_team_id] =
+      (count[p.real_team_id] || 0) + 1;
+  });
+  return count;
 }
 
 /* =========================
@@ -227,7 +217,7 @@ function renderMyXI() {
 
 function updateSummary() {
   const credits = getCreditsUsed();
-  const roleCount = getRoleCount();
+  const roles = getRoleCount();
 
   let subsHTML = "";
 
@@ -250,43 +240,42 @@ function updateSummary() {
 
   summary.innerHTML = `
     <div>Credits: ${credits} / 100</div>
-    <div>WK ${roleCount.WK} | BAT ${roleCount.BAT} | AR ${roleCount.AR} | BOWL ${roleCount.BOWL}</div>
+    <div>WK ${roles.WK} | BAT ${roles.BAT} | AR ${roles.AR} | BOWL ${roles.BOWL}</div>
     ${subsHTML}
   `;
 
-  validateSaveButton(roleCount, credits);
+  validateSave(roles, credits);
 }
 
 /* =========================
    SAVE VALIDATION
 ========================= */
 
-function validateSaveButton(roleCount, credits) {
+function validateSave(roles, credits) {
   let valid = true;
 
   if (selectedPlayers.length !== 11) valid = false;
   if (credits > MAX_CREDITS) valid = false;
 
-  for (let role in ROLE_MIN) {
-    if (roleCount[role] < ROLE_MIN[role]) valid = false;
+  for (let r in ROLE_MIN) {
+    if (roles[r] < ROLE_MIN[r]) valid = false;
   }
 
   if (!valid) {
-    saveBar.classList.add("disabled");
     saveBar.classList.remove("enabled");
-    return;
+    saveBar.classList.add("disabled");
+  } else {
+    saveBar.classList.remove("disabled");
+    saveBar.classList.add("enabled");
   }
-
-  saveBar.classList.add("enabled");
-  saveBar.classList.remove("disabled");
 }
 
 /* =========================
-   LAST LOCKED SNAPSHOT
+   SNAPSHOT
 ========================= */
 
 async function loadLastLockedSnapshot(userId) {
-  const { data: snapshot } = await supabase
+  const { data } = await supabase
     .from("user_match_teams")
     .select("id, total_subs_used")
     .eq("user_id", userId)
@@ -294,18 +283,18 @@ async function loadLastLockedSnapshot(userId) {
     .limit(1)
     .maybeSingle();
 
-  if (!snapshot) {
+  if (!data) {
     isFirstLock = true;
     return;
   }
 
   isFirstLock = false;
-  lastTotalSubsUsed = snapshot.total_subs_used;
+  lastTotalSubsUsed = data.total_subs_used;
 
   const { data: players } = await supabase
     .from("user_match_team_players")
     .select("player_id")
-    .eq("user_match_team_id", snapshot.id);
+    .eq("user_match_team_id", data.id);
 
   lastLockedPlayers = players.map(p => String(p.player_id));
 }
@@ -332,7 +321,17 @@ async function loadSavedSeasonTeam() {
     .select("player_id")
     .eq("user_fantasy_team_id", team.id);
 
-  const savedIds = players.map(p => String(p.player_id));
-  selectedPlayers = allPlayers.filter(p => savedIds.includes(p.id));
+  const ids = players.map(p => String(p.player_id));
+  selectedPlayers = allPlayers.filter(p => ids.includes(p.id));
   updateUI();
+}
+
+/* =========================
+   UPDATE
+========================= */
+
+function updateUI() {
+  renderMyXI();
+  renderPool();
+  updateSummary();
 }

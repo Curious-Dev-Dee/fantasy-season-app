@@ -88,12 +88,25 @@ body {
   background: #111827;
   color: #8b8b8b;
   font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .toggle-btn.active {
   border-color: #9be15d;
   color: #fff;
   background: #1f2937;
+}
+
+/* =========================
+   EDIT MODE CONTROL (FIX)
+========================= */
+.edit-mode {
+  display: none;
+}
+
+.edit-mode.active {
+  display: block;
 }
 
 /* =========================
@@ -162,7 +175,7 @@ body {
 }
 
 /* =========================
-   NEW STRICT ACTION BUTTONS
+   STRICT ACTION BUTTONS
 ========================= */
 
 .action-btn {
