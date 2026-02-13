@@ -50,8 +50,9 @@
 
   <section class="card user-card">
     <div class="user-info">
-      <div class="team-avatar" id="teamAvatar" onclick="window.location.href='more.html'"></div>
-      <div>
+<div class="team-avatar" id="teamAvatar" onclick="window.location.href='more.html'"></div>
+
+<div class="team-avatar" id="teamAvatar"></div>      <div>
         <p class="welcome-text" id="welcomeText">Welcome back, Expert</p>
         <p class="team-subtitle" id="userTeamName">Set your team name</p>
       </div>
@@ -92,6 +93,21 @@
     </div>
   </section>
 
+</div>
+
+<div id="profileModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Complete Profile</h2>
+    <p>Set your identity before you start the challenge.</p>
+    
+    <label for="modalFullName">Your Name</label>
+    <input type="text" id="modalFullName" placeholder="e.g. MS Dhoni" />
+    
+    <label for="modalTeamName">Team Name</label>
+    <input type="text" id="modalTeamName" placeholder="e.g. Chennai Kings" />
+    
+    <button id="saveProfileBtn" class="primary-btn full-width">Save & Start</button>
+  </div>
 </div>
 
 <nav class="bottom-nav">

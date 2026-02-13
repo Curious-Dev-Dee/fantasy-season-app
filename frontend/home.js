@@ -11,55 +11,75 @@ const rankElement = document.getElementById("userRank");
 const subsElement = document.getElementById("subsRemaining");
 const matchTeamsElement = document.getElementById("matchTeams");
 const matchTimeElement = document.getElementById("matchTime");
+const leaderboardContainer = document.getElementById("leaderboardContainer");
 const tournamentNameElement = document.getElementById("tournamentName");
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
 
+// Modal Elements
+const profileModal = document.getElementById("profileModal");
+const modalFullName = document.getElementById("modalFullName");
+const modalTeamName = document.getElementById("modalTeamName");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+
 let countdownInterval;
+let currentUserId = null;
 
 /* =========================
-   INIT (With New User Fix)
+   INIT
 ========================= */
 async function initHome() {
-  // 1. Wait a split second to let the Google login "land"
   await new Promise(resolve => setTimeout(resolve, 500));
-
   const { data: { session } } = await supabase.auth.getSession();
   
-  // 2. If no session, wait for an auth change event (back-up for slow connections)
   if (!session) {
-    supabase.auth.onAuthStateChange((event, newSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (newSession) {
-        startDashboard(newSession.user.id);
+        currentUserId = newSession.user.id;
+        startDashboard(currentUserId);
+        authListener.subscription.unsubscribe();
       } else if (event === 'SIGNED_OUT') {
         window.location.href = "login.html";
       }
     });
     
-    // Final check: if still nothing, go to login
     const finalCheck = await supabase.auth.getSession();
     if (!finalCheck.data.session) {
         window.location.href = "login.html";
         return;
     }
   } else {
-    startDashboard(session.user.id);
+    currentUserId = session.user.id;
+    startDashboard(currentUserId);
   }
 }
 
 async function startDashboard(userId) {
-  // Reveal dashboard and hide loader
   document.querySelector('.app-container').style.visibility = 'visible';
   const loader = document.getElementById('loadingOverlay');
   if (loader) loader.style.display = 'none';
 
   await loadProfile(userId);
   await loadDashboard(userId);
+  await loadLeaderboardPreview();
 }
 
 /* =========================
-   PROFILE LOGIC
+   PROFILE & MODAL LOGIC
 ========================= */
+
+// Open Modal when clicking Avatar
+avatarElement.addEventListener("click", () => {
+  profileModal.classList.remove("hidden");
+});
+
+// Close Modal if clicking outside content
+profileModal.addEventListener("click", (e) => {
+  if (e.target === profileModal) {
+    profileModal.classList.add("hidden");
+  }
+});
+
 async function loadProfile(userId) {
   const { data: profile } = await supabase
     .from("user_profiles")
@@ -69,10 +89,12 @@ async function loadProfile(userId) {
 
   if (profile) {
     renderProfile(profile);
+    // Fill modal inputs with existing data
+    modalFullName.value = profile.full_name || "";
+    modalTeamName.value = profile.team_name || "";
   } else {
-    // New User default view
     welcomeText.textContent = "Welcome back, Expert";
-    teamNameElement.textContent = "Set your team name in 'More'";
+    teamNameElement.textContent = "Set your team name";
   }
 }
 
@@ -91,6 +113,42 @@ function renderProfile(profile) {
   }
 }
 
+// SAVE PROFILE FROM MODAL
+saveProfileBtn.addEventListener("click", async () => {
+  const name = modalFullName.value.trim();
+  const tName = modalTeamName.value.trim();
+
+  if (!name || !tName) {
+    alert("Please fill in both fields!");
+    return;
+  }
+
+  saveProfileBtn.disabled = true;
+  saveProfileBtn.textContent = "Saving...";
+
+  const { error } = await supabase
+    .from("user_profiles")
+    .update({ 
+      full_name: name, 
+      team_name: tName,
+      profile_completed: true 
+    })
+    .eq("user_id", currentUserId);
+
+  if (error) {
+    console.error("Save error:", error);
+    alert("Error saving profile. Try again.");
+  } else {
+    // Update the UI immediately
+    welcomeText.textContent = `Welcome back, ${name.split(" ")[0]}`;
+    teamNameElement.textContent = tName;
+    profileModal.classList.add("hidden");
+  }
+
+  saveProfileBtn.disabled = false;
+  saveProfileBtn.textContent = "Save & Start";
+});
+
 /* =========================
    DASHBOARD LOGIC
 ========================= */
@@ -103,7 +161,6 @@ async function loadDashboard(userId) {
   if (!activeTournament) return;
   tournamentNameElement.textContent = activeTournament.name;
 
-  // Pulling live stats from your dashboard_summary table
   const { data: summary } = await supabase
     .from("dashboard_summary")
     .select("*")
@@ -112,9 +169,15 @@ async function loadDashboard(userId) {
     .maybeSingle();
 
   scoreElement.textContent = summary?.total_points ?? 0;
-  // Use 'rank' if available, otherwise keep the default dash
-  rankElement.textContent = summary?.rank ? `#${summary.rank}` : "—";
   subsElement.textContent = summary?.subs_remaining ?? 80;
+
+  const { data: rankData } = await supabase
+    .from("leaderboard_view")
+    .select("rank")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  rankElement.textContent = rankData?.rank ? `#${rankData.rank}` : "—";
 
   const { data: upcomingMatch } = await supabase
     .from("matches")
@@ -139,7 +202,23 @@ async function loadDashboard(userId) {
     startCountdown(upcomingMatch.start_time);
   } else {
     matchTeamsElement.textContent = "No upcoming match";
-    matchTimeElement.textContent = "Stay tuned!";
+  }
+}
+
+async function loadLeaderboardPreview() {
+  const { data: leaderboard } = await supabase
+    .from("leaderboard_view")
+    .select("team_name, total_points, rank")
+    .order("rank", { ascending: true })
+    .limit(3);
+
+  if (leaderboard && leaderboard.length > 0) {
+    leaderboardContainer.innerHTML = leaderboard.map(row => `
+      <div class="leader-row">
+        <span>#${row.rank} ${row.team_name || 'Anonymous'}</span>
+        <span>${row.total_points} pts</span>
+      </div>
+    `).join("");
   }
 }
 
