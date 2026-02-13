@@ -63,16 +63,16 @@ async function getCurrentUser() {
 }
 
 /* =========================
-   INIT (FIXED ORDER)
+   INIT
 ========================= */
 
 async function init() {
   const user = await getCurrentUser();
   if (!user) return;
 
-  await loadPlayers();              // 1️⃣ load players first
-  await loadSavedSeasonTeam(user);  // 2️⃣ then map saved team
-  updateUI();                       // 3️⃣ then render
+  await loadPlayers();
+  await loadSavedSeasonTeam(user);
+  updateUI();
 }
 
 init();
@@ -88,7 +88,7 @@ async function loadPlayers() {
     .eq("is_active", true);
 
   if (error) {
-    console.error("Player load error:", error);
+    console.error(error);
     return;
   }
 
@@ -285,6 +285,74 @@ function validateSave(roles, credits) {
     saveBar.classList.add("enabled");
   }
 }
+
+/* =========================
+   SAVE TO DB
+========================= */
+
+saveBtn.addEventListener("click", async () => {
+  if (!saveBar.classList.contains("enabled")) return;
+
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const { data: existingTeam } = await supabase
+    .from("user_fantasy_teams")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("tournament_id", TOURNAMENT_ID)
+    .maybeSingle();
+
+  let teamId;
+  const totalCredits = getCreditsUsed();
+
+  if (!existingTeam) {
+    const { data: newTeam } = await supabase
+      .from("user_fantasy_teams")
+      .insert({
+        user_id: user.id,
+        tournament_id: TOURNAMENT_ID,
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .select()
+      .single();
+
+    teamId = newTeam.id;
+
+  } else {
+    teamId = existingTeam.id;
+
+    await supabase
+      .from("user_fantasy_teams")
+      .update({
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .eq("id", teamId);
+  }
+
+  await supabase
+    .from("user_fantasy_team_players")
+    .delete()
+    .eq("user_fantasy_team_id", teamId);
+
+  const playerRows = selectedPlayers.map(p => ({
+    user_fantasy_team_id: teamId,
+    player_id: p.id
+  }));
+
+  await supabase
+    .from("user_fantasy_team_players")
+    .insert(playerRows);
+
+  saveBtn.textContent = "Saved ✓";
+  setTimeout(() => {
+    saveBtn.textContent = "Save Team";
+  }, 1500);
+});
 
 /* =========================
    LOAD SAVED TEAM
