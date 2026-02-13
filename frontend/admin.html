@@ -1,98 +1,51 @@
-const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...ZYYrXkE"; // Keep your existing key
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Match Scoring</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 200px; font-family: monospace; }
+        button { background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #1d4ed8; }
+        #statusBox { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
+        .status { background: #e0e7ff; color: #4338ca; }
+        .success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; display: block !important; }
+        .error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; display: block !important; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
 
-const matchSelect = document.getElementById("matchSelect");
-const processBtn = document.getElementById("processBtn");
-const scoreboardInput = document.getElementById("scoreboardInput");
-const statusBox = document.getElementById("statusBox");
+<div class="container">
+    <h1>🏏 Points Processing Portal</h1>
+    <p>Select a match and paste the scorecard JSON to update player stats and user points.</p>
+    <hr>
 
-// Load matches - Adjusted to match your actual DB column names
-async function loadMatches() {
-  // We fetch matches for the active tournament. 
-  // Removed 'points_processed' filter as it may not exist in your schema yet.
-  const tournamentId = "e0416509-f082-4c11-8277-ec351bdc046d"; 
-  
-  // Using select with join to get Team Codes for the dropdown
-  const query = `tournament_id=eq.${tournamentId}&select=id,match_number,venue,team_a:real_teams!team_a_id(short_code),team_b:real_teams!team_b_id(short_code)`;
-  
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/matches?${query}`,
-    {
-      headers: {
-        apikey: SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SERVICE_ROLE_KEY}`
-      }
-    }
-  );
+    <div class="form-group">
+        <label for="matchSelect">Select Match</label>
+        <select id="matchSelect">
+            <option>Loading matches...</option>
+        </select>
+    </div>
 
-  const matches = await res.json();
+    <div class="form-group">
+        <label for="scoreboardInput">Scorecard JSON</label>
+        <textarea id="scoreboardInput" placeholder='Paste JSON here... e.g. { "players": [...] }'></textarea>
+    </div>
 
-  matchSelect.innerHTML = "";
+    <button id="processBtn">Process Points & Update Leaderboard</button>
 
-  if (!matches || !matches.length) {
-    const option = document.createElement("option");
-    option.textContent = "No eligible matches found";
-    matchSelect.appendChild(option);
-    return;
-  }
-
-  matches.forEach(match => {
-    const option = document.createElement("option");
-    option.value = match.id;
-    // Provides a clear name: "Match 19 • AUS vs ZIM • Venue"
-    const teamA = match.team_a?.short_code || "TBA";
-    const teamB = match.team_b?.short_code || "TBA";
-    option.textContent = `Match ${match.match_number} • ${teamA} vs ${teamB} • ${match.venue}`;
-    matchSelect.appendChild(option);
-  });
-}
-
-processBtn.addEventListener("click", async () => {
-  const matchId = matchSelect.value;
-  const rawInput = scoreboardInput.value.trim();
-
-  if (!matchId || !rawInput) {
-    statusBox.classList.remove("hidden");
-    statusBox.classList.add("error");
-    statusBox.textContent = "Error: Please select a match and paste the JSON.";
-    return;
-  }
-
-  try {
-    statusBox.classList.remove("hidden", "success", "error");
-    statusBox.textContent = "Processing...";
-    statusBox.classList.add("status");
-
-    const scoreboardJson = JSON.parse(rawInput);
-
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/process_match_points`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SERVICE_ROLE_KEY}`
-      },
-      body: JSON.stringify({
-        match_id: matchId,
-        scoreboard: scoreboardJson
-      })
-    });
-
-    const result = await res.text();
-
-    if (res.ok) {
-      statusBox.classList.add("success");
-      statusBox.textContent = "Match processed successfully.";
-      scoreboardInput.value = ""; // Clear input on success
-    } else {
-      throw new Error(result);
-    }
-
-  } catch (err) {
-    statusBox.classList.add("error");
-    statusBox.textContent = "Error: " + err.message;
-  }
-});
+    <div id="statusBox" class="hidden"></div>
+</div>
 
 <script src="admin.js"></script>
 
-loadMatches();
+</body>
+</html>
