@@ -114,7 +114,7 @@ async function loadDashboard(userId) {
   scoreElement.textContent = summary?.total_points ?? 0;
 
   /* =========================
-     SUB DISPLAY FIX
+     SUB + EDIT LOCK LOGIC
   ========================== */
 
   const { data: lastSnapshot } = await supabase
@@ -127,9 +127,16 @@ async function loadDashboard(userId) {
 
   if (!lastSnapshot) {
     subsElement.textContent = "Unlimited";
+    enableEditButton();
   } else {
     const remaining = 80 - lastSnapshot.total_subs_used;
     subsElement.textContent = remaining;
+
+    if (remaining <= 0) {
+      disableEditButton();
+    } else {
+      enableEditButton();
+    }
   }
 
   /* UPCOMING MATCH */
@@ -204,6 +211,22 @@ async function loadDashboard(userId) {
 }
 
 /* =========================
+   EDIT BUTTON CONTROL
+========================= */
+
+function disableEditButton() {
+  editButton.textContent = "XI Locked";
+  editButton.style.pointerEvents = "none";
+  editButton.style.opacity = "0.6";
+}
+
+function enableEditButton() {
+  editButton.textContent = "Edit XI";
+  editButton.style.pointerEvents = "auto";
+  editButton.style.opacity = "1";
+}
+
+/* =========================
    COUNTDOWN
 ========================= */
 
@@ -247,6 +270,7 @@ if (leaderboardLink) {
 }
 
 editButton.addEventListener("click", () => {
+  if (editButton.style.pointerEvents === "none") return;
   window.location.href = "team-builder.html";
 });
 
