@@ -1,8 +1,12 @@
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   background: linear-gradient(145deg, #0c1117, #0e141b);
   color: #fff;
+  overflow-x: hidden;
 }
 
 .app-container {
@@ -17,8 +21,9 @@ body {
   margin-bottom: 22px;
 }
 
-/* CARD BASE */
-
+/* ==========================================================================
+   CARD STYLES
+   ========================================================================== */
 .card {
   background: linear-gradient(145deg, #111827, #0f172a);
   border-radius: 16px;
@@ -34,7 +39,6 @@ body {
 }
 
 /* USER CARD */
-
 .user-info {
   display: flex;
   align-items: center;
@@ -63,9 +67,7 @@ body {
   color: #9AE000;
 }
 
-/* STATS – CLEAN DASHBOARD STYLE */
-/* STATS – TRUE SINGLE LINE STRIP */
-
+/* STATS STRIP */
 .stats-card {
   display: flex;
   align-items: center;
@@ -103,10 +105,9 @@ body {
   flex-shrink: 0;
 }
 
-
-
-/* UPCOMING MATCH */
-
+/* ==========================================================================
+   MATCH & ACTION STYLES
+   ========================================================================== */
 .section-label {
   font-size: 13px;
   color: #9AE000;
@@ -139,10 +140,18 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  color: #0c1117; /* High contrast text */
 }
 
 .primary-btn:hover {
   transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .secondary-btn {
@@ -156,8 +165,9 @@ body {
   cursor: pointer;
 }
 
-/* LEADERBOARD */
-
+/* ==========================================================================
+   LEADERBOARD STYLES
+   ========================================================================== */
 .leaderboard-card h3 {
   margin-bottom: 14px;
 }
@@ -189,40 +199,75 @@ body {
   cursor: pointer;
 }
 
-/* MODAL */
-
+/* ==========================================================================
+   MODAL (FORCED PROFILE COMPLETION)
+   ========================================================================== */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.85); /* Darkened for focus */
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10000; /* Ensure it blocks bottom nav */
+  backdrop-filter: blur(10px); /* Modern blur effect */
+}
+
+.modal.hidden {
+  display: none;
 }
 
 .modal-content {
   background: #111827;
-  padding: 24px;
-  border-radius: 14px;
+  padding: 30px;
+  border-radius: 20px;
   width: 90%;
   max-width: 360px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: #9AE000;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.modal-content p {
+  color: #9ca3af;
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modal-content label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .modal-content input {
   width: 100%;
-  padding: 10px;
-  margin: 6px 0 14px 0;
-  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 18px 0;
+  border-radius: 10px;
   border: 1px solid #1f2937;
   background: #0f172a;
   color: #fff;
+  font-size: 16px;
+  box-sizing: border-box; /* Critical for full-width */
+}
+
+.modal-content input:focus {
+  outline: none;
+  border-color: #9AE000;
 }
 
 .full-width {
   width: 100%;
-}
-
-.hidden {
-  display: none;
 }
