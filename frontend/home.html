@@ -7,15 +7,18 @@
   <link rel="stylesheet" href="css/home.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
   <style>
-    /* Absolute Force for the Profile Popup */
+    /* Prevent the dashboard from showing before auth check */
+    .app-container { visibility: hidden; }
+
+    /* Modal styling to ensure it is always on top */
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 99999;
+      z-index: 100000;
       backdrop-filter: blur(10px);
     }
     .modal.hidden { display: none !important; }
@@ -25,7 +28,7 @@
       border-radius: 20px;
       width: 90%;
       max-width: 380px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.1);
       text-align: center;
     }
     .modal-content input {
@@ -48,15 +51,16 @@
     <h2>Complete Your Profile</h2>
     <p>Please provide your name and team details to continue.</p>
     <label>Full Name</label>
-    <input type="text" id="fullNameInput" placeholder="Enter your full name" />
+    <input type="text" id="fullNameInput" placeholder="Full Name" />
     <label>Team Name</label>
-    <input type="text" id="teamNameInput" placeholder="Enter your team name" />
+    <input type="text" id="teamNameInput" placeholder="Team Name" />
     <button class="primary-btn full-width" id="saveProfileBtn">Save & Continue</button>
   </div>
 </div>
 
 <div class="app-container page-with-nav">
   <header class="app-header"><h1 id="tournamentName">Tournament</h1></header>
+  
   <section class="card user-card">
     <div class="user-info">
       <div class="team-avatar" id="teamAvatar"></div>
@@ -66,7 +70,30 @@
       </div>
     </div>
   </section>
-  </div>
+
+  <section class="card stats-card">
+    <div class="stat-inline"><span class="stat-label">Score</span><span class="stat-value" id="userScore">0</span></div>
+    <div class="divider"></div>
+    <div class="stat-inline"><span class="stat-label">Rank</span><span class="stat-value highlight" id="userRank">—</span></div>
+    <div class="divider"></div>
+    <div class="stat-inline"><span class="stat-label">Subs</span><span class="stat-value" id="subsRemaining">80</span></div>
+  </section>
+
+  <section class="card next-match-card">
+    <p class="section-label">Upcoming Challenge</p>
+    <h3 class="match-teams" id="matchTeams">—</h3>
+    <p class="match-time" id="matchTime">—</p>
+    <div class="match-actions">
+      <button class="secondary-btn" id="viewXiBtn">View XI</button>
+      <button class="primary-btn" id="editXiBtn">Edit XI</button>
+    </div>
+  </section>
+
+  <section class="card leaderboard-card">
+    <h3>Top Experts</h3>
+    <div id="leaderboardContainer"></div>
+  </section>
+</div>
 
 <nav class="bottom-nav">
   <a href="home.html" class="active">Home</a>
