@@ -131,6 +131,103 @@ body {
 }
 
 /* =========================
+   FILTER SECTION
+========================= */
+
+.change-filters {
+  margin-bottom: 14px;
+}
+
+#playerSearch {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #1e2635;
+  background: #111827;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+/* ROLE FILTERS */
+.role-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.role-filter-btn {
+  flex: 1;
+  padding: 6px;
+  border-radius: 20px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.role-filter-btn.active {
+  background: #9be15d;
+  color: #000;
+  border: none;
+}
+
+/* DROPDOWNS */
+.dropdown-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.dropdown {
+  position: relative;
+  flex: 1;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  background: #111827;
+  border: 1px solid #1e2635;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  background: #111827;
+  border: 1px solid #1e2635;
+  border-radius: 10px;
+  display: none;
+  z-index: 50;
+  padding: 6px;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-menu div {
+  padding: 6px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dropdown-menu div:hover {
+  background: #1f2937;
+}
+
+.scrollable {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* =========================
    PLAYER LIST
 ========================= */
 .player-list {
@@ -168,14 +265,12 @@ body {
 /* =========================
    ACTION BUTTONS
 ========================= */
-
 .action-btn {
   padding: 6px 12px;
   border-radius: 14px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
   border: none;
 }
 
@@ -185,20 +280,10 @@ body {
   border: 1px solid #9be15d;
 }
 
-.action-btn.add:hover:not(:disabled) {
-  background: #9be15d;
-  color: #000;
-}
-
 .action-btn.remove {
   background: #2a1414;
   color: #ff7b7b;
   border: 1px solid #ff7b7b;
-}
-
-.action-btn.remove:hover {
-  background: #ff7b7b;
-  color: #000;
 }
 
 .action-btn:disabled {
@@ -209,7 +294,6 @@ body {
 /* =========================
    C / VC BUTTONS
 ========================= */
-
 .cv-btn {
   padding: 4px 8px;
   border-radius: 8px;
@@ -218,7 +302,6 @@ body {
   color: #aaa;
   font-size: 11px;
   cursor: pointer;
-  transition: 0.2s ease;
 }
 
 .cv-btn.active {

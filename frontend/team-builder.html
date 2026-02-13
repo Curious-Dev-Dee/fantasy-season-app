@@ -39,13 +39,17 @@
       <!-- CHANGE PLAYERS -->
       <section class="edit-mode change-mode">
 
+        <!-- FILTER AREA -->
         <div class="change-filters">
+
+          <!-- SEARCH -->
           <input
             type="text"
             id="playerSearch"
             placeholder="Search player"
           />
 
+          <!-- ROLE FILTERS -->
           <div class="role-filters">
             <button class="role-filter-btn active" data-role="ALL">All</button>
             <button class="role-filter-btn" data-role="WK">WK</button>
@@ -53,8 +57,40 @@
             <button class="role-filter-btn" data-role="AR">AR</button>
             <button class="role-filter-btn" data-role="BOWL">BOWL</button>
           </div>
+
+          <!-- DROPDOWN FILTERS -->
+          <div class="dropdown-filters">
+
+            <!-- MATCH -->
+            <div class="dropdown">
+              <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
+              <div class="dropdown-menu" id="matchMenu">
+                <div data-match="all">All Players</div>
+                <div data-match="next">Playing Next Match</div>
+              </div>
+            </div>
+
+            <!-- TEAM -->
+            <div class="dropdown">
+              <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
+              <div class="dropdown-menu scrollable" id="teamMenu">
+                <!-- dynamically inserted -->
+              </div>
+            </div>
+
+            <!-- CREDIT -->
+            <div class="dropdown">
+              <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
+              <div class="dropdown-menu scrollable" id="creditMenu">
+                <!-- dynamically inserted -->
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
+        <!-- PLAYER LIST -->
         <div class="player-list" id="playerPoolList"></div>
 
       </section>
