@@ -1,114 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Cricket Experts</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/home.css" />
-  <link rel="stylesheet" href="css/bottom-nav.css" />
+/* =========================
+   INIT
+========================= */
+async function initHome() {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // If no session, redirect to login
+  if (!session) {
+    window.location.href = "index.html"; 
+    return;
+  }
 
-</head>
-<body>
+  const userId = session.user.id;
+  
+  // Check profile first before loading anything else
+  await loadProfile(userId);
+  await loadDashboard(userId);
+}
 
-<div class="app-container page-with-nav">
+/* =========================
+   PROFILE LOGIC
+========================= */
+async function loadProfile(userId) {
+  // Try to fetch the profile
+  let { data: profile, error } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
 
+  // If no profile exists yet OR it's marked as incomplete
+  if (!profile || profile.profile_completed === false) {
+    showProfileModal();
+  } else {
+    renderProfile(profile);
+  }
+}
 
-  <header class="app-header">
-    <h1 id="tournamentName">Tournament</h1>
-  </header>
+function showProfileModal() {
+  modal.classList.remove("hidden");
+  // Optional: Prevent closing by clicking outside if you want to force completion
+}
 
-  <!-- USER CARD -->
-  <section class="card user-card">
-    <div class="user-info">
-      <div class="team-avatar" id="teamAvatar"></div>
-      <div>
-        <p class="welcome-text" id="welcomeText">Welcome back, Expert</p>
-        <p class="team-subtitle" id="userTeamName">—</p>
-      </div>
-    </div>
-  </section>
+// SAVE PROFILE EVENT
+saveBtn.addEventListener("click", async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user.id;
 
-  <!-- STATS -->
-  <section class="card stats-card">
-  <div class="stat-inline">
-    <span class="stat-label">Score</span>
-    <span class="stat-value" id="userScore">0</span>
-  </div>
+  const fullName = fullNameInput.value.trim();
+  const teamName = teamNameInput.value.trim();
 
-  <div class="divider"></div>
+  if (!fullName || !teamName) {
+    alert("Please fill in both Name and Team Name.");
+    return;
+  }
 
-  <div class="stat-inline">
-    <span class="stat-label">Rank</span>
-    <span class="stat-value highlight" id="userRank">—</span>
-  </div>
+  saveBtn.disabled = true;
+  saveBtn.textContent = "Saving...";
 
-  <div class="divider"></div>
+  try {
+    // Upsert will insert if new, update if exists
+    const { error } = await supabase
+      .from("user_profiles")
+      .upsert({
+        user_id: userId,
+        full_name: fullName,
+        team_name: teamName,
+        profile_completed: true, // Mark as complete
+        updated_at: new Date()
+      });
 
-  <div class="stat-inline">
-    <span class="stat-label">Subs</span>
-    <span class="stat-value" id="subsRemaining">80</span>
-  </div>
-</section>
+    if (error) throw error;
 
+    // Success! Hide modal and refresh data
+    modal.classList.add("hidden");
+    location.reload(); // Reload to initialize everything with new profile
 
-  <!-- UPCOMING MATCH -->
-  <section class="card next-match-card">
-    <p class="section-label">Upcoming Challenge</p>
-    <h3 class="match-teams" id="matchTeams">—</h3>
-    <p class="match-time" id="matchTime">—</p>
-
-    <div class="match-actions">
-      <button class="secondary-btn" id="viewXiBtn">View XI</button>
-      <button class="primary-btn" id="editXiBtn">Edit XI</button>
-    </div>
-  </section>
-
-  <!-- LEADERBOARD -->
-  <section class="card leaderboard-card">
-    <h3>Top Experts</h3>
-    <div id="leaderboardContainer"></div>
-    <p class="leaderboard-link" id="leaderboardLink">
-      View full leaderboard
-    </p>
-  </section>
-
-</div>
-
-<!-- PROFILE MODAL -->
-<div class="modal hidden" id="profileModal">
-  <div class="modal-content">
-    <h2>Complete Your Profile</h2>
-    <p>Please provide your name and team details to continue.</p>
-
-    <label>Name</label>
-    <input type="text" id="fullNameInput" placeholder="Enter your full name" />
-
-    <label>Team Name</label>
-    <input type="text" id="teamNameInput" placeholder="Enter your team name" />
-
-    <label>Team Photo (Optional)</label>
-    <input type="file" id="teamPhotoInput" accept="image/*" />
-
-    <button class="primary-btn full-width" id="saveProfileBtn">
-      Save & Continue
-    </button>
-  </div>
-</div>
-<nav class="bottom-nav">
-  <a href="home.html" class="active">
-    Home
-  </a>
-  <a href="fixtures.html">
-    Fixtures
-  </a>
-  <a href="prediction.html">
-    Prediction
-  </a>
-  <a href="more.html">
-    More
-  </a>
-</nav>
-
-<script type="module" src="home.js"></script>
-</body>
-</html>
+  } catch (error) {
+    alert("Error saving profile: " + error.message);
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Save & Continue";
+  }
+});
