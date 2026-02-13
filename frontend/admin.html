@@ -1,36 +1,96 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Admin • Process Match</title>
-  <link rel="stylesheet" href="css/admin.css">
-</head>
-<body>
+const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
+const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...ZYYrXkE"; // Keep your existing key
 
-  <div class="container">
+const matchSelect = document.getElementById("matchSelect");
+const processBtn = document.getElementById("processBtn");
+const scoreboardInput = document.getElementById("scoreboardInput");
+const statusBox = document.getElementById("statusBox");
 
-    <h1>Match Processing</h1>
+// Load matches - Adjusted to match your actual DB column names
+async function loadMatches() {
+  // We fetch matches for the active tournament. 
+  // Removed 'points_processed' filter as it may not exist in your schema yet.
+  const tournamentId = "e0416509-f082-4c11-8277-ec351bdc046d"; 
+  
+  // Using select with join to get Team Codes for the dropdown
+  const query = `tournament_id=eq.${tournamentId}&select=id,match_number,venue,team_a:real_teams!team_a_id(short_code),team_b:real_teams!team_b_id(short_code)`;
+  
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/matches?${query}`,
+    {
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`
+      }
+    }
+  );
 
-    <div class="card">
+  const matches = await res.json();
 
-      <label>Select Locked Match</label>
-      <select id="matchSelect"></select>
+  matchSelect.innerHTML = "";
 
-    </div>
+  if (!matches || !matches.length) {
+    const option = document.createElement("option");
+    option.textContent = "No eligible matches found";
+    matchSelect.appendChild(option);
+    return;
+  }
 
-    <div class="card">
+  matches.forEach(match => {
+    const option = document.createElement("option");
+    option.value = match.id;
+    // Provides a clear name: "Match 19 • AUS vs ZIM • Venue"
+    const teamA = match.team_a?.short_code || "TBA";
+    const teamB = match.team_b?.short_code || "TBA";
+    option.textContent = `Match ${match.match_number} • ${teamA} vs ${teamB} • ${match.venue}`;
+    matchSelect.appendChild(option);
+  });
+}
 
-      <label>Paste Full Scoreboard JSON</label>
-      <textarea id="scoreboardInput" placeholder="Paste scoreboard JSON here..."></textarea>
+processBtn.addEventListener("click", async () => {
+  const matchId = matchSelect.value;
+  const rawInput = scoreboardInput.value.trim();
 
-    </div>
+  if (!matchId || !rawInput) {
+    statusBox.classList.remove("hidden");
+    statusBox.classList.add("error");
+    statusBox.textContent = "Error: Please select a match and paste the JSON.";
+    return;
+  }
 
-    <button id="processBtn">Process Match</button>
+  try {
+    statusBox.classList.remove("hidden", "success", "error");
+    statusBox.textContent = "Processing...";
+    statusBox.classList.add("status");
 
-    <div id="statusBox" class="status hidden"></div>
+    const scoreboardJson = JSON.parse(rawInput);
 
-  </div>
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/process_match_points`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`
+      },
+      body: JSON.stringify({
+        match_id: matchId,
+        scoreboard: scoreboardJson
+      })
+    });
 
-  <script src="admin.js"></script>
+    const result = await res.text();
 
-</body>
-</html>
+    if (res.ok) {
+      statusBox.classList.add("success");
+      statusBox.textContent = "Match processed successfully.";
+      scoreboardInput.value = ""; // Clear input on success
+    } else {
+      throw new Error(result);
+    }
+
+  } catch (err) {
+    statusBox.classList.add("error");
+    statusBox.textContent = "Error: " + err.message;
+  }
+});
+
+loadMatches();
