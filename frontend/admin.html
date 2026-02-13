@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin • Process Match</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <h1>Match Processing</h1>
+
+    <div class="card">
+
+      <label>Select Locked Match</label>
+      <select id="matchSelect"></select>
+
+    </div>
+
+    <div class="card">
+
+      <label>Paste Full Scoreboard JSON</label>
+      <textarea id="scoreboardInput" placeholder="Paste scoreboard JSON here..."></textarea>
+
+    </div>
+
+    <button id="processBtn">Process Match</button>
+
+    <div id="statusBox" class="status hidden"></div>
+
+  </div>
+
+  <script src="admin.js"></script>
+
+</body>
+</html>
