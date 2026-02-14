@@ -15,8 +15,8 @@ const ROLE_MAX = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
 
 let allPlayers = [];
 
-let savedPlayers = [];     // DB state
-let editingPlayers = [];   // Live editing
+let savedPlayers = [];     // DB version
+let editingPlayers = [];   // Live edit version
 
 let captainId = null;
 let viceCaptainId = null;
@@ -48,12 +48,6 @@ const toggleButtons = document.querySelectorAll(".toggle-btn");
 const editModes = document.querySelectorAll(".edit-mode");
 
 const searchInput = document.getElementById("playerSearch");
-const matchToggle = document.getElementById("matchToggle");
-const matchMenu = document.getElementById("matchMenu");
-const teamToggle = document.getElementById("teamToggle");
-const teamMenu = document.getElementById("teamMenu");
-const creditToggle = document.getElementById("creditToggle");
-const creditMenu = document.getElementById("creditMenu");
 
 /* ================= INIT ================= */
 
@@ -66,6 +60,7 @@ async function init() {
 
   await loadPlayers();
   await loadTeams();
+  await loadLastLockedSnapshot(user.id);
   await loadSavedSeasonTeam(user.id);
 
   rerenderAll();
@@ -88,6 +83,21 @@ async function loadTeams() {
     .select("id, short_code");
 
   data?.forEach(t => teamMap[t.id] = t.short_code);
+}
+
+async function loadLastLockedSnapshot(userId) {
+  const { data } = await supabase
+    .from("user_match_teams")
+    .select("total_subs_used")
+    .eq("user_id", userId)
+    .order("locked_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return;
+
+  isFirstLock = false;
+  lastTotalSubsUsed = data.total_subs_used;
 }
 
 async function loadSavedSeasonTeam(userId) {
@@ -125,6 +135,8 @@ toggleButtons.forEach(btn => {
     editModes.forEach(m => m.classList.remove("active"));
     const target = document.querySelector(`.${btn.dataset.mode}-mode`);
     if (target) target.classList.add("active");
+
+    renderSummary(); // refresh summary on tab switch
   });
 });
 
@@ -136,21 +148,36 @@ function rerenderAll() {
   renderSummary();
 }
 
+/* -------- MY XI (Saved only) -------- */
+
 function renderMyXI() {
   myXI.innerHTML = "";
 
   savedPlayers.forEach(p => {
     const card = document.createElement("div");
     card.className = "player-card selected";
+
     card.innerHTML = `
       <div class="player-info">
         <strong>${p.name}</strong>
         <span>${p.role} · ${p.credit} cr</span>
       </div>
+      <div style="display:flex; gap:6px;">
+        <button class="cv-btn ${captainId === p.id ? "active" : ""}">C</button>
+        <button class="cv-btn ${viceCaptainId === p.id ? "active" : ""}">VC</button>
+      </div>
     `;
+
+    const [c, vc] = card.querySelectorAll(".cv-btn");
+
+    c.onclick = () => setCaptain(p.id);
+    vc.onclick = () => setViceCaptain(p.id);
+
     myXI.appendChild(card);
   });
 }
+
+/* -------- CHANGE TAB (Editing only) -------- */
 
 function renderPool() {
   pool.innerHTML = "";
@@ -167,7 +194,7 @@ function renderPool() {
         <span>${player.role} · ${player.credit} cr</span>
       </div>
       <button class="action-btn ${selected ? "remove" : "add"}">
-        ${selected ? "Remove" : "Add"}
+        ${selected ? "−" : "+"}
       </button>
     `;
 
@@ -183,14 +210,28 @@ function renderPool() {
   });
 }
 
+/* -------- SUMMARY -------- */
+
 function renderSummary() {
-  const credits = editingPlayers
-    .reduce((s,p)=>s+Number(p.credit),0)
-    .toFixed(1);
+  const source =
+    document.querySelector(".myxi-mode").classList.contains("active")
+      ? savedPlayers
+      : editingPlayers;
+
+  const credits = source.reduce((s,p)=>s+Number(p.credit),0).toFixed(1);
+  const count = source.length;
 
   summary.innerHTML = `
-    <div>Credits: ${credits} / 100</div>
+    <div style="display:flex; justify-content:space-between; font-size:13px;">
+      <div><strong>${count}</strong>/11</div>
+      <div style="color:#9be15d">${MAX_CREDITS - credits} cr left</div>
+    </div>
+    <div style="margin-top:6px; font-size:11px; color:#aaa;">
+      Subs Used: ${isFirstLock ? 0 : lastTotalSubsUsed}
+    </div>
   `;
+
+  validateSave(source, credits);
 }
 
 /* ================= LOGIC ================= */
@@ -206,18 +247,44 @@ function removePlayer(id) {
   rerenderAll();
 }
 
+function setCaptain(id) {
+  captainId = id;
+  renderMyXI();
+}
+
+function setViceCaptain(id) {
+  viceCaptainId = id;
+  renderMyXI();
+}
+
+function validateSave(source, credits) {
+  const roleCount = { WK:0, BAT:0, AR:0, BOWL:0 };
+  source.forEach(p => roleCount[p.role]++);
+
+  let valid =
+    source.length === 11 &&
+    captainId &&
+    viceCaptainId &&
+    credits <= MAX_CREDITS &&
+    Object.keys(ROLE_MIN).every(r => roleCount[r] >= ROLE_MIN[r]);
+
+  saveBar.classList.toggle("enabled", valid);
+  saveBar.classList.toggle("disabled", !valid);
+}
+
 /* ================= SAVE ================= */
 
 saveBtn.addEventListener("click", async () => {
-  if (saving) return;
+  if (!saveBar.classList.contains("enabled") || saving) return;
+
   saving = true;
+  saveBtn.textContent = "Saving...";
 
   const { data } = await supabase.auth.getUser();
   const user = data?.user;
   if (!user) return;
 
-  const totalCredits = editingPlayers
-    .reduce((s,p)=>s+Number(p.credit),0);
+  const totalCredits = editingPlayers.reduce((s,p)=>s+Number(p.credit),0);
 
   const { data: existing } = await supabase
     .from("user_fantasy_teams")
@@ -234,12 +301,23 @@ saveBtn.addEventListener("click", async () => {
       .insert({
         user_id: user.id,
         tournament_id: TOURNAMENT_ID,
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
         total_credits: totalCredits
       })
       .select()
       .single();
 
     teamId = data.id;
+  } else {
+    await supabase
+      .from("user_fantasy_teams")
+      .update({
+        captain_id: captainId,
+        vice_captain_id: viceCaptainId,
+        total_credits: totalCredits
+      })
+      .eq("id", teamId);
   }
 
   await supabase
@@ -258,6 +336,8 @@ saveBtn.addEventListener("click", async () => {
 
   savedPlayers = [...editingPlayers];
   renderMyXI();
+  renderSummary();
 
+  saveBtn.textContent = "Saved ✓";
   saving = false;
 });
