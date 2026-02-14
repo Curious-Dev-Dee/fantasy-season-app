@@ -18,7 +18,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 84px; /* space for bottom bar */
+  padding-bottom: 84px;
 }
 
 /* ================= HEADER ================= */
@@ -56,78 +56,27 @@ body {
 .team-summary {
   background: linear-gradient(180deg, #020617, #020617cc);
   border: 1px solid #1e293b;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 12px;
   margin-bottom: 14px;
   font-size: 12px;
-}
-
-/* ================= PROGRESS ================= */
-.player-progress {
-  margin-bottom: 12px;
-}
-
-.progress-track {
-  height: 6px;
-  border-radius: 999px;
-  background: #020617;
-  border: 1px solid #1e293b;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #9be15d;
-  width: 0%;
-}
-
-/* ================= SEARCH ================= */
-#playerSearch {
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #1e293b;
-  background: #020617;
-  color: #e5e7eb;
-  margin-bottom: 12px;
-}
-
-/* ================= ROLE FILTERS ================= */
-.role-filters {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.role-filter-btn {
-  flex: 1;
-  padding: 8px 0;
-  border-radius: 999px;
-  background: #020617;
-  border: 1px solid #1e293b;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.role-filter-btn.active {
-  background: #9be15d;
-  color: #020617;
-  border-color: #9be15d;
 }
 
 /* ================= PLAYER LIST ================= */
 .player-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-/* ================= PLAYER CARD ================= */
+/* =========================================================
+   CHANGE XI CARD (REFERENCE DESIGN)
+========================================================= */
 .dream11-card {
   background: linear-gradient(180deg, #020617, #020617dd);
   border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 14px;
   display: grid;
   grid-template-columns: 44px 1fr auto;
   gap: 12px;
@@ -156,7 +105,7 @@ body {
 
 /* ================= PLAYER INFO ================= */
 .player-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -171,6 +120,7 @@ body {
 
 /* ================= ACTION ================= */
 .credit {
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -193,13 +143,37 @@ body {
   border-color: #ef4444;
 }
 
-/* ================= MY XI ================= */
+/* =========================================================
+   MY XI CARD – POLISHED TO MATCH CHANGE XI
+========================================================= */
 .player-card.selected {
+  background: linear-gradient(180deg, #020617, #020617dd);
   border: 1px solid #9be15d;
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 14px;
+
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Left side: avatar reused */
+.player-card.selected::before {
+  content: "";
+}
+
+/* Player name */
+.player-card.selected strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Right action group */
+.player-card.selected > div {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ================= C / VC ================= */
@@ -215,9 +189,15 @@ body {
 .cv-btn.active {
   background: #9be15d;
   color: #020617;
+  border-color: #9be15d;
 }
 
-/* ================= BOTTOM BAR (IMMERSIVE FIX) ================= */
+/* ================= REMOVE ================= */
+.player-card.selected .circle-btn.remove {
+  margin-left: 4px;
+}
+
+/* ================= BOTTOM BAR ================= */
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -227,7 +207,6 @@ body {
   width: 100%;
   padding: 12px 24px 16px;
 
-  /* KEY FIX */
   background: linear-gradient(
     180deg,
     rgba(2,6,23,0) 0%,
@@ -256,7 +235,7 @@ body {
   border-color: #9be15d;
 }
 
-/* Save (balanced hero) */
+/* Save */
 .center-save {
   padding: 12px 0;
   border-radius: 16px;
