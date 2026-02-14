@@ -5,10 +5,6 @@
   padding: 0;
 }
 
-html {
-  -webkit-tap-highlight-color: transparent;
-}
-
 body {
   background: radial-gradient(circle at top, #0f172a, #020617);
   color: #e5e7eb;
@@ -22,13 +18,13 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 84px; /* space for bottom bar */
+  padding-bottom: 76px; /* space for bottom bar */
 }
 
 /* ================= HEADER ================= */
 .edit-header {
   padding: 16px;
-  background: linear-gradient(180deg, #020617, #020617cc);
+  background: #020617;
   border-bottom: 1px solid #1e293b;
   display: flex;
   align-items: center;
@@ -44,7 +40,6 @@ body {
 .edit-header h1 {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
 }
 
 /* ================= CONTENT ================= */
@@ -53,19 +48,15 @@ body {
   padding: 16px;
 }
 
-/* ================= EDIT MODE ================= */
-.edit-mode {
-  display: none;
-}
-.edit-mode.active {
-  display: block;
-}
+/* ================= MODE VISIBILITY ================= */
+.edit-mode { display: none; }
+.edit-mode.active { display: block; }
 
-/* ================= TEAM SUMMARY ================= */
+/* ================= SUMMARY ================= */
 .team-summary {
-  background: linear-gradient(180deg, #020617, #020617cc);
+  background: #020617;
   border: 1px solid #1e293b;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 12px;
   margin-bottom: 14px;
   font-size: 12px;
@@ -80,13 +71,13 @@ body {
   height: 6px;
   border-radius: 999px;
   background: #020617;
-  box-shadow: inset 0 0 0 1px #1e293b;
+  border: 1px solid #1e293b;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #9be15d, #4ade80);
+  background: #9be15d;
   width: 0%;
 }
 
@@ -94,18 +85,17 @@ body {
 #playerSearch {
   width: 100%;
   padding: 12px;
-  border-radius: 16px;
+  border-radius: 14px;
   border: 1px solid #1e293b;
   background: #020617;
   color: #e5e7eb;
-  font-size: 13px;
   margin-bottom: 12px;
 }
 
 /* ================= ROLE FILTERS ================= */
 .role-filters {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 14px;
 }
 
@@ -123,7 +113,6 @@ body {
   background: #9be15d;
   color: #020617;
   border-color: #9be15d;
-  font-weight: 600;
 }
 
 /* ================= PLAYER LIST ================= */
@@ -135,9 +124,9 @@ body {
 
 /* ================= PLAYER CARD ================= */
 .dream11-card {
-  background: linear-gradient(180deg, #020617, #020617dd);
+  background: #020617;
   border: 1px solid #1e293b;
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 12px;
   display: grid;
   grid-template-columns: 44px 1fr auto;
@@ -150,8 +139,8 @@ body {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #334155, #020617);
-  border: 1px solid #1e293b;
+  background: #1e293b;
+  border: 1px solid #334155;
   position: relative;
 }
 
@@ -169,7 +158,6 @@ body {
 .player-name {
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
 }
 
 .player-meta {
@@ -183,7 +171,6 @@ body {
 
 /* ================= ACTION ================= */
 .credit {
-  font-size: 13px;
   font-weight: 700;
 }
 
@@ -206,14 +193,13 @@ body {
   border-color: #ef4444;
 }
 
-/* ================= MY XI CARD ================= */
+/* ================= MY XI ================= */
 .player-card.selected {
   border: 1px solid #9be15d;
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 12px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
 /* ================= C / VC ================= */
@@ -231,7 +217,7 @@ body {
   color: #020617;
 }
 
-/* ================= BOTTOM BAR (EDGE-LOCKED, PREMIUM) ================= */
+/* ================= BOTTOM BAR (CLEAN & NATIVE) ================= */
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -239,20 +225,18 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 420px;
-  padding: 10px 12px 14px;
+  background: #020617;
+  border-top: 1px solid #1e293b;
+  padding: 10px 14px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 12px;
-
-  /* KEY FIXES */
-  background: transparent;
-  border-top: none;
 }
 
-/* Side buttons (minimal) */
+/* Side buttons */
 .bottom-btn {
   padding: 10px 14px;
-  border-radius: 999px;
+  border-radius: 12px;
   background: transparent;
   border: 1px solid #1e293b;
   color: #94a3b8;
@@ -264,14 +248,13 @@ body {
   border-color: #9be15d;
 }
 
-/* Center Save – HERO */
+/* Save button (hero, calm) */
 .center-save {
-  background: linear-gradient(90deg, #9be15d, #4ade80);
+  background: #9be15d;
   color: #020617;
   font-weight: 700;
   font-size: 15px;
-  padding: 14px 0;
-  border-radius: 999px;
+  padding: 12px 0;
+  border-radius: 14px;
   border: none;
-  box-shadow: 0 10px 30px rgba(155, 225, 93, 0.35);
 }
