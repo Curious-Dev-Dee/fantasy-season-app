@@ -2,34 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Edit Team</title>
+
+  <!-- Main Styles -->
   <link rel="stylesheet" href="css/team-builder.css" />
 </head>
 <body>
 
 <div class="app">
 
+  <!-- ================= HEADER ================= -->
   <header class="edit-header">
-    <a href="home.html">←</a>
+    <a href="home.html" aria-label="Go back">←</a>
     <h1>Edit Team</h1>
   </header>
 
-  <nav class="edit-toggle">
-    <button class="toggle-btn active" data-mode="myxi">My XI</button>
-    <button class="toggle-btn" data-mode="change">Change</button>
-  </nav>
-
+  <!-- ================= CONTENT ================= -->
   <main class="content">
 
-    <section class="team-summary"></section>
-
-    <section class="edit-mode myxi-mode active">
-      <div class="player-list" id="myXIList"></div>
+    <!-- ===== TEAM SUMMARY ===== -->
+    <section class="team-summary">
+      <!-- Injected by JS -->
     </section>
 
-    <section class="edit-mode change-mode">
+    <!-- ===== MY XI MODE ===== -->
+    <section class="edit-mode myxi-mode active" aria-label="My XI">
+      <div class="player-list" id="myXIList">
+        <!-- Selected players -->
+      </div>
+    </section>
 
+    <!-- ===== CHANGE MODE ===== -->
+    <section class="edit-mode change-mode" aria-label="Change Players">
+
+      <!-- PLAYER COUNT / PROGRESS -->
       <div class="player-progress">
         <span><strong id="playerCount">0</strong>/11</span>
         <div class="progress-track">
@@ -37,19 +44,69 @@
         </div>
       </div>
 
-      <input id="playerSearch" placeholder="Search player" />
+      <!-- SEARCH -->
+      <input
+        type="search"
+        id="playerSearch"
+        placeholder="Search player"
+        aria-label="Search player"
+        autocomplete="off"
+      />
 
-      <div class="player-list" id="playerPoolList"></div>
+      <!-- ROLE FILTERS -->
+      <div class="role-filters">
+        <button class="role-filter-btn active" data-role="ALL" type="button">All</button>
+        <button class="role-filter-btn" data-role="WK" type="button">WK</button>
+        <button class="role-filter-btn" data-role="BAT" type="button">BAT</button>
+        <button class="role-filter-btn" data-role="AR" type="button">AR</button>
+        <button class="role-filter-btn" data-role="BOWL" type="button">BOWL</button>
+      </div>
+
+      <!-- PLAYER POOL -->
+      <div class="player-list" id="playerPoolList">
+        <!-- Player cards -->
+      </div>
+
     </section>
 
   </main>
 
-  <footer class="save-bar disabled">
-    <button class="save-btn">Save Team</button>
+  <!-- ================= BOTTOM ACTION BAR ================= -->
+  <footer class="bottom-bar" role="contentinfo">
+
+    <!-- My XI -->
+    <button
+      class="bottom-btn toggle-btn active"
+      data-mode="myxi"
+      type="button"
+    >
+      My XI
+    </button>
+
+    <!-- Save Team -->
+    <button
+      class="save-btn center-save"
+      type="button"
+    >
+      Save Team
+    </button>
+
+    <!-- Change -->
+    <button
+      class="bottom-btn toggle-btn"
+      data-mode="change"
+      type="button"
+    >
+      Change
+    </button>
+
   </footer>
 
 </div>
 
+<!-- ================= SCRIPTS ================= -->
 <script type="module" src="edit-team.js"></script>
+<script type="module" src="auth-guard.js"></script>
+
 </body>
 </html>
