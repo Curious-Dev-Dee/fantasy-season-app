@@ -1,65 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Edit Team | Fantasy Pro</title>
-  <link rel="stylesheet" href="css/team-builder.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Edit Team | Fantasy Pro</title>
+    <link rel="stylesheet" href="css/team-builder.css">
 </head>
 <body>
+    <div class="app">
+        <header class="edit-header">
+            <a href="home.html" class="back-btn">←</a>
+            <div class="header-info">
+                <h1>Edit Team</h1>
+                <p>Tournament Selection</p>
+            </div>
+        </header>
 
-<div class="app">
-  <header class="edit-header">
-    <a href="home.html" class="back-btn">←</a>
-    <div class="header-title">
-        <h1>Edit Team</h1>
-        <small id="teamNameDisplay">Tournament Selection</small>
+        <main class="content">
+            <section class="stats-card">
+                <div class="stat-group">
+                    <span class="stat-label">PLAYERS</span>
+                    <span class="stat-value"><span id="playerCount">0</span>/11</span>
+                </div>
+                <div class="stat-group">
+                    <span class="stat-label">CREDITS</span>
+                    <span class="stat-value"><span id="creditCount">0</span>/100</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </section>
+
+            <section id="myxi-view" class="view-mode active">
+                <div id="myXIList" class="player-list">
+                    </div>
+            </section>
+
+            <section id="change-view" class="view-mode">
+                <div class="filter-bar">
+                    <input type="search" id="playerSearch" placeholder="Search player..." autocomplete="off">
+                    <div class="role-tabs">
+                        <button class="role-tab active" data-role="ALL">ALL</button>
+                        <button class="role-tab" data-role="WK">WK</button>
+                        <button class="role-tab" data-role="BAT">BAT</button>
+                        <button class="role-tab" data-role="AR">AR</button>
+                        <button class="role-tab" data-role="BOWL">BOWL</button>
+                    </div>
+                </div>
+                <div id="playerPool" class="player-list">
+                    </div>
+            </section>
+        </main>
+
+        <footer class="nav-bar">
+            <button class="nav-item active" data-target="myxi">MY XI</button>
+            <button id="saveTeamBtn" class="save-btn disabled" disabled>SAVE TEAM</button>
+            <button class="nav-item" data-target="change">CHANGE</button>
+        </footer>
     </div>
-  </header>
 
-  <main class="content">
-    <section class="team-summary" id="statsBar">
-      <div class="stat-item">
-        <span class="label">PLAYERS</span>
-        <span class="value"><span id="count">0</span>/11</span>
-      </div>
-      <div class="stat-item">
-        <span class="label">CREDITS</span>
-        <span class="value"><span id="credits">0</span>/100</span>
-      </div>
-      <div class="progress-container">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-    </section>
-
-    <section class="edit-mode myxi-mode active" id="myxi-section">
-      <div class="player-list" id="myXIList">
-        </div>
-    </section>
-
-    <section class="edit-mode change-mode" id="change-section">
-      <div class="search-filter-wrapper">
-        <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off" />
-        <div class="role-filters" id="roleFilters">
-          <button class="role-filter-btn active" data-role="ALL">ALL</button>
-          <button class="role-filter-btn" data-role="WK">WK</button>
-          <button class="role-filter-btn" data-role="BAT">BAT</button>
-          <button class="role-filter-btn" data-role="AR">AR</button>
-          <button class="role-filter-btn" data-role="BOWL">BOWL</button>
-        </div>
-      </div>
-      <div class="player-list" id="playerPoolList">
-        </div>
-    </section>
-  </main>
-
-  <footer class="bottom-bar">
-    <button class="bottom-btn toggle-btn active" data-mode="myxi">MY XI</button>
-    <button class="save-btn center-save disabled" id="mainSaveBtn" disabled>SAVE TEAM</button>
-    <button class="bottom-btn toggle-btn" data-mode="change">CHANGE</button>
-  </footer>
-</div>
-
-<script type="module" src="edit-team.js"></script>
+    <script type="module" src="edit-team.js"></script>
 </body>
 </html>

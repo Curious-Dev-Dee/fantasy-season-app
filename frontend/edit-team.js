@@ -1,227 +1,150 @@
 import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
-const CONFIG = { MAX_PLAYERS: 11, MAX_CREDITS: 100, MAX_TEAM: 6 };
 
+// Global State
 let state = {
     allPlayers: [],
-    selectedIds: [], // Store IDs for quick lookups
+    selectedIds: [],
     captainId: null,
     viceCaptainId: null,
-    currentRole: "ALL",
-    searchTerm: "",
-    isSaving: false
+    filters: { search: "", role: "ALL" }
 };
 
 const dom = {
     myXI: document.getElementById("myXIList"),
-    pool: document.getElementById("playerPoolList"),
-    saveBtn: document.getElementById("mainSaveBtn"),
-    countLabel: document.getElementById("count"),
-    creditLabel: document.getElementById("credits"),
+    pool: document.getElementById("playerPool"),
+    count: document.getElementById("playerCount"),
+    credits: document.getElementById("creditCount"),
     progress: document.getElementById("progressFill"),
-    roleBtns: document.querySelectorAll(".role-filter-btn")
+    saveBtn: document.getElementById("saveTeamBtn")
 };
 
 async function init() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return window.location.href = "login.html";
+    if (!user) return;
 
-    await Promise.all([fetchPlayers(), fetchUserTeam(user.id)]);
-    renderAll();
-    setupListeners();
-}
+    // Load Data
+    const { data: players } = await supabase.from("players").select("*").eq("is_active", true);
+    state.allPlayers = players || [];
 
-async function fetchPlayers() {
-    const { data } = await supabase.from("players").select("*").eq("is_active", true);
-    state.allPlayers = data || [];
-}
-
-async function fetchUserTeam(userId) {
+    // Load Existing Team
     const { data: team } = await supabase.from("user_fantasy_teams")
         .select(`*, user_fantasy_team_players(player_id)`)
-        .eq("user_id", userId)
-        .eq("tournament_id", TOURNAMENT_ID)
-        .maybeSingle();
+        .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle();
 
     if (team) {
         state.captainId = team.captain_id;
         state.viceCaptainId = team.vice_captain_id;
         state.selectedIds = team.user_fantasy_team_players.map(p => p.player_id);
     }
+
+    render();
+    attachGlobalListeners();
 }
 
-function renderAll() {
+function render() {
     const selectedPlayers = state.allPlayers.filter(p => state.selectedIds.includes(p.id));
-    const totalCredits = selectedPlayers.reduce((sum, p) => sum + Number(p.credit), 0);
-    
-    // Update Stats
-    dom.countLabel.textContent = state.selectedIds.length;
-    dom.creditLabel.textContent = totalCredits.toFixed(1);
-    dom.progress.style.width = `${(state.selectedIds.length / CONFIG.MAX_PLAYERS) * 100}%`;
+    const totalCredits = selectedPlayers.reduce((acc, p) => acc + Number(p.credit), 0);
 
-    // Render My XI
-    dom.myXI.innerHTML = selectedPlayers.length ? "" : '<p style="text-align:center; padding:20px; color:#64748b;">No players selected yet.</p>';
-    selectedPlayers.forEach(p => {
-        const card = createPlayerCard(p, true);
-        dom.myXI.appendChild(card);
-    });
+    // Update Dashboard
+    dom.count.innerText = state.selectedIds.length;
+    dom.credits.innerText = totalCredits.toFixed(1);
+    dom.progress.style.width = `${(state.selectedIds.length / 11) * 100}%`;
 
-    // Render Pool
-    const filtered = state.allPlayers.filter(p => {
-        const matchesRole = state.currentRole === "ALL" || p.role === state.currentRole;
-        const matchesSearch = p.name.toLowerCase().includes(state.searchTerm.toLowerCase());
-        return matchesRole && matchesSearch;
-    });
+    // Render My XI List
+    dom.myXI.innerHTML = selectedPlayers.map(p => createPlayerRow(p, true)).join('');
 
-    dom.pool.innerHTML = "";
-    filtered.forEach(p => {
-        const isSelected = state.selectedIds.includes(p.id);
-        dom.pool.appendChild(createPlayerCard(p, false, isSelected));
-    });
+    // Render Pool List
+    const filtered = state.allPlayers.filter(p => 
+        (state.filters.role === "ALL" || p.role === state.filters.role) &&
+        (p.name.toLowerCase().includes(state.filters.search.toLowerCase()))
+    );
+    dom.pool.innerHTML = filtered.map(p => createPlayerRow(p, false)).join('');
 
     // Validate Save Button
     const isValid = state.selectedIds.length === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100;
     dom.saveBtn.disabled = !isValid;
-    dom.saveBtn.classList.toggle("disabled", !isValid);
+    dom.saveBtn.className = `save-btn ${isValid ? '' : 'disabled'}`;
 }
 
-function createPlayerCard(player, isMyXIMode, isSelectedInPool = false) {
-    const div = document.createElement("div");
-    div.className = `player-card ${isSelectedInPool || isMyXIMode ? 'selected' : ''}`;
-    
-    if (isMyXIMode) {
-        div.innerHTML = `
-            <div class="avatar"></div>
-            <div class="info">
-                <span class="name">${player.name}</span>
-                <span class="meta">${player.role} • ${player.credit} Cr</span>
-            </div>
-            <div class="actions">
-                <button class="cv-btn ${state.captainId === player.id ? 'active' : ''}" data-action="cap">C</button>
-                <button class="cv-btn ${state.viceCaptainId === player.id ? 'active' : ''}" data-action="vcap">VC</button>
-                <button class="circle-btn remove" data-action="remove">−</button>
-            </div>
-        `;
-    } else {
-        div.innerHTML = `
-            <div class="avatar"></div>
-            <div class="info">
-                <span class="name">${player.name}</span>
-                <span class="meta">${player.role} • ${player.credit} Cr</span>
-            </div>
-            <div class="actions">
-                <button class="circle-btn ${isSelectedInPool ? 'remove' : 'add'}" data-action="${isSelectedInPool ? 'remove' : 'add'}">
-                    ${isSelectedInPool ? '−' : '+'}
-                </button>
-            </div>
-        `;
-    }
+function createPlayerRow(p, isMyXIMode) {
+    const isSelected = state.selectedIds.includes(p.id);
+    const isC = state.captainId === p.id;
+    const isVC = state.viceCaptainId === p.id;
 
-    div.addEventListener('click', (e) => {
-        const action = e.target.closest('button')?.dataset.action;
-        if (!action) return;
+    return `
+        <div class="player-card ${isSelected ? 'selected' : ''}" data-id="${p.id}">
+            <div class="avatar-silhouette"></div>
+            <div class="player-info">
+                <span class="player-name">${p.name}</span>
+                <span class="player-meta">${p.role} • ${p.credit} Cr</span>
+            </div>
+            <div class="controls">
+                ${isMyXIMode ? `
+                    <button class="cv-btn ${isC ? 'active' : ''}" data-action="cap">C</button>
+                    <button class="cv-btn ${isVC ? 'active' : ''}" data-action="vcap">VC</button>
+                    <button class="btn-round remove" data-action="remove">−</button>
+                ` : `
+                    <button class="btn-round ${isSelected ? 'remove' : 'add'}" data-action="${isSelected ? 'remove' : 'add'}">
+                        ${isSelected ? '−' : '+'}
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+}
 
-        if (action === 'add') addPlayer(player);
-        if (action === 'remove') removePlayer(player.id);
-        if (action === 'cap') setRole(player.id, 'C');
-        if (action === 'vcap') setRole(player.id, 'VC');
+function attachGlobalListeners() {
+    // Delegation for Player Lists
+    [dom.myXI, dom.pool].forEach(list => {
+        list.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const id = e.target.closest('.player-card').dataset.id;
+            const action = btn.dataset.action;
+
+            if (action === 'add' && state.selectedIds.length < 11) state.selectedIds.push(id);
+            if (action === 'remove') {
+                state.selectedIds = state.selectedIds.filter(sid => sid !== id);
+                if (state.captainId === id) state.captainId = null;
+                if (state.viceCaptainId === id) state.viceCaptainId = null;
+            }
+            if (action === 'cap') {
+                if(state.viceCaptainId === id) state.viceCaptainId = null;
+                state.captainId = id;
+            }
+            if (action === 'vcap') {
+                if(state.captainId === id) state.captainId = null;
+                state.viceCaptainId = id;
+            }
+            render();
+        });
     });
 
-    return div;
-}
-
-function addPlayer(player) {
-    if (state.selectedIds.length >= CONFIG.MAX_PLAYERS) return alert("Team full!");
-    if (!state.selectedIds.includes(player.id)) {
-        state.selectedIds.push(player.id);
-        renderAll();
-    }
-}
-
-function removePlayer(id) {
-    state.selectedIds = state.selectedIds.filter(pid => pid !== id);
-    if (state.captainId === id) state.captainId = null;
-    if (state.viceCaptainId === id) state.viceCaptainId = null;
-    renderAll();
-}
-
-function setRole(id, role) {
-    if (role === 'C') {
-        if (state.viceCaptainId === id) state.viceCaptainId = null;
-        state.captainId = id;
-    } else {
-        if (state.captainId === id) state.captainId = null;
-        state.viceCaptainId = id;
-    }
-    renderAll();
-}
-
-function setupListeners() {
-    // Mode Toggles
-    document.querySelectorAll(".toggle-btn").forEach(btn => {
+    // View Switching
+    document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll(".toggle-btn, .edit-mode").forEach(el => el.classList.remove("active"));
-            btn.classList.add("active");
-            document.getElementById(`${btn.dataset.mode}-section`).classList.add("active");
+            document.querySelectorAll('.nav-item, .view-mode').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`${btn.dataset.target}-view`).classList.add('active');
         };
     });
 
     // Filters
-    dom.roleBtns.forEach(btn => {
-        btn.onclick = () => {
-            dom.roleBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            state.currentRole = btn.dataset.role;
-            renderAll();
+    document.querySelectorAll('.role-tab').forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.filters.role = tab.dataset.role;
+            render();
         };
     });
 
-    document.getElementById("playerSearch").oninput = (e) => {
-        state.searchTerm = e.target.value;
-        renderAll();
+    document.getElementById('playerSearch').oninput = (e) => {
+        state.filters.search = e.target.value;
+        render();
     };
-
-    dom.saveBtn.onclick = handleSave;
-}
-
-async function handleSave() {
-    if (state.isSaving) return;
-    state.isSaving = true;
-    dom.saveBtn.textContent = "SAVING...";
-
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        const totalCredits = state.allPlayers
-            .filter(p => state.selectedIds.includes(p.id))
-            .reduce((s, p) => s + Number(p.credit), 0);
-
-        const { data: team, error: teamErr } = await supabase
-            .from("user_fantasy_teams")
-            .upsert({
-                user_id: user.id,
-                tournament_id: TOURNAMENT_ID,
-                captain_id: state.captainId,
-                vice_captain_id: state.viceCaptainId,
-                total_credits: totalCredits
-            })
-            .select().single();
-
-        if (teamErr) throw teamErr;
-
-        // Clean and Re-insert players
-        await supabase.from("user_fantasy_team_players").delete().eq("user_fantasy_team_id", team.id);
-        const playerInserts = state.selectedIds.map(pid => ({ user_fantasy_team_id: team.id, player_id: pid }));
-        await supabase.from("user_fantasy_team_players").insert(playerInserts);
-
-        dom.saveBtn.textContent = "SUCCESS ✓";
-        setTimeout(() => { dom.saveBtn.textContent = "SAVE TEAM"; state.isSaving = false; }, 2000);
-    } catch (err) {
-        console.error(err);
-        alert("Error saving team");
-        state.isSaving = false;
-        dom.saveBtn.textContent = "SAVE TEAM";
-    }
 }
 
 init();
