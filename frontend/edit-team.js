@@ -24,19 +24,16 @@ let lastLockedPlayers = [];
 let lastTotalSubsUsed = 0;
 let isFirstLock = true;
 
-let teamMap = {};
-let saving = false;
-
 let currentTab = "myxi";
+let saving = false;
 
 /* ================= DOM ================= */
 
-const myXI = document.getElementById("myXIList");
-const pool = document.getElementById("playerPoolList");
-
+const myXIContainer = document.getElementById("myXIList");
+const poolContainer = document.getElementById("playerPoolList");
+const summary = document.querySelector(".team-summary");
 const saveBar = document.querySelector(".save-bar");
 const saveBtn = document.querySelector(".save-btn");
-const summary = document.querySelector(".team-summary");
 
 const toggleButtons = document.querySelectorAll(".toggle-btn");
 const editModes = document.querySelectorAll(".edit-mode");
@@ -51,14 +48,13 @@ async function init() {
   if (!user) return;
 
   await loadPlayers();
-  await loadTeams();
   await loadLastLockedSnapshot(user.id);
   await loadSavedSeasonTeam(user.id);
 
-  renderAll();
+  renderEverything();
 }
 
-/* ================= LOAD ================= */
+/* ================= LOAD DATA ================= */
 
 async function loadPlayers() {
   const { data } = await supabase
@@ -67,16 +63,6 @@ async function loadPlayers() {
     .eq("is_active", true);
 
   allPlayers = data || [];
-}
-
-async function loadTeams() {
-  const { data } = await supabase
-    .from("real_teams")
-    .select("id, short_code");
-
-  (data || []).forEach(t => {
-    teamMap[t.id] = t.short_code;
-  });
 }
 
 async function loadLastLockedSnapshot(userId) {
@@ -138,13 +124,13 @@ toggleButtons.forEach(btn => {
 
     document.querySelector(`.${mode}-mode`).classList.add("active");
 
-    renderAll();
+    renderEverything();
   });
 });
 
 /* ================= RENDER ================= */
 
-function renderAll() {
+function renderEverything() {
   renderSummary();
 
   if (currentTab === "myxi") {
@@ -155,7 +141,13 @@ function renderAll() {
 }
 
 function renderMyXI() {
-  myXI.innerHTML = "";
+  myXIContainer.innerHTML = "";
+
+  if (selectedPlayers.length === 0) {
+    myXIContainer.innerHTML =
+      '<div style="text-align:center;color:#888;">No players selected</div>';
+    return;
+  }
 
   selectedPlayers.forEach(p => {
     const card = document.createElement("div");
@@ -164,27 +156,27 @@ function renderMyXI() {
     card.innerHTML = `
       <div class="player-info">
         <strong>${p.name}</strong>
-        <span>${p.role} · ${p.credit} cr · ${teamMap[p.real_team_id] || ""}</span>
+        <span>${p.role} · ${p.credit} cr</span>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;gap:6px;">
         <button class="cv-btn ${captainId === p.id ? "active" : ""}">C</button>
         <button class="cv-btn ${viceCaptainId === p.id ? "active" : ""}">VC</button>
         <button class="action-btn remove">Remove</button>
       </div>
     `;
 
-    const [cBtn, vcBtn, rBtn] = card.querySelectorAll("button");
+    const buttons = card.querySelectorAll("button");
 
-    cBtn.onclick = () => setCaptain(p.id);
-    vcBtn.onclick = () => setViceCaptain(p.id);
-    rBtn.onclick = () => removePlayer(p.id);
+    buttons[0].onclick = () => setCaptain(p.id);
+    buttons[1].onclick = () => setViceCaptain(p.id);
+    buttons[2].onclick = () => removePlayer(p.id);
 
-    myXI.appendChild(card);
+    myXIContainer.appendChild(card);
   });
 }
 
 function renderPool() {
-  pool.innerHTML = "";
+  poolContainer.innerHTML = "";
 
   allPlayers.forEach(player => {
     const selected = selectedPlayers.some(p => p.id === player.id);
@@ -195,22 +187,23 @@ function renderPool() {
     card.innerHTML = `
       <div class="player-info">
         <strong>${player.name}</strong>
-        <span>${player.role} · ${player.credit} cr · ${teamMap[player.real_team_id] || ""}</span>
+        <span>${player.role} · ${player.credit} cr</span>
       </div>
       <button class="action-btn ${selected ? "remove" : "add"}">
-        ${selected ? "Remove" : "Add"}
+        ${selected ? "Remove" : "+"}
       </button>
     `;
 
     const btn = card.querySelector("button");
 
-    btn.onclick = selected
-      ? () => removePlayer(player.id)
-      : () => addPlayer(player);
+    if (selected) {
+      btn.onclick = () => removePlayer(player.id);
+    } else {
+      btn.onclick = () => addPlayer(player);
+      btn.disabled = !canAddPlayer(player);
+    }
 
-    btn.disabled = !selected && !canAddPlayer(player);
-
-    pool.appendChild(card);
+    poolContainer.appendChild(card);
   });
 }
 
@@ -220,27 +213,23 @@ function renderSummary() {
     0
   );
 
-  const roleCount = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  selectedPlayers.forEach(p => roleCount[p.role]++);
-
   const subsUsed = calculateSubs();
   const totalSubs = lastTotalSubsUsed + subsUsed;
 
   summary.innerHTML = `
-    <div style="display:flex;justify-content:space-between;font-size:12px;">
+    <div style="display:flex;justify-content:space-between;font-size:13px;">
       <span>${selectedPlayers.length}/11</span>
-      <span>${credits.toFixed(1)} cr</span>
-      <span>Subs ${totalSubs}/${MAX_SUBS}</span>
+      <span>${(MAX_CREDITS - credits).toFixed(1)} cr left</span>
     </div>
     <div style="font-size:11px;color:#aaa;margin-top:4px;">
-      WK ${roleCount.WK} | BAT ${roleCount.BAT} | AR ${roleCount.AR} | BOWL ${roleCount.BOWL}
+      Subs: ${isFirstLock ? "Unlimited" : totalSubs + "/" + MAX_SUBS}
     </div>
   `;
 
-  validateSave(roleCount, credits);
+  validateSave(credits, totalSubs);
 }
 
-/* ================= SUBS LOGIC ================= */
+/* ================= SUBS ================= */
 
 function calculateSubs() {
   if (isFirstLock) return 0;
@@ -254,12 +243,12 @@ function calculateSubs() {
   return removed.length;
 }
 
-/* ================= TEAM ACTIONS ================= */
+/* ================= ACTIONS ================= */
 
 function addPlayer(player) {
   if (!canAddPlayer(player)) return;
   selectedPlayers.push(player);
-  renderAll();
+  renderEverything();
 }
 
 function removePlayer(id) {
@@ -268,7 +257,7 @@ function removePlayer(id) {
   if (captainId === id) captainId = null;
   if (viceCaptainId === id) viceCaptainId = null;
 
-  renderAll();
+  renderEverything();
 }
 
 function setCaptain(id) {
@@ -310,15 +299,12 @@ function canAddPlayer(player) {
   return true;
 }
 
-function validateSave(roleCount, credits) {
-  const subs = lastTotalSubsUsed + calculateSubs();
-
+function validateSave(credits, subs) {
   const valid =
     selectedPlayers.length === 11 &&
     captainId &&
     viceCaptainId &&
     credits <= MAX_CREDITS &&
-    Object.keys(ROLE_MIN).every(r => roleCount[r] >= ROLE_MIN[r]) &&
     subs <= MAX_SUBS;
 
   saveBar.classList.toggle("enabled", valid);
