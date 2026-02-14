@@ -1,255 +1,143 @@
-/* ================= RESET ================= */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* ================= RESET & BASE ================= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: radial-gradient(circle at top, #0f172a, #020617);
   color: #e5e7eb;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
 }
 
-/* ================= APP ================= */
 .app {
   max-width: 420px;
   margin: 0 auto;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 92px;
+  padding-bottom: 100px; /* Space for fixed bottom bar */
 }
 
-/* ================= HEADER ================= */
+/* ================= HEADER & PROGRESS ================= */
 .edit-header {
   padding: 16px;
-  background: linear-gradient(180deg, #020617, #020617cc);
+  background: #020617;
   border-bottom: 1px solid #1e293b;
   display: flex;
   align-items: center;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.edit-header a {
-  color: #9be15d;
-  font-size: 18px;
-  text-decoration: none;
-}
+.edit-header a { color: #9be15d; font-size: 20px; text-decoration: none; }
 
-.edit-header h1 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* ================= CONTENT ================= */
-.content {
-  flex: 1;
-  padding: 16px;
-}
-
-/* ================= MODE ================= */
-.edit-mode { display: none; }
-.edit-mode.active { display: block; }
-
-/* ================= SUMMARY ================= */
-.team-summary {
-  background: linear-gradient(180deg, #020617, #020617cc);
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 14px;
-  font-size: 12px;
-}
-
-/* ================= PLAYER LIST ================= */
-.player-list {
+.player-progress {
+  padding: 12px 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-/* =====================================================
-   PLAYER CARD – FINAL STRUCTURE
-===================================================== */
-.dream11-card,
-.player-card.selected {
-  background: linear-gradient(180deg, #020617, #020617dd);
-  border-radius: 18px;
-  padding: 14px;
-
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  column-gap: 14px;
-}
-
-/* Borders */
-.dream11-card { border: 1px solid #1e293b; }
-.player-card.selected { border: 1px solid #9be15d; }
-
-/* ================= AVATAR ================= */
-.dream11-card::before,
-.player-card.selected::before {
-  content: "";
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #475569, #0f172a);
-  border: 1px solid #64748b;
-}
-
-/* ================= CENTER COLUMN ================= */
-.dream11-card > div:first-of-type,
-.player-card.selected > div:first-of-type {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Name */
-.player-name,
-.player-card.selected strong {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-/* Role + credit */
-.player-meta {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-/* Remove junk text */
-.change-mode .played { display: none; }
-
-/* ================= RIGHT ACTION COLUMN ================= */
-.dream11-card > div:last-child,
-.player-card.selected > div:last-child {
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-/* Remove duplicate credit near button */
-.change-mode .credit { display: none; }
+.progress-track {
+  height: 6px;
+  background: #1e293b;
+  border-radius: 3px;
+  overflow: hidden;
+}
 
-/* ================= BUTTONS ================= */
-.circle-btn {
-  width: 30px;
-  height: 30px;
+.progress-fill {
+  height: 100%;
+  background: #9be15d;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ================= PLAYER CARDS ================= */
+.player-list { display: flex; flex-direction: column; gap: 12px; }
+
+.dream11-card, .player-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-card.selected { border-color: #9be15d; background: rgba(154, 225, 93, 0.05); }
+
+.avatar-circle {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 2px solid;
-  background: transparent;
-  font-size: 18px;
+  background: #1e293b;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.circle-btn.add {
-  color: #22c55e;
-  border-color: #22c55e;
-}
-
-.circle-btn.remove {
-  color: #ef4444;
-  border-color: #ef4444;
-}
-
-/* ================= C / VC ================= */
-.cv-btn {
-  padding: 4px 8px;
-  border-radius: 10px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #94a3b8;
   border: 1px solid #334155;
-  background: #020617;
-  color: #94a3b8;
-  font-size: 11px;
 }
 
-.cv-btn.active {
-  background: #9be15d;
-  color: #020617;
-  border-color: #9be15d;
-}
+.player-info h4 { font-size: 15px; margin-bottom: 2px; }
+.player-meta { font-size: 12px; color: #94a3b8; }
 
-/* ================= ROLE FILTERS ================= */
-.role-filters {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.role-filter-btn {
-  flex: 1;
-  padding: 8px 0;
-  border-radius: 999px;
-  background: #020617;
-  border: 1px solid #1e293b;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.role-filter-btn.active {
-  background: #9be15d;
-  color: #020617;
-  border-color: #9be15d;
-}
-
-/* ================= SEARCH ================= */
-#playerSearch {
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #1e293b;
-  background: #020617;
-  color: #e5e7eb;
-  margin-bottom: 12px;
-}
-
-/* ================= BOTTOM BAR ================= */
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 420px;
-  width: 100%;
-  padding: 12px 24px 16px;
-
-  background: linear-gradient(
-    180deg,
-    rgba(2,6,23,0) 0%,
-    rgba(2,6,23,0.85) 45%,
-    rgba(2,6,23,0.95) 100%
-  );
-
-  display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr;
-  gap: 14px;
-  align-items: center;
-}
-
-.bottom-btn {
-  padding: 10px 0;
-  border-radius: 14px;
+/* ================= BUTTONS ================= */
+.circle-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid;
   background: transparent;
-  border: 1px solid #1e293b;
-  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.bottom-btn.active {
-  color: #9be15d;
-  border-color: #9be15d;
+.circle-btn.add { color: #22c55e; border-color: #22c55e; }
+.circle-btn.remove { color: #ef4444; border-color: #ef4444; }
+.circle-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.cv-group { display: flex; gap: 6px; }
+.cv-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cv-btn.active { background: #9be15d; color: #020617; border-color: #9be15d; }
+
+/* ================= FILTERS & BOTTOM BAR ================= */
+.role-filters { display: flex; gap: 6px; margin: 12px 0; }
+.role-filter-btn {
+  flex: 1; padding: 8px; border-radius: 20px;
+  background: #0f172a; border: 1px solid #1e293b;
+  color: #94a3b8; font-size: 11px; cursor: pointer;
+}
+.role-filter-btn.active { background: #9be15d; color: #020617; border-color: #9be15d; }
+
+.bottom-bar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  max-width: 420px; width: 100%; padding: 16px;
+  background: #020617; border-top: 1px solid #1e293b;
+  display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px;
 }
 
 .center-save {
-  padding: 12px 0;
-  border-radius: 16px;
-  background: #9be15d;
-  color: #020617;
-  font-size: 15px;
-  font-weight: 700;
-  border: none;
+  background: #9be15d; color: #020617; border: none;
+  border-radius: 12px; font-weight: 700; cursor: pointer;
 }
+.center-save:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+
+.edit-mode { display: none; }
+.edit-mode.active { display: block; }
