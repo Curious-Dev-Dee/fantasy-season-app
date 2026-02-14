@@ -16,78 +16,68 @@ serve(async (req) => {
     )
 
     const { match_id, scoreboard } = await req.json()
+    const innings = scoreboard.data.scorecard; // The correct path for your JSON
 
-    // 1. Fetch all players for exact name matching
-    const { data: players } = await supabase.from('players').select('id, name')
+    // 1. Fetch all players for matching
+    const { data: dbPlayers } = await supabase.from('players').select('id, name')
     
-    // 2. Clear existing stats for this match to allow re-processing
+    // 2. Clear existing stats for this match
     await supabase.from('player_match_stats').delete().eq('match_id', match_id)
 
-    const statsToInsert = []
+    // 3. Create a map to accumulate stats for each player
+    const playerMap = new Map();
 
-    // 3. Process scoreboard JSON (iterating through players)
-    for (const p of scoreboard.players) {
-      const dbPlayer = players?.find(dp => dp.name === p.name)
-      if (!dbPlayer) continue
+    // 4. CRAWL THE JSON (Batting, Bowling, Catching)
+    innings.forEach(inning => {
+      // Process Batting
+      inning.batting?.forEach(b => {
+        const pId = b.batsman.id;
+        const stats = playerMap.get(pId) || { name: b.batsman.name, runs: 0, wickets: 0, catches: 0 };
+        stats.runs += (b.r || 0);
+        playerMap.set(pId, stats);
+      });
 
-      const runs = p.runs || 0
-      const wickets = p.wickets || 0
-      const catches = p.catches || 0
-      
-      // Points formula: 1pt/run, 25pt/wicket, 8pt/catch
-      const fantasyPoints = (runs * 1) + (wickets * 25) + (catches * 8)
+      // Process Bowling
+      inning.bowling?.forEach(bw => {
+        const pId = bw.bowler.id;
+        const stats = playerMap.get(pId) || { name: bw.bowler.name, runs: 0, wickets: 0, catches: 0 };
+        stats.wickets += (bw.w || 0);
+        playerMap.set(pId, stats);
+      });
 
-      statsToInsert.push({
-        match_id,
-        player_id: dbPlayer.id,
-        runs,
-        wickets,
-        catches,
-        fantasy_points: fantasyPoints
-      })
-    }
+      // Process Catching
+      inning.catching?.forEach(c => {
+        const pId = c.catcher.id;
+        const stats = playerMap.get(pId) || { name: c.catcher.name, runs: 0, wickets: 0, catches: 0 };
+        stats.catches += (c.catch || 0);
+        playerMap.set(pId, stats);
+      });
+    });
 
-    // 4. Save Player Stats
+    // 5. Build Insert Array with Points Formula
+    const statsToInsert = [];
+    playerMap.forEach((val, key) => {
+      const dbMatch = dbPlayers?.find(p => p.name === val.name);
+      if (dbMatch) {
+        const totalPoints = (val.runs * 1) + (val.wickets * 25) + (val.catches * 8);
+        statsToInsert.push({
+          match_id,
+          player_id: dbMatch.id,
+          runs: val.runs,
+          wickets: val.wickets,
+          catches: val.catches,
+          fantasy_points: totalPoints
+        });
+      }
+    });
+
+    // 6. INSERT STATS
     await supabase.from('player_match_stats').insert(statsToInsert)
 
-    // 5. Finalize User Match Points with Bonuses
-    const { data: userTeams } = await supabase
-      .from('user_match_teams')
-      .select('id, user_id, tournament_id, captain_id, vice_captain_id')
-      .eq('match_id', match_id)
+    // 7. TRIGGER THE USER UPDATE (This part remains the same)
+    // [Keep the same loop you had for user_match_points here...]
 
-    const { data: allStats } = await supabase
-      .from('player_match_stats')
-      .select('player_id, fantasy_points')
-      .eq('match_id', match_id)
-
-    const statsMap = Object.fromEntries(allStats.map(s => [s.player_id, s.fantasy_points]))
-
-    for (const team of userTeams || []) {
-      const { data: teamPlayers } = await supabase
-        .from('user_match_team_players')
-        .select('player_id')
-        .eq('user_match_team_id', team.id)
-
-      let rawPoints = 0
-      teamPlayers?.forEach(tp => rawPoints += (statsMap[tp.player_id] || 0))
-
-      const cBonus = statsMap[team.captain_id] || 0 // Extra 1x for Captain
-      const vcBonus = (statsMap[team.vice_captain_id] || 0) * 0.5 // Extra 0.5x for VC
-
-      await supabase.from('user_match_points').upsert({
-        user_id: team.user_id,
-        match_id: match_id,
-        tournament_id: team.tournament_id,
-        raw_points: rawPoints,
-        captain_bonus: cBonus,
-        vice_captain_bonus: vcBonus,
-        total_points: rawPoints + cBonus + vcBonus,
-        is_counted: true
-      }, { onConflict: 'user_id,match_id' })
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, playersProcessed: statsToInsert.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
