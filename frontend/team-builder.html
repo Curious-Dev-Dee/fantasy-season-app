@@ -2,9 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
   <title>Cricket Experts · Edit Team</title>
 
+  <!-- Main Styles -->
   <link rel="stylesheet" href="css/team-builder.css" />
 </head>
 
@@ -12,99 +16,174 @@
 
   <div class="app edit-team-app">
 
-    <!-- HEADER -->
+    <!-- ================= HEADER ================= -->
     <header class="edit-header">
-      <a href="home.html" class="icon-back">←</a>
+      <a href="home.html" class="icon-back" aria-label="Go back">←</a>
       <h1 class="header-title">Edit Team</h1>
       <span class="edit-note">Next match</span>
     </header>
 
-    <!-- TOGGLE -->
-    <div class="edit-toggle">
-      <button class="toggle-btn active" data-mode="myxi">My XI</button>
-      <button class="toggle-btn" data-mode="change">Change Players</button>
-    </div>
+    <!-- ================= TOGGLE ================= -->
+    <nav class="edit-toggle" aria-label="Edit mode toggle">
+      <button
+        class="toggle-btn active"
+        data-mode="myxi"
+        type="button"
+      >
+        My XI
+      </button>
+      <button
+        class="toggle-btn"
+        data-mode="change"
+        type="button"
+      >
+        Change Players
+      </button>
+    </nav>
 
-    <!-- CONTENT -->
+    <!-- ================= CONTENT ================= -->
     <main class="content edit-content">
 
-      <!-- SUMMARY -->
-      <div class="team-summary sticky-summary"></div>
-
-      <!-- MY XI -->
-      <section class="edit-mode myxi-mode active">
-        <div class="player-list" id="myXIList"></div>
+      <!-- ===== TEAM SUMMARY (STICKY) ===== -->
+      <section class="team-summary sticky-summary" aria-live="polite">
+        <!-- Injected by JS -->
       </section>
 
-      <!-- CHANGE PLAYERS -->
-      <section class="edit-mode change-mode">
+      <!-- ===== MY XI MODE ===== -->
+      <section
+        class="edit-mode myxi-mode active"
+        aria-label="My Playing Eleven"
+      >
+        <div
+          class="player-list"
+          id="myXIList"
+          role="list"
+        >
+          <!-- Selected players -->
+        </div>
+      </section>
 
-        <!-- FILTER AREA -->
+      <!-- ===== CHANGE PLAYERS MODE ===== -->
+      <section
+        class="edit-mode change-mode"
+        aria-label="Change Players"
+      >
+
+        <!-- ===== FILTER AREA ===== -->
         <div class="change-filters">
 
           <!-- SEARCH -->
           <input
-            type="text"
+            type="search"
             id="playerSearch"
             placeholder="Search player"
+            aria-label="Search player"
+            autocomplete="off"
           />
 
           <!-- ROLE FILTERS -->
-          <div class="role-filters">
-            <button class="role-filter-btn active" data-role="ALL">All</button>
-            <button class="role-filter-btn" data-role="WK">WK</button>
-            <button class="role-filter-btn" data-role="BAT">BAT</button>
-            <button class="role-filter-btn" data-role="AR">AR</button>
-            <button class="role-filter-btn" data-role="BOWL">BOWL</button>
+          <div class="role-filters" role="tablist">
+            <button class="role-filter-btn active" data-role="ALL" type="button">All</button>
+            <button class="role-filter-btn" data-role="WK" type="button">WK</button>
+            <button class="role-filter-btn" data-role="BAT" type="button">BAT</button>
+            <button class="role-filter-btn" data-role="AR" type="button">AR</button>
+            <button class="role-filter-btn" data-role="BOWL" type="button">BOWL</button>
           </div>
 
           <!-- DROPDOWN FILTERS -->
           <div class="dropdown-filters">
 
-            <!-- MATCH -->
+            <!-- MATCH FILTER -->
             <div class="dropdown">
-              <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
-              <div class="dropdown-menu" id="matchMenu">
+              <button
+                class="dropdown-toggle"
+                id="matchToggle"
+                type="button"
+                aria-haspopup="listbox"
+              >
+                Match ▼
+              </button>
+              <div
+                class="dropdown-menu"
+                id="matchMenu"
+                role="listbox"
+              >
                 <div data-match="all">All Players</div>
                 <div data-match="next">Playing Next Match</div>
               </div>
             </div>
 
-            <!-- TEAM -->
+            <!-- TEAM FILTER -->
             <div class="dropdown">
-              <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
-              <div class="dropdown-menu scrollable" id="teamMenu">
-                <!-- dynamically inserted -->
+              <button
+                class="dropdown-toggle"
+                id="teamToggle"
+                type="button"
+                aria-haspopup="listbox"
+              >
+                Team ▼
+              </button>
+              <div
+                class="dropdown-menu scrollable"
+                id="teamMenu"
+                role="listbox"
+              >
+                <!-- Injected by JS -->
               </div>
             </div>
 
-            <!-- CREDIT -->
+            <!-- CREDIT FILTER -->
             <div class="dropdown">
-              <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
-              <div class="dropdown-menu scrollable" id="creditMenu">
-                <!-- dynamically inserted -->
+              <button
+                class="dropdown-toggle"
+                id="creditToggle"
+                type="button"
+                aria-haspopup="listbox"
+              >
+                Credit ▼
+              </button>
+              <div
+                class="dropdown-menu scrollable"
+                id="creditMenu"
+                role="listbox"
+              >
+                <!-- Injected by JS -->
               </div>
             </div>
 
           </div>
-
         </div>
 
-        <!-- PLAYER LIST -->
-        <div class="player-list" id="playerPoolList"></div>
+        <!-- ===== PLAYER POOL ===== -->
+        <div
+          class="player-list"
+          id="playerPoolList"
+          role="list"
+        >
+          <!-- Player cards -->
+        </div>
 
       </section>
 
     </main>
 
-    <!-- SAVE -->
-    <footer class="save-bar disabled">
-      <button class="save-btn">Save Team</button>
-      <p class="save-hint">Team locks automatically at match start</p>
+    <!-- ================= SAVE BAR ================= -->
+    <footer class="save-bar disabled" role="contentinfo">
+      <button
+        class="save-btn"
+        type="button"
+        aria-disabled="true"
+      >
+        Save Team
+      </button>
+      <p class="save-hint">
+        Team locks automatically at match start
+      </p>
     </footer>
 
   </div>
 
+  <!-- ================= SCRIPTS ================= -->
   <script type="module" src="edit-team.js"></script>
   <script type="module" src="auth-guard.js"></script>
 
