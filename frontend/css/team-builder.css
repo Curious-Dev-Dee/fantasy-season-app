@@ -24,7 +24,7 @@ body {
 /* ================= HEADER ================= */
 .edit-header {
   padding: 16px;
-  background: #020617;
+  background: linear-gradient(180deg, #020617, #020617cc);
   border-bottom: 1px solid #1e293b;
   display: flex;
   align-items: center;
@@ -54,7 +54,7 @@ body {
 
 /* ================= SUMMARY ================= */
 .team-summary {
-  background: #020617;
+  background: linear-gradient(180deg, #020617, #020617cc);
   border: 1px solid #1e293b;
   border-radius: 14px;
   padding: 12px;
@@ -124,7 +124,7 @@ body {
 
 /* ================= PLAYER CARD ================= */
 .dream11-card {
-  background: #020617;
+  background: linear-gradient(180deg, #020617, #020617dd);
   border: 1px solid #1e293b;
   border-radius: 16px;
   padding: 12px;
@@ -217,7 +217,7 @@ body {
   color: #020617;
 }
 
-/* ================= BOTTOM BAR (FINAL BALANCED VERSION) ================= */
+/* ================= BOTTOM BAR (IMMERSIVE FIX) ================= */
 .bottom-bar {
   position: fixed;
   bottom: 0;
@@ -225,12 +225,18 @@ body {
   transform: translateX(-50%);
   max-width: 420px;
   width: 100%;
-  padding: 10px 24px 14px; /* side breathing space */
-  background: #020617;
-  border-top: 1px solid #1e293b;
+  padding: 12px 24px 16px;
+
+  /* KEY FIX */
+  background: linear-gradient(
+    180deg,
+    rgba(2,6,23,0) 0%,
+    rgba(2,6,23,0.85) 45%,
+    rgba(2,6,23,0.95) 100%
+  );
 
   display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr; /* KEY FIX */
+  grid-template-columns: 1fr 1.3fr 1fr;
   gap: 14px;
   align-items: center;
 }
@@ -243,7 +249,6 @@ body {
   border: 1px solid #1e293b;
   color: #94a3b8;
   font-size: 13px;
-  text-align: center;
 }
 
 .bottom-btn.active {
@@ -251,7 +256,7 @@ body {
   border-color: #9be15d;
 }
 
-/* Save (slightly larger, NOT dominant) */
+/* Save (balanced hero) */
 .center-save {
   padding: 12px 0;
   border-radius: 16px;
