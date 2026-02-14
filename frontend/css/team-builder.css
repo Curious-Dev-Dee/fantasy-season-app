@@ -1,153 +1,263 @@
-body {
+/* ================= RESET ================= */
+* {
+  box-sizing: border-box;
   margin: 0;
-  background: #0b0f14;
-  color: #fff;
-  font-family: system-ui;
+  padding: 0;
 }
 
+body {
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #e5e7eb;
+}
+
+/* ================= APP ================= */
 .app {
   max-width: 420px;
   margin: auto;
-}
-
-.edit-header {
-  padding: 14px;
-  background: #0f1623;
+  min-height: 100vh;
   display: flex;
-  gap: 12px;
-  align-items: center;
+  flex-direction: column;
 }
 
+/* ================= HEADER ================= */
+.edit-header {
+  padding: 16px;
+  background: linear-gradient(180deg, #020617, #020617cc);
+  border-bottom: 1px solid #1e293b;
+}
+
+.edit-header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ================= TOGGLE ================= */
 .edit-toggle {
+  margin: 12px 16px 0;
+  background: #020617;
+  padding: 4px;
+  border-radius: 14px;
   display: flex;
   gap: 6px;
-  padding: 8px;
+  border: 1px solid #1e293b;
 }
 
 .toggle-btn {
   flex: 1;
-  padding: 10px;
+  padding: 10px 0;
   border-radius: 10px;
-  background: #111827;
-  color: #aaa;
+  background: transparent;
   border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .toggle-btn.active {
-  background: #1f2937;
-  color: #fff;
+  background: #020617;
+  color: #9be15d;
   box-shadow: inset 0 0 0 1px #9be15d;
 }
 
-.edit-mode {
-  display: none;
+/* ================= CONTENT ================= */
+.content {
+  flex: 1;
+  padding: 16px;
 }
 
-.edit-mode.active {
-  display: block;
-}
-
+/* ================= SUMMARY ================= */
 .team-summary {
-  margin: 12px;
+  background: linear-gradient(180deg, #020617, #020617cc);
+  border: 1px solid #1e293b;
+  border-radius: 14px;
   padding: 12px;
-  background: #111827;
-  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #e5e7eb;
 }
 
+/* ================= CHANGE HEADER ================= */
 .player-progress {
-  display: flex;
-  gap: 10px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
   padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.player-progress span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ================= PROGRESS BAR ================= */
 .progress-track {
   flex: 1;
-  height: 8px;
-  background: #1f2937;
+  height: 6px;
+  background: #020617;
   border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px #1e293b;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #9be15d, #6ee7b7);
   width: 0%;
+  background: linear-gradient(90deg, #9be15d, #4ade80);
+  transition: width 0.25s ease;
 }
 
-.player-list {
+/* ================= SEARCH ================= */
+#playerSearch {
+  width: 100%;
   padding: 12px;
+  border-radius: 14px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+#playerSearch::placeholder {
+  color: #64748b;
+}
+
+/* ================= PLAYER LIST ================= */
+.player-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* ================= DREAM11 PLAYER CARD ================= */
 .dream11-card {
-  background: #fff;
-  color: #000;
+  background: #ffffff;
+  color: #020617;
   border-radius: 14px;
   padding: 12px;
   display: grid;
-  grid-template-columns: 46px 1fr auto;
+  grid-template-columns: 44px 1fr auto;
   gap: 10px;
   align-items: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
 }
 
 .player-img {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #e5e7eb;
 }
 
 .player-name {
+  font-size: 14px;
   font-weight: 600;
 }
 
 .player-meta {
   font-size: 11px;
-  color: #555;
+  color: #475569;
+  margin-top: 2px;
 }
 
 .played {
   color: #2563eb;
+  font-size: 11px;
 }
 
+/* ================= RIGHT SIDE ================= */
 .right {
   text-align: right;
 }
 
 .credit {
+  font-size: 13px;
   font-weight: 700;
+  margin-bottom: 4px;
 }
 
+/* ================= + / - BUTTON ================= */
 .circle-btn {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid;
   background: transparent;
   font-size: 18px;
+  line-height: 22px;
+  cursor: pointer;
 }
 
 .circle-btn.add {
-  border-color: #16a34a;
   color: #16a34a;
+  border-color: #16a34a;
 }
 
 .circle-btn.remove {
-  border-color: #dc2626;
   color: #dc2626;
+  border-color: #dc2626;
 }
 
-.save-bar {
-  padding: 14px;
+/* ================= MY XI ================= */
+.player-card.selected {
+  background: linear-gradient(180deg, #020617, #020617cc);
+  border: 1px solid #9be15d;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.save-bar.disabled button {
-  background: #333;
-  color: #777;
+/* ================= C / VC ================= */
+.cv-btn {
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid #475569;
+  background: #020617;
+  color: #94a3b8;
+  font-size: 11px;
+  cursor: pointer;
 }
 
-.save-bar.enabled button {
+.cv-btn.active {
   background: #9be15d;
-  color: #000;
+  color: #020617;
+  border-color: #9be15d;
+}
+
+/* ================= SAVE BAR ================= */
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, #020617, #020617ee);
+  padding: 14px 16px;
+  border-top: 1px solid #1e293b;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+}
+
+.save-bar.disabled .save-btn {
+  background: #020617;
+  color: #64748b;
+  box-shadow: inset 0 0 0 1px #1e293b;
+}
+
+.save-bar.enabled .save-btn {
+  background: #9be15d;
+  color: #020617;
 }
