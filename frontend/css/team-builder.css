@@ -18,7 +18,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 88px;
+  padding-bottom: 90px;
 }
 
 /* ================= HEADER ================= */
@@ -70,20 +70,21 @@ body {
 }
 
 /* =====================================================
-   SHARED CARD BASE (Change XI + My XI)
+   UNIFIED PLAYER CARD (My XI + Change XI)
 ===================================================== */
 .dream11-card,
 .player-card.selected {
   background: linear-gradient(180deg, #020617, #020617dd);
   border-radius: 18px;
   padding: 14px;
+
   display: grid;
-  grid-template-columns: 44px 1fr auto;
-  gap: 12px;
+  grid-template-columns: 48px 1fr auto; /* FIXED GRID */
+  gap: 14px;
   align-items: center;
 }
 
-/* Border difference */
+/* Borders */
 .dream11-card {
   border: 1px solid #1e293b;
 }
@@ -92,19 +93,23 @@ body {
   border: 1px solid #9be15d;
 }
 
-/* ================= AVATAR (BOTH MODES) ================= */
+/* ================= AVATAR (FIXED LOOK) ================= */
 .dream11-card::before,
 .player-card.selected::before {
-  content: "👤";
-  width: 42px;
-  height: 42px;
+  content: "";
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #1e293b;
-  border: 1px solid #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.35;
+
+  /* FIX: neutral contrast avatar */
+  background: radial-gradient(
+    circle at 30% 30%,
+    #334155,
+    #0f172a
+  );
+
+  border: 1px solid #475569;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.04);
 }
 
 /* ================= PLAYER INFO ================= */
@@ -112,25 +117,34 @@ body {
 .player-card.selected strong {
   font-size: 15px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .player-meta {
-  font-size: 11px;
+  font-size: 12px;
   color: #94a3b8;
+  margin-top: 4px;
 }
 
-/* REMOVE last match text */
+/* Remove last match line */
 .change-mode .played {
   display: none;
 }
 
-/* ================= ACTION AREA ================= */
-.credit {
-  font-size: 14px;
-  font-weight: 700;
+/* ================= RIGHT ACTION COLUMN ================= */
+.dream11-card > :last-child,
+.player-card.selected > :last-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* REMOVE duplicate credit in Change XI */
+/* ================= CREDIT (CHANGE XI) ================= */
+.player-meta {
+  white-space: nowrap;
+}
+
+/* Remove duplicate credit near button */
 .change-mode .credit {
   display: none;
 }
@@ -172,13 +186,6 @@ body {
   background: #9be15d;
   color: #020617;
   border-color: #9be15d;
-}
-
-/* ================= MY XI ACTION GROUP ================= */
-.player-card.selected > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* ================= ROLE FILTERS ================= */
