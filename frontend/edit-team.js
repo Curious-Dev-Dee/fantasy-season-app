@@ -14,7 +14,9 @@ const ROLE_MAX = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
 /* ================= STATE ================= */
 
 let allPlayers = [];
-let selectedPlayers = [];
+
+let savedTeamPlayers = [];   // DB saved XI
+let editingPlayers = [];     // Live editing XI
 
 let captainId = null;
 let viceCaptainId = null;
@@ -114,7 +116,7 @@ async function loadNextMatches() {
 async function loadLastLockedSnapshot(userId) {
   const { data } = await supabase
     .from("user_match_teams")
-    .select("id, total_subs_used")
+    .select("total_subs_used")
     .eq("user_id", userId)
     .order("locked_at", { ascending: false })
     .limit(1)
@@ -144,12 +146,14 @@ async function loadSavedSeasonTeam(userId) {
     .select("player_id")
     .eq("user_fantasy_team_id", team.id);
 
-  selectedPlayers = (players || [])
+  savedTeamPlayers = (players || [])
     .map(p => allPlayers.find(ap => ap.id === p.player_id))
     .filter(Boolean);
+
+  editingPlayers = [...savedTeamPlayers];
 }
 
-/* ================= UI TOGGLES ================= */
+/* ================= TOGGLES ================= */
 
 toggleButtons.forEach(btn => {
   btn.onclick = () => {
@@ -195,8 +199,7 @@ function applyFilters(players) {
     (!filters.search || p.name.toLowerCase().includes(filters.search.toLowerCase())) &&
     (filters.role === "ALL" || p.role === filters.role) &&
     (!filters.teams.length || filters.teams.includes(p.real_team_id)) &&
-    (filters.credit === null || Number(p.credit) === filters.credit) &&
-    (!filters.selectedMatchTeamIds.length || filters.selectedMatchTeamIds.includes(p.real_team_id))
+    (filters.credit === null || Number(p.credit) === filters.credit)
   );
 }
 
@@ -209,16 +212,16 @@ function rerenderAll() {
 }
 
 function renderStatus() {
-  const totalPlayers = selectedPlayers.length;
+  const totalPlayers = editingPlayers.length;
 
-  const totalCredits = selectedPlayers.reduce(
+  const totalCredits = editingPlayers.reduce(
     (s, p) => s + Number(p.credit), 0
   );
 
   const creditsLeft = (MAX_CREDITS - totalCredits).toFixed(1);
 
   const roleCount = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  selectedPlayers.forEach(p => roleCount[p.role]++);
+  editingPlayers.forEach(p => roleCount[p.role]++);
 
   playerCountEl.textContent = totalPlayers;
   creditsLeftEl.textContent = creditsLeft;
@@ -240,7 +243,7 @@ function renderPool() {
   pool.innerHTML = "";
 
   applyFilters(allPlayers).forEach(player => {
-    const selected = selectedPlayers.some(p => p.id === player.id);
+    const selected = editingPlayers.some(p => p.id === player.id);
 
     const card = document.createElement("div");
     card.className = "player-card";
@@ -281,7 +284,7 @@ function renderPool() {
 function renderMyXI() {
   myXI.innerHTML = "";
 
-  selectedPlayers.forEach(p => {
+  savedTeamPlayers.forEach(p => {
     const card = document.createElement("div");
     card.className = "player-card selected";
 
@@ -297,17 +300,11 @@ function renderMyXI() {
       </div>
 
       <div class="player-right">
-        <button class="cv-btn ${captainId === p.id ? "active" : ""}">C</button>
-        <button class="cv-btn ${viceCaptainId === p.id ? "active" : ""}">VC</button>
-        <button class="action-btn remove">−</button>
+        <span class="player-credit">${p.credit} cr</span>
+        <span class="cv-btn ${captainId === p.id ? "active" : ""}">C</span>
+        <span class="cv-btn ${viceCaptainId === p.id ? "active" : ""}">VC</span>
       </div>
     `;
-
-    const [cBtn, vcBtn, rBtn] = card.querySelectorAll("button");
-
-    cBtn.onclick = () => setCaptain(p.id);
-    vcBtn.onclick = () => setViceCaptain(p.id);
-    rBtn.onclick = () => removePlayer(p.id);
 
     myXI.appendChild(card);
   });
@@ -317,45 +314,33 @@ function renderMyXI() {
 
 function addPlayer(player) {
   if (!canAddPlayer(player)) return;
-  selectedPlayers.push(player);
+  editingPlayers.push(player);
   rerenderAll();
 }
 
 function removePlayer(id) {
-  selectedPlayers = selectedPlayers.filter(p => p.id !== id);
+  editingPlayers = editingPlayers.filter(p => p.id !== id);
   if (captainId === id) captainId = null;
   if (viceCaptainId === id) viceCaptainId = null;
   rerenderAll();
 }
 
-function setCaptain(id) {
-  if (viceCaptainId === id) viceCaptainId = null;
-  captainId = id;
-  renderMyXI();
-}
-
-function setViceCaptain(id) {
-  if (captainId === id) captainId = null;
-  viceCaptainId = id;
-  renderMyXI();
-}
-
 function canAddPlayer(player) {
-  if (selectedPlayers.length >= MAX_PLAYERS) return false;
+  if (editingPlayers.length >= MAX_PLAYERS) return false;
 
-  const totalCredits = selectedPlayers.reduce(
+  const totalCredits = editingPlayers.reduce(
     (s, p) => s + Number(p.credit), 0
   );
 
   if (totalCredits + Number(player.credit) > MAX_CREDITS) return false;
 
   if (
-    selectedPlayers.filter(p => p.role === player.role).length >=
+    editingPlayers.filter(p => p.role === player.role).length >=
     ROLE_MAX[player.role]
   ) return false;
 
   if (
-    selectedPlayers.filter(p => p.real_team_id === player.real_team_id).length >=
+    editingPlayers.filter(p => p.real_team_id === player.real_team_id).length >=
     MAX_PER_TEAM
   ) return false;
 
@@ -364,7 +349,7 @@ function canAddPlayer(player) {
 
 function validateSave(roleCount, credits) {
   const valid =
-    selectedPlayers.length === 11 &&
+    editingPlayers.length === 11 &&
     captainId &&
     viceCaptainId &&
     credits <= MAX_CREDITS &&
@@ -386,7 +371,7 @@ saveBtn.addEventListener("click", async () => {
   const user = data?.user;
   if (!user) return;
 
-  const totalCredits = selectedPlayers.reduce(
+  const totalCredits = editingPlayers.reduce(
     (s, p) => s + Number(p.credit), 0
   );
 
@@ -432,11 +417,14 @@ saveBtn.addEventListener("click", async () => {
   await supabase
     .from("user_fantasy_team_players")
     .insert(
-      selectedPlayers.map(p => ({
+      editingPlayers.map(p => ({
         user_fantasy_team_id: teamId,
         player_id: p.id
       }))
     );
+
+  savedTeamPlayers = [...editingPlayers];
+  renderMyXI();
 
   saveBtn.textContent = "Saved ✓";
   saving = false;
