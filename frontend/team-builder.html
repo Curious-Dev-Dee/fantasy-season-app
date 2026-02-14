@@ -1,44 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Edit Team | Fantasy App</title>
+    <style>
+        /* ================= RESET & BASE ================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: radial-gradient(circle at top, #0f172a, #020617);
+            color: #e5e7eb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app {
+            max-width: 420px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 100px; /* Space for fixed bottom bar */
+        }
+
+        /* ================= HEADER ================= */
+        .edit-header {
+            padding: 16px;
+            background: #020617;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .edit-header a { 
+            color: #9be15d; 
+            font-size: 24px; 
+            text-decoration: none; 
+            line-height: 1;
+        }
+
+        .edit-header h1 { font-size: 18px; font-weight: 600; }
+
+        /* ================= CONTENT ================= */
+        .content { padding: 16px; flex: 1; }
+
+        /* ================= TEAM SUMMARY & PROGRESS ================= */
+        .team-summary-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            height: 6px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #9be15d;
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* ================= SEARCH & FILTERS ================= */
+        #playerSearch {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+            background: #0f172a;
+            color: #fff;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        #playerSearch:focus { border-color: #9be15d; }
+
+        .role-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .role-filter-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #1e293b;
+            border: 1px solid transparent;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .role-filter-btn.active {
+            background: #9be15d;
+            color: #020617;
+        }
+
+        /* ================= PLAYER CARDS ================= */
+        .player-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .player-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 48px 1fr auto;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s;
+        }
+
+        .player-card.selected {
+            border-color: #9be15d;
+            background: rgba(154, 225, 93, 0.05);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #334155, #0f172a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #94a3b8;
+            border: 1px solid #1e293b;
+        }
+
+        .info h4 { font-size: 15px; margin-bottom: 2px; }
+        .info p { font-size: 12px; color: #94a3b8; }
+
+        /* ================= BUTTONS ================= */
+        .circle-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .circle-btn.add { color: #22c55e; border-color: #22c55e; }
+        .circle-btn.remove { color: #ef4444; border-color: #ef4444; }
+        .circle-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .cv-group { display: flex; gap: 6px; margin-top: 8px; }
+        .cv-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cv-btn.active { background: #9be15d; color: #020617; border-color: #9be15d; }
+
+        /* ================= BOTTOM BAR ================= */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 420px;
+            width: 100%;
+            padding: 16px 20px;
+            background: #020617;
+            border-top: 1px solid #1e293b;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-btn.active { color: #9be15d; }
+
+        .save-btn {
+            background: #9be15d;
+            color: #020617;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .save-btn:disabled {
+            background: #1e293b;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
+        /* Mode Toggling */
+        .edit-mode { display: none; }
+        .edit-mode.active { display: block; }
+    </style>
+</head>
+<body>
+
 <div class="app">
-  <header class="edit-header">
-    <a href="home.html">←</a>
-    <h1>Edit Team</h1>
-  </header>
+    <header class="edit-header">
+        <a href="javascript:history.back()">←</a>
+        <h1>Edit Team</h1>
+    </header>
 
-  <main class="content">
-    <section class="team-summary"></section>
-
-    <section class="edit-mode myxi-mode active">
-      <div class="player-list" id="myXIList"></div>
-    </section>
-
-    <section class="edit-mode change-mode">
-      <div class="player-progress">
-        <div style="display:flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-          <span>Selection Progress</span>
-          <span><strong id="playerCount">0</strong>/11</span>
+    <main class="content">
+        <div class="team-summary-card">
+            <div class="summary-stats">
+                <span>Credits: <strong id="creditCount">0</strong>/100</span>
+                <span>Players: <strong id="playerCount">0</strong>/11</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
         </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </div>
 
-      <input type="search" id="playerSearch" placeholder="Search player..." />
+        <section id="myxi-view" class="edit-mode active">
+            <div class="player-list" id="myXIList">
+                </div>
+        </section>
 
-      <div class="role-filters" id="roleFilters">
-        <button class="role-filter-btn active" data-role="ALL">All</button>
-        <button class="role-filter-btn" data-role="WK">WK</button>
-        <button class="role-filter-btn" data-role="BAT">BAT</button>
-        <button class="role-filter-btn" data-role="AR">AR</button>
-        <button class="role-filter-btn" data-role="BOWL">BOWL</button>
-      </div>
+        <section id="change-view" class="edit-mode">
+            <input type="search" id="playerSearch" placeholder="Search for a player..." />
+            
+            <div class="role-filters">
+                <button class="role-filter-btn active" data-role="ALL">All</button>
+                <button class="role-filter-btn" data-role="WK">WK</button>
+                <button class="role-filter-btn" data-role="BAT">BAT</button>
+                <button class="role-filter-btn" data-role="AR">AR</button>
+                <button class="role-filter-btn" data-role="BOWL">BOWL</button>
+            </div>
 
-      <div class="player-list" id="playerPoolList"></div>
-    </section>
-  </main>
+            <div class="player-list" id="playerPool">
+                </div>
+        </section>
+    </main>
 
-  <footer class="bottom-bar">
-    <button class="bottom-btn toggle-btn active" data-mode="myxi">My XI</button>
-    <button class="save-btn center-save" id="finalSaveBtn" disabled>Save Team</button>
-    <button class="bottom-btn toggle-btn" data-mode="change">Change</button>
-  </footer>
+    <footer class="bottom-bar">
+        <button class="nav-btn active" onclick="switchMode('myxi', this)">My XI</button>
+        <button class="save-btn" id="mainSaveBtn" disabled>SAVE TEAM</button>
+        <button class="nav-btn" onclick="switchMode('change', this)">Change</button>
+    </footer>
 </div>
+
+<script type="module">
+    // NOTE: Replace with your actual supabase.js import path
+    // import { supabase } from "./supabase.js";
+
+    // Dummy logic to handle UI if you aren't running Supabase locally yet
+    window.switchMode = function(mode, btn) {
+        document.querySelectorAll('.edit-mode').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(mode + '-view').classList.add('active');
+        btn.classList.add('active');
+    };
+
+    // Note: To make this code functional, ensure your edit-team.js 
+    // script updates the 'playerCount' and 'creditCount' IDs 
+    // and toggles 'mainSaveBtn.disabled' based on team size.
+</script>
+
+</body>
+</html>
