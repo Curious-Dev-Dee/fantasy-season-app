@@ -135,8 +135,6 @@ function renderPool() {
     card.className = "dream11-card";
 
     card.innerHTML = `
-      <img class="player-img" src="https://via.placeholder.com/80" />
-      <div>
         <div class="player-name">${player.name}</div>
         <div class="player-meta">
           ${player.role} • ${player.credit} cr<br/>
