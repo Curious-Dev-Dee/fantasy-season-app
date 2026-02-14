@@ -2,7 +2,6 @@ import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
-// Global State
 let state = {
     allPlayers: [],
     selectedIds: [],
@@ -14,8 +13,8 @@ let state = {
 const dom = {
     myXI: document.getElementById("myXIList"),
     pool: document.getElementById("playerPool"),
-    count: document.getElementById("playerCount"),
-    credits: document.getElementById("creditCount"),
+    countLabel: document.getElementById("playerCountLabel"),
+    creditCount: document.getElementById("creditCount"),
     progress: document.getElementById("progressFill"),
     saveBtn: document.getElementById("saveTeamBtn")
 };
@@ -24,11 +23,9 @@ async function init() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Load Data
     const { data: players } = await supabase.from("players").select("*").eq("is_active", true);
     state.allPlayers = players || [];
 
-    // Load Existing Team
     const { data: team } = await supabase.from("user_fantasy_teams")
         .select(`*, user_fantasy_team_players(player_id)`)
         .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle();
@@ -40,39 +37,46 @@ async function init() {
     }
 
     render();
-    attachGlobalListeners();
+    setupEventListeners();
 }
 
 function render() {
     const selectedPlayers = state.allPlayers.filter(p => state.selectedIds.includes(p.id));
     const totalCredits = selectedPlayers.reduce((acc, p) => acc + Number(p.credit), 0);
 
-    // Update Dashboard
-    dom.count.innerText = state.selectedIds.length;
-    dom.credits.innerText = totalCredits.toFixed(1);
-    dom.progress.style.width = `${(state.selectedIds.length / 11) * 100}%`;
+    // Update Progress & Credits
+    const count = state.selectedIds.length;
+    dom.countLabel.innerText = count;
+    dom.creditCount.innerText = totalCredits.toFixed(1);
+    dom.progress.style.width = `${(count / 11) * 100}%`;
 
-    // Render My XI List
-    dom.myXI.innerHTML = selectedPlayers.map(p => createPlayerRow(p, true)).join('');
+    // Update Role Counters
+    ["WK", "BAT", "AR", "BOWL"].forEach(role => {
+        const roleCount = selectedPlayers.filter(p => p.role === role).length;
+        const badge = document.getElementById(`count-${role}`);
+        badge.innerText = roleCount;
+        badge.style.display = roleCount > 0 ? "inline" : "none";
+    });
 
-    // Render Pool List
-    const filtered = state.allPlayers.filter(p => 
+    // Render Lists
+    dom.myXI.innerHTML = selectedPlayers.length ? 
+        selectedPlayers.map(p => createPlayerRow(p, true)).join('') : 
+        `<div style="color:var(--text-dim); text-align:center; padding:50px;">Start adding players to your XI</div>`;
+
+    const poolList = state.allPlayers.filter(p => 
         (state.filters.role === "ALL" || p.role === state.filters.role) &&
         (p.name.toLowerCase().includes(state.filters.search.toLowerCase()))
     );
-    dom.pool.innerHTML = filtered.map(p => createPlayerRow(p, false)).join('');
+    dom.pool.innerHTML = poolList.map(p => createPlayerRow(p, false)).join('');
 
-    // Validate Save Button
-    const isValid = state.selectedIds.length === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100;
+    // Save Button Logic
+    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100;
     dom.saveBtn.disabled = !isValid;
     dom.saveBtn.className = `save-btn ${isValid ? '' : 'disabled'}`;
 }
 
 function createPlayerRow(p, isMyXIMode) {
     const isSelected = state.selectedIds.includes(p.id);
-    const isC = state.captainId === p.id;
-    const isVC = state.viceCaptainId === p.id;
-
     return `
         <div class="player-card ${isSelected ? 'selected' : ''}" data-id="${p.id}">
             <div class="avatar-silhouette"></div>
@@ -82,8 +86,8 @@ function createPlayerRow(p, isMyXIMode) {
             </div>
             <div class="controls">
                 ${isMyXIMode ? `
-                    <button class="cv-btn ${isC ? 'active' : ''}" data-action="cap">C</button>
-                    <button class="cv-btn ${isVC ? 'active' : ''}" data-action="vcap">VC</button>
+                    <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" data-action="cap">C</button>
+                    <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" data-action="vcap">VC</button>
                     <button class="btn-round remove" data-action="remove">−</button>
                 ` : `
                     <button class="btn-round ${isSelected ? 'remove' : 'add'}" data-action="${isSelected ? 'remove' : 'add'}">
@@ -95,10 +99,9 @@ function createPlayerRow(p, isMyXIMode) {
     `;
 }
 
-function attachGlobalListeners() {
-    // Delegation for Player Lists
+function setupEventListeners() {
     [dom.myXI, dom.pool].forEach(list => {
-        list.addEventListener('click', e => {
+        list.onclick = (e) => {
             const btn = e.target.closest('button');
             if (!btn) return;
             const id = e.target.closest('.player-card').dataset.id;
@@ -111,18 +114,17 @@ function attachGlobalListeners() {
                 if (state.viceCaptainId === id) state.viceCaptainId = null;
             }
             if (action === 'cap') {
-                if(state.viceCaptainId === id) state.viceCaptainId = null;
-                state.captainId = id;
+                if (state.viceCaptainId === id) state.viceCaptainId = null;
+                state.captainId = (state.captainId === id) ? null : id;
             }
             if (action === 'vcap') {
-                if(state.captainId === id) state.captainId = null;
-                state.viceCaptainId = id;
+                if (state.captainId === id) state.captainId = null;
+                state.viceCaptainId = (state.viceCaptainId === id) ? null : id;
             }
             render();
-        });
+        };
     });
 
-    // View Switching
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll('.nav-item, .view-mode').forEach(el => el.classList.remove('active'));
@@ -131,7 +133,6 @@ function attachGlobalListeners() {
         };
     });
 
-    // Filters
     document.querySelectorAll('.role-tab').forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
