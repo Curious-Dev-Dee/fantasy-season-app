@@ -1,433 +1,153 @@
-/* =========================
-   RESET
-========================= */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  -webkit-tap-highlight-color: transparent;
-}
-
 body {
+  margin: 0;
   background: #0b0f14;
-  color: #e6e6e6;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  color: #fff;
+  font-family: system-ui;
 }
 
-/* =========================
-   APP CONTAINER
-========================= */
 .app {
   max-width: 420px;
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #0b0f14;
+  margin: auto;
 }
 
-/* =========================
-   HEADER
-========================= */
 .edit-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: grid;
-  grid-template-columns: 40px 1fr 120px;
-  align-items: center;
-  padding: 14px 16px;
-  background: linear-gradient(180deg, #0f1623 0%, #0b0f14 100%);
-  border-bottom: 1px solid rgba(155,225,93,0.15);
-}
-
-.icon-back {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: #111827;
-  color: #9be15d;
+  padding: 14px;
+  background: #0f1623;
   display: flex;
+  gap: 12px;
   align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  font-size: 18px;
-  box-shadow: inset 0 0 0 1px #1e2635;
 }
 
-.header-title {
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.edit-note {
-  text-align: right;
-  font-size: 11px;
-  color: #8b8b8b;
-}
-
-/* =========================
-   MODE TOGGLE
-========================= */
 .edit-toggle {
-  position: sticky;
-  top: 56px;
-  z-index: 45;
   display: flex;
   gap: 6px;
-  padding: 6px;
-  margin: 12px 16px 0;
-  background: #0f1623;
-  border-radius: 14px;
-  border: 1px solid #1e2635;
+  padding: 8px;
 }
 
 .toggle-btn {
   flex: 1;
-  padding: 10px 0;
+  padding: 10px;
   border-radius: 10px;
+  background: #111827;
+  color: #aaa;
   border: none;
-  background: transparent;
-  color: #8b8b8b;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.2s;
 }
 
 .toggle-btn.active {
   background: #1f2937;
-  color: #ffffff;
+  color: #fff;
   box-shadow: inset 0 0 0 1px #9be15d;
 }
 
-/* =========================
-   CONTENT
-========================= */
-.content {
-  padding: 16px;
-  flex: 1;
+.edit-mode {
+  display: none;
 }
 
-/* =========================
-   TEAM STATUS BLOCK
-========================= */
-.team-status {
-  position: sticky;
-  top: 110px;
-  z-index: 40;
+.edit-mode.active {
+  display: block;
+}
+
+.team-summary {
+  margin: 12px;
+  padding: 12px;
   background: #111827;
-  padding: 16px;
-  border-radius: 18px;
-  margin-bottom: 16px;
-  border: 1px solid #1e2635;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  border-radius: 12px;
 }
 
-.status-top {
+.player-progress {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 10px;
+  padding: 12px;
 }
 
-.player-count {
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.player-count span {
-  font-size: 14px;
-  color: #888;
-}
-
-.credits-left {
-  font-size: 13px;
-  color: #9be15d;
-  font-weight: 600;
-}
-
-.progress-bar {
-  margin-top: 12px;
-  height: 7px;
+.progress-track {
+  flex: 1;
+  height: 8px;
   background: #1f2937;
   border-radius: 999px;
-  overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
+  background: linear-gradient(90deg, #9be15d, #6ee7b7);
   width: 0%;
-  background: linear-gradient(90deg, #9be15d, #76c63a);
-  transition: width 0.3s ease;
 }
 
-.subs-info {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #aaa;
-}
-
-/* =========================
-   SEARCH
-========================= */
-#playerSearch {
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #1e2635;
-  background: #111827;
-  color: #fff;
-  margin-bottom: 14px;
-  font-size: 13px;
-}
-
-/* =========================
-   ROLE SELECTOR
-========================= */
-.role-filters {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-  overflow-x: auto;
-}
-
-.role-filter-btn {
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid #2a3445;
-  background: #111827;
-  color: #aaa;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: 0.2s;
-}
-
-.role-filter-btn.active {
-  background: #9be15d;
-  color: #000;
-  border: none;
-  font-weight: 600;
-}
-
-.role-filter-btn span {
-  font-weight: 600;
-}
-
-/* =========================
-   DROPDOWNS
-========================= */
-.dropdown-filters {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.dropdown {
-  position: relative;
-  flex: 1;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  padding: 9px;
-  border-radius: 14px;
-  background: #111827;
-  border: 1px solid #1e2635;
-  color: #aaa;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  right: 0;
-  background: #111827;
-  border: 1px solid #1e2635;
-  border-radius: 14px;
-  display: none;
-  z-index: 60;
-  padding: 6px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
-
-.dropdown-menu.show {
-  display: block;
-}
-
-.dropdown-menu div {
-  padding: 9px;
-  font-size: 12px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.dropdown-menu div:hover {
-  background: #1f2937;
-}
-
-.scrollable {
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-/* =========================
-   PLAYER LIST
-========================= */
 .player-list {
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
-/* =========================
-   PLAYER ROW (DREAM STYLE)
-========================= */
-.player-card {
-  display: flex;
+.dream11-card {
+  background: #fff;
+  color: #000;
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 10px;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid #1a2332;
 }
 
-.player-card.selected {
-  background: rgba(155, 225, 93, 0.05);
-}
-
-/* LEFT SIDE */
-.player-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.player-avatar {
+.player-img {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #1f2937;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: #9be15d;
+  background: #e5e7eb;
 }
 
-.player-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.player-details strong {
-  font-size: 14px;
+.player-name {
   font-weight: 600;
 }
 
 .player-meta {
   font-size: 11px;
-  color: #9ca3af;
-  margin-top: 3px;
+  color: #555;
 }
 
-/* RIGHT SIDE */
-.player-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+.played {
+  color: #2563eb;
 }
 
-.player-credit {
-  font-size: 13px;
-  font-weight: 600;
+.right {
+  text-align: right;
 }
 
-/* ADD / REMOVE BUTTON CIRCLE */
-.action-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1.5px solid #9be15d;
-  background: transparent;
-  color: #9be15d;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-btn.remove {
-  border-color: #ff6b6b;
-  color: #ff6b6b;
-}
-
-.action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* =========================
-   C / VC BUTTONS
-========================= */
-.cv-btn {
-  padding: 4px 8px;
-  border-radius: 8px;
-  border: 1px solid #555;
-  background: #1f2937;
-  color: #aaa;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.cv-btn.active {
-  background: #9be15d;
-  color: #000;
-  border-color: #9be15d;
-}
-
-/* =========================
-   SAVE BAR
-========================= */
-.save-bar {
-  position: sticky;
-  bottom: 0;
-  padding: 16px;
-  background: #0f1623;
-  border-top: 1px solid #1e2635;
-  text-align: center;
-  box-shadow: 0 -12px 30px rgba(0,0,0,0.6);
-}
-
-.save-btn {
-  width: 100%;
-  padding: 15px;
-  border-radius: 18px;
-  border: none;
-  font-size: 15px;
+.credit {
   font-weight: 700;
 }
 
-.save-bar.disabled .save-btn {
-  background: #1f2937;
+.circle-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: transparent;
+  font-size: 18px;
+}
+
+.circle-btn.add {
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.circle-btn.remove {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.save-bar {
+  padding: 14px;
+}
+
+.save-bar.disabled button {
+  background: #333;
   color: #777;
 }
 
-.save-bar.enabled .save-btn {
+.save-bar.enabled button {
   background: #9be15d;
   color: #000;
-  box-shadow: 0 0 0 1px #9be15d inset;
-}
-
-.save-hint {
-  margin-top: 8px;
-  font-size: 11px;
-  color: #8b8b8b;
 }

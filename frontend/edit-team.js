@@ -3,91 +3,69 @@ import { supabase } from "./supabase.js";
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
 /* ================= RULES ================= */
-
 const MAX_PLAYERS = 11;
 const MAX_CREDITS = 100;
 const MAX_PER_TEAM = 6;
-const MAX_SUBS = 20;
-
 const ROLE_MIN = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
 const ROLE_MAX = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
 
 /* ================= STATE ================= */
-
 let allPlayers = [];
 let selectedPlayers = [];
-
 let captainId = null;
 let viceCaptainId = null;
-
-let lastLockedPlayers = [];
-let lastTotalSubsUsed = 0;
-let isFirstLock = true;
-
-let currentTab = "myxi";
+let teamMap = {};
 let saving = false;
 
-/* ================= DOM ================= */
+let filters = {
+  search: "",
+  role: "ALL",
+  teams: [],
+  credit: null,
+  selectedMatchTeamIds: []
+};
 
-const myXIContainer = document.getElementById("myXIList");
-const poolContainer = document.getElementById("playerPoolList");
-const summary = document.querySelector(".team-summary");
+/* ================= DOM ================= */
+const myXI = document.getElementById("myXIList");
+const pool = document.getElementById("playerPoolList");
 const saveBar = document.querySelector(".save-bar");
 const saveBtn = document.querySelector(".save-btn");
+const summary = document.querySelector(".team-summary");
+
+const playerCount = document.getElementById("playerCount");
+const progressFill = document.getElementById("progressFill");
 
 const toggleButtons = document.querySelectorAll(".toggle-btn");
 const editModes = document.querySelectorAll(".edit-mode");
+const searchInput = document.getElementById("playerSearch");
 
 /* ================= INIT ================= */
-
-init();
-
 async function init() {
   const { data } = await supabase.auth.getUser();
-  const user = data?.user;
-  if (!user) return;
+  if (!data?.user) return;
 
   await loadPlayers();
-  await loadLastLockedSnapshot(user.id);
-  await loadSavedSeasonTeam(user.id);
-
-  renderEverything();
+  await loadTeams();
+  await loadSavedTeam(data.user.id);
+  rerenderAll();
 }
+init();
 
-/* ================= LOAD DATA ================= */
-
+/* ================= LOADERS ================= */
 async function loadPlayers() {
   const { data } = await supabase
     .from("players")
     .select("id, name, role, credit, real_team_id")
     .eq("is_active", true);
-
   allPlayers = data || [];
 }
 
-async function loadLastLockedSnapshot(userId) {
-  const { data } = await supabase
-    .from("user_match_teams")
-    .select("id, total_subs_used")
-    .eq("user_id", userId)
-    .order("locked_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!data) return;
-
-  isFirstLock = false;
-  lastTotalSubsUsed = data.total_subs_used || 0;
-
-  const { data: players } = await supabase
-    .from("user_match_team_players")
-    .select("player_id")
-    .eq("user_match_team_id", data.id);
-
-  lastLockedPlayers = players?.map(p => p.player_id) || [];
+async function loadTeams() {
+  const { data } = await supabase.from("real_teams").select("id, short_code");
+  data?.forEach(t => teamMap[t.id] = t.short_code);
 }
 
-async function loadSavedSeasonTeam(userId) {
+async function loadSavedTeam(userId) {
   const { data: team } = await supabase
     .from("user_fantasy_teams")
     .select("*")
@@ -105,159 +83,128 @@ async function loadSavedSeasonTeam(userId) {
     .select("player_id")
     .eq("user_fantasy_team_id", team.id);
 
-  selectedPlayers = (players || [])
+  selectedPlayers = players
     .map(p => allPlayers.find(ap => ap.id === p.player_id))
     .filter(Boolean);
 }
 
-/* ================= TAB SWITCH ================= */
-
+/* ================= UI ================= */
 toggleButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.onclick = () => {
     toggleButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
     editModes.forEach(m => m.classList.remove("active"));
-
-    const mode = btn.dataset.mode;
-    currentTab = mode;
-
-    document.querySelector(`.${mode}-mode`).classList.add("active");
-
-    renderEverything();
-  });
+    btn.classList.add("active");
+    document.querySelector(`.${btn.dataset.mode}-mode`).classList.add("active");
+  };
 });
 
-/* ================= RENDER ================= */
+searchInput.oninput = e => {
+  filters.search = e.target.value;
+  renderPool();
+};
 
-function renderEverything() {
-  renderSummary();
-
-  if (currentTab === "myxi") {
-    renderMyXI();
-  } else {
-    renderPool();
-  }
+/* ================= FILTER ================= */
+function applyFilters(players) {
+  return players.filter(p =>
+    (!filters.search || p.name.toLowerCase().includes(filters.search.toLowerCase())) &&
+    (filters.role === "ALL" || p.role === filters.role)
+  );
 }
 
-function renderMyXI() {
-  myXIContainer.innerHTML = "";
+/* ================= RENDER ================= */
+function rerenderAll() {
+  renderMyXI();
+  renderPool();
+  renderSummary();
+  updateProgress();
+}
 
-  if (selectedPlayers.length === 0) {
-    myXIContainer.innerHTML =
-      '<div style="text-align:center;color:#888;">No players selected</div>';
-    return;
-  }
-
-  selectedPlayers.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "player-card selected";
-
-    card.innerHTML = `
-      <div class="player-info">
-        <strong>${p.name}</strong>
-        <span>${p.role} · ${p.credit} cr</span>
-      </div>
-      <div style="display:flex;gap:6px;">
-        <button class="cv-btn ${captainId === p.id ? "active" : ""}">C</button>
-        <button class="cv-btn ${viceCaptainId === p.id ? "active" : ""}">VC</button>
-        <button class="action-btn remove">Remove</button>
-      </div>
-    `;
-
-    const buttons = card.querySelectorAll("button");
-
-    buttons[0].onclick = () => setCaptain(p.id);
-    buttons[1].onclick = () => setViceCaptain(p.id);
-    buttons[2].onclick = () => removePlayer(p.id);
-
-    myXIContainer.appendChild(card);
-  });
+function updateProgress() {
+  playerCount.textContent = selectedPlayers.length;
+  progressFill.style.width =
+    (selectedPlayers.length / MAX_PLAYERS) * 100 + "%";
 }
 
 function renderPool() {
-  poolContainer.innerHTML = "";
+  pool.innerHTML = "";
 
-  allPlayers.forEach(player => {
+  applyFilters(allPlayers).forEach(player => {
     const selected = selectedPlayers.some(p => p.id === player.id);
 
     const card = document.createElement("div");
-    card.className = "player-card";
+    card.className = "dream11-card";
 
     card.innerHTML = `
-      <div class="player-info">
-        <strong>${player.name}</strong>
-        <span>${player.role} · ${player.credit} cr</span>
+      <img class="player-img" src="https://via.placeholder.com/80" />
+      <div>
+        <div class="player-name">${player.name}</div>
+        <div class="player-meta">
+          ${player.role} • ${player.credit} cr<br/>
+          <span class="played">● Played last match</span>
+        </div>
       </div>
-      <button class="action-btn ${selected ? "remove" : "add"}">
-        ${selected ? "Remove" : "+"}
-      </button>
+      <div class="right">
+        <div class="credit">${player.credit}</div>
+        <button class="circle-btn ${selected ? "remove" : "add"}">
+          ${selected ? "−" : "+"}
+        </button>
+      </div>
     `;
 
     const btn = card.querySelector("button");
+    btn.onclick = selected
+      ? () => removePlayer(player.id)
+      : canAddPlayer(player)
+        ? () => addPlayer(player)
+        : null;
 
-    if (selected) {
-      btn.onclick = () => removePlayer(player.id);
-    } else {
-      btn.onclick = () => addPlayer(player);
-      btn.disabled = !canAddPlayer(player);
-    }
+    btn.disabled = !selected && !canAddPlayer(player);
+    pool.appendChild(card);
+  });
+}
 
-    poolContainer.appendChild(card);
+function renderMyXI() {
+  myXI.innerHTML = "";
+  selectedPlayers.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "player-card selected";
+    div.innerHTML = `
+      <strong>${p.name}</strong>
+      <div>
+        <button class="cv-btn ${captainId === p.id ? "active" : ""}">C</button>
+        <button class="cv-btn ${viceCaptainId === p.id ? "active" : ""}">VC</button>
+        <button class="circle-btn remove">−</button>
+      </div>
+    `;
+
+    const [c, vc, r] = div.querySelectorAll("button");
+    c.onclick = () => setCaptain(p.id);
+    vc.onclick = () => setViceCaptain(p.id);
+    r.onclick = () => removePlayer(p.id);
+    myXI.appendChild(div);
   });
 }
 
 function renderSummary() {
-  const credits = selectedPlayers.reduce(
-    (sum, p) => sum + Number(p.credit),
-    0
-  );
-
-  const subsUsed = calculateSubs();
-  const totalSubs = lastTotalSubsUsed + subsUsed;
-
+  const credits = selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
   summary.innerHTML = `
-    <div style="display:flex;justify-content:space-between;font-size:13px;">
-      <span>${selectedPlayers.length}/11</span>
-      <span>${(MAX_CREDITS - credits).toFixed(1)} cr left</span>
-    </div>
-    <div style="font-size:11px;color:#aaa;margin-top:4px;">
-      Subs: ${isFirstLock ? "Unlimited" : totalSubs + "/" + MAX_SUBS}
-    </div>
+    <div>Credits: ${credits}/100</div>
+    <div>Players: ${selectedPlayers.length}/11</div>
   `;
-
-  validateSave(credits, totalSubs);
-}
-
-/* ================= SUBS ================= */
-
-function calculateSubs() {
-  if (isFirstLock) return 0;
-
-  const currentIds = selectedPlayers.map(p => p.id);
-
-  const removed = lastLockedPlayers.filter(
-    id => !currentIds.includes(id)
-  );
-
-  return removed.length;
+  validateSave();
 }
 
 /* ================= ACTIONS ================= */
-
 function addPlayer(player) {
-  if (!canAddPlayer(player)) return;
   selectedPlayers.push(player);
-  renderEverything();
+  rerenderAll();
 }
 
 function removePlayer(id) {
   selectedPlayers = selectedPlayers.filter(p => p.id !== id);
-
   if (captainId === id) captainId = null;
   if (viceCaptainId === id) viceCaptainId = null;
-
-  renderEverything();
+  rerenderAll();
 }
 
 function setCaptain(id) {
@@ -273,40 +220,66 @@ function setViceCaptain(id) {
 }
 
 /* ================= VALIDATION ================= */
-
 function canAddPlayer(player) {
   if (selectedPlayers.length >= MAX_PLAYERS) return false;
-
-  const totalCredits = selectedPlayers.reduce(
-    (s, p) => s + Number(p.credit),
-    0
-  );
-
-  if (totalCredits + Number(player.credit) > MAX_CREDITS) return false;
-
   if (
-    selectedPlayers.filter(p => p.role === player.role).length >=
-    ROLE_MAX[player.role]
-  )
-    return false;
-
+    selectedPlayers.reduce((s, p) => s + Number(p.credit), 0) +
+    Number(player.credit) > MAX_CREDITS
+  ) return false;
   if (
-    selectedPlayers.filter(p => p.real_team_id === player.real_team_id)
-      .length >= MAX_PER_TEAM
-  )
-    return false;
-
+    selectedPlayers.filter(p => p.real_team_id === player.real_team_id).length >=
+    MAX_PER_TEAM
+  ) return false;
   return true;
 }
 
-function validateSave(credits, subs) {
+function validateSave() {
   const valid =
     selectedPlayers.length === 11 &&
     captainId &&
-    viceCaptainId &&
-    credits <= MAX_CREDITS &&
-    subs <= MAX_SUBS;
+    viceCaptainId;
 
   saveBar.classList.toggle("enabled", valid);
   saveBar.classList.toggle("disabled", !valid);
 }
+
+/* ================= SAVE ================= */
+saveBtn.onclick = async () => {
+  if (!saveBar.classList.contains("enabled") || saving) return;
+  saving = true;
+
+  const { data } = await supabase.auth.getUser();
+  const user = data?.user;
+  if (!user) return;
+
+  const credits = selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
+
+  const { data: team } = await supabase
+    .from("user_fantasy_teams")
+    .upsert({
+      user_id: user.id,
+      tournament_id: TOURNAMENT_ID,
+      captain_id: captainId,
+      vice_captain_id: viceCaptainId,
+      total_credits: credits
+    })
+    .select()
+    .single();
+
+  await supabase
+    .from("user_fantasy_team_players")
+    .delete()
+    .eq("user_fantasy_team_id", team.id);
+
+  await supabase
+    .from("user_fantasy_team_players")
+    .insert(
+      selectedPlayers.map(p => ({
+        user_fantasy_team_id: team.id,
+        player_id: p.id
+      }))
+    );
+
+  saveBtn.textContent = "Saved ✓";
+  saving = false;
+};
