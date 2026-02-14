@@ -18,7 +18,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 76px; /* space for bottom bar */
+  padding-bottom: 84px; /* space for bottom bar */
 }
 
 /* ================= HEADER ================= */
@@ -217,30 +217,33 @@ body {
   color: #020617;
 }
 
-/* ================= BOTTOM BAR (CLEAN & NATIVE) ================= */
+/* ================= BOTTOM BAR (FINAL BALANCED VERSION) ================= */
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
   max-width: 420px;
+  width: 100%;
+  padding: 10px 24px 14px; /* side breathing space */
   background: #020617;
   border-top: 1px solid #1e293b;
-  padding: 10px 14px;
+
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
+  grid-template-columns: 1fr 1.3fr 1fr; /* KEY FIX */
+  gap: 14px;
+  align-items: center;
 }
 
 /* Side buttons */
 .bottom-btn {
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 10px 0;
+  border-radius: 14px;
   background: transparent;
   border: 1px solid #1e293b;
   color: #94a3b8;
   font-size: 13px;
+  text-align: center;
 }
 
 .bottom-btn.active {
@@ -248,13 +251,13 @@ body {
   border-color: #9be15d;
 }
 
-/* Save button (hero, calm) */
+/* Save (slightly larger, NOT dominant) */
 .center-save {
+  padding: 12px 0;
+  border-radius: 16px;
   background: #9be15d;
   color: #020617;
-  font-weight: 700;
   font-size: 15px;
-  padding: 12px 0;
-  border-radius: 14px;
+  font-weight: 700;
   border: none;
 }
