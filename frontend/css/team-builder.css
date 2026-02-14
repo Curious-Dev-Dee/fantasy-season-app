@@ -18,7 +18,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 90px;
+  padding-bottom: 92px;
 }
 
 /* ================= HEADER ================= */
@@ -33,8 +33,8 @@ body {
 
 .edit-header a {
   color: #9be15d;
-  text-decoration: none;
   font-size: 18px;
+  text-decoration: none;
 }
 
 .edit-header h1 {
@@ -70,7 +70,7 @@ body {
 }
 
 /* =====================================================
-   UNIFIED PLAYER CARD (My XI + Change XI)
+   PLAYER CARD – FINAL STRUCTURE
 ===================================================== */
 .dream11-card,
 .player-card.selected {
@@ -79,40 +79,35 @@ body {
   padding: 14px;
 
   display: grid;
-  grid-template-columns: 48px 1fr auto; /* FIXED GRID */
-  gap: 14px;
+  grid-template-columns: 44px 1fr auto;
   align-items: center;
+  column-gap: 14px;
 }
 
 /* Borders */
-.dream11-card {
-  border: 1px solid #1e293b;
-}
+.dream11-card { border: 1px solid #1e293b; }
+.player-card.selected { border: 1px solid #9be15d; }
 
-.player-card.selected {
-  border: 1px solid #9be15d;
-}
-
-/* ================= AVATAR (FIXED LOOK) ================= */
+/* ================= AVATAR ================= */
 .dream11-card::before,
 .player-card.selected::before {
   content: "";
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-
-  /* FIX: neutral contrast avatar */
-  background: radial-gradient(
-    circle at 30% 30%,
-    #334155,
-    #0f172a
-  );
-
-  border: 1px solid #475569;
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.04);
+  background: radial-gradient(circle at 30% 30%, #475569, #0f172a);
+  border: 1px solid #64748b;
 }
 
-/* ================= PLAYER INFO ================= */
+/* ================= CENTER COLUMN ================= */
+.dream11-card > div:first-of-type,
+.player-card.selected > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Name */
 .player-name,
 .player-card.selected strong {
   font-size: 15px;
@@ -120,36 +115,27 @@ body {
   line-height: 1.2;
 }
 
+/* Role + credit */
 .player-meta {
   font-size: 12px;
   color: #94a3b8;
-  margin-top: 4px;
 }
 
-/* Remove last match line */
-.change-mode .played {
-  display: none;
-}
+/* Remove junk text */
+.change-mode .played { display: none; }
 
 /* ================= RIGHT ACTION COLUMN ================= */
-.dream11-card > :last-child,
-.player-card.selected > :last-child {
+.dream11-card > div:last-child,
+.player-card.selected > div:last-child {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-/* ================= CREDIT (CHANGE XI) ================= */
-.player-meta {
-  white-space: nowrap;
+  gap: 8px;
 }
 
 /* Remove duplicate credit near button */
-.change-mode .credit {
-  display: none;
-}
+.change-mode .credit { display: none; }
 
-/* ================= ACTION BUTTONS ================= */
+/* ================= BUTTONS ================= */
 .circle-btn {
   width: 30px;
   height: 30px;
@@ -245,14 +231,12 @@ body {
   align-items: center;
 }
 
-/* Side buttons */
 .bottom-btn {
   padding: 10px 0;
   border-radius: 14px;
   background: transparent;
   border: 1px solid #1e293b;
   color: #94a3b8;
-  font-size: 13px;
 }
 
 .bottom-btn.active {
@@ -260,7 +244,6 @@ body {
   border-color: #9be15d;
 }
 
-/* Save */
 .center-save {
   padding: 12px 0;
   border-radius: 16px;
