@@ -64,7 +64,11 @@ processBtn.addEventListener("click", async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
             },
-            body: JSON.stringify({ match_id: matchId, scoreboard: scoreboard })
+body: JSON.stringify({ 
+    match_id: matchId, 
+    tournament_id: TOURNAMENT_ID,
+    scoreboard: scoreboard 
+})
         });
 
         const result = await res.json();

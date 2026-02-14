@@ -62,6 +62,11 @@ async function startDashboard(userId) {
   await loadProfile(userId);
   await loadDashboard(userId);
   await loadLeaderboardPreview();
+    // ✅ AUTO REFRESH EVERY 30 SECONDS
+  setInterval(() => {
+    loadDashboard(userId);
+    loadLeaderboardPreview();
+  }, 30000); // 30,000 ms = 30 seconds
 }
 
 /* =========================
