@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Edit Team | Fantasy Pro</title>
-    <link rel="stylesheet" href="css/team-builder.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Cricket Experts · Edit Team</title>
+    <link rel="stylesheet" href="css/team-builder.css" />
 </head>
 <body>
     <div class="app">
         <header class="edit-header">
-            <a href="home.html" class="back-btn">←</a>
+            <a href="home.html" class="icon-back">←</a>
             <div class="header-info">
                 <h1>Edit Team</h1>
                 <p>Tournament Selection</p>
@@ -28,29 +28,45 @@
                 </div>
             </section>
 
-            <section id="myxi-view" class="view-mode active">
+            <section id="myxi-view" class="view-mode edit-mode active">
                 <div id="myXIList" class="player-list"></div>
             </section>
 
-            <section id="change-view" class="view-mode">
+            <section id="change-view" class="view-mode edit-mode">
                 <div class="search-filter-wrapper">
                     <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off">
+                    
                     <div class="role-tabs-container">
                         <button class="role-tab active" data-role="ALL">ALL</button>
-                        <button class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK">0</span></button>
-                        <button class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT">0</span></button>
-                        <button class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR">0</span></button>
-                        <button class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL">0</span></button>
+                        <button class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></button>
+                        <button class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></button>
+                        <button class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></button>
+                        <button class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></button>
+                    </div>
+
+                    <div class="dropdown-filters">
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
+                            <div class="dropdown-menu" id="matchMenu"></div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
+                            <div class="dropdown-menu scrollable" id="teamMenu"></div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
+                            <div class="dropdown-menu scrollable" id="creditMenu"></div>
+                        </div>
                     </div>
                 </div>
-                <div id="playerPool" class="player-list"></div>
+                <div id="playerPoolList" class="player-list"></div>
             </section>
         </main>
 
-        <footer class="nav-bar">
-            <button class="nav-item active" data-target="myxi">MY XI</button>
-            <button id="saveTeamBtn" class="save-btn disabled" disabled>SAVE TEAM</button>
-            <button class="nav-item" data-target="change">CHANGE</button>
+        <footer class="nav-bar save-bar disabled">
+            <button class="nav-item toggle-btn active" data-mode="myxi">MY XI</button>
+            <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
+            <button class="nav-item toggle-btn" data-mode="change">CHANGE</button>
         </footer>
     </div>
 
