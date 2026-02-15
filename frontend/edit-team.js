@@ -29,12 +29,12 @@ async function init() {
     const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
     state.allPlayers = pData || [];
 
-    // 2. Fetch Real Teams for Name Mapping
+    // 2. Fetch Real Teams for Name Mapping (Fixes 'undefined' in Team Filter)
     const { data: teamsData } = await supabase.from("real_teams").select("*");
     state.teams = teamsData || [];
     const teamMap = Object.fromEntries(state.teams.map(t => [t.id, t.short_code]));
 
-    // 3. Fetch Next 5 Matches with Mapped Names
+    // 3. Fetch Next 5 Matches with Mapped Names (Fixes 'undefined' in Match Filter)
     const { data: matches } = await supabase
         .from("matches")
         .select("*")
@@ -59,7 +59,7 @@ async function init() {
         .select("id").eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (lastLock) {
-        const { data: lp } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", lastLock.id);
+        const { data: lp } = await supabase.from("user_match_team_players").select("player_id").eq("user_fantasy_match_team_id", lastLock.id);
         state.lockedPlayerIds = (lp || []).map(p => p.player_id);
     }
 
@@ -120,10 +120,13 @@ function render() {
 }
 
 function initFilters() {
+    // 🛡️ Filter Logic Updated to support all teams and next 5 matches
     const uniqueTeams = [...new Set(state.allPlayers.map(p => p.team_code || p.team))].filter(Boolean).sort();
     renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (t) => t);
+    
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
+    
     renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `${m.team_home} vs ${m.team_away}`);
 }
 
@@ -219,6 +222,7 @@ function setupListeners() {
             document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
             btn.classList.add("active");
             document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
+            // Show search bar only on 'Change' view
             document.querySelector(".search-filter-wrapper").style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
@@ -233,7 +237,14 @@ function setupListeners() {
     document.getElementById("playerSearch").oninput = (e) => { state.filters.search = e.target.value; render(); };
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
-        btn.onclick = (e) => { e.stopPropagation(); document.getElementById(`${type}Menu`).classList.toggle('show'); };
+        btn.onclick = (e) => { 
+            e.stopPropagation(); 
+            // Close other menus
+            ['matchMenu', 'teamMenu', 'creditMenu'].forEach(m => {
+                if(m !== `${type}Menu`) document.getElementById(m).classList.remove('show');
+            });
+            document.getElementById(`${type}Menu`).classList.toggle('show'); 
+        };
     });
     document.addEventListener('click', () => { ['matchMenu', 'teamMenu', 'creditMenu'].forEach(id => document.getElementById(id).classList.remove('show')); });
 

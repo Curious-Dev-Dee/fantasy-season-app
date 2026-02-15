@@ -1,67 +1,26 @@
-/* Fix Dropdown Appearance */
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 1000;
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 12px;
-    padding: 10px;
-    min-width: 220px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+:root {
+    --bg-dark: #0c1117;
+    --card-bg: #161b22;
+    --accent: #9AE000;
+    --text-main: #e6edf3;
+    --text-dim: #8b949e;
+    --border: #30363d;
 }
 
-.dropdown-menu.show {
-    display: block;
+body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
 }
 
-.dropdown-menu.scrollable {
-    max-height: 280px;
-    overflow-y: auto;
-}
-
-.filter-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    cursor: pointer;
-    color: #e6edf3;
-    font-size: 14px;
-    border-radius: 8px;
-    transition: background 0.2s ease;
-    white-space: nowrap;
-}
-
-.filter-item:hover {
-    background: #1f2937;
-}
-
-.filter-item input {
-    margin-right: 12px;
-    width: 18px;
-    height: 18px;
-    accent-color: #9AE000;
-}
-
-/* Ensure Dropdowns stay above player list */
-.sticky-controls {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: #0c1117;
-    border-bottom: 1px solid #30363d;
-}
-
-/* Base App Layout fixes */
 .app {
     max-width: 420px;
     margin: 0 auto;
-    background: #0c1117;
     min-height: 100vh;
 }
 
+/* HEADER */
 .edit-header {
     display: flex;
     align-items: center;
@@ -71,6 +30,210 @@
 
 .icon-back {
     text-decoration: none;
-    color: #9AE000;
+    color: var(--accent);
     font-size: 24px;
 }
+
+.header-info h1 { margin: 0; font-size: 18px; }
+.header-info p { margin: 2px 0 0; font-size: 12px; color: var(--text-dim); }
+
+/* STICKY CONTROLS */
+.sticky-controls {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-dark);
+    padding-bottom: 10px;
+}
+
+.premium-progress {
+    padding: 0 20px;
+}
+
+.progress-line-container {
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* FILTERS */
+.search-filter-wrapper {
+    flex-direction: column;
+    padding: 10px 20px;
+    gap: 12px;
+}
+
+#playerSearch {
+    width: 100%;
+    padding: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: #fff;
+    box-sizing: border-box;
+}
+
+.role-tabs-container {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.role-tab {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.role-tab.active {
+    background: var(--accent);
+    color: #000;
+    border: none;
+}
+
+.dropdown-filters { display: flex; gap: 8px; position: relative; }
+.dropdown { position: relative; flex: 1; }
+.dropdown-toggle {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+/* DROPBOX MENU FIX */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1001;
+    background: #161b22;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    min-width: 220px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+}
+
+.dropdown-menu.show { display: block; }
+.dropdown-menu.scrollable { max-height: 280px; overflow-y: auto; }
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    cursor: pointer;
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+/* PLAYER CARDS - RESTORING PREMIUM LOOK */
+.player-list { padding: 0 20px 100px; }
+.player-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar-silhouette {
+    width: 48px;
+    height: 48px;
+    background: #21262d;
+    border-radius: 50%;
+}
+
+.player-info { flex: 1; display: flex; flex-direction: column; }
+.player-info strong { font-size: 16px; margin-bottom: 4px; }
+.player-info span { font-size: 12px; color: var(--text-dim); }
+
+.controls { display: flex; gap: 8px; align-items: center; }
+.cv-btn {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: #fff;
+    font-weight: bold;
+}
+
+.cv-btn.active { background: var(--accent); color: #000; border: none; }
+
+.action-btn-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.action-btn-circle.add { background: var(--accent); color: #000; }
+.action-btn-circle.remove { background: #ff4d4d; color: #fff; }
+
+/* FOOTER NAV */
+.nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 420px;
+    background: var(--bg-dark);
+    display: flex;
+    padding: 15px;
+    gap: 15px;
+    box-sizing: border-box;
+}
+
+.save-btn {
+    flex: 2;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.save-btn:disabled { opacity: 0.5; }
+
+.toggle-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+.toggle-btn.active { color: var(--accent); }
+
+.view-mode { display: none; }
+.view-mode.active { display: block; }
