@@ -1,6 +1,25 @@
 import { supabase } from "./supabase.js";
 
 /* =========================
+   AUTO-REDIRECT CHECK
+========================= */
+async function checkExistingSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // If a session exists, skip the login page and go home!
+    if (session) {
+        window.location.href = "home.html";
+    }
+}
+
+// Run the check immediately
+checkExistingSession();
+
+/* =========================
+   DOM REFERENCES
+========================= */
+// ... rest of your existing code ...
+/* =========================
    DOM REFERENCES
 ========================= */
 
