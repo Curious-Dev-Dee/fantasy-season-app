@@ -1,68 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Edit Team · Cricket Experts</title>
-    <link rel="stylesheet" href="css/team-builder.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cricket Experts · View Team</title>
+  <link rel="stylesheet" href="css/team-view.css" />
 </head>
 <body>
-    <div class="app">
-        <header class="edit-header" style="display:flex; align-items:center; padding:20px; gap:15px;">
-            <a href="home.html" style="color:var(--accent); text-decoration:none; font-size:24px;">←</a>
-            <div class="header-info">
-                <h1 style="margin:0; font-size:18px;">Edit Team</h1>
-                <p style="margin:2px 0 0; font-size:12px; color:#8b949e;">Build Your Elite Squad</p>
-            </div>
-        </header>
 
-        <div class="sticky-controls">
-            <section class="premium-progress">
-                <div class="progress-line-container"><div id="progressFill" class="progress-fill"></div></div>
-                <div class="progress-labels">
-                    <div><span id="playerCountLabel">0</span> <small>/ 11</small></div>
-                    <span>Credits: <strong id="creditCount">0</strong></span>
-                    <span>Subs: <strong id="subsRemainingLabel">80</strong></span>
-                </div>
-            </section>
-
-            <section class="search-filter-wrapper" style="display: none;">
-                <input type="search" id="playerSearch" placeholder="Search player name...">
-                <div class="role-tabs-container" style="display:flex; gap:6px; overflow-x:auto; padding:5px 0;">
-                    <button class="role-tab active" data-role="ALL">ALL</button>
-                    <button class="role-tab" data-role="WK">WK <span id="count-WK"></span></button>
-                    <button class="role-tab" data-role="BAT">BAT <span id="count-BAT"></span></button>
-                    <button class="role-tab" data-role="AR">AR <span id="count-AR"></span></button>
-                    <button class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL"></span></button>
-                </div>
-                <div class="dropdown-filters">
-                    <div class="dropdown">
-                        <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
-                        <div class="dropdown-menu" id="matchMenu"></div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
-                        <div class="dropdown-menu" id="teamMenu"></div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
-                        <div class="dropdown-menu" id="creditMenu"></div>
-                    </div>
-                </div>
-            </section>
+<div class="team-view-app">
+  <header class="premium-header">
+    <button class="back-circle" onclick="window.location.href='home.html'">←</button>
+    <div class="header-center">
+        <h1 class="main-title">View Team</h1>
+        <div id="countdownContainer" class="countdown-text hidden">
+            Starts in: <span id="timer">00h 00m 00s</span>
         </div>
-
-        <main class="content">
-            <section id="myxi-view" class="view-mode active"><div id="myXIList" class="player-list"></div></section>
-            <section id="change-view" class="view-mode"><div id="playerPoolList" class="player-list"></div></section>
-        </main>
-
-        <footer class="nav-bar">
-            <button class="toggle-btn active" data-mode="myxi">MY XI</button>
-            <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
-            <button class="toggle-btn" data-mode="change">CHANGE</button>
-        </footer>
     </div>
-    <script type="module" src="edit-team.js"></script>
+    <div style="width: 40px;"></div> </header>
+
+  <div class="xi-toggle">
+    <button class="xi-tab active" id="tabUpcoming" data-tab="current">Loading...</button>
+    <button class="xi-tab" id="tabLocked" data-tab="locked">Loading...</button>
+  </div>
+
+  <main class="team-field" id="teamContainer">
+    </main>
+
+  <footer class="team-status" id="teamStatus">
+    Ready
+  </footer>
+</div>
+
+<script type="module" src="team-view.js"></script>
 </body>
 </html>
