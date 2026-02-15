@@ -15,13 +15,33 @@ const statusDiv = document.getElementById("status");
  * 1. INITIALIZATION & AUTH
  */
 async function init() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || user.email !== ADMIN_EMAIL) {
-        alert("Access Denied: Admin only.");
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    // 1. Check if user is even logged in
+    if (error || !user) {
+        console.error("No active session found:", error);
+        alert("Please log in first.");
+        window.location.href = "login.html"; // Adjust to your login page name
+        return;
+    }
+
+    console.log("Logged in as:", user.email);
+    console.log("Required Admin:", ADMIN_EMAIL);
+
+    // 2. Case-insensitive comparison with trimming
+    const loggedInEmail = user.email.trim().toLowerCase();
+    const authorizedEmail = ADMIN_EMAIL.trim().toLowerCase();
+
+    if (loggedInEmail !== authorizedEmail) {
+        console.error("Access Denied: Email mismatch.");
+        alert(`Access Denied: ${user.email} is not authorized.`);
         window.location.href = "home.html";
         return;
     }
+
+    console.log("✅ Admin verified. Loading matches...");
     loadMatches();
+
 }
 
 async function loadMatches() {
