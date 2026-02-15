@@ -7,6 +7,56 @@
 
   <link rel="stylesheet" href="css/home.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
+  <style>
+    /* Specific styles for the More page menu */
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .menu-item:hover {
+      background: rgba(154, 224, 0, 0.1);
+      border-color: #9AE000;
+      transform: translateX(5px);
+    }
+
+    .menu-item .icon-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-item .label {
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    .menu-item .arrow {
+      color: #9ca3af;
+      font-size: 18px;
+    }
+
+    .logout-btn {
+      margin-top: 20px;
+      color: #ff4d4d;
+      border-color: rgba(255, 77, 77, 0.2);
+    }
+  </style>
 </head>
 
 <body>
@@ -18,28 +68,57 @@
   </header>
 
   <section class="card">
-    <h3>Settings & Info</h3>
-    <p style="color:#9ca3af; font-size:14px;">
-      Additional features and settings will appear here.
-    </p>
+    <h3>Game Features</h3>
+    <div class="menu-list">
+      <a href="stats.html" class="menu-item">
+        <div class="icon-box">
+          <span>📊</span>
+          <span class="label">Player Stats & History</span>
+        </div>
+        <span class="arrow">›</span>
+      </a>
+
+      <a href="#" class="menu-item" style="opacity: 0.5; pointer-events: none;">
+        <div class="icon-box">
+          <span>🏆</span>
+          <span class="label">Tournament Rules (Soon)</span>
+        </div>
+        <span class="arrow">›</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Account</h3>
+    <div class="menu-list">
+      <a href="#" id="logoutBtn" class="menu-item logout-btn">
+        <div class="icon-box">
+          <span>🚪</span>
+          <span class="label">Sign Out</span>
+        </div>
+      </a>
+    </div>
   </section>
 
 </div>
 
 <nav class="bottom-nav">
-  <a href="home.html">
-    Home
-  </a>
-  <a href="fixtures.html">
-    Fixtures
-  </a>
-  <a href="prediction.html">
-    Prediction
-  </a>
-  <a href="more.html" class="active">
-    More
-  </a>
+  <a href="home.html">Home</a>
+  <a href="fixtures.html">Fixtures</a>
+  <a href="prediction.html">Prediction</a>
+  <a href="more.html" class="active">More</a>
 </nav>
+
+<script type="module">
+  import { supabase } from "./supabase.js";
+  
+  // Simple Logout Logic
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signOut();
+    if (!error) window.location.href = "login.html";
+  });
+</script>
 
 </body>
 </html>
