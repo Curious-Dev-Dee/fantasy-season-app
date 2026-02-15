@@ -26,8 +26,8 @@ async function init() {
 }
 
 async function setupMatchTabs() {
-    const { data: teams } = await supabase.from('real_teams').select('id, short_code');
-    const tMap = Object.fromEntries(teams.map(t => [t.id, t.short_code]));
+    const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
+    const tMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
     const { data: upcoming } = await supabase.from("matches")
         .select("*").eq("tournament_id", tournamentId)
@@ -84,7 +84,7 @@ async function loadCurrentXI() {
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     renderTeam(players, userTeam.captain_id, userTeam.vice_captain_id, null);
-    teamStatus.textContent = "Current Editable XI";
+    teamStatus.textContent = "Next Match Strategy";
 }
 
 async function loadLastLockedXI() {
@@ -103,7 +103,7 @@ async function loadLastLockedXI() {
     const statsMap = Object.fromEntries(stats.map(s => [s.player_id, s.fantasy_points]));
 
     renderTeam(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap);
-    teamStatus.textContent = `Locked Scorecard | Subs: ${snapshot.subs_used_for_match}`;
+    teamStatus.textContent = `Points Summary | Subs: ${snapshot.subs_used_for_match}`;
 }
 
 function renderTeam(players, captainId, viceCaptainId, statsMap) {
@@ -134,7 +134,7 @@ function renderTeam(players, captainId, viceCaptainId, statsMap) {
             circle.innerHTML = `
                 ${p.id === captainId ? '<div class="badge captain-badge">C</div>' : ''}
                 ${p.id === viceCaptainId ? '<div class="badge vice-badge">VC</div>' : ''}
-                <div class="avatar silhouette"></div>
+                <div class="avatar"></div>
                 <div class="player-name">${p.name}</div>
                 ${displayPts}
             `;

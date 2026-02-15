@@ -9,19 +9,19 @@
 <body>
 
 <div class="team-view-app">
-  <header class="team-view-header">
-    <button class="back-btn" onclick="window.location.href='home.html'">←</button>
-    <h1 class="team-title">View Team</h1>
-    <span></span>
-  </header>
+  <header class="premium-header">
+    <button class="back-circle" onclick="window.location.href='home.html'">←</button>
+    <div class="header-center">
+        <h1 class="main-title">View Team</h1>
+        <div id="countdownContainer" class="countdown-text hidden">
+            Starts in: <span id="timer">00h 00m 00s</span>
+        </div>
+    </div>
+    <div style="width: 40px;"></div> </header>
 
   <div class="xi-toggle">
-    <button class="xi-tab active" id="tabUpcoming" data-tab="current">Upcoming 🔓</button>
-    <button class="xi-tab" id="tabLocked" data-tab="locked">Last Locked 🔒</button>
-  </div>
-
-  <div id="countdownContainer" class="countdown-bar hidden">
-      Starts in: <span id="timer">00h 00m 00s</span>
+    <button class="xi-tab active" id="tabUpcoming" data-tab="current">Loading...</button>
+    <button class="xi-tab" id="tabLocked" data-tab="locked">Loading...</button>
   </div>
 
   <main class="team-field" id="teamContainer">
