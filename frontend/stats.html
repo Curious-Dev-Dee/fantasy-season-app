@@ -3,28 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Stats - Fantasy Cricket</title>
+    <title>Player Analytics - Cricket Experts</title>
     <link rel="stylesheet" href="css/stats.css">
+    <link rel="stylesheet" href="css/bottom-nav.css">
 </head>
-<body>
-    <div class="stats-container">
-        <header>
-            <button onclick="window.location.href='home.html'" class="back-btn">← Dashboard</button>
-            <h1>Player Statistics</h1>
+<body class="page-with-nav">
+
+    <div class="stats-wrapper">
+        <header class="premium-header">
+            <button onclick="window.location.href='more.html'" class="icon-btn">←</button>
+            <div class="header-text">
+                <h1>Player Analytics</h1>
+                <p>Live Performance Tracking</p>
+            </div>
         </header>
 
-        <div class="filters">
-            <input type="text" id="playerSearch" placeholder="Search player name...">
-            <select id="teamFilter">
-                <option value="">All Teams</option>
+        <section class="search-section">
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="playerSearch" placeholder="Search elite players...">
+            </div>
+            
+            <div class="filter-row">
+                <select id="teamFilter" class="premium-select">
+                    <option value="">All Teams</option>
                 </select>
-        </div>
+                <select id="matchFilter" class="premium-select">
+                    <option value="">All Matches</option>
+                </select>
+            </div>
+        </section>
 
-        <div id="loadingOverlay" class="loader">Loading stats...</div>
+        <div id="loadingOverlay" class="premium-loader">
+            <div class="spinner"></div>
+            <span>Analyzing stats...</span>
+        </div>
         
-        <div id="statsContainer">
+        <div id="statsContainer" class="stats-grid">
             </div>
     </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html">Home</a>
+        <a href="fixtures.html">Fixtures</a>
+        <a href="prediction.html">Prediction</a>
+        <a href="more.html" class="active">More</a>
+    </nav>
 
     <script type="module" src="stats.js"></script>
 </body>
