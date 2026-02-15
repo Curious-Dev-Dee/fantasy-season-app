@@ -1,49 +1,72 @@
-// CONFIGURATION
-const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-const SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"; 
-const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
+import { supabase } from "./supabase.js";
 
+const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
+const ADMIN_EMAIL = "your-email@gmail.com"; // 👈 PUT YOUR EMAIL HERE
+
+// DOM Elements
 const matchSelect = document.getElementById("matchSelect");
-const processBtn = document.getElementById("processBtn");
 const scoreboardInput = document.getElementById("scoreboardInput");
+const processBtn = document.getElementById("processBtn");
 const statusDiv = document.getElementById("status");
 
-/**
- * Loads matches and maps team names for the dropdown
- */
+// Report Elements
+const reportContainer = document.getElementById("reportContainer");
+const reportStats = document.getElementById("reportStats");
+const missingPlayersWrapper = document.getElementById("missingPlayersWrapper");
+const missingPlayersList = document.getElementById("missingPlayersList");
+const successWrapper = document.getElementById("successWrapper");
+const finalConfirmBtn = document.getElementById("finalConfirmBtn");
+
+/* =========================================
+   1. AUTH & INITIALIZATION
+   ========================================= */
+async function checkAdminAccess() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || user.email !== ADMIN_EMAIL) {
+        alert("Access Denied: Restricted to the League Commissioner.");
+        window.location.href = "home.html";
+        return false;
+    }
+    return true;
+}
+
 async function loadMatches() {
     try {
         updateStatus("Fetching matches...", "loading");
 
-        // 1. Fetch Matches
-        const matchRes = await fetch(`${SUPABASE_URL}/rest/v1/matches?tournament_id=eq.${TOURNAMENT_ID}&select=*&order=match_number.asc`, {
-            headers: { 'apikey': SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SERVICE_ROLE_KEY}` }
-        });
-        if (!matchRes.ok) throw new Error("Failed to load matches");
-        const matches = await matchRes.json();
+        const { data: matches, error: mError } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('tournament_id', TOURNAMENT_ID)
+            .order('match_number', { ascending: true });
 
-        // 2. Fetch Teams (to show short codes like 'IND' instead of UUIDs)
-        const teamRes = await fetch(`${SUPABASE_URL}/rest/v1/real_teams?tournament_id=eq.${TOURNAMENT_ID}&select=id,short_code`, {
-            headers: { 'apikey': SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SERVICE_ROLE_KEY}` }
-        });
-        const teams = await teamRes.json();
+        if (mError) throw mError;
+
+        const { data: teams, error: tError } = await supabase
+            .from('real_teams')
+            .select('id, short_code');
+
+        if (tError) throw tError;
+
         const teamMap = Object.fromEntries(teams.map(t => [t.id, t.short_code]));
 
-        // 3. Populate Select
         matchSelect.innerHTML = matches.length 
-            ? matches.map(m => `<option value="${m.id}">Match ${m.match_number}: ${teamMap[m.team_a_id] || 'TBA'} vs ${teamMap[m.team_b_id] || 'TBA'} (${m.venue})</option>`).join('')
+            ? matches.map(m => `
+                <option value="${m.id}">
+                    Match ${m.match_number}: ${teamMap[m.team_a_id] || 'TBA'} vs ${teamMap[m.team_b_id] || 'TBA'} (${m.venue})
+                </option>`).join('')
             : '<option value="">No matches found</option>';
 
-        updateStatus("", ""); // Clear loading status
+        updateStatus("", "");
     } catch (err) {
         console.error(err);
-        updateStatus("Connection Error: Check console for details.", "error");
+        updateStatus("Connection Error: Check console.", "error");
     }
 }
 
-/**
- * Sends data to Supabase Edge Function
- */
+/* =========================================
+   2. STAGE 1: THE TYPO HUNTER (ANALYZE)
+   ========================================= */
 processBtn.addEventListener("click", async () => {
     const matchId = matchSelect.value;
     const jsonStr = scoreboardInput.value.trim();
@@ -53,38 +76,87 @@ processBtn.addEventListener("click", async () => {
     }
 
     try {
-        updateStatus("Processing match data... Please wait.", "loading");
-        processBtn.disabled = true;
-
         const scoreboard = JSON.parse(jsonStr);
+        const scoreboardNames = scoreboard.map(p => p.player_name.trim());
 
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/process_match_points`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
-            },
-body: JSON.stringify({ 
-    match_id: matchId, 
-    tournament_id: TOURNAMENT_ID,
-    scoreboard: scoreboard 
-})
-        });
+        // A. Fetch current match teams
+        const { data: match } = await supabase
+            .from('matches')
+            .select('team_a_id, team_b_id')
+            .eq('id', matchId)
+            .single();
 
-        const result = await res.json();
+        // B. Fetch all valid players for these two teams
+        const { data: dbPlayers } = await supabase
+            .from('players')
+            .select('name')
+            .in('team_id', [match.team_a_id, match.team_b_id]);
 
-        if (res.ok) {
-            updateStatus("✅ Success! Player stats and user points updated.", "success");
-            scoreboardInput.value = ""; 
-        } else {
-            throw new Error(result.error || "Processing failed");
-        }
+        const dbNames = dbPlayers.map(p => p.name.trim());
+
+        // C. Cross-Reference
+        const missing = scoreboardNames.filter(name => !dbNames.includes(name));
+
+        // D. Show Report
+        showReport(scoreboardNames.length, missing, scoreboard);
+
     } catch (err) {
-        updateStatus("Error: " + err.message, "error");
-    } finally {
-        processBtn.disabled = false;
+        updateStatus("Invalid JSON: Please check your formatting.", "error");
     }
 });
+
+function showReport(total, missing, scoreboard) {
+    reportContainer.style.display = "block";
+    
+    reportStats.innerHTML = `
+        <span>Matched: <strong>${total - missing.length}</strong></span>
+        <span>Missing: <strong style="color: red">${missing.length}</strong></span>
+    `;
+
+    if (missing.length > 0) {
+        missingPlayersWrapper.style.display = "block";
+        successWrapper.style.display = "none";
+        finalConfirmBtn.disabled = true; // Block processing
+        missingPlayersList.innerHTML = missing.map(name => `<li>${name}</li>`).join('');
+    } else {
+        missingPlayersWrapper.style.display = "none";
+        successWrapper.style.display = "block";
+        finalConfirmBtn.disabled = false;
+        
+        // Prepare final execution
+        finalConfirmBtn.onclick = () => executePointsProcess(scoreboard);
+    }
+}
+
+/* =========================================
+   3. STAGE 2: EXECUTE (INVOKE EDGE FUNCTION)
+   ========================================= */
+async function executePointsProcess(scoreboard) {
+    const matchId = matchSelect.value;
+
+    try {
+        updateStatus("🚀 Processing points & updating leaderboard...", "loading");
+        finalConfirmBtn.disabled = true;
+
+        const { data, error } = await supabase.functions.invoke('process_match_points', {
+            body: { 
+                match_id: matchId, 
+                tournament_id: TOURNAMENT_ID,
+                scoreboard: scoreboard 
+            }
+        });
+
+        if (error) throw error;
+
+        updateStatus("✅ Success! Match results finalized and rankings updated.", "success");
+        reportContainer.style.display = "none";
+        scoreboardInput.value = "";
+        
+    } catch (err) {
+        updateStatus("Error: " + (err.message || "Execution failed"), "error");
+        finalConfirmBtn.disabled = false;
+    }
+}
 
 function updateStatus(msg, type) {
     statusDiv.textContent = msg;
@@ -92,5 +164,8 @@ function updateStatus(msg, type) {
     statusDiv.style.display = msg ? "block" : "none";
 }
 
-// Initial Load
-loadMatches();
+// Start
+(async () => {
+    const isAdmin = await checkAdminAccess();
+    if (isAdmin) loadMatches();
+})();
