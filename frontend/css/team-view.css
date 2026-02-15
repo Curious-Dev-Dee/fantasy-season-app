@@ -1,34 +1,164 @@
-/* Silhouette Avatar Integration */
-.player-circle .avatar.silhouette {
-  background: #0f2f22 url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png') no-repeat center;
-  background-size: 80%;
-  opacity: 0.7;
+:root {
+    --accent: #9AE000;
+    --pitch-center: #1b5e20;
+    --pitch-edge: #061f17;
 }
 
-/* Countdown Bar */
+body, html {
+    margin: 0;
+    padding: 0;
+    background: var(--pitch-edge);
+    font-family: -apple-system, sans-serif;
+}
+
+.team-view-app {
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, var(--pitch-center) 0%, #0b3d2e 60%, var(--pitch-edge) 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER & TABS */
+.team-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.back-btn {
+    background: rgba(0,0,0,0.3);
+    border: none;
+    color: var(--accent);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.xi-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.xi-tab {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: #8b949e;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.xi-tab.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+    border: none;
+}
+
+/* FIELD LAYOUT */
+.role-section {
+    margin-bottom: 25px;
+}
+
+.role-title {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.player-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* PLAYER CIRCLE & SILHOUETTE */
+.player-circle {
+    width: 85px;
+    text-align: center;
+    position: relative;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 6px;
+    background-color: #0f2f22;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar.silhouette {
+    background-image: url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png');
+    background-size: 75%;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.8;
+}
+
+.player-name {
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
+}
+
+/* POINTS DISPLAY */
+.player-pts {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+/* BADGES (C/VC) */
+.badge {
+    position: absolute;
+    top: -4px;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    z-index: 10;
+}
+
+.captain-badge { background: var(--accent); }
+.vice-badge { background: #7cc4ff; }
+
+/* COUNTDOWN */
 .countdown-bar {
     background: rgba(154, 224, 0, 0.1);
-    color: #9be15d;
+    color: var(--accent);
     text-align: center;
-    padding: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    margin: 0 16px 15px;
-    border-radius: 12px;
-    border: 1px solid rgba(154, 224, 0, 0.2);
+    padding: 8px;
+    font-size: 12px;
+    margin: 0 15px 15px;
+    border-radius: 10px;
 }
 
 .hidden { display: none; }
 
-/* Multiplied Points Text */
-.player-pts {
-    font-size: 11px;
-    color: #f3c969;
-    font-weight: 800;
-    margin-top: 4px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-}
-
-.badge {
-    z-index: 5;
+.team-status {
+    padding: 12px;
+    background: rgba(0,0,0,0.5);
+    text-align: center;
+    font-size: 12px;
+    color: #8b949e;
 }

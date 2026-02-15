@@ -22,14 +22,13 @@ async function init() {
     tournamentId = activeTournament.id;
 
     await setupMatchTabs();
-    loadCurrentXI(); // Default view
+    loadCurrentXI(); 
 }
 
 async function setupMatchTabs() {
-    const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
-    const tMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
+    const { data: teams } = await supabase.from('real_teams').select('id, short_code');
+    const tMap = Object.fromEntries(teams.map(t => [t.id, t.short_code]));
 
-    // 1. Upcoming Match Logic
     const { data: upcoming } = await supabase.from("matches")
         .select("*").eq("tournament_id", tournamentId)
         .gt("start_time", new Date().toISOString())
@@ -40,7 +39,6 @@ async function setupMatchTabs() {
         tabUpcoming.dataset.startTime = upcoming.start_time;
     }
 
-    // 2. Last Locked Match Logic
     const { data: lastLocked } = await supabase.from("user_match_teams")
         .select("match_id").eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
@@ -80,14 +78,13 @@ async function loadCurrentXI() {
     const { data: userTeam } = await supabase.from("user_fantasy_teams").select("*")
         .eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle();
 
-    if (!userTeam) { teamStatus.textContent = "No team created yet."; return; }
+    if (!userTeam) return;
 
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
-    const playerIds = teamPlayers.map(p => p.player_id);
-    const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
+    const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     renderTeam(players, userTeam.captain_id, userTeam.vice_captain_id, null);
-    teamStatus.textContent = "Editing for next match";
+    teamStatus.textContent = "Current Editable XI";
 }
 
 async function loadLastLockedXI() {
@@ -97,17 +94,16 @@ async function loadLastLockedXI() {
     const { data: snapshot } = await supabase.from("user_match_teams").select("*")
         .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
-    if (!snapshot) { teamStatus.textContent = "No match history found."; return; }
+    if (!snapshot) return;
 
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
-    const playerIds = teamPlayers.map(p => p.player_id);
-    const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
+    const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     const { data: stats } = await supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id);
     const statsMap = Object.fromEntries(stats.map(s => [s.player_id, s.fantasy_points]));
 
     renderTeam(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap);
-    teamStatus.textContent = `Match Subs: ${snapshot.subs_used_for_match} | Total: ${snapshot.total_subs_used}`;
+    teamStatus.textContent = `Locked Scorecard | Subs: ${snapshot.subs_used_for_match}`;
 }
 
 function renderTeam(players, captainId, viceCaptainId, statsMap) {
