@@ -1,0 +1,148 @@
+:root {
+    --bg-dark: #0c1117;
+    --card-bg: #161b22;
+    --accent: #9AE000;
+    --text-main: #e6edf3;
+    --text-dim: #8b949e;
+    --border: #30363d;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.stats-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#playerSearch {
+    flex: 2;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: white;
+}
+
+#teamFilter {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: white;
+}
+
+.player-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.player-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.team-tag {
+    background: #238636;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.player-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.expand-icon {
+    font-size: 0.8rem;
+    margin-left: 10px;
+    transition: transform 0.2s;
+}
+
+.player-card.active .expand-icon {
+    transform: rotate(180deg);
+}
+
+.match-history {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 15px;
+    background: #0d1117;
+}
+
+.player-card.active .match-history {
+    display: block;
+}
+
+.history-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.history-row:last-child {
+    border-bottom: none;
+}
+
+.match-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.match-pts {
+    color: var(--accent);
+}
+
+.breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.breakdown span strong {
+    color: var(--text-main);
+}
+
+.loader {
+    text-align: center;
+    padding: 20px;
+    color: var(--accent);
+}

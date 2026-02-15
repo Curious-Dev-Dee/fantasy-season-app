@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Stats - Fantasy Cricket</title>
+    <link rel="stylesheet" href="css/stats.css">
+</head>
+<body>
+    <div class="stats-container">
+        <header>
+            <button onclick="window.location.href='home.html'" class="back-btn">← Dashboard</button>
+            <h1>Player Statistics</h1>
+        </header>
+
+        <div class="filters">
+            <input type="text" id="playerSearch" placeholder="Search player name...">
+            <select id="teamFilter">
+                <option value="">All Teams</option>
+                </select>
+        </div>
+
+        <div id="loadingOverlay" class="loader">Loading stats...</div>
+        
+        <div id="statsContainer">
+            </div>
+    </div>
+
+    <script type="module" src="stats.js"></script>
+</body>
+</html>
