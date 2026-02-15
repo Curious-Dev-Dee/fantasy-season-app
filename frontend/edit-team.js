@@ -56,7 +56,12 @@ async function init() {
     
     state.matches = matches || [];
 
+    // 4. Initial Setup
     initFilters();
+    
+    // HIDE FILTERS INITIALLY (Since My XI is default)
+    document.querySelector(".search-filter-wrapper").style.display = 'none';
+    
     render();
     setupListeners();
 }
@@ -120,7 +125,6 @@ window.toggleFilter = (key, value, checkbox) => {
 
 // --- RENDER LOGIC ---
 function render() {
-    // 1. Stats
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
@@ -134,11 +138,11 @@ function render() {
         if(el) el.innerText = rCount > 0 ? rCount : "";
     });
 
-    // 2. Render Lists (Apply filters to both)
-    renderList("myXIList", state.selectedPlayers, true);
-    renderList("playerPoolList", state.allPlayers, false);
+    // Render Lists
+    renderList("myXIList", state.selectedPlayers, true);  // True = My XI (No filters)
+    renderList("playerPoolList", state.allPlayers, false); // False = Pool (Apply filters)
 
-    // 3. Save Button
+    // Save Button
     const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100;
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
@@ -148,26 +152,25 @@ function render() {
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     
-    // Filter Logic
-    const filtered = sourceList.filter(p => {
-        // Text
-        if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
-        // Role
-        if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
-        // Team
-        if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.team_code || p.team)) return false;
-        // Credit
-        if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
-        // Match (Advanced)
-        if (state.filters.matches.length > 0) {
-            const playerTeam = p.team_code || p.team;
-            const inMatch = state.matches.some(m => 
-                state.filters.matches.includes(m.id) && (m.team_home === playerTeam || m.team_away === playerTeam)
-            );
-            if (!inMatch) return false;
-        }
-        return true;
-    });
+    let filtered = sourceList;
+
+    // ONLY APPLY FILTERS TO THE POOL (NOT MY XI)
+    if (!isMyXi) {
+        filtered = sourceList.filter(p => {
+            if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
+            if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
+            if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.team_code || p.team)) return false;
+            if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
+            if (state.filters.matches.length > 0) {
+                const playerTeam = p.team_code || p.team;
+                const inMatch = state.matches.some(m => 
+                    state.filters.matches.includes(m.id) && (m.team_home === playerTeam || m.team_away === playerTeam)
+                );
+                if (!inMatch) return false;
+            }
+            return true;
+        });
+    }
 
     if (filtered.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:30px; color:#555;">No players found</div>`;
@@ -177,12 +180,8 @@ function renderList(containerId, sourceList, isMyXi) {
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         
-        // If we are in "Player Pool", and player is selected, show 'Remove'. 
-        // If we are in "My XI", always show Remove/C/VC controls.
-        
         let controlsHtml = '';
         if (isMyXi) {
-            // My XI Controls: C, VC, Remove
             controlsHtml = `
                 <div class="controls">
                     <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
@@ -191,7 +190,6 @@ function renderList(containerId, sourceList, isMyXi) {
                 </div>
             `;
         } else {
-            // Pool Controls: Add/Remove Button
             const actionClass = isSelected ? 'remove' : 'add';
             const actionSymbol = isSelected ? '−' : '+';
             controlsHtml = `<button class="action-btn-circle ${actionClass}" onclick="togglePlayer('${p.id}')">${actionSymbol}</button>`;
@@ -233,16 +231,24 @@ window.setRole = (id, role) => {
 };
 
 function setupListeners() {
-    // Tab Switching
+    // TAB SWITCHING (Controls Filter Visibility)
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
             btn.classList.add("active");
             document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
+
+            // TOGGLE FILTERS
+            const filterWrapper = document.querySelector(".search-filter-wrapper");
+            if (btn.dataset.mode === 'myxi') {
+                filterWrapper.style.display = 'none';
+            } else {
+                filterWrapper.style.display = 'flex';
+            }
         };
     });
 
-    // Role Filtering
+    // Role Tabs
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -271,7 +277,6 @@ function setupListeners() {
         };
     });
 
-    // Close Dropdowns
     document.addEventListener('click', () => {
         dropdowns.forEach(type => document.getElementById(`${type}Menu`).classList.remove('show'));
     });
