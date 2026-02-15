@@ -5,20 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Points Processing Portal</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; padding: 40px; color: #1c1e21; }
+        :root { --primary: #1d4ed8; --success: #166534; --danger: #dc2626; --bg: #f0f2f5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 40px; color: #1c1e21; }
         .card { max-width: 700px; margin: auto; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; color: #1d4ed8; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
+        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
         label { display: block; margin: 20px 0 8px; font-weight: 600; font-size: 14px; }
-        select, textarea { width: 100%; padding: 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 16px; transition: border-color 0.2s; }
-        select:focus, textarea:focus { outline: none; border-color: #1d4ed8; }
-        textarea { height: 180px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 13px; resize: vertical; }
-        button { width: 100%; background: #1d4ed8; color: white; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 24px; transition: background 0.2s; }
-        button:hover { background: #1e40af; }
-        button:disabled { background: #94a3b8; cursor: not-allowed; }
-        #status { margin-top: 20px; padding: 12px; border-radius: 6px; display: none; font-size: 14px; text-align: center; }
-        .error { display: block !important; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-        .success { display: block !important; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .loading { display: block !important; background: #f1f5f9; color: #475569; }
+        select, textarea { width: 100%; padding: 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 16px; }
+        textarea { height: 180px; font-family: monospace; font-size: 13px; resize: vertical; }
+        
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 24px; }
+        .confirm-btn { background: #10b981; margin-top: 10px; display: none; }
+        
+        /* Typo Hunter Styling */
+        .report-box { margin-top: 25px; padding: 20px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: none; }
+        .report-stats { display: flex; gap: 20px; margin-bottom: 15px; font-size: 14px; }
+        .warning-list { background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .warning-list h4 { color: var(--danger); margin: 0 0 10px 0; }
+        .warning-list ul { margin: 0; padding-left: 20px; font-size: 13px; color: #991b1b; }
+        
+        #status { margin-top: 20px; padding: 12px; border-radius: 6px; display: none; text-align: center; }
+        .error { display: block; background: #fee2e2; color: #dc2626; }
+        .success { display: block; background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
@@ -26,18 +33,35 @@
 <div class="card">
     <h2>🏏 Match Points Processor</h2>
     
-    <label for="matchSelect">Select Match</label>
-    <select id="matchSelect">
-        <option value="">Connecting to database...</option>
-    </select>
+    <label>1. Select Match</label>
+    <select id="matchSelect"><option value="">Fetching...</option></select>
 
-    <label for="scoreboardInput">Scorecard JSON</label>
-    <textarea id="scoreboardInput" placeholder='Paste your scoreboard JSON data here...'></textarea>
+    <label>2. Scorecard JSON</label>
+    <textarea id="scoreboardInput" placeholder="Paste JSON here..."></textarea>
 
-    <button id="processBtn">Process & Update Leaderboard</button>
+    <button id="processBtn">Analyze & Check for Typos</button>
+
+    <div id="reportContainer" class="report-box">
+        <h3>Match Integrity Report</h3>
+        <div id="reportStats" class="report-stats"></div>
+        
+        <div id="missingWrapper" style="display: none;">
+            <div class="warning-list">
+                <h4>❌ Name Mismatch Found</h4>
+                <ul id="missingList"></ul>
+            </div>
+        </div>
+
+        <div id="successWrapper" style="display: none;">
+            <p style="color: green; font-weight: bold;">✅ All players matched successfully!</p>
+        </div>
+
+        <button id="finalConfirmBtn" class="confirm-btn">Confirm & Process Points</button>
+    </div>
 
     <div id="status"></div>
 </div>
 
-<script type="module" src="admin.js"></script></body>
+<script type="module" src="admin.js"></script>
+</body>
 </html>
