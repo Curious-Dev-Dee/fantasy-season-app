@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
-const ADMIN_EMAIL = "satyara9jansahoo@gmail.com"; // 👈 CHANGE THIS TO YOUR ADMIN EMAIL
+const ADMIN_EMAIL = "satyara9jansahoo@gmail.com"; 
 
 // DOM Elements
 const matchSelect = document.getElementById("matchSelect");
@@ -17,23 +17,16 @@ const statusDiv = document.getElementById("status");
 async function init() {
     const { data: { user }, error } = await supabase.auth.getUser();
 
-    // 1. Check if user is even logged in
     if (error || !user) {
-        console.error("No active session found:", error);
         alert("Please log in first.");
-        window.location.href = "login.html"; // Adjust to your login page name
+        window.location.href = "login.html";
         return;
     }
 
-    console.log("Logged in as:", user.email);
-    console.log("Required Admin:", ADMIN_EMAIL);
-
-    // 2. Case-insensitive comparison with trimming
     const loggedInEmail = user.email.trim().toLowerCase();
     const authorizedEmail = ADMIN_EMAIL.trim().toLowerCase();
 
     if (loggedInEmail !== authorizedEmail) {
-        console.error("Access Denied: Email mismatch.");
         alert(`Access Denied: ${user.email} is not authorized.`);
         window.location.href = "home.html";
         return;
@@ -41,7 +34,6 @@ async function init() {
 
     console.log("✅ Admin verified. Loading matches...");
     loadMatches();
-
 }
 
 async function loadMatches() {
@@ -77,18 +69,19 @@ processBtn.addEventListener("click", async () => {
         let rawData = JSON.parse(jsonStr);
         let scoreboard = [];
 
-        // --- SMART PARSER: Automatically flattens CricAPI data ---
+        // --- SMART PARSER: Flattens CricAPI data and Merges Fielding ---
         if (rawData && rawData.data && rawData.data.scorecard) {
             console.log("CricAPI Format Detected...");
             const playersMap = {};
 
             rawData.data.scorecard.forEach(inning => {
-                // Extract Batsmen stats
+                // A. Extract Batsmen stats
                 if (inning.batting) {
                     inning.batting.forEach(b => {
                         const name = b.batsman?.name;
                         if (name) {
                             playersMap[name] = { 
+                                ...playersMap[name],
                                 player_name: name, 
                                 runs: b.r || 0, 
                                 balls: b.b || 0, 
@@ -99,50 +92,63 @@ processBtn.addEventListener("click", async () => {
                         }
                     });
                 }
-                // Extract Bowlers stats
+                // B. Extract Bowlers stats
                 if (inning.bowling) {
                     inning.bowling.forEach(bw => {
                         const name = bw.bowler?.name;
                         if (name) {
-                            if (!playersMap[name]) playersMap[name] = { player_name: name };
-                            playersMap[name].wickets = bw.w || 0;
-                            playersMap[name].maidens = bw.m || 0;
-                            playersMap[name].overs = bw.o || 0;
-                            playersMap[name].runs_conceded = bw.r || 0;
+                            playersMap[name] = {
+                                ...playersMap[name],
+                                player_name: name,
+                                wickets: bw.w || 0,
+                                maidens: bw.m || 0,
+                                overs: bw.o || 0,
+                                runs_conceded: bw.r || 0
+                            };
+                        }
+                    });
+                }
+                // C. Extract Catching/Fielding stats
+                if (inning.catching) {
+                    inning.catching.forEach(c => {
+                        const name = c.catcher?.name;
+                        if (name) {
+                            playersMap[name] = {
+                                ...playersMap[name],
+                                player_name: name,
+                                catches: (playersMap[name]?.catches || 0) + (c.catch || 0),
+                                stumpings: (playersMap[name]?.stumpings || 0) + (c.stumped || 0),
+                                runouts_direct: (playersMap[name]?.runouts_direct || 0) + (c.runout || 0)
+                            };
                         }
                     });
                 }
             });
             scoreboard = Object.values(playersMap);
         } else if (Array.isArray(rawData)) {
-            scoreboard = rawData; // Already flat format
+            scoreboard = rawData; 
         } else {
-            throw new Error("Format not recognized. Use a list or raw CricAPI data.");
+            throw new Error("Format not recognized.");
         }
 
         if (!scoreboard.length) throw new Error("No player data found in JSON.");
 
-        const scoreboardNames = scoreboard.map(p => p.player_name.trim());
-
-        // --- TYPO HUNTER: Cross-reference with database ---
+        // --- TYPO HUNTER ---
         const { data: match } = await supabase
             .from('matches')
             .select('team_a_id, team_b_id')
             .eq('id', matchSelect.value)
             .single();
 
-        // Fetches names using the confirmed 'real_team_id' column
         const { data: dbPlayers } = await supabase
             .from('players')
             .select('name')
             .in('real_team_id', [match.team_a_id, match.team_b_id]);
         
         const dbNames = (dbPlayers || []).map(p => p.name.trim());
-
-        // Compare JSON names against DB names
+        const scoreboardNames = scoreboard.map(p => p.player_name.trim());
         const missing = scoreboardNames.filter(name => !dbNames.includes(name));
 
-        // Update UI
         reportContainer.style.display = "block";
         document.getElementById("reportStats").innerHTML = `
             <span>Matched: <strong>${scoreboardNames.length - missing.length}</strong></span>
@@ -159,9 +165,8 @@ processBtn.addEventListener("click", async () => {
             document.getElementById("missingWrapper").style.display = "none";
             document.getElementById("successWrapper").style.display = "block";
             finalConfirmBtn.style.display = "block";
-            updateStatus("✨ Data verified. Ready to process.", "success");
+            updateStatus("✨ Data verified (including Fielding). Ready to process.", "success");
             
-            // Final execution trigger
             finalConfirmBtn.onclick = () => executeUpdate(scoreboard);
         }
     } catch (e) { 
@@ -191,7 +196,7 @@ async function executeUpdate(scoreboard) {
         if (error) throw error;
 
         statusDiv.className = "status success";
-        statusDiv.textContent = "✅ Success! Leaderboard and stats updated.";
+        statusDiv.textContent = "✅ Success! Fielding, Batting, and Bowling points updated.";
         scoreboardInput.value = "";
         reportContainer.style.display = "none";
         
