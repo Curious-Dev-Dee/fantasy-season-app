@@ -8,6 +8,7 @@ let state = {
     lockedPlayerIds: [],    
     baseSubsRemaining: 80,  
     matches: [], 
+    teamsMap: {}, // 🆕 Stores { "ID": { name, short_code } }
     captainId: null, 
     viceCaptainId: null, 
     filters: { 
@@ -20,15 +21,30 @@ let state = {
     saving: false 
 };
 
+// 🆕 Helper to get human-readable team info
+const getTeamInfo = (id, useShort = false) => {
+    const team = state.teamsMap[id];
+    if (!team) return "Unknown";
+    return useShort ? team.short_code : team.name;
+};
+
 async function init() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Fetch Players
+    // 1. Fetch Real Teams (🆕 This fixes your UI labels)
+    const { data: tData } = await supabase.from("real_teams").select("*").eq("tournament_id", TOURNAMENT_ID);
+    if (tData) {
+        tData.forEach(t => {
+            state.teamsMap[t.id] = { name: t.name, short_code: t.short_code };
+        });
+    }
+
+    // 2. Fetch Players
     const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
     state.allPlayers = pData || [];
 
-    // 2. Fetch Base Subs
+    // 3. Fetch Base Subs
     const { data: summary } = await supabase
         .from("dashboard_summary")
         .select("subs_remaining")
@@ -37,7 +53,7 @@ async function init() {
         .maybeSingle();
     state.baseSubsRemaining = summary?.subs_remaining ?? 80;
 
-    // 3. Fetch Locked Players from last match
+    // 4. Fetch Locked Players
     const { data: lastLock } = await supabase
         .from("user_match_teams")
         .select("id")
@@ -52,11 +68,9 @@ async function init() {
             .select("player_id")
             .eq("user_match_team_id", lastLock.id);
         state.lockedPlayerIds = (lp || []).map(p => p.player_id);
-    } else {
-        state.lockedPlayerIds = []; 
     }
 
-    // 4. Fetch Current Saved Team
+    // 5. Fetch Current Saved Team
     const { data: team } = await supabase.from("user_fantasy_teams")
         .select("*")
         .eq("user_id", user.id)
@@ -75,16 +89,15 @@ async function init() {
             .filter(Boolean);
     }
 
-    // 5. Fetch Matches (Note: Using gte might hide past matches during testing)
+    // 6. Fetch Matches
     const { data: matches } = await supabase
         .from("matches")
         .select("*")
         .eq("tournament_id", TOURNAMENT_ID)
         .order("start_time", { ascending: true })
-        .limit(10); 
+        .limit(10);
     state.matches = matches || [];
 
-    // Initialize UI
     initFilters();
     document.querySelector(".search-filter-wrapper").style.display = 'none';
     render();
@@ -132,21 +145,23 @@ function render() {
 }
 
 function initFilters() {
-    // FIXED: Use real_team_id
+    // 🆕 Team Filter uses Full Names
     const uniqueTeams = [...new Set(state.allPlayers.map(p => p.real_team_id))].filter(Boolean).sort();
-    renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (t) => `Team ${t.substring(0,4)}`);
+    renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (id) => getTeamInfo(id));
     
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
-    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => c);
+    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
     
-    // FIXED: Use team_a_id and team_b_id for label display
-    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `M#${m.match_number}: ${m.team_a_id.substring(0,3)} vs ${m.team_b_id.substring(0,3)}`);
+    // 🆕 Match Filter uses Team Names
+    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => 
+        `M#${m.match_number}: ${getTeamInfo(m.team_a_id, true)} vs ${getTeamInfo(m.team_b_id, true)}`
+    );
 }
 
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!items.length) {
-        container.innerHTML = `<div class="filter-item">No matches/teams</div>`;
+        container.innerHTML = `<div class="filter-item">No data available</div>`;
         return;
     }
     container.innerHTML = items.map(item => {
@@ -177,13 +192,8 @@ function renderList(containerId, sourceList, isMyXi) {
         filtered = sourceList.filter(p => {
             if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
             if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
-            
-            // FIXED: Team Filter
             if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.real_team_id)) return false;
-            
             if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
-            
-            // FIXED: Match Filter Logic
             if (state.filters.matches.length > 0) {
                 const pTeam = p.real_team_id;
                 const inMatch = state.matches.some(m => 
@@ -210,8 +220,16 @@ function renderList(containerId, sourceList, isMyXi) {
                 <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
             </div>` : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
         
-        // FIXED: Show abbreviated real_team_id
-        return `<div class="player-card ${isSelected ? 'selected' : ''}"><div class="avatar-silhouette"></div><div class="player-info"><strong>${p.name} ${isLocked ? '📌' : ''}</strong><span>${p.role} • ${p.real_team_id.substring(0,4)} • ${p.credit} Cr</span></div>${controlsHtml}</div>`;
+        // 🆕 Uses Short Code for player cards (e.g., SA, IND)
+        return `
+        <div class="player-card ${isSelected ? 'selected' : ''}">
+            <div class="avatar-silhouette"></div>
+            <div class="player-info">
+                <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
+                <span>${p.role} • ${getTeamInfo(p.real_team_id, true)} • ${p.credit} Cr</span>
+            </div>
+            ${controlsHtml}
+        </div>`;
     }).join('');
 }
 
