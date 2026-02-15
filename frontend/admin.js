@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
-const ADMIN_EMAIL = "satyara9jansahoo@gmail.com"; // 👈 DOUBLE CHECK THIS
+const ADMIN_EMAIL = "your-email@gmail.com"; // 👈 DOUBLE CHECK THIS
 
 // DOM Elements
 const matchSelect = document.getElementById("matchSelect");
@@ -44,32 +44,40 @@ processBtn.addEventListener("click", async () => {
         let scoreboard = [];
 
         // 🛠️ SMART DETECTOR: Flattens raw CricAPI response automatically
-        if (rawData.data && rawData.data.scorecard) {
-            console.log("CricAPI Format Detected. Flattening...");
+        if (rawData && rawData.data && rawData.data.scorecard) {
+            console.log("CricAPI Format Detected...");
             const playersMap = {};
 
             rawData.data.scorecard.forEach(inning => {
-                // Extract Batsmen
-                inning.batting.forEach(b => {
-                    const name = b.batsman.name;
-                    playersMap[name] = { 
-                        player_name: name, 
-                        runs: b.r || 0, 
-                        balls: b.b || 0, 
-                        fours: b["4s"] || 0, 
-                        sixes: b["6s"] || 0,
-                        is_out: b["dismissal-text"] !== "not out"
-                    };
-                });
-                // Extract Bowlers
-                inning.bowling.forEach(bw => {
-                    const name = bw.bowler.name;
-                    if (!playersMap[name]) playersMap[name] = { player_name: name };
-                    playersMap[name].wickets = bw.w || 0;
-                    playersMap[name].maidens = bw.m || 0;
-                    playersMap[name].overs = bw.o || 0;
-                    playersMap[name].runs_conceded = bw.r || 0;
-                });
+                // Extract Batsmen stats
+                if (inning.batting) {
+                    inning.batting.forEach(b => {
+                        const name = b.batsman ? b.batsman.name : null;
+                        if (name) {
+                            playersMap[name] = { 
+                                player_name: name, 
+                                runs: b.r || 0, 
+                                balls: b.b || 0, 
+                                fours: b["4s"] || 0, 
+                                sixes: b["6s"] || 0,
+                                is_out: b["dismissal-text"] !== "not out"
+                            };
+                        }
+                    });
+                }
+                // Extract Bowlers stats
+                if (inning.bowling) {
+                    inning.bowling.forEach(bw => {
+                        const name = bw.bowler ? bw.bowler.name : null;
+                        if (name) {
+                            if (!playersMap[name]) playersMap[name] = { player_name: name };
+                            playersMap[name].wickets = bw.w || 0;
+                            playersMap[name].maidens = bw.m || 0;
+                            playersMap[name].overs = bw.o || 0;
+                            playersMap[name].runs_conceded = bw.r || 0;
+                        }
+                    });
+                }
             });
             scoreboard = Object.values(playersMap);
         } else if (Array.isArray(rawData)) {
@@ -78,12 +86,19 @@ processBtn.addEventListener("click", async () => {
             throw new Error("Format not recognized. Use a list or raw CricAPI data.");
         }
 
+        // 🛡️ Guard against empty scoreboard
+        if (!scoreboard || scoreboard.length === 0) {
+            throw new Error("No player data found in JSON.");
+        }
+
         const scoreboardNames = scoreboard.map(p => p.player_name.trim());
 
         // Cross-reference names with Database
         const { data: match } = await supabase.from('matches').select('team_a_id, team_b_id').eq('id', matchSelect.value).single();
         const { data: dbPlayers } = await supabase.from('players').select('name').in('team_id', [match.team_a_id, match.team_b_id]);
-        const dbNames = dbPlayers.map(p => p.name.trim());
+        
+        // 🛡️ Guard against null database response
+        const dbNames = (dbPlayers || []).map(p => p.name.trim());
 
         // Find Typos/Missing Players
         const missing = scoreboardNames.filter(name => !dbNames.includes(name));
