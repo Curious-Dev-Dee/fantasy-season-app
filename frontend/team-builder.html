@@ -16,7 +16,7 @@
             </div>
         </header>
 
-        <main class="content">
+        <div class="sticky-controls">
             <section class="premium-progress">
                 <div class="progress-line-container">
                     <div id="progressFill" class="progress-fill"></div>
@@ -28,37 +28,40 @@
                 </div>
             </section>
 
+            <section class="search-filter-wrapper">
+                <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off">
+                
+                <div class="role-tabs-container">
+                    <button class="role-tab active" data-role="ALL">ALL</button>
+                    <button class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></button>
+                    <button class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></button>
+                    <button class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></button>
+                    <button class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></button>
+                </div>
+
+                <div class="dropdown-filters">
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
+                        <div class="dropdown-menu" id="matchMenu"></div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
+                        <div class="dropdown-menu scrollable" id="teamMenu"></div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
+                        <div class="dropdown-menu scrollable" id="creditMenu"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <main class="content">
             <section id="myxi-view" class="view-mode edit-mode active">
                 <div id="myXIList" class="player-list"></div>
             </section>
 
             <section id="change-view" class="view-mode edit-mode">
-                <div class="search-filter-wrapper">
-                    <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off">
-                    
-                    <div class="role-tabs-container">
-                        <button class="role-tab active" data-role="ALL">ALL</button>
-                        <button class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></button>
-                        <button class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></button>
-                        <button class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></button>
-                        <button class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></button>
-                    </div>
-
-                    <div class="dropdown-filters">
-                        <div class="dropdown">
-                            <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
-                            <div class="dropdown-menu" id="matchMenu"></div>
-                        </div>
-                        <div class="dropdown">
-                            <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
-                            <div class="dropdown-menu scrollable" id="teamMenu"></div>
-                        </div>
-                        <div class="dropdown">
-                            <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
-                            <div class="dropdown-menu scrollable" id="creditMenu"></div>
-                        </div>
-                    </div>
-                </div>
                 <div id="playerPoolList" class="player-list"></div>
             </section>
         </main>
