@@ -7,7 +7,10 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  // 1. Handle CORS for the browser
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
   try {
     const supabase = createClient(
@@ -15,66 +18,71 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { match_id, scoreboard } = await req.json()
-    const scorecard = scoreboard.data.scorecard
+    const { match_id, scoreboard, tournament_id } = await req.json()
 
-    // 1️⃣ Fetch all players to get their DB IDs
-    const { data: dbPlayers } = await supabase.from('players').select('id, name')
+    // --- CRITICAL LOGGING ---
+    console.log(`Processing Match: ${match_id}`)
+    console.log(`Players received: ${scoreboard?.length}`)
 
-    // 2️⃣ Clear old match stats (Trigger will handle the cascading cleanup)
-    await supabase.from('player_match_stats').delete().eq('match_id', match_id)
+    if (!match_id || !scoreboard || scoreboard.length === 0) {
+      throw new Error("Missing match_id or empty scoreboard data.")
+    }
 
-    const playerMap = new Map()
+    // 2. Map the data into the Database Format
+    const statsToUpsert = scoreboard.map((p: any) => {
+      // THE MATH FORMULA
+      let points = 0
+      const runs = p.runs || 0
+      const sixes = p.sixes || 0
+      const fours = p.fours || 0
+      const wickets = p.wickets || 0
+      const isOut = p.is_out || false
 
-    // 3️⃣ Parse JSON Scorecard
-    scorecard.forEach(inning => {
-      inning.batting?.forEach(b => {
-        const stats = playerMap.get(b.batsman.name) || { runs: 0, wickets: 0, catches: 0 }
-        stats.runs += (b.r || 0)
-        playerMap.set(b.batsman.name, stats)
-      })
+      // Example T20 Points logic
+      points += runs * 1          // 1 pt per run
+      points += fours * 1         // 1 pt bonus per 4
+      points += sixes * 2         // 2 pt bonus per 6
+      points += wickets * 25      // 25 pts per wicket
+      
+      if (runs >= 50) points += 8  // Half-century bonus
+      if (runs >= 100) points += 16 // Century bonus
+      if (runs === 0 && isOut) points -= 2 // Duck penalty
 
-      inning.bowling?.forEach(bw => {
-        const stats = playerMap.get(bw.bowler.name) || { runs: 0, wickets: 0, catches: 0 }
-        stats.wickets += (bw.w || 0)
-        playerMap.set(bw.bowler.name, stats)
-      })
-
-      inning.catching?.forEach(c => {
-        const stats = playerMap.get(c.catcher.name) || { runs: 0, wickets: 0, catches: 0 }
-        stats.catches += (c.catch || 0)
-        playerMap.set(c.catcher.name, stats)
-      })
-    })
-
-    // 4️⃣ Insert Player Stats
-    // The moment this is inserted, your SQL Trigger "tr_update_user_points" 
-    // will automatically update User Match Points and the Leaderboard!
-    const statsToInsert = []
-    playerMap.forEach((val, playerName) => {
-      const dbMatch = dbPlayers?.find(p => p.name.trim().toLowerCase() === playerName.trim().toLowerCase())
-      if (dbMatch) {
-        const totalPoints = (val.runs * 1) + (val.wickets * 25) + (val.catches * 8)
-        statsToInsert.push({
-          match_id,
-          player_id: dbMatch.id,
-          runs: val.runs,
-          wickets: val.wickets,
-          catches: val.catches,
-          fantasy_points: totalPoints
-        })
+      return {
+        match_id: match_id,
+        name: p.player_name, // Matches the 'player_name' from your admin.js parser
+        runs: runs,
+        balls: p.balls || 0,
+        fours: fours,
+        sixes: sixes,
+        wickets: wickets,
+        overs: p.overs || 0,
+        runs_conceded: p.runs_conceded || 0,
+        maidens: p.maidens || 0,
+        points: points
       }
     })
 
-    const { error: insertError } = await supabase.from('player_match_stats').insert(statsToInsert)
-    if (insertError) throw insertError
+    // 3. UPSERT TO DATABASE
+    const { error: upsertError } = await supabase
+      .from('player_match_stats')
+      .upsert(statsToUpsert, { onConflict: 'match_id, name' })
 
-    return new Response(JSON.stringify({ success: true, message: "Stats inserted. Database triggers are updating leaderboard..." }), {
+    if (upsertError) throw upsertError
+
+    // 4. TRIGGER LEADERBOARD UPDATE
+    // This calls your RPC or logic to recalculate user scores
+    const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', {
+        target_match_id: match_id
+    })
+
+    return new Response(JSON.stringify({ success: true, count: statsToUpsert.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error) {
+    console.error("Function Error:", error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
