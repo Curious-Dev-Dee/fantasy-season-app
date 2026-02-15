@@ -7,9 +7,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
     const supabase = createClient(
@@ -18,17 +16,28 @@ serve(async (req) => {
     );
 
     const { match_id, scoreboard } = await req.json();
-    
-    // Logging for debugging
     console.log(`[START] Processing Match: ${match_id}`);
-    console.log(`[INFO] Players in batch: ${scoreboard?.length}`);
 
-    if (!match_id || !scoreboard || scoreboard.length === 0) {
-      throw new Error("Data missing: match_id or scoreboard is empty.");
-    }
+    // 1. FETCH PLAYER IDS: Map the names from the JSON to the UUIDs in your DB
+    const { data: dbPlayers, error: pError } = await supabase
+      .from('players')
+      .select('id, name');
+    
+    if (pError) throw pError;
 
+    // Create a lookup map for easy ID matching
+    const nameToIdMap = Object.fromEntries(dbPlayers.map(p => [p.name.trim(), p.id]));
+
+    // 2. MAP DATA TO YOUR EXACT COLUMNS
     const statsToUpsert = scoreboard.map((p: any) => {
-      // Calculate Fantasy Points
+      const playerId = nameToIdMap[p.player_name.trim()];
+      
+      if (!playerId) {
+        console.warn(`[SKIP] Player ID not found for name: ${p.player_name}`);
+        return null;
+      }
+
+      // Calculation Logic (matches your previous match stats logic)
       let pts = 0;
       const runs = p.runs || 0;
       const sixes = p.sixes || 0;
@@ -47,46 +56,41 @@ serve(async (req) => {
 
       return {
         match_id: match_id,
-        name: p.player_name, // Mapping 'player_name' from Admin to 'name' in DB
+        player_id: playerId,        // Correct column from your SQL
         runs: runs,
         balls: p.balls || 0,
         fours: fours,
         sixes: sixes,
         wickets: wickets,
         overs: p.overs || 0,
-        runs_conceded: p.runs_conceded || 0,
         maidens: p.maidens || 0,
-        points: pts
+        fantasy_points: pts         // Correct column from your SQL
       };
-    });
+    }).filter(Boolean); // Remove nulls (unmatched players)
 
-    // Attempting DB Write
+    console.log(`[DB] Preparing to upsert ${statsToUpsert.length} player rows...`);
+
+    // 3. DATABASE UPSERT
     const { error: upsertError } = await supabase
       .from('player_match_stats')
-      .upsert(statsToUpsert, { onConflict: 'match_id, name' });
+      .upsert(statsToUpsert, { onConflict: 'match_id, player_id' });
 
-    if (upsertError) {
-      console.error(`[DB ERROR] ${upsertError.message}`);
-      throw upsertError;
-    }
+    if (upsertError) throw upsertError;
 
-    // Trigger Leaderboard Update RPC
-    const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', {
-        target_match_id: match_id
+    // 4. TRIGGER LEADERBOARD CALCULATION
+    console.log("[RPC] Updating users' total points...");
+    await supabase.rpc('update_leaderboard_after_match', { target_match_id: match_id });
+
+    return new Response(JSON.stringify({ success: true, count: statsToUpsert.length }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
     });
 
-    if (rpcError) console.error(`[RPC ERROR] ${rpcError.message}`);
-
-    return new Response(
-      JSON.stringify({ success: true, processed: statsToUpsert.length }), 
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
-
   } catch (error) {
-    console.error(`[CRITICAL] ${error.message}`);
-    return new Response(
-      JSON.stringify({ error: error.message }), 
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    );
+    console.error(`[CRITICAL ERROR]: ${error.message}`);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    });
   }
 });
