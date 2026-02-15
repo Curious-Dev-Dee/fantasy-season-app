@@ -5,6 +5,8 @@ const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 let state = { 
     allPlayers: [], 
     selectedPlayers: [], 
+    lockedPlayerIds: [],    
+    baseSubsRemaining: 80,  
     matches: [], 
     captainId: null, 
     viceCaptainId: null, 
@@ -22,11 +24,36 @@ async function init() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Fetch Players
     const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
     state.allPlayers = pData || [];
 
-    // 2. Fetch User Team
+    // Fetch Base Subs for this specific tournament
+    const { data: summary } = await supabase
+        .from("dashboard_summary")
+        .select("subs_remaining")
+        .eq("user_id", user.id)
+        .eq("tournament_id", TOURNAMENT_ID) // 🛡️ Safety Check 1
+        .maybeSingle();
+    state.baseSubsRemaining = summary?.subs_remaining ?? 80;
+
+    const { data: lastLock } = await supabase
+        .from("user_match_teams")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("locked_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (lastLock) {
+        const { data: lp } = await supabase
+            .from("user_match_team_players")
+            .select("player_id")
+            .eq("user_match_team_id", lastLock.id);
+        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
+    } else {
+        state.lockedPlayerIds = []; 
+    }
+
     const { data: team } = await supabase.from("user_fantasy_teams")
         .select("*")
         .eq("user_id", user.id)
@@ -45,7 +72,6 @@ async function init() {
             .filter(Boolean);
     }
 
-    // 3. Fetch Matches (Next 5)
     const { data: matches } = await supabase
         .from("matches")
         .select("*")
@@ -53,30 +79,63 @@ async function init() {
         .gte("start_time", new Date().toISOString())
         .order("start_time", { ascending: true })
         .limit(5);
-    
     state.matches = matches || [];
 
-    // 4. Initial Setup
     initFilters();
-    
-    // HIDE FILTERS INITIALLY (Since My XI is default)
     document.querySelector(".search-filter-wrapper").style.display = 'none';
-    
     render();
     setupListeners();
 }
 
-// --- FILTER LOGIC ---
+function render() {
+    const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
+    const count = state.selectedPlayers.length;
+
+    let subsUsedInDraft = 0;
+    // 🛡️ Safety Check 2: Only count subs if at least one match has been locked
+    if (state.lockedPlayerIds.length > 0) {
+        subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
+    }
+    
+    const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
+    const isOverLimit = liveSubsRemaining < 0;
+
+    document.getElementById("playerCountLabel").innerText = count;
+    document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
+    document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
+    
+    // 🛡️ Safety Check 3: Support both common ID names
+    const subsEl = document.getElementById("subsRemainingLabel") || document.getElementById("subsRemaining");
+    if (subsEl) subsEl.innerText = liveSubsRemaining;
+
+    ["WK", "BAT", "AR", "BOWL"].forEach(role => {
+        const rCount = state.selectedPlayers.filter(p => p.role === role).length;
+        const el = document.getElementById(`count-${role}`);
+        if(el) el.innerText = rCount > 0 ? rCount : "";
+    });
+
+    renderList("myXIList", state.selectedPlayers, true);  
+    renderList("playerPoolList", state.allPlayers, false); 
+
+    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit;
+    const saveBtn = document.getElementById("saveTeamBtn");
+    saveBtn.disabled = !isValid;
+    document.querySelector(".save-bar").className = `nav-bar save-bar ${isValid ? 'enabled' : 'disabled'}`;
+
+    if (isOverLimit) {
+        saveBtn.innerText = "OUT OF SUBS!";
+    } else {
+        saveBtn.innerText = state.saving ? "SAVING..." : "SAVE TEAM";
+    }
+}
+
+// ... rest of filters and list rendering (KEEP AS IS) ...
+
 function initFilters() {
-    // Unique Teams
     const uniqueTeams = [...new Set(state.allPlayers.map(p => p.team_code || p.team))].filter(Boolean).sort();
     renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (t) => t);
-
-    // Unique Credits
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => c);
-
-    // Matches
     renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `vs ${m.team_away} (${new Date(m.start_time).toLocaleDateString()})`);
 }
 
@@ -90,71 +149,26 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
         const value = typeof item === 'object' ? item.id : item;
         const label = labelFn(item);
         const isChecked = state.filters[filterKey].includes(value) ? 'checked' : '';
-        return `
-            <label class="filter-item">
-                <input type="checkbox" value="${value}" ${isChecked} onchange="toggleFilter('${filterKey}', '${value}', this)">
-                <span>${label}</span>
-            </label>
-        `;
+        return `<label class="filter-item"><input type="checkbox" value="${value}" ${isChecked} onchange="toggleFilter('${filterKey}', '${value}', this)"><span>${label}</span></label>`;
     }).join('');
 }
 
 window.toggleFilter = (key, value, checkbox) => {
     if (key === 'credits') value = parseFloat(value);
-    
     if (checkbox.checked) {
         state.filters[key].push(value);
     } else {
         state.filters[key] = state.filters[key].filter(item => String(item) !== String(value));
     }
-
-    // Update Button Text
     const btnId = key === 'teams' ? 'teamToggle' : key === 'matches' ? 'matchToggle' : 'creditToggle';
     const btn = document.getElementById(btnId);
-    const defaultText = key === 'teams' ? 'Team' : key === 'matches' ? 'Match' : 'Credit';
-    
-    if(state.filters[key].length > 0) {
-        btn.classList.add('has-value');
-        btn.innerText = `${defaultText} (${state.filters[key].length})`;
-    } else {
-        btn.classList.remove('has-value');
-        btn.innerText = `${defaultText} ▼`;
-    }
+    btn.innerText = state.filters[key].length > 0 ? `${key.charAt(0).toUpperCase() + key.slice(1)} (${state.filters[key].length})` : `${key.charAt(0).toUpperCase() + key.slice(1)} ▼`;
     render();
 };
 
-// --- RENDER LOGIC ---
-function render() {
-    const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const count = state.selectedPlayers.length;
-
-    document.getElementById("playerCountLabel").innerText = count;
-    document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
-    document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
-
-    ["WK", "BAT", "AR", "BOWL"].forEach(role => {
-        const rCount = state.selectedPlayers.filter(p => p.role === role).length;
-        const el = document.getElementById(`count-${role}`);
-        if(el) el.innerText = rCount > 0 ? rCount : "";
-    });
-
-    // Render Lists
-    renderList("myXIList", state.selectedPlayers, true);  // True = My XI (No filters)
-    renderList("playerPoolList", state.allPlayers, false); // False = Pool (Apply filters)
-
-    // Save Button
-    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100;
-    const saveBtn = document.getElementById("saveTeamBtn");
-    saveBtn.disabled = !isValid;
-    document.querySelector(".save-bar").className = `nav-bar save-bar ${isValid ? 'enabled' : 'disabled'}`;
-}
-
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
-    
     let filtered = sourceList;
-
-    // ONLY APPLY FILTERS TO THE POOL (NOT MY XI)
     if (!isMyXi) {
         filtered = sourceList.filter(p => {
             if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
@@ -163,47 +177,26 @@ function renderList(containerId, sourceList, isMyXi) {
             if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
             if (state.filters.matches.length > 0) {
                 const playerTeam = p.team_code || p.team;
-                const inMatch = state.matches.some(m => 
-                    state.filters.matches.includes(m.id) && (m.team_home === playerTeam || m.team_away === playerTeam)
-                );
+                const inMatch = state.matches.some(m => state.filters.matches.includes(m.id) && (m.team_home === playerTeam || m.team_away === playerTeam));
                 if (!inMatch) return false;
             }
             return true;
         });
     }
-
     if (filtered.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:30px; color:#555;">No players found</div>`;
         return;
     }
-
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
-        
-        let controlsHtml = '';
-        if (isMyXi) {
-            controlsHtml = `
-                <div class="controls">
-                    <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
-                    <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
-                    <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
-                </div>
-            `;
-        } else {
-            const actionClass = isSelected ? 'remove' : 'add';
-            const actionSymbol = isSelected ? '−' : '+';
-            controlsHtml = `<button class="action-btn-circle ${actionClass}" onclick="togglePlayer('${p.id}')">${actionSymbol}</button>`;
-        }
-
-        return `
-            <div class="player-card ${isSelected ? 'selected' : ''}">
-                <div class="avatar-silhouette"></div>
-                <div class="player-info">
-                    <strong>${p.name}</strong>
-                    <span>${p.role} • ${p.team_code || p.team || ''} • ${p.credit} Cr</span>
-                </div>
-                ${controlsHtml}
-            </div>`;
+        const isLocked = state.lockedPlayerIds.includes(p.id);
+        let controlsHtml = isMyXi ? `
+            <div class="controls">
+                <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
+                <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
+                <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
+            </div>` : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
+        return `<div class="player-card ${isSelected ? 'selected' : ''}"><div class="avatar-silhouette"></div><div class="player-info"><strong>${p.name} ${isLocked ? '📌' : ''}</strong><span>${p.role} • ${p.team_code || p.team || ''} • ${p.credit} Cr</span></div>${controlsHtml}</div>`;
     }).join('');
 }
 
@@ -214,7 +207,8 @@ window.togglePlayer = (id) => {
         if (state.captainId === id) state.captainId = null;
         if (state.viceCaptainId === id) state.viceCaptainId = null;
     } else if (state.selectedPlayers.length < 11) {
-        state.selectedPlayers.push(state.allPlayers.find(p => p.id === id));
+        const p = state.allPlayers.find(p => p.id === id);
+        if (p) state.selectedPlayers.push(p);
     }
     render();
 };
@@ -231,24 +225,14 @@ window.setRole = (id, role) => {
 };
 
 function setupListeners() {
-    // TAB SWITCHING (Controls Filter Visibility)
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
             btn.classList.add("active");
             document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
-
-            // TOGGLE FILTERS
-            const filterWrapper = document.querySelector(".search-filter-wrapper");
-            if (btn.dataset.mode === 'myxi') {
-                filterWrapper.style.display = 'none';
-            } else {
-                filterWrapper.style.display = 'flex';
-            }
+            document.querySelector(".search-filter-wrapper").style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
-
-    // Role Tabs
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -257,37 +241,17 @@ function setupListeners() {
             render();
         };
     });
-
-    // Search
-    document.getElementById("playerSearch").oninput = (e) => { 
-        state.filters.search = e.target.value; 
-        render(); 
-    };
-
-    // Dropdowns
-    const dropdowns = ['match', 'team', 'credit'];
-    dropdowns.forEach(type => {
+    document.getElementById("playerSearch").oninput = (e) => { state.filters.search = e.target.value; render(); };
+    ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            dropdowns.forEach(other => {
-                if(other !== type) document.getElementById(`${other}Menu`).classList.remove('show');
-            });
-            document.getElementById(`${type}Menu`).classList.toggle('show');
-        };
+        btn.onclick = (e) => { e.stopPropagation(); document.getElementById(`${type}Menu`).classList.toggle('show'); };
     });
+    document.addEventListener('click', () => { ['matchMenu', 'teamMenu', 'creditMenu'].forEach(id => document.getElementById(id).classList.remove('show')); });
 
-    document.addEventListener('click', () => {
-        dropdowns.forEach(type => document.getElementById(`${type}Menu`).classList.remove('show'));
-    });
-    document.querySelectorAll('.dropdown-menu').forEach(menu => menu.onclick = (e) => e.stopPropagation());
-
-    // Save
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
-        const btn = document.getElementById("saveTeamBtn");
-        btn.innerText = "SAVING...";
+        render(); 
 
         const { data: { user } } = await supabase.auth.getUser();
         const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
@@ -307,12 +271,11 @@ function setupListeners() {
                     state.selectedPlayers.map(p => ({ user_fantasy_team_id: team.id, player_id: p.id }))
                 );
             }
-            btn.innerText = "SAVED ✓";
+            document.getElementById("saveTeamBtn").innerText = "SAVED ✓";
         } else {
-            console.error(error);
-            btn.innerText = "ERROR";
+            document.getElementById("saveTeamBtn").innerText = "ERROR";
         }
-        setTimeout(() => { btn.innerText = "SAVE TEAM"; state.saving = false; }, 2000);
+        setTimeout(() => { state.saving = false; render(); }, 2000);
     };
 }
 
