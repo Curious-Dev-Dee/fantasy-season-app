@@ -8,6 +8,7 @@ let state = {
     lockedPlayerIds: [],    
     baseSubsRemaining: 80,  
     matches: [], 
+    teams: [], 
     captainId: null, 
     viceCaptainId: null, 
     filters: { 
@@ -24,54 +25,16 @@ async function init() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // 1. Fetch Players
     const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
     state.allPlayers = pData || [];
 
-    // Fetch Base Subs for this specific tournament
-    const { data: summary } = await supabase
-        .from("dashboard_summary")
-        .select("subs_remaining")
-        .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID) // 🛡️ Safety Check 1
-        .maybeSingle();
-    state.baseSubsRemaining = summary?.subs_remaining ?? 80;
+    // 2. Fetch Real Teams for Name Mapping
+    const { data: teamsData } = await supabase.from("real_teams").select("*");
+    state.teams = teamsData || [];
+    const teamMap = Object.fromEntries(state.teams.map(t => [t.id, t.short_code]));
 
-    const { data: lastLock } = await supabase
-        .from("user_match_teams")
-        .select("id")
-        .eq("user_id", user.id)
-        .order("locked_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (lastLock) {
-        const { data: lp } = await supabase
-            .from("user_match_team_players")
-            .select("player_id")
-            .eq("user_match_team_id", lastLock.id);
-        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
-    } else {
-        state.lockedPlayerIds = []; 
-    }
-
-    const { data: team } = await supabase.from("user_fantasy_teams")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID)
-        .maybeSingle();
-
-    if (team) {
-        state.captainId = team.captain_id;
-        state.viceCaptainId = team.vice_captain_id;
-        const { data: pIds } = await supabase.from("user_fantasy_team_players")
-            .select("player_id")
-            .eq("user_fantasy_team_id", team.id);
-        
-        state.selectedPlayers = (pIds || [])
-            .map(row => state.allPlayers.find(p => p.id === row.player_id))
-            .filter(Boolean);
-    }
-
+    // 3. Fetch Next 5 Matches with Mapped Names
     const { data: matches } = await supabase
         .from("matches")
         .select("*")
@@ -79,10 +42,39 @@ async function init() {
         .gte("start_time", new Date().toISOString())
         .order("start_time", { ascending: true })
         .limit(5);
-    state.matches = matches || [];
+    
+    state.matches = (matches || []).map(m => ({
+        ...m,
+        team_home: teamMap[m.team_a_id] || "TBD",
+        team_away: teamMap[m.team_b_id] || "TBD"
+    }));
+
+    // 4. Load User Subs
+    const { data: summary } = await supabase.from("dashboard_summary")
+        .select("subs_remaining").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle();
+    state.baseSubsRemaining = summary?.subs_remaining ?? 80;
+
+    // 5. Load Locked Players
+    const { data: lastLock } = await supabase.from("user_match_teams")
+        .select("id").eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle();
+
+    if (lastLock) {
+        const { data: lp } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", lastLock.id);
+        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
+    }
+
+    // 6. Load Current Draft
+    const { data: team } = await supabase.from("user_fantasy_teams").select("*")
+        .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle();
+
+    if (team) {
+        state.captainId = team.captain_id;
+        state.viceCaptainId = team.vice_captain_id;
+        const { data: pIds } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", team.id);
+        state.selectedPlayers = (pIds || []).map(row => state.allPlayers.find(p => p.id === row.player_id)).filter(Boolean);
+    }
 
     initFilters();
-    document.querySelector(".search-filter-wrapper").style.display = 'none';
     render();
     setupListeners();
 }
@@ -92,7 +84,6 @@ function render() {
     const count = state.selectedPlayers.length;
 
     let subsUsedInDraft = 0;
-    // 🛡️ Safety Check 2: Only count subs if at least one match has been locked
     if (state.lockedPlayerIds.length > 0) {
         subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
     }
@@ -104,8 +95,7 @@ function render() {
     document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
     
-    // 🛡️ Safety Check 3: Support both common ID names
-    const subsEl = document.getElementById("subsRemainingLabel") || document.getElementById("subsRemaining");
+    const subsEl = document.getElementById("subsRemainingLabel");
     if (subsEl) subsEl.innerText = liveSubsRemaining;
 
     ["WK", "BAT", "AR", "BOWL"].forEach(role => {
@@ -129,20 +119,18 @@ function render() {
     }
 }
 
-// ... rest of filters and list rendering (KEEP AS IS) ...
-
 function initFilters() {
     const uniqueTeams = [...new Set(state.allPlayers.map(p => p.team_code || p.team))].filter(Boolean).sort();
     renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (t) => t);
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
-    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => c);
-    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `vs ${m.team_away} (${new Date(m.start_time).toLocaleDateString()})`);
+    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
+    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `${m.team_home} vs ${m.team_away}`);
 }
 
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!items.length) {
-        container.innerHTML = `<div class="filter-item">No data available</div>`;
+        container.innerHTML = `<div class="filter-item">No upcoming data</div>`;
         return;
     }
     container.innerHTML = items.map(item => {
@@ -161,8 +149,7 @@ window.toggleFilter = (key, value, checkbox) => {
         state.filters[key] = state.filters[key].filter(item => String(item) !== String(value));
     }
     const btnId = key === 'teams' ? 'teamToggle' : key === 'matches' ? 'matchToggle' : 'creditToggle';
-    const btn = document.getElementById(btnId);
-    btn.innerText = state.filters[key].length > 0 ? `${key.charAt(0).toUpperCase() + key.slice(1)} (${state.filters[key].length})` : `${key.charAt(0).toUpperCase() + key.slice(1)} ▼`;
+    document.getElementById(btnId).innerText = state.filters[key].length > 0 ? `${key.charAt(0).toUpperCase() + key.slice(1)} (${state.filters[key].length})` : `${key.charAt(0).toUpperCase() + key.slice(1)} ▼`;
     render();
 };
 
@@ -171,22 +158,24 @@ function renderList(containerId, sourceList, isMyXi) {
     let filtered = sourceList;
     if (!isMyXi) {
         filtered = sourceList.filter(p => {
+            const pTeam = p.team_code || p.team;
             if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
             if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
-            if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.team_code || p.team)) return false;
+            if (state.filters.teams.length > 0 && !state.filters.teams.includes(pTeam)) return false;
             if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
             if (state.filters.matches.length > 0) {
-                const playerTeam = p.team_code || p.team;
-                const inMatch = state.matches.some(m => state.filters.matches.includes(m.id) && (m.team_home === playerTeam || m.team_away === playerTeam));
+                const inMatch = state.matches.some(m => state.filters.matches.includes(m.id) && (m.team_home === pTeam || m.team_away === pTeam));
                 if (!inMatch) return false;
             }
             return true;
         });
     }
+
     if (filtered.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:30px; color:#555;">No players found</div>`;
         return;
     }
+
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
