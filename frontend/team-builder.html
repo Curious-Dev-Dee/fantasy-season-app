@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Edit Team · Cricket Experts</title>
+    <title>Cricket Experts · Edit Team</title>
     <link rel="stylesheet" href="css/team-builder.css">
 </head>
 <body>
@@ -23,22 +23,23 @@
                 </div>
                 <div class="progress-labels">
                     <div class="stat-group">
-                        <span id="playerCountLabel">0</span> <small>/ 11</small>
+                        <span id="playerCountLabel">0</span>
+                        <small>/ 11</small>
                     </div>
                     <span class="credit-subtext">Credits: <strong id="creditCount">0</strong>/100</span>
                     <span class="subs-text">Subs: <strong id="subsRemainingLabel">80</strong></span>
                 </div>
             </section>
 
-            <section id="filterWrapper" class="search-filter-wrapper" style="display: none;">
+            <section class="search-filter-wrapper">
                 <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off">
                 
                 <div class="role-tabs-container">
                     <button class="role-tab active" data-role="ALL">ALL</button>
-                    <button class="role-tab" data-role="WK">WK <span id="count-WK"></span></button>
-                    <button class="role-tab" data-role="BAT">BAT <span id="count-BAT"></span></button>
-                    <button class="role-tab" data-role="AR">AR <span id="count-AR"></span></button>
-                    <button class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL"></span></button>
+                    <button class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></button>
+                    <button class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></button>
+                    <button class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></button>
+                    <button class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></button>
                 </div>
 
                 <div class="dropdown-filters">
@@ -59,19 +60,19 @@
         </div>
 
         <main class="content">
-            <section id="myxi-view" class="view-mode active">
+            <section id="myxi-view" class="view-mode edit-mode active">
                 <div id="myXIList" class="player-list"></div>
             </section>
 
-            <section id="change-view" class="view-mode">
+            <section id="change-view" class="view-mode edit-mode">
                 <div id="playerPoolList" class="player-list"></div>
             </section>
         </main>
 
-        <footer class="nav-bar">
-            <button class="toggle-btn active" data-mode="myxi">MY XI</button>
+        <footer class="nav-bar save-bar disabled">
+            <button class="nav-item toggle-btn active" data-mode="myxi">MY XI</button>
             <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
-            <button class="toggle-btn" data-mode="change">CHANGE</button>
+            <button class="nav-item toggle-btn" data-mode="change">CHANGE</button>
         </footer>
     </div>
 
