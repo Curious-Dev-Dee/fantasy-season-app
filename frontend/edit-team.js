@@ -11,7 +11,13 @@ let state = {
     teams: [], 
     captainId: null, 
     viceCaptainId: null, 
-    filters: { search: "", role: "ALL", teams: [], credits: [], matches: [] }, 
+    filters: { 
+        search: "", 
+        role: "ALL", 
+        teams: [],   
+        credits: [], 
+        matches: []  
+    }, 
     saving: false 
 };
 
@@ -19,7 +25,7 @@ async function init() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 1. Fetch Players & Teams
+    // 1. Fetch Players & Real Teams for mapping
     const [{ data: pData }, { data: teamsData }] = await Promise.all([
         supabase.from("players").select("*").eq("is_active", true),
         supabase.from("real_teams").select("*")
@@ -28,7 +34,7 @@ async function init() {
     state.teams = teamsData || [];
     const teamMap = Object.fromEntries(state.teams.map(t => [t.id, t.short_code]));
 
-    // 2. Fetch Next 5 Matches (Fixed undefined labels)
+    // 2. Fetch Next 5 Matches with Mapped Names (Fixes 'undefined')
     const { data: matches } = await supabase.from("matches").select("*")
         .eq("tournament_id", TOURNAMENT_ID)
         .gte("start_time", new Date().toISOString())
@@ -40,13 +46,19 @@ async function init() {
         team_away: teamMap[m.team_b_id] || "TBD"
     }));
 
-    // 3. Load Subs & Draft
-    const [{ data: summary }, { data: team }] = await Promise.all([
-        supabase.from("dashboard_summary").select("subs_remaining").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-        supabase.from("user_fantasy_teams").select("*").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle()
-    ]);
+    // 3. Load Subs & Locked Players
+    const { data: summary } = await supabase.from("dashboard_summary")
+        .select("subs_remaining").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle();
     state.baseSubsRemaining = summary?.subs_remaining ?? 80;
 
+    const { data: lastLock } = await supabase.from("user_match_teams").select("id").eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle();
+    if (lastLock) {
+        const { data: lp } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", lastLock.id);
+        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
+    }
+
+    // 4. Load Current Draft
+    const { data: team } = await supabase.from("user_fantasy_teams").select("*").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle();
     if (team) {
         state.captainId = team.captain_id;
         state.viceCaptainId = team.vice_captain_id;
@@ -82,7 +94,7 @@ function render() {
     const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && liveSubs >= 0;
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
-    saveBtn.innerText = state.saving ? "SAVING..." : (liveSubs < 0 ? "OUT OF SUBS" : "SAVE TEAM");
+    saveBtn.innerText = state.saving ? "SAVING..." : (liveSubs < 0 ? "OUT OF SUBS!" : "SAVE TEAM");
 }
 
 function initFilters() {
@@ -96,13 +108,17 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     container.innerHTML = items.length ? items.map(item => {
         const val = typeof item === 'object' ? item.id : item;
-        return `<label class="filter-item"><input type="checkbox" value="${val}" onchange="toggleFilter('${filterKey}', '${val}', this)"><span>${labelFn(item)}</span></label>`;
+        const isChecked = state.filters[filterKey].includes(val) ? 'checked' : '';
+        return `<label class="filter-item"><input type="checkbox" value="${val}" ${isChecked} onchange="toggleFilter('${filterKey}', '${val}', this)"><span>${labelFn(item)}</span></label>`;
     }).join('') : `<div class="filter-item">No data</div>`;
 }
 
 window.toggleFilter = (key, value, checkbox) => {
     if (checkbox.checked) state.filters[key].push(key === 'credits' ? parseFloat(value) : value);
     else state.filters[key] = state.filters[key].filter(i => String(i) !== String(value));
+    
+    const btnId = key === 'teams' ? 'teamToggle' : key === 'matches' ? 'matchToggle' : 'creditToggle';
+    document.getElementById(btnId).innerText = state.filters[key].length > 0 ? `${key} (${state.filters[key].length})` : `${key} ▼`;
     render();
 };
 
@@ -122,6 +138,7 @@ function renderList(containerId, sourceList, isMyXi) {
 
     container.innerHTML = filtered.length ? filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
+        const isLocked = state.lockedPlayerIds.includes(p.id);
         const controls = isMyXi ? `
             <div class="controls">
                 <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
@@ -132,7 +149,7 @@ function renderList(containerId, sourceList, isMyXi) {
         return `<div class="player-card ${isSelected ? 'selected' : ''}">
             <div class="avatar-silhouette"></div>
             <div class="player-info">
-                <strong>${p.name}</strong>
+                <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
                 <span>${p.role} • ${p.team_code || p.team} • ${p.credit} Cr</span>
             </div>
             ${controls}
@@ -142,14 +159,24 @@ function renderList(containerId, sourceList, isMyXi) {
 
 window.togglePlayer = (id) => {
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
-    if (idx > -1) state.selectedPlayers.splice(idx, 1);
-    else if (state.selectedPlayers.length < 11) state.selectedPlayers.push(state.allPlayers.find(p => p.id === id));
+    if (idx > -1) {
+        state.selectedPlayers.splice(idx, 1);
+        if (state.captainId === id) state.captainId = null;
+        if (state.viceCaptainId === id) state.viceCaptainId = null;
+    } else if (state.selectedPlayers.length < 11) {
+        state.selectedPlayers.push(state.allPlayers.find(p => p.id === id));
+    }
     render();
 };
 
 window.setRole = (id, role) => {
-    if (role === 'C') state.captainId = state.captainId === id ? null : id;
-    else state.viceCaptainId = state.viceCaptainId === id ? null : id;
+    if (role === 'C') {
+        state.captainId = state.captainId === id ? null : id;
+        if (state.captainId && state.viceCaptainId === id) state.viceCaptainId = null;
+    } else {
+        state.viceCaptainId = state.viceCaptainId === id ? null : id;
+        if (state.viceCaptainId && state.captainId === id) state.captainId = null;
+    }
     render();
 };
 
@@ -172,12 +199,35 @@ function setupListeners() {
     });
     document.getElementById("playerSearch").oninput = (e) => { state.filters.search = e.target.value; render(); };
     ['match', 'team', 'credit'].forEach(type => {
-        document.getElementById(`${type}Toggle`).onclick = (e) => {
+        const btn = document.getElementById(`${type}Toggle`);
+        btn.onclick = (e) => {
             e.stopPropagation();
+            ['matchMenu', 'teamMenu', 'creditMenu'].forEach(m => {
+                if(m !== `${type}Menu`) document.getElementById(m).classList.remove('show');
+            });
             document.getElementById(`${type}Menu`).classList.toggle('show');
         };
     });
     document.addEventListener('click', () => document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show')));
+
+    document.getElementById("saveTeamBtn").onclick = async () => {
+        if (state.saving) return;
+        state.saving = true;
+        render(); 
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
+            user_id: user.id, tournament_id: TOURNAMENT_ID,
+            captain_id: state.captainId, vice_captain_id: state.viceCaptainId,
+            total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0)
+        }, { onConflict: 'user_id, tournament_id' }).select().single();
+
+        if(!error && team) {
+            await supabase.from("user_fantasy_team_players").delete().eq("user_fantasy_team_id", team.id);
+            await supabase.from("user_fantasy_team_players").insert(state.selectedPlayers.map(p => ({ user_fantasy_team_id: team.id, player_id: p.id })));
+            document.getElementById("saveTeamBtn").innerText = "SAVED ✓";
+        }
+        setTimeout(() => { state.saving = false; render(); }, 2000);
+    };
 }
 
 init();
