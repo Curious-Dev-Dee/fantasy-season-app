@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
-const ADMIN_EMAIL = "satyara9janshoo@gmail.com"; // 👈 CHANGE THIS TO YOUR ADMIN EMAIL
+const ADMIN_EMAIL = "satyara9jansahoo@gmail.com"; // 👈 CHANGE THIS TO YOUR ADMIN EMAIL
 
 // DOM Elements
 const matchSelect = document.getElementById("matchSelect");
