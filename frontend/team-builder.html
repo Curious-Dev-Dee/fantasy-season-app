@@ -18,16 +18,21 @@
 
         <div class="sticky-controls">
             <section class="premium-progress">
-                <div class="progress-line-container"><div id="progressFill" class="progress-fill"></div></div>
+                <div class="progress-line-container">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
                 <div class="progress-labels">
-                    <div><span id="playerCountLabel">0</span> <small>/ 11</small></div>
-                    <span>Credits: <strong id="creditCount">0</strong></span>
-                    <span>Subs: <strong id="subsRemainingLabel">80</strong></span>
+                    <div class="stat-group">
+                        <span id="playerCountLabel">0</span> <small>/ 11</small>
+                    </div>
+                    <span class="credit-subtext">Credits: <strong id="creditCount">0</strong>/100</span>
+                    <span class="subs-text">Subs: <strong id="subsRemainingLabel">80</strong></span>
                 </div>
             </section>
 
-            <section class="search-filter-wrapper" style="display: none;">
-                <input type="search" id="playerSearch" placeholder="Search player name...">
+            <section id="filterWrapper" class="search-filter-wrapper" style="display: none;">
+                <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off">
+                
                 <div class="role-tabs-container">
                     <button class="role-tab active" data-role="ALL">ALL</button>
                     <button class="role-tab" data-role="WK">WK <span id="count-WK"></span></button>
@@ -35,6 +40,7 @@
                     <button class="role-tab" data-role="AR">AR <span id="count-AR"></span></button>
                     <button class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL"></span></button>
                 </div>
+
                 <div class="dropdown-filters">
                     <div class="dropdown">
                         <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
@@ -56,6 +62,7 @@
             <section id="myxi-view" class="view-mode active">
                 <div id="myXIList" class="player-list"></div>
             </section>
+
             <section id="change-view" class="view-mode">
                 <div id="playerPoolList" class="player-list"></div>
             </section>
@@ -67,6 +74,7 @@
             <button class="toggle-btn" data-mode="change">CHANGE</button>
         </footer>
     </div>
+
     <script type="module" src="edit-team.js"></script>
 </body>
 </html>
