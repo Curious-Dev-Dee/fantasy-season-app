@@ -24,18 +24,20 @@ async function init() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // 1. Fetch Players
     const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
     state.allPlayers = pData || [];
 
-    // Fetch Base Subs for this specific tournament
+    // 2. Fetch Base Subs
     const { data: summary } = await supabase
         .from("dashboard_summary")
         .select("subs_remaining")
         .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID) // 🛡️ Safety Check 1
+        .eq("tournament_id", TOURNAMENT_ID)
         .maybeSingle();
     state.baseSubsRemaining = summary?.subs_remaining ?? 80;
 
+    // 3. Fetch Locked Players from last match
     const { data: lastLock } = await supabase
         .from("user_match_teams")
         .select("id")
@@ -54,6 +56,7 @@ async function init() {
         state.lockedPlayerIds = []; 
     }
 
+    // 4. Fetch Current Saved Team
     const { data: team } = await supabase.from("user_fantasy_teams")
         .select("*")
         .eq("user_id", user.id)
@@ -72,15 +75,16 @@ async function init() {
             .filter(Boolean);
     }
 
+    // 5. Fetch Matches (Note: Using gte might hide past matches during testing)
     const { data: matches } = await supabase
         .from("matches")
         .select("*")
         .eq("tournament_id", TOURNAMENT_ID)
-        .gte("start_time", new Date().toISOString())
         .order("start_time", { ascending: true })
-        .limit(5);
+        .limit(10); 
     state.matches = matches || [];
 
+    // Initialize UI
     initFilters();
     document.querySelector(".search-filter-wrapper").style.display = 'none';
     render();
@@ -92,7 +96,6 @@ function render() {
     const count = state.selectedPlayers.length;
 
     let subsUsedInDraft = 0;
-    // 🛡️ Safety Check 2: Only count subs if at least one match has been locked
     if (state.lockedPlayerIds.length > 0) {
         subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
     }
@@ -104,7 +107,6 @@ function render() {
     document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
     
-    // 🛡️ Safety Check 3: Support both common ID names
     const subsEl = document.getElementById("subsRemainingLabel") || document.getElementById("subsRemaining");
     if (subsEl) subsEl.innerText = liveSubsRemaining;
 
@@ -129,20 +131,22 @@ function render() {
     }
 }
 
-// ... rest of filters and list rendering (KEEP AS IS) ...
-
 function initFilters() {
-    const uniqueTeams = [...new Set(state.allPlayers.map(p => p.team_code || p.team))].filter(Boolean).sort();
-    renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (t) => t);
+    // FIXED: Use real_team_id
+    const uniqueTeams = [...new Set(state.allPlayers.map(p => p.real_team_id))].filter(Boolean).sort();
+    renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (t) => `Team ${t.substring(0,4)}`);
+    
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => c);
-    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `vs ${m.team_away} (${new Date(m.start_time).toLocaleDateString()})`);
+    
+    // FIXED: Use team_a_id and team_b_id for label display
+    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `M#${m.match_number}: ${m.team_a_id.substring(0,3)} vs ${m.team_b_id.substring(0,3)}`);
 }
 
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!items.length) {
-        container.innerHTML = `<div class="filter-item">No data available</div>`;
+        container.innerHTML = `<div class="filter-item">No matches/teams</div>`;
         return;
     }
     container.innerHTML = items.map(item => {
@@ -173,20 +177,29 @@ function renderList(containerId, sourceList, isMyXi) {
         filtered = sourceList.filter(p => {
             if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
             if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
-            if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.team_code || p.team)) return false;
+            
+            // FIXED: Team Filter
+            if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.real_team_id)) return false;
+            
             if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
+            
+            // FIXED: Match Filter Logic
             if (state.filters.matches.length > 0) {
-                const playerTeam = p.team_code || p.team;
-                const inMatch = state.matches.some(m => state.filters.matches.includes(m.id) && (m.team_home === playerTeam || m.team_away === playerTeam));
+                const pTeam = p.real_team_id;
+                const inMatch = state.matches.some(m => 
+                    state.filters.matches.includes(m.id) && (m.team_a_id === pTeam || m.team_b_id === pTeam)
+                );
                 if (!inMatch) return false;
             }
             return true;
         });
     }
+
     if (filtered.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:30px; color:#555;">No players found</div>`;
         return;
     }
+
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
@@ -196,7 +209,9 @@ function renderList(containerId, sourceList, isMyXi) {
                 <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
                 <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
             </div>` : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
-        return `<div class="player-card ${isSelected ? 'selected' : ''}"><div class="avatar-silhouette"></div><div class="player-info"><strong>${p.name} ${isLocked ? '📌' : ''}</strong><span>${p.role} • ${p.team_code || p.team || ''} • ${p.credit} Cr</span></div>${controlsHtml}</div>`;
+        
+        // FIXED: Show abbreviated real_team_id
+        return `<div class="player-card ${isSelected ? 'selected' : ''}"><div class="avatar-silhouette"></div><div class="player-info"><strong>${p.name} ${isLocked ? '📌' : ''}</strong><span>${p.role} • ${p.real_team_id.substring(0,4)} • ${p.credit} Cr</span></div>${controlsHtml}</div>`;
     }).join('');
 }
 
@@ -233,6 +248,7 @@ function setupListeners() {
             document.querySelector(".search-filter-wrapper").style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
+
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -241,12 +257,23 @@ function setupListeners() {
             render();
         };
     });
+
     document.getElementById("playerSearch").oninput = (e) => { state.filters.search = e.target.value; render(); };
+
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
-        btn.onclick = (e) => { e.stopPropagation(); document.getElementById(`${type}Menu`).classList.toggle('show'); };
+        btn.onclick = (e) => { 
+            e.stopPropagation(); 
+            const menu = document.getElementById(`${type}Menu`);
+            const isShowing = menu.classList.contains('show');
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            if(!isShowing) menu.classList.add('show');
+        };
     });
-    document.addEventListener('click', () => { ['matchMenu', 'teamMenu', 'creditMenu'].forEach(id => document.getElementById(id).classList.remove('show')); });
+
+    document.addEventListener('click', () => { 
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+    });
 
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
