@@ -203,6 +203,17 @@ body {
   background: #2d3a4d;
 }
 
+.btn-hint {
+  font-size: 10px;        /* Very small so it doesn't distract */
+  color: #9ca3af;         /* Muted gray color */
+  text-align: center;
+  margin-top: 10px;
+  width: 100%;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
 /* ==========================================================================
    LEADERBOARD STYLES
    ========================================================================== */
