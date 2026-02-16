@@ -177,10 +177,16 @@ function renderTeam(players, captainId, viceCaptainId, statsMap) {
 
         rolePlayers.forEach(p => {
             let pts = statsMap ? (statsMap[p.id] || 0) : null;
-            let displayPts = pts !== null ? `<div class="player-pts">${pts} pts</div>` : "";
+            
+            // --- FIX: Only show points if they are non-zero (Match has started) ---
+            let displayPts = "";
+            if (pts !== null && pts !== 0) {
+                if (p.id === captainId) pts *= 2;
+                if (p.id === viceCaptainId) pts *= 1.5;
+                displayPts = `<div class="player-pts">${pts} pts</div>`;
+            }
 
             const circle = document.createElement("div");
-            // Add the dynamic glow class here
             circle.className = `player-circle ${p.id === captainId ? 'captain' : ''} ${p.id === viceCaptainId ? 'vice-captain' : ''}`;
             
             circle.innerHTML = `
