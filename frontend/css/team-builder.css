@@ -35,11 +35,12 @@ body {
 }
 
 /* --- Header Section --- */
+/* --- Header Section (Updated for Split Layout) --- */
 .edit-header { 
-    padding: 16px; 
+    padding: 12px 16px; /* Adjusted padding for better fit */
     display: flex; 
     align-items: center; 
-    gap: 15px; 
+    justify-content: space-between; /* This pushes titles left and match-info right */
     background: #0b0f14; 
     border-bottom: 1px solid var(--border-color); 
     position: sticky; 
@@ -48,11 +49,51 @@ body {
     height: var(--header-height);
 }
 
+/* Left side grouping */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .icon-back { 
     color: var(--primary-green); 
     text-decoration: none; 
     font-size: 22px; 
-    padding-right: 5px;
+}
+
+.header-info h1 { 
+    font-size: 16px; 
+    font-weight: 800; 
+    color: var(--text-main); 
+    line-height: 1.2;
+}
+
+.header-info p { 
+    font-size: 10px; 
+    color: var(--text-dim); 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Right side grouping (Upcoming Match & Timer) */
+.header-right {
+    text-align: right; /* Aligns text to the right edge */
+}
+
+.match-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: 0.2px;
+}
+
+.match-timer {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-green); /* Highlights the countdown */
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums; /* Prevents text jumping during countdown */
 }
 
 .header-info h1 { font-size: 16px; font-weight: 700; color: var(--text-main); }

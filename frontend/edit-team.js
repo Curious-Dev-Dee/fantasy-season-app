@@ -21,6 +21,9 @@ let state = {
     saving: false 
 };
 
+// --- New: Global Countdown Variable ---
+let countdownInterval;
+
 const getTeamInfo = (id, useShort = false) => {
     const team = state.teamsMap[id];
     if (!team) return "Unknown";
@@ -98,9 +101,48 @@ async function init() {
         .limit(5);
     state.matches = matches || [];
 
-    initFilters(); // RESTORED
+    // --- NEW: Trigger Dynamic Header ---
+    if (state.matches.length > 0) {
+        updateHeaderMatch(state.matches[0]);
+    }
+
+    initFilters();
     render();
     setupListeners();
+}
+
+// --- NEW FUNCTION: Manage Header Match & Countdown ---
+function updateHeaderMatch(match) {
+    const nameEl = document.getElementById("upcomingMatchName");
+    const timerEl = document.getElementById("headerCountdown");
+    
+    if (!nameEl || !timerEl) return;
+
+    nameEl.innerText = `${getTeamInfo(match.team_a_id, true)} vs ${getTeamInfo(match.team_b_id, true)}`;
+    
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    const targetDate = new Date(match.start_time).getTime();
+    
+    const startTimer = () => {
+        const now = new Date().getTime();
+        const diff = targetDate - now;
+
+        if (diff <= 0) {
+            timerEl.innerText = "MATCH LIVE";
+            clearInterval(countdownInterval);
+            return;
+        }
+
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        timerEl.innerText = `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+    };
+
+    startTimer();
+    countdownInterval = setInterval(startTimer, 1000);
 }
 
 function render() {
