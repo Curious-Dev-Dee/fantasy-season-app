@@ -230,37 +230,13 @@ body {
 .player-info span { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* --- Player Controls (C/VC) --- */
-/* --- Fix: Prevent mis-taps by spacing out controls --- */
-.controls { 
-    display: flex; 
-    gap: 12px; /* Increased gap from 8px */
-    align-items: center; 
-    margin-left: auto; /* Pushes controls to the far right */
-}
+.controls { display: flex; gap: 8px; align-items: center; }
 
-/* --- Fix: Pinned Icon Styling --- */
-.pinned-label {
-    font-size: 9px;
-    color: #94a3b8;
-    background: rgba(255,255,255,0.05);
-    padding: 2px 4px;
-    border-radius: 4px;
-    margin-left: 4px;
-    font-weight: 400;
-}
-
-/* --- Fix: Captain/VC Button Styling --- */
 .cv-btn { 
-    width: 34px; 
-    height: 34px; 
-    border-radius: 8px; /* Switched to soft square for better tap area */
-    border: 1px solid var(--border-color); 
-    background: #1e293b;
-    color: var(--text-dim); 
-    font-size: 11px; 
-    font-weight: 800; 
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); 
+    background: transparent; color: var(--text-dim); font-size: 10px; font-weight: 800; 
+    cursor: pointer; transition: 0.2s; 
 }
-
 .cv-btn.active { background: var(--primary-green); color: #000; border-color: var(--primary-green); }
 
 .action-btn-circle { 
@@ -269,21 +245,7 @@ body {
     cursor: pointer; font-size: 18px; font-weight: bold;
 }
 .action-btn-circle.add { color: var(--primary-green); border-color: var(--primary-green); }
-/* --- Fix: Make the Remove button less aggressive --- */
-.action-btn-circle.remove { 
-    width: 28px; /* Slightly smaller than C/VC buttons */
-    height: 28px;
-    background: transparent;
-    color: #94a3b8; /* Dim gray instead of bright red */
-    border: 1px solid #334155; /* Subtle outline */
-    font-size: 16px;
-    margin-left: 8px; /* Extra space to prevent accidental clicks */
-}
-
-.action-btn-circle.remove:hover {
-    color: var(--danger-red);
-    border-color: var(--danger-red);
-}
+.action-btn-circle.remove { color: var(--danger-red); border-color: var(--danger-red); }
 
 /* --- Save Bar (FIXED FOOTER) --- */
 .save-bar { 
