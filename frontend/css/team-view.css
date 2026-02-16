@@ -2,6 +2,8 @@
     --accent: #9AE000;
     --field-center: #1b5e20;
     --field-edge: #061f17;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
 }
 
 body, html {
@@ -10,6 +12,7 @@ body, html {
     background: #000;
     font-family: 'Inter', -apple-system, sans-serif;
     color: #fff;
+    overflow-x: hidden;
 }
 
 .team-view-app {
@@ -21,104 +24,206 @@ body, html {
     flex-direction: column;
 }
 
-/* PREMIUM HEADER */
+/* --- PREMIUM HEADER (POLISHED) --- */
 .premium-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    align-items: center; /* Better vertical alignment */
     padding: 20px 15px;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .back-circle {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     color: var(--accent);
     font-size: 18px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevents button from shrinking */
 }
 
 .header-center {
+    flex: 1; /* Allows title to take up remaining space */
     text-align: center;
+    padding: 0 10px;
+    overflow: hidden; /* Contains the dynamic name */
 }
 
 .main-title {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 800; /* Bolder for "Premium" feel */
     margin: 0;
-    letter-spacing: 0.5px;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Puts "..." if name is too long */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .countdown-text {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--accent);
-    margin-top: 4px;
-    font-weight: 500;
+    margin-top: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .hidden { display: none; }
 
-/* TABS */
+/* Placeholder for header balance */
+.header-right-spacer {
+    width: 40px; /* Matches back-circle width to keep title perfectly centered */
+}
+
+/* --- TABS --- */
 .xi-toggle {
     display: flex;
     justify-content: center;
     gap: 8px;
-    padding: 10px;
+    padding: 15px 10px;
+    background: rgba(0,0,0,0.1);
 }
 
 .xi-tab {
-    padding: 10px 14px;
+    flex: 1; /* Tabs now fill width equally */
+    max-width: 180px;
+    padding: 12px;
     border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    background: var(--card-bg);
     color: #8b949e;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.2s ease;
+    text-align: center;
 }
 
 .xi-tab.active {
     background: var(--accent);
     color: #000;
     border: none;
+    box-shadow: 0 4px 12px rgba(154, 224, 0, 0.3);
 }
 
-/* PLAYER LAYOUT */
-.role-section { margin-bottom: 20px; }
-.role-title { text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px; margin-bottom: 12px; }
-.player-row { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+/* --- PLAYER LAYOUT (FIELD VIEW) --- */
+.team-field {
+    flex: 1;
+    padding: 20px 10px 120px;
+}
 
-.player-circle { width: 85px; text-align: center; position: relative; }
+.role-section { 
+    margin-bottom: 30px; 
+}
+
+.role-title { 
+    text-align: center; 
+    font-size: 10px; 
+    color: rgba(255,255,255,0.4); 
+    letter-spacing: 3px; 
+    margin-bottom: 15px; 
+    text-transform: uppercase;
+}
+
+.player-row { 
+    display: flex; 
+    justify-content: center; 
+    gap: 20px; 
+    flex-wrap: wrap; 
+}
+
+.player-circle { 
+    width: 80px; 
+    text-align: center; 
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .avatar { 
-    width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 6px; 
-    background-color: #0f2f22; border: 2px solid rgba(255,255,255,0.2);
+    width: 54px; 
+    height: 54px; 
+    border-radius: 50%; 
+    margin-bottom: 8px; 
+    background-color: #0f2f22; 
+    border: 2px solid rgba(255,255,255,0.2);
+    /* Note: Keeping your URL per your request to "not fix" console warning now */
     background-image: url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png');
-    background-size: 70%; background-position: center; background-repeat: no-repeat; opacity: 0.8;
+    background-size: 70%; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.player-name { font-size: 11px; font-weight: 500; color: #fff; }
+.player-name { 
+    font-size: 11px; 
+    font-weight: 700; 
+    color: #fff; 
+    background: rgba(0,0,0,0.5);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
 
-/* POINTS STYLE - PRECISE & CLEAN */
 .player-pts {
     font-size: 11px;
     color: var(--accent);
-    font-weight: 800;
-    margin-top: 3px;
+    font-weight: 900;
+    margin-top: 4px;
     text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
+/* --- BADGES --- */
 .badge {
     position: absolute;
-    top: -5px; right: 5px; width: 20px; height: 20px;
-    border-radius: 50%; font-size: 10px; font-weight: 900;
-    display: flex; align-items: center; justify-content: center;
-    color: #000; z-index: 5;
+    top: -4px; 
+    right: 8px; 
+    width: 20px; 
+    height: 20px;
+    border-radius: 50%; 
+    font-size: 10px; 
+    font-weight: 900;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    color: #000; 
+    z-index: 5;
+    border: 1px solid rgba(255,255,255,0.2);
 }
+
 .captain-badge { background: var(--accent); }
 .vice-badge { background: #7cc4ff; }
 
-.team-status { padding: 15px; text-align: center; font-size: 12px; color: #8b949e; background: rgba(0,0,0,0.4); }
+/* --- FOOTER STATUS --- */
+.team-status { 
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    padding: 15px; 
+    text-align: center; 
+    font-size: 12px; 
+    font-weight: 600;
+    color: #8b949e; 
+    background: rgba(0,0,0,0.8); 
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+}
+
+.empty-msg {
+    text-align: center;
+    color: #8b949e;
+    margin-top: 50px;
+    font-weight: 500;
+}
