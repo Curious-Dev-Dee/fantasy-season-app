@@ -15,6 +15,7 @@ const leaderboardContainer = document.getElementById("leaderboardContainer");
 const tournamentNameElement = document.getElementById("tournamentName");
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
+const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
 
 // Modal Elements
 const profileModal = document.getElementById("profileModal");
@@ -29,7 +30,6 @@ let currentUserId = null;
    INIT
 ========================= */
 async function initHome() {
-  // Brief delay to ensure auth state is ready
   await new Promise(resolve => setTimeout(resolve, 500));
   const { data: { session } } = await supabase.auth.getSession();
   
@@ -44,7 +44,6 @@ async function initHome() {
       }
     });
     
-    // Final check for guest users
     const finalCheck = await supabase.auth.getSession();
     if (!finalCheck.data.session) {
         window.location.href = "login.html";
@@ -65,7 +64,6 @@ async function startDashboard(userId) {
   await loadDashboard(userId);
   await loadLeaderboardPreview();
 
-  // Refresh data every 30 seconds for a "Live" feel
   setInterval(() => {
     loadDashboard(userId);
     loadLeaderboardPreview();
@@ -156,7 +154,6 @@ saveProfileBtn.addEventListener("click", async () => {
    DASHBOARD LOGIC
 ========================= */
 async function loadDashboard(userId) {
-  // 1. Identify active tournament
   const { data: activeTournament } = await supabase
     .from("active_tournament")
     .select("*")
@@ -165,14 +162,12 @@ async function loadDashboard(userId) {
   if (!activeTournament) return;
   tournamentNameElement.textContent = activeTournament.name;
 
-  // 2. Fetch Score and Rank from the SAME source (leaderboard_view)
   const { data: stats } = await supabase
     .from("leaderboard_view")
     .select("total_points, rank")
     .eq("user_id", userId)
     .maybeSingle();
 
-  // 3. Fetch Subs Remaining from dashboard_summary
   const { data: summary } = await supabase
     .from("dashboard_summary")
     .select("subs_remaining")
@@ -180,12 +175,10 @@ async function loadDashboard(userId) {
     .eq("tournament_id", activeTournament.id)
     .maybeSingle();
 
-  // Update UI with data or fallbacks
   scoreElement.textContent = stats?.total_points ?? 0;
   rankElement.textContent = stats?.rank ? `#${stats.rank}` : "—";
   subsElement.textContent = summary?.subs_remaining ?? 80;
 
-  // 4. Fetch the next upcoming match to show countdown
   const { data: upcomingMatch } = await supabase
     .from("matches")
     .select("*")
@@ -207,7 +200,6 @@ async function loadDashboard(userId) {
       matchTeamsElement.textContent = `${teamA?.short_code || ""} vs ${teamB?.short_code || ""}`;
     }
 
-    // Locking UI logic
     const isLocked = upcomingMatch.lock_processed === true;
     if (isLocked) {
         editButton.disabled = true;
@@ -269,5 +261,10 @@ function startCountdown(startTime) {
 // Navigation
 editButton.addEventListener("click", () => window.location.href = "team-builder.html");
 viewXiBtn.addEventListener("click", () => window.location.href = "team-view.html");
+
+// New Navigation for Leaderboard
+viewFullLeaderboardBtn.addEventListener("click", () => {
+  window.location.href = "leaderboard.html";
+});
 
 initHome();

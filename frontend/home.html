@@ -34,6 +34,30 @@
     }
     
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* New View All Button Styling */
+    .view-all-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(154, 224, 0, 0.2);
+      color: #9AE000;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .view-all-btn:hover {
+      background: rgba(154, 224, 0, 0.05);
+      border-color: #9AE000;
+    }
   </style>
 </head>
 <body>
@@ -76,12 +100,12 @@
   </section>
 
   <section class="card next-match-card">
-    <p class="section-label">Upcoming Challenge</p>
+    <p class="section-label">Upcoming Match</p>
     <h3 class="match-teams" id="matchTeams">—</h3>
     <p class="match-time" id="matchTime">Loading match...</p>
     <div class="match-actions">
-      <button class="secondary-btn" id="viewXiBtn">View XI</button>
-      <button class="primary-btn" id="editXiBtn">Edit XI</button>
+      <button class="secondary-btn" id="viewXiBtn">View Team</button>
+      <button class="primary-btn" id="editXiBtn">Change</button>
     </div>
   </section>
 
@@ -90,6 +114,9 @@
     <div id="leaderboardContainer">
       <p style="color: #9ca3af; font-size: 13px;">Updating rankings...</p>
     </div>
+    <button class="view-all-btn" id="viewFullLeaderboard">
+      View Full Leaderboard <span>›</span>
+    </button>
   </section>
 
 </div>
