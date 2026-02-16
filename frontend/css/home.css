@@ -94,28 +94,31 @@ body {
 }
 
 /* STATS STRIP */
+/* --- Fix: Prevent "Subs" from hitting the edge --- */
 .stats-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  gap: 16px;
+  justify-content: space-around; /* Changed from space-between to center them better */
+  padding: 12px 10px;            /* Reduced side padding from 18px to 10px */
+  gap: 8px;                      /* Reduced gap slightly to fit icons */
 }
 
 .stat-inline {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;                      /* Tightened icon-to-text gap */
   white-space: nowrap;
+  flex: 1;                       /* Gives each stat equal breathing room */
+  justify-content: center;       /* Centers content within its 1/3rd of the bar */
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;               /* Slightly smaller to save horizontal space */
   color: #9ca3af;
 }
 
 .stat-value {
-  font-size: 16px;
+  font-size: 15px;               /* Slightly smaller to ensure fit */
   font-weight: 600;
   color: #ffffff;
 }
