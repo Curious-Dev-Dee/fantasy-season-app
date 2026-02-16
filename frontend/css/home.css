@@ -17,12 +17,29 @@ body {
   padding: 20px;
 }
 
+/* --- Fix: Reduce Header Dominance --- */
 .app-header h1 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 22px;
+  font-size: 17px; /* Reduced from 20px */
+  font-weight: 500; /* Reduced from 600 */
+  color: #9ca3af;   /* Muted gray instead of bright white */
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
+/* --- Fix: Stats Icons Styling --- */
+.stat-icon {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* Tweak stat-inline for better icon alignment */
+.stat-inline {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Tighter gap for icon+text */
+  white-space: nowrap;
+}
 /* ==========================================================================
    CARD STYLES
    ========================================================================== */
