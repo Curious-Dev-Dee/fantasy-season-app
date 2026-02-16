@@ -10,10 +10,17 @@ const tabs = document.querySelectorAll(".xi-tab");
 const viewTitle = document.getElementById("viewTitle"); 
 
 let userId, tournamentId, countdownInterval, isScoutMode = false;
+let realTeamsMap = {};
 
 init();
 
-async function init() {
+
+async function init()
+ {
+
+  const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
+realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = "login.html"; return; }
 
@@ -170,19 +177,18 @@ function renderTeam(players, captainId, viceCaptainId, statsMap) {
 
         rolePlayers.forEach(p => {
             let pts = statsMap ? (statsMap[p.id] || 0) : null;
-            let displayPts = "";
-            if (pts !== null) {
-                if (p.id === captainId) pts *= 2;
-                if (p.id === viceCaptainId) pts *= 1.5;
-                displayPts = `<div class="player-pts">${pts} pts</div>`;
-            }
+            let displayPts = pts !== null ? `<div class="player-pts">${pts} pts</div>` : "";
 
             const circle = document.createElement("div");
+            // Add the dynamic glow class here
             circle.className = `player-circle ${p.id === captainId ? 'captain' : ''} ${p.id === viceCaptainId ? 'vice-captain' : ''}`;
+            
             circle.innerHTML = `
                 ${p.id === captainId ? '<div class="badge captain-badge">C</div>' : ''}
                 ${p.id === viceCaptainId ? '<div class="badge vice-badge">VC</div>' : ''}
-                <div class="avatar"></div>
+                <div class="avatar">
+                    <div class="team-init-label">${realTeamsMap[p.real_team_id] || 'TBA'}</div>
+                </div>
                 <div class="player-name">${p.name}</div>
                 ${displayPts}
             `;
