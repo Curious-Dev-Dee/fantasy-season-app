@@ -212,24 +212,46 @@ function initFilters() {
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!container) return;
-    container.innerHTML = items.map(item => {
+
+    // Build the list items
+    const listHtml = items.map(item => {
         const value = typeof item === 'object' ? item.id : item;
         const label = labelFn(item);
         const isChecked = state.filters[filterKey].includes(value) ? 'checked' : '';
-        return `<label class="filter-item"><input type="checkbox" value="${value}" ${isChecked} onchange="toggleFilter('${filterKey}', '${value}', this)"><span>${label}</span></label>`;
+        return `
+            <label class="filter-item">
+                <input type="checkbox" value="${value}" ${isChecked} 
+                       onchange="toggleFilter('${filterKey}', '${value}', this)">
+                <span>${label}</span>
+            </label>`;
     }).join('');
+
+    // Add the new Action Buttons
+    container.innerHTML = `
+        <div class="dropdown-content">${listHtml}</div>
+        <div class="dropdown-actions">
+            <button class="filter-action-btn clear" onclick="clearFilters('${filterKey}')">Clear</button>
+            <button class="filter-action-btn all" onclick="selectAllFilters('${filterKey}', '${elementId}')">All</button>
+        </div>
+    `;
 }
 
-window.toggleFilter = (key, value, checkbox) => {
-    if (key === 'credits') value = parseFloat(value);
-    if (checkbox.checked) {
-        state.filters[key].push(value);
-    } else {
-        state.filters[key] = state.filters[key].filter(item => String(item) !== String(value));
-    }
-    const btnId = key === 'teams' ? 'teamToggle' : key === 'matches' ? 'matchToggle' : 'creditToggle';
-    const btn = document.getElementById(btnId);
-    if (btn) btn.innerText = state.filters[key].length > 0 ? `${key.charAt(0).toUpperCase() + key.slice(1)} (${state.filters[key].length})` : `${key.charAt(0).toUpperCase() + key.slice(1)} ▼`;
+// Global helper to Select All
+window.selectAllFilters = (key, menuId) => {
+    const checkboxes = document.querySelectorAll(`#${menuId} input[type="checkbox"]`);
+    state.filters[key] = Array.from(checkboxes).map(cb => {
+        cb.checked = true;
+        return key === 'credits' ? parseFloat(cb.value) : cb.value;
+    });
+    render();
+};
+
+// Global helper to Clear All
+window.clearFilters = (key) => {
+    state.filters[key] = [];
+    const menuId = key === 'teams' ? 'teamMenu' : key === 'matches' ? 'matchMenu' : 'creditMenu';
+    const checkboxes = document.querySelectorAll(`#${menuId} input[type="checkbox"]`);
+    checkboxes.forEach(cb => cb.checked = false);
     render();
 };
 
