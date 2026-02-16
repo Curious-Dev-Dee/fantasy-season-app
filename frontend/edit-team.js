@@ -31,96 +31,84 @@ const getTeamInfo = (id, useShort = false) => {
 };
 
 async function init() {
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            window.location.href = "login.html";
-            return;
-        }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-        // 1. Fetch Real Teams (Essential for getTeamInfo)
-        const { data: tData } = await supabase.from("real_teams").select("*").eq("tournament_id", TOURNAMENT_ID);
-        if (tData) {
-            tData.forEach(t => {
-                state.teamsMap[t.id] = { name: t.name, short_code: t.short_code };
-            });
-        }
-
-        // 2. Fetch Active Players
-        const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
-        state.allPlayers = pData || [];
-
-        // 3. Fetch Subs & Profile
-        const { data: summary } = await supabase
-            .from("dashboard_summary")
-            .select("subs_remaining")
-            .eq("user_id", user.id)
-            .eq("tournament_id", TOURNAMENT_ID)
-            .maybeSingle();
-        state.baseSubsRemaining = summary?.subs_remaining ?? 80;
-
-        // 4. Fetch Current Team (What they have now)
-        const { data: team } = await supabase.from("user_fantasy_teams")
-            .select("*")
-            .eq("user_id", user.id)
-            .eq("tournament_id", TOURNAMENT_ID)
-            .maybeSingle();
-
-        if (team) {
-            state.captainId = team.captain_id;
-            state.viceCaptainId = team.vice_captain_id;
-            const { data: pIds } = await supabase.from("user_fantasy_team_players")
-                .select("player_id")
-                .eq("user_fantasy_team_id", team.id);
-            
-            state.selectedPlayers = (pIds || [])
-                .map(row => state.allPlayers.find(p => p.id === row.player_id))
-                .filter(Boolean);
-        }
-
-        // 5. Fetch Last Locked Team (For Subs Calculation)
-        const { data: lastLock } = await supabase
-            .from("user_match_teams")
-            .select("id")
-            .eq("user_id", user.id)
-            .order("locked_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (lastLock) {
-            const { data: lp } = await supabase
-                .from("user_match_team_players")
-                .select("player_id")
-                .eq("user_match_team_id", lastLock.id);
-            state.lockedPlayerIds = (lp || []).map(p => p.player_id);
-        }
-
-        // 6. Fetch Upcoming Matches
-        const { data: matches } = await supabase
-            .from("matches")
-            .select("*")
-            .eq("tournament_id", TOURNAMENT_ID)
-            .gt("start_time", new Date().toISOString())
-            .order("start_time", { ascending: true })
-            .limit(5);
-        state.matches = matches || [];
-
-        // UI Initialization
-        if (state.matches.length > 0) {
-            updateHeaderMatch(state.matches[0]);
-        } else {
-            const matchNameEl = document.getElementById("upcomingMatchName");
-            if (matchNameEl) matchNameEl.innerText = "No Upcoming Matches";
-        }
-
-        initFilters();
-        setupListeners(); // Attach button clicks
-        render();         // Finally, draw the players on screen
-
-    } catch (err) {
-        console.error("Initialization Error:", err);
-        alert("Failed to load team data. Please refresh.");
+    // 1. Fetch Real Teams
+    const { data: tData } = await supabase.from("real_teams").select("*").eq("tournament_id", TOURNAMENT_ID);
+    if (tData) {
+        tData.forEach(t => {
+            state.teamsMap[t.id] = { name: t.name, short_code: t.short_code };
+        });
     }
+
+    // 2. Fetch Active Players
+    const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
+    state.allPlayers = pData || [];
+
+    // 3. Fetch Subs
+    const { data: summary } = await supabase
+        .from("dashboard_summary")
+        .select("subs_remaining")
+        .eq("user_id", user.id)
+        .eq("tournament_id", TOURNAMENT_ID)
+        .maybeSingle();
+    state.baseSubsRemaining = summary?.subs_remaining ?? 80;
+
+    // 4. Fetch Last Locked Team
+    const { data: lastLock } = await supabase
+        .from("user_match_teams")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("locked_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (lastLock) {
+        const { data: lp } = await supabase
+            .from("user_match_team_players")
+            .select("player_id")
+            .eq("user_match_team_id", lastLock.id);
+        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
+    }
+
+    // 5. Fetch Current Team
+    const { data: team } = await supabase.from("user_fantasy_teams")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("tournament_id", TOURNAMENT_ID)
+        .maybeSingle();
+
+    if (team) {
+        state.captainId = team.captain_id;
+        state.viceCaptainId = team.vice_captain_id;
+        const { data: pIds } = await supabase.from("user_fantasy_team_players")
+            .select("player_id")
+            .eq("user_fantasy_team_id", team.id);
+        
+        state.selectedPlayers = (pIds || [])
+            .map(row => state.allPlayers.find(p => p.id === row.player_id))
+            .filter(Boolean);
+    }
+
+    // 6. Fetch Next 5 UPCOMING matches
+    const { data: matches } = await supabase
+        .from("matches")
+        .select("*")
+        .eq("tournament_id", TOURNAMENT_ID)
+        .gt("start_time", new Date().toISOString())
+        .order("start_time", { ascending: true })
+        .limit(5);
+    state.matches = matches || [];
+
+    // --- NEW: Trigger Dynamic Header ---
+    if (state.matches.length > 0) {
+        updateHeaderMatch(state.matches[0]);
+    }
+
+    initFilters();
+    render();
+    setupListeners();
 }
 
 // --- NEW FUNCTION: Manage Header Match & Countdown ---
@@ -351,48 +339,36 @@ function setupListeners() {
     });
 
     document.getElementById("saveTeamBtn").onclick = async () => {
-    if (state.saving) return;
+        if (state.saving) return;
+        state.saving = true;
+        render(); 
 
-    // 1. Time-Gate Check
-    const upcomingMatch = state.matches[0];
-    if (upcomingMatch) {
-        const startTime = new Date(upcomingMatch.start_time).getTime();
-        const now = new Date().getTime();
-        
-        if (now >= startTime) {
-            alert("Match has already started! You can no longer save changes for this round.");
-            window.location.href = "home.html"; // Redirect back
-            return;
+        const { data: { user } } = await supabase.auth.getUser();
+        const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
+
+        const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
+            user_id: user.id, 
+            tournament_id: TOURNAMENT_ID,
+            captain_id: state.captainId, 
+            vice_captain_id: state.viceCaptainId,
+            total_credits: totalCredits
+        }, { onConflict: 'user_id, tournament_id' }).select().single();
+
+        if(!error && team) {
+            await supabase.from("user_fantasy_team_players").delete().eq("user_fantasy_team_id", team.id);
+            if(state.selectedPlayers.length > 0) {
+                await supabase.from("user_fantasy_team_players").insert(
+                    state.selectedPlayers.map(p => ({ user_fantasy_team_id: team.id, player_id: p.id }))
+                );
+            }
+            showSuccessModal();
+        } else {
+            alert("Error saving team.");
         }
-    }
-
-    state.saving = true;
-    render(); 
-
-    const { data: { user } } = await supabase.auth.getUser();
-    const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const playerIds = state.selectedPlayers.map(p => p.id); // Extract just the IDs
-
-    // Use RPC (Remote Procedure Call) for an atomic save
-    const { error } = await supabase.rpc('save_fantasy_team_atomic', {
-        p_user_id: user.id,
-        p_tournament_id: TOURNAMENT_ID,
-        p_captain_id: state.captainId,
-        p_vice_captain_id: state.viceCaptainId,
-        p_total_credits: totalCredits,
-        p_player_ids: playerIds
-    });
-
-    if (!error) {
-        showSuccessModal();
-    } else {
-        console.error("Atomic Save Error:", error);
-        alert("Error saving team: " + error.message);
-    }
-    
-    state.saving = false;
-    render();
-};
+        state.saving = false;
+        render();
+    };
+}
 
 function showSuccessModal() {
     const nextMatch = state.matches[0];
@@ -417,4 +393,4 @@ function showSuccessModal() {
     document.getElementById("btnGoHome").onclick = () => window.location.href = "home.html";
 }
 
-init();}
+init();
