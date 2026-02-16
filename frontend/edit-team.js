@@ -353,7 +353,7 @@ function setupListeners() {
             return;
         }
     }
-    
+
     state.saving = true;
     render(); 
 
@@ -405,4 +405,4 @@ function showSuccessModal() {
     document.getElementById("btnGoHome").onclick = () => window.location.href = "home.html";
 }
 
-init();
+init();}
