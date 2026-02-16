@@ -31,84 +31,96 @@ const getTeamInfo = (id, useShort = false) => {
 };
 
 async function init() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
 
-    // 1. Fetch Real Teams
-    const { data: tData } = await supabase.from("real_teams").select("*").eq("tournament_id", TOURNAMENT_ID);
-    if (tData) {
-        tData.forEach(t => {
-            state.teamsMap[t.id] = { name: t.name, short_code: t.short_code };
-        });
+        // 1. Fetch Real Teams (Essential for getTeamInfo)
+        const { data: tData } = await supabase.from("real_teams").select("*").eq("tournament_id", TOURNAMENT_ID);
+        if (tData) {
+            tData.forEach(t => {
+                state.teamsMap[t.id] = { name: t.name, short_code: t.short_code };
+            });
+        }
+
+        // 2. Fetch Active Players
+        const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
+        state.allPlayers = pData || [];
+
+        // 3. Fetch Subs & Profile
+        const { data: summary } = await supabase
+            .from("dashboard_summary")
+            .select("subs_remaining")
+            .eq("user_id", user.id)
+            .eq("tournament_id", TOURNAMENT_ID)
+            .maybeSingle();
+        state.baseSubsRemaining = summary?.subs_remaining ?? 80;
+
+        // 4. Fetch Current Team (What they have now)
+        const { data: team } = await supabase.from("user_fantasy_teams")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("tournament_id", TOURNAMENT_ID)
+            .maybeSingle();
+
+        if (team) {
+            state.captainId = team.captain_id;
+            state.viceCaptainId = team.vice_captain_id;
+            const { data: pIds } = await supabase.from("user_fantasy_team_players")
+                .select("player_id")
+                .eq("user_fantasy_team_id", team.id);
+            
+            state.selectedPlayers = (pIds || [])
+                .map(row => state.allPlayers.find(p => p.id === row.player_id))
+                .filter(Boolean);
+        }
+
+        // 5. Fetch Last Locked Team (For Subs Calculation)
+        const { data: lastLock } = await supabase
+            .from("user_match_teams")
+            .select("id")
+            .eq("user_id", user.id)
+            .order("locked_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (lastLock) {
+            const { data: lp } = await supabase
+                .from("user_match_team_players")
+                .select("player_id")
+                .eq("user_match_team_id", lastLock.id);
+            state.lockedPlayerIds = (lp || []).map(p => p.player_id);
+        }
+
+        // 6. Fetch Upcoming Matches
+        const { data: matches } = await supabase
+            .from("matches")
+            .select("*")
+            .eq("tournament_id", TOURNAMENT_ID)
+            .gt("start_time", new Date().toISOString())
+            .order("start_time", { ascending: true })
+            .limit(5);
+        state.matches = matches || [];
+
+        // UI Initialization
+        if (state.matches.length > 0) {
+            updateHeaderMatch(state.matches[0]);
+        } else {
+            const matchNameEl = document.getElementById("upcomingMatchName");
+            if (matchNameEl) matchNameEl.innerText = "No Upcoming Matches";
+        }
+
+        initFilters();
+        setupListeners(); // Attach button clicks
+        render();         // Finally, draw the players on screen
+
+    } catch (err) {
+        console.error("Initialization Error:", err);
+        alert("Failed to load team data. Please refresh.");
     }
-
-    // 2. Fetch Active Players
-    const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
-    state.allPlayers = pData || [];
-
-    // 3. Fetch Subs
-    const { data: summary } = await supabase
-        .from("dashboard_summary")
-        .select("subs_remaining")
-        .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID)
-        .maybeSingle();
-    state.baseSubsRemaining = summary?.subs_remaining ?? 80;
-
-    // 4. Fetch Last Locked Team
-    const { data: lastLock } = await supabase
-        .from("user_match_teams")
-        .select("id")
-        .eq("user_id", user.id)
-        .order("locked_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (lastLock) {
-        const { data: lp } = await supabase
-            .from("user_match_team_players")
-            .select("player_id")
-            .eq("user_match_team_id", lastLock.id);
-        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
-    }
-
-    // 5. Fetch Current Team
-    const { data: team } = await supabase.from("user_fantasy_teams")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID)
-        .maybeSingle();
-
-    if (team) {
-        state.captainId = team.captain_id;
-        state.viceCaptainId = team.vice_captain_id;
-        const { data: pIds } = await supabase.from("user_fantasy_team_players")
-            .select("player_id")
-            .eq("user_fantasy_team_id", team.id);
-        
-        state.selectedPlayers = (pIds || [])
-            .map(row => state.allPlayers.find(p => p.id === row.player_id))
-            .filter(Boolean);
-    }
-
-    // 6. Fetch Next 5 UPCOMING matches
-    const { data: matches } = await supabase
-        .from("matches")
-        .select("*")
-        .eq("tournament_id", TOURNAMENT_ID)
-        .gt("start_time", new Date().toISOString())
-        .order("start_time", { ascending: true })
-        .limit(5);
-    state.matches = matches || [];
-
-    // --- NEW: Trigger Dynamic Header ---
-    if (state.matches.length > 0) {
-        updateHeaderMatch(state.matches[0]);
-    }
-
-    initFilters();
-    render();
-    setupListeners();
 }
 
 // --- NEW FUNCTION: Manage Header Match & Countdown ---
