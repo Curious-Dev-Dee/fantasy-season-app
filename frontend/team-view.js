@@ -7,7 +7,7 @@ const tabLocked = document.getElementById("tabLocked");
 const countdownContainer = document.getElementById("countdownContainer");
 const timerDisplay = document.getElementById("timer");
 const tabs = document.querySelectorAll(".xi-tab");
-const viewTitle = document.getElementById("viewTitle"); // Ensure this ID exists in your HTML h1
+const viewTitle = document.getElementById("viewTitle"); 
 
 let userId, tournamentId, countdownInterval, isScoutMode = false;
 
@@ -17,23 +17,37 @@ async function init() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = "login.html"; return; }
 
-    // 1. Determine if we are scouting someone else
+    // 1. Determine Identity and Mode
     const urlParams = new URLSearchParams(window.location.search);
     const scoutUid = urlParams.get('uid');
     const scoutName = urlParams.get('name');
 
     if (scoutUid && scoutUid !== session.user.id) {
+        // --- SCOUT MODE ---
         userId = scoutUid;
         isScoutMode = true;
-        if (viewTitle) viewTitle.textContent = `${scoutName}'s XI`;
         
-        // Hide the strategy tab for opponents
+        // Dynamic title from Leaderboard click
+        if (viewTitle) viewTitle.textContent = scoutName || "User Team";
+        
         tabUpcoming.style.display = 'none';
         tabLocked.classList.add("active");
         tabUpcoming.classList.remove("active");
     } else {
+        // --- PERSONAL MODE ---
         userId = session.user.id;
         isScoutMode = false;
+
+        // Fetch your own team name from leaderboard_view
+        const { data: myData } = await supabase
+            .from("leaderboard_view")
+            .select("team_name")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        if (viewTitle) {
+            viewTitle.textContent = myData?.team_name || "My XI";
+        }
     }
 
     const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
@@ -42,19 +56,14 @@ async function init() {
 
     await setupMatchTabs();
 
-    // 2. Load the correct view based on mode
-    if (isScoutMode) {
-        loadLastLockedXI();
-    } else {
-        loadCurrentXI();
-    }
+    // 2. Load Content
+    isScoutMode ? loadLastLockedXI() : loadCurrentXI();
 }
 
 async function setupMatchTabs() {
     const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
     const tMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
-    // Only fetch upcoming if not in scout mode
     if (!isScoutMode) {
         const { data: upcoming } = await supabase.from("matches")
             .select("*").eq("tournament_id", tournamentId)
@@ -103,7 +112,7 @@ function startCountdown(startTime) {
 }
 
 async function loadCurrentXI() {
-    if (isScoutMode) return; // Hard block for scout mode
+    if (isScoutMode) return; 
     
     clearInterval(countdownInterval);
     if (tabUpcoming.dataset.startTime) startCountdown(tabUpcoming.dataset.startTime);
