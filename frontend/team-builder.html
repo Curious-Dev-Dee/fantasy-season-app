@@ -2,80 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cricket Experts · Edit Team</title>
-    <link rel="stylesheet" href="css/team-builder.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Team · Cricket Experts</title>
+    <link rel="stylesheet" href="css/edit-team.css">
 </head>
 <body>
-    <div class="app">
-        <header class="edit-header">
-            <a href="home.html" class="icon-back">←</a>
-            <div class="header-info">
-                <h1>Edit Team</h1>
-                <p>Tournament Selection</p>
+
+<div class="app-container">
+    <header class="edit-header">
+        <a href="home.html" class="icon-back">←</a>
+        <div class="header-info">
+            <h1>Edit Team</h1>
+            <p id="tournamentName">Tournament Selection</p>
+        </div>
+    </header>
+
+    <div class="sticky-controls">
+        <div class="premium-progress">
+            <div class="progress-line-container">
+                <div id="progressFill" class="progress-fill"></div>
             </div>
-        </header>
-
-        <div class="sticky-controls">
-            <section class="premium-progress">
-                <div class="progress-line-container">
-                    <div id="progressFill" class="progress-fill"></div>
+            <div class="progress-labels">
+                <div class="stat-group">
+                    <span id="playerCountLabel">0</span><small>/11</small>
                 </div>
-                <div class="progress-labels">
-                    <div class="stat-group">
-                        <span id="playerCountLabel">0</span>
-                        <small>/ 11</small>
-                    </div>
-                    <span class="credit-subtext">Credits: <strong id="creditCount">0</strong>/100</span>
-                    <span class="subs-text">Subs: <strong id="subsRemainingLabel">80</strong></span>
+                <div class="credit-subtext">
+                    Credits: <strong id="creditCount">0</strong>/100
                 </div>
-            </section>
-
-            <section class="search-filter-wrapper">
-                <input type="search" id="playerSearch" placeholder="Search player name..." autocomplete="off">
-                
-                <div class="role-tabs-container">
-                    <button class="role-tab active" data-role="ALL">ALL</button>
-                    <button class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></button>
-                    <button class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></button>
-                    <button class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></button>
-                    <button class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></button>
+                <div class="subs-text">
+                    Subs: <strong id="subsRemainingLabel">80</strong>
                 </div>
-
-                <div class="dropdown-filters">
-                    <div class="dropdown">
-                        <button class="dropdown-toggle" id="matchToggle">Match ▼</button>
-                        <div class="dropdown-menu" id="matchMenu"></div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdown-toggle" id="teamToggle">Team ▼</button>
-                        <div class="dropdown-menu scrollable" id="teamMenu"></div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdown-toggle" id="creditToggle">Credit ▼</button>
-                        <div class="dropdown-menu scrollable" id="creditMenu"></div>
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
 
-        <main class="content">
-            <section id="myxi-view" class="view-mode edit-mode active">
-                <div id="myXIList" class="player-list"></div>
-            </section>
+        <div class="view-tabs">
+            <button class="toggle-btn" data-mode="myxi">MY XI</button>
+            <button class="toggle-btn active" data-mode="playerPool">CHANGE</button>
+        </div>
 
-            <section id="change-view" class="view-mode edit-mode">
-                <div id="playerPoolList" class="player-list"></div>
-            </section>
-        </main>
+        <div class="search-filter-wrapper">
+            <input type="text" id="playerSearch" placeholder="Search player name...">
+            
+            <div class="role-tabs-container">
+                <div class="role-tab active" data-role="ALL">ALL</div>
+                <div class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></div>
+                <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
+                <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
+                <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
+            </div>
 
-        <footer class="nav-bar save-bar disabled">
-            <button class="nav-item toggle-btn active" data-mode="myxi">MY XI</button>
-            <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
-            <button class="nav-item toggle-btn" data-mode="change">CHANGE</button>
-        </footer>
+            <div class="dropdown-filters">
+                <div class="dropdown">
+                    <button id="matchToggle" class="dropdown-toggle">Match ▼</button>
+                    <div id="matchMenu" class="dropdown-menu"></div>
+                </div>
+                <div class="dropdown">
+                    <button id="teamToggle" class="dropdown-toggle">Team ▼</button>
+                    <div id="teamMenu" class="dropdown-menu"></div>
+                </div>
+                <div class="dropdown">
+                    <button id="creditToggle" class="dropdown-toggle">Credit ▼</button>
+                    <div id="creditMenu" class="dropdown-menu"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script type="module" src="edit-team.js"></script>
+    <main class="content-area">
+        <div id="myxi-view" class="view-mode">
+            <div id="myXIList" class="player-list"></div>
+        </div>
+
+        <div id="playerPool-view" class="view-mode active">
+            <div id="playerPoolList" class="player-list"></div>
+        </div>
+    </main>
+
+    <div class="save-bar">
+        <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
+    </div>
+</div>
+
+<script type="module" src="edit-team.js"></script>
 </body>
 </html>
