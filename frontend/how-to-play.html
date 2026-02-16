@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Experts · How to Play</title>
+    <style>
+        :root {
+            --primary-green: #9be15d;
+            --bg-dark: #0c1117;
+            --card-bg: #111827;
+            --border: #1f2937;
+            --text-main: #f3f4f6;
+            --text-dim: #9ca3af;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container { max-width: 480px; margin: 0 auto; padding: 20px; }
+        header { margin-bottom: 25px; }
+        .back-link { color: var(--primary-green); text-decoration: none; font-size: 14px; display: block; margin-bottom: 8px; }
+        h1 { font-size: 26px; margin: 0; color: #fff; }
+
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 60px;
+            font-weight: 900;
+            color: rgba(155, 225, 93, 0.05);
+            line-height: 1;
+        }
+
+        h2 { font-size: 18px; color: var(--primary-green); margin-top: 0; }
+        h3 { font-size: 14px; margin-bottom: 10px; color: #fff; }
+
+        .rule-list { list-style: none; padding: 0; margin: 0; }
+        .rule-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .rule-list li:last-child { border-bottom: none; }
+        .val { font-weight: 700; color: var(--primary-green); }
+
+        .highlight-text {
+            background: rgba(155, 225, 93, 0.1);
+            color: var(--primary-green);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-top: 15px;
+            border: 1px dashed var(--primary-green);
+        }
+
+        .phase-badge {
+            display: inline-block;
+            background: #1e293b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <a href="more.html" class="back-link">← Back</a>
+        <h1>How to Play</h1>
+    </header>
+
+    <div class="step-card">
+        <div class="step-number">01</div>
+        <h2>Build Your XI</h2>
+        <h3>Position Requirements:</h3>
+        <ul class="rule-list">
+            <li>Wicket-Keepers <span class="val">1 - 4</span></li>
+            <li>Batters <span class="val">3 - 6</span></li>
+            <li>All-Rounders <span class="val">1 - 4</span></li>
+            <li>Bowlers <span class="val">3 - 6</span></li>
+        </ul>
+        <h3 style="margin-top:20px;">The Constraints:</h3>
+        <ul class="rule-list">
+            <li>Total Credits <span class="val">100 Max</span></li>
+            <li>Players from 1 Team <span class="val">Max 6</span></li>
+        </ul>
+        <div class="highlight-text">
+            ⚠️ <strong>Don't forget:</strong> You must select a <strong>Captain (2x pts)</strong> and <strong>Vice-Captain (1.5x pts)</strong> to save your team.
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">02</div>
+        <h2>Substitution Rules</h2>
+        <p style="font-size:14px; color:var(--text-dim);">Subs are deducted based on changes made between your last locked team and your current save.</p>
+        
+        <div class="phase-badge">Phase 1: Group Stage</div>
+        <ul class="rule-list">
+            <li>Total Subs <span class="val">80</span></li>
+        </ul>
+
+        <div class="phase-badge" style="margin-top:15px;">Phase 2: Super 8s</div>
+        <ul class="rule-list">
+            <li>New Subs Added <span class="val">+30</span></li>
+            <li>Reset <span class="val">Unlimited Before Super 8s</span></li>
+        </ul>
+
+        <div class="highlight-text">
+            ✨ <strong>Free Transfers:</strong> Unlimited edits are allowed before the tournament starts and between phases!
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">03</div>
+        <h2>Locking & Scoring</h2>
+        <h3>Match Deadlines:</h3>
+        <p style="font-size:13px; color:var(--text-dim);">
+            Your team is <strong>Locked 🔒</strong> at the exact start time of each match. Any edits made after the deadline will only count for the <strong>next</strong> match.
+        </p>
+
+        <h3 style="margin-top:20px;">Points Update:</h3>
+        <p style="font-size:13px; color:var(--text-dim);">
+            Points are finalized and rankings are updated shortly after a match completes and the <strong>Player of the Match</strong> is announced.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>
