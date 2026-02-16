@@ -83,10 +83,17 @@ function renderLeaderboard(leaderboard, userId) {
       div.classList.add("you");
     }
 
+    // NEW: Add Click Logic to Scout other teams
+    div.onclick = () => {
+      // Passes User ID and Team Name to the Team View page
+      window.location.href = `team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name)}`;
+    };
+
     div.innerHTML = `
       <div class="leader-rank">#${row.rank}</div>
       <div class="leader-team">${row.team_name}</div>
       <div class="leader-points">${row.total_points}</div>
+      <div class="leader-arrow">›</div>
     `;
 
     leaderboardContainer.appendChild(div);

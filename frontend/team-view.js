@@ -7,36 +7,64 @@ const tabLocked = document.getElementById("tabLocked");
 const countdownContainer = document.getElementById("countdownContainer");
 const timerDisplay = document.getElementById("timer");
 const tabs = document.querySelectorAll(".xi-tab");
+const viewTitle = document.getElementById("viewTitle"); // Ensure this ID exists in your HTML h1
 
-let userId, tournamentId, countdownInterval;
+let userId, tournamentId, countdownInterval, isScoutMode = false;
 
 init();
 
 async function init() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = "login.html"; return; }
-    userId = session.user.id;
+
+    // 1. Determine if we are scouting someone else
+    const urlParams = new URLSearchParams(window.location.search);
+    const scoutUid = urlParams.get('uid');
+    const scoutName = urlParams.get('name');
+
+    if (scoutUid && scoutUid !== session.user.id) {
+        userId = scoutUid;
+        isScoutMode = true;
+        if (viewTitle) viewTitle.textContent = `${scoutName}'s XI`;
+        
+        // Hide the strategy tab for opponents
+        tabUpcoming.style.display = 'none';
+        tabLocked.classList.add("active");
+        tabUpcoming.classList.remove("active");
+    } else {
+        userId = session.user.id;
+        isScoutMode = false;
+    }
 
     const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
     if (!activeTournament) return;
     tournamentId = activeTournament.id;
 
     await setupMatchTabs();
-    loadCurrentXI(); 
+
+    // 2. Load the correct view based on mode
+    if (isScoutMode) {
+        loadLastLockedXI();
+    } else {
+        loadCurrentXI();
+    }
 }
 
 async function setupMatchTabs() {
     const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
     const tMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
-    const { data: upcoming } = await supabase.from("matches")
-        .select("*").eq("tournament_id", tournamentId)
-        .gt("start_time", new Date().toISOString())
-        .order("start_time", { ascending: true }).limit(1).maybeSingle();
+    // Only fetch upcoming if not in scout mode
+    if (!isScoutMode) {
+        const { data: upcoming } = await supabase.from("matches")
+            .select("*").eq("tournament_id", tournamentId)
+            .gt("start_time", new Date().toISOString())
+            .order("start_time", { ascending: true }).limit(1).maybeSingle();
 
-    if (upcoming) {
-        tabUpcoming.innerHTML = `${tMap[upcoming.team_a_id]} vs ${tMap[upcoming.team_b_id]} 🔓`;
-        tabUpcoming.dataset.startTime = upcoming.start_time;
+        if (upcoming) {
+            tabUpcoming.innerHTML = `${tMap[upcoming.team_a_id]} vs ${tMap[upcoming.team_b_id]} 🔓`;
+            tabUpcoming.dataset.startTime = upcoming.start_time;
+        }
     }
 
     const { data: lastLocked } = await supabase.from("user_match_teams")
@@ -45,10 +73,13 @@ async function setupMatchTabs() {
     if (lastLocked) {
         const { data: mInfo } = await supabase.from("matches").select("*").eq("id", lastLocked.match_id).single();
         tabLocked.innerHTML = `${tMap[mInfo.team_a_id]} vs ${tMap[mInfo.team_b_id]} 🔒`;
+    } else if (isScoutMode) {
+        teamStatus.textContent = "No match history for this user.";
     }
 
     tabs.forEach(tab => {
         tab.addEventListener("click", () => {
+            if (tab.style.display === 'none') return;
             tabs.forEach(t => t.classList.remove("active"));
             tab.classList.add("active");
             tab.dataset.tab === "current" ? loadCurrentXI() : loadLastLockedXI();
@@ -72,13 +103,18 @@ function startCountdown(startTime) {
 }
 
 async function loadCurrentXI() {
+    if (isScoutMode) return; // Hard block for scout mode
+    
     clearInterval(countdownInterval);
     if (tabUpcoming.dataset.startTime) startCountdown(tabUpcoming.dataset.startTime);
 
     const { data: userTeam } = await supabase.from("user_fantasy_teams").select("*")
         .eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle();
 
-    if (!userTeam) return;
+    if (!userTeam) {
+        teamContainer.innerHTML = "<p class='empty-msg'>Team not created yet.</p>";
+        return;
+    }
 
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
@@ -94,7 +130,10 @@ async function loadLastLockedXI() {
     const { data: snapshot } = await supabase.from("user_match_teams").select("*")
         .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
-    if (!snapshot) return;
+    if (!snapshot) {
+        teamContainer.innerHTML = "<p class='empty-msg'>No locked data available.</p>";
+        return;
+    }
 
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
@@ -103,7 +142,7 @@ async function loadLastLockedXI() {
     const statsMap = Object.fromEntries(stats.map(s => [s.player_id, s.fantasy_points]));
 
     renderTeam(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap);
-    teamStatus.textContent = `Points Summary | Subs: ${snapshot.subs_used_for_match}`;
+    teamStatus.textContent = isScoutMode ? "Historical Performance" : `Points Summary | Subs: ${snapshot.subs_used_for_match}`;
 }
 
 function renderTeam(players, captainId, viceCaptainId, statsMap) {
