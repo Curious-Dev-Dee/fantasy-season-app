@@ -208,7 +208,7 @@ async function loadDashboard(userId) {
         editButton.style.color = "#4b5563";      
     } else {
         editButton.disabled = false;
-        editButton.textContent = "Edit XI";
+        editButton.textContent = "Change";
         editButton.style.background = "#9AE000"; 
         editButton.style.color = "#0c1117";
     }
