@@ -329,9 +329,24 @@ body {
 
 .modal-actions { display: flex; flex-direction: column; gap: 12px; }
 .modal-btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 14px; }
-.modal-btn.primary { background: var(--primary-green); color: #000; }
-.modal-btn.secondary { background: #1e293b; color: #fff; }
+/* --- Fix: Improved Modal Button Hierarchy --- */
+.modal-btn.primary { 
+    background: var(--primary-green); 
+    color: #000; 
+    order: 1; /* Puts 'Go to Home' at the top/first */
+    box-shadow: 0 4px 12px rgba(155, 225, 93, 0.3);
+}
 
+.modal-btn.secondary { 
+    background: transparent; 
+    color: #94a3b8; 
+    border: 1px solid #334155;
+    order: 2;
+}
+
+.modal-btn:active {
+    transform: scale(0.98);
+}
 @keyframes modalPop {
     from { opacity: 0; transform: scale(0.8) translateY(20px); }
     to { opacity: 1; transform: scale(1) translateY(0); }

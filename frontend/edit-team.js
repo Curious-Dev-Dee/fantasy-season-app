@@ -404,15 +404,29 @@ function showSuccessModal() {
             <h2>Team Saved!</h2>
             <p>Your XI is ready for <strong>${matchLabel}</strong></p>
             <div class="modal-actions">
-                <button class="modal-btn secondary" id="btnChangeAgain">Change Again</button>
                 <button class="modal-btn primary" id="btnGoHome">Go to Home</button>
+                <button class="modal-btn secondary" id="btnChangeAgain">Change Again</button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
 
-    document.getElementById("btnChangeAgain").onclick = () => modal.remove();
-    document.getElementById("btnGoHome").onclick = () => window.location.href = "home.html";
+    // Manual actions
+    document.getElementById("btnChangeAgain").onclick = () => {
+        clearTimeout(autoRedirect); // Stop the auto-timer if they want to edit
+        modal.remove();
+    };
+    
+    document.getElementById("btnGoHome").onclick = () => {
+        window.location.href = "home.html";
+    };
+
+    // --- NEW: Auto-Dismiss / Redirect after 3 seconds ---
+    const autoRedirect = setTimeout(() => {
+        if (document.body.contains(modal)) {
+            window.location.href = "home.html";
+        }
+    }, 3000);
 }
 
 init();
