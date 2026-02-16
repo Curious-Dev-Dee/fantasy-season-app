@@ -257,22 +257,28 @@ function renderList(containerId, sourceList, isMyXi) {
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
-        let controlsHtml = isMyXi ? `
-            <div class="controls">
-                <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
-                <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
-                <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
-            </div>` : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
-        
-        return `
-        <div class="player-card ${isSelected ? 'selected' : ''}">
-            <div class="avatar-silhouette"></div>
-            <div class="player-info">
-                <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
-                <span>${p.role} • ${getTeamInfo(p.real_team_id, true)} • ${p.credit} Cr</span>
-            </div>
-            ${controlsHtml}
-        </div>`;
+        // Inside renderList function...
+let controlsHtml = isMyXi ? `
+    <div class="controls">
+        <div class="role-selectors">
+            <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
+            <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
+        </div>
+        <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
+    </div>` : `...`;
+
+// Update the player info to handle the pin label
+const pinHtml = isLocked ? `<span class="pinned-label">📌 Locked</span>` : '';
+
+return `
+<div class="player-card ${isSelected ? 'selected' : ''}">
+    <div class="avatar-silhouette"></div>
+    <div class="player-info">
+        <strong>${p.name} ${pinHtml}</strong>
+        <span>${p.role} • ${getTeamInfo(p.real_team_id, true)} • ${p.credit} Cr</span>
+    </div>
+    ${controlsHtml}
+</div>`;
     }).join('');
 }
 
