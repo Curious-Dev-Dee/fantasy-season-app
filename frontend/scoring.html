@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Experts · The Scorebook</title>
+    <style>
+        :root {
+            --primary-green: #9be15d;
+            --bg-dark: #0c1117;
+            --card-bg: #111827;
+            --border: #1f2937;
+            --text-main: #f3f4f6;
+            --text-dim: #9ca3af;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container { max-width: 480px; margin: 0 auto; padding: 20px; }
+
+        header { margin-bottom: 30px; }
+        .back-link { color: var(--primary-green); text-decoration: none; font-size: 14px; display: block; margin-bottom: 10px; }
+        h1 { font-size: 24px; margin: 0; }
+        p.subtitle { color: var(--text-dim); font-size: 14px; }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        h2 { font-size: 18px; color: var(--primary-green); margin-top: 0; display: flex; align-items: center; gap: 8px; }
+
+        .rule-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+        .rule-table th { text-align: left; color: var(--text-dim); font-weight: 500; padding: 10px 5px; border-bottom: 1px solid var(--border); }
+        .rule-table td { padding: 12px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .pts { color: var(--primary-green); font-weight: 700; text-align: right; }
+
+        .special-note {
+            background: rgba(155, 225, 93, 0.05);
+            border-left: 3px solid var(--primary-green);
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .special-note strong { color: var(--primary-green); }
+
+        .highlight-box {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <a href="home.html" class="back-link">← Back to Dashboard</a>
+        <h1>The Expert Rulebook</h1>
+        <p class="subtitle">Official scoring logic for the 2026 Season</p>
+    </header>
+
+    <div class="section-card">
+        <h2>🏏 Batting Points</h2>
+        <table class="rule-table">
+            <tr><th>Action</th><th class="pts">Points</th></tr>
+            <tr><td>Run Scored</td><td class="pts">+1</td></tr>
+            <tr><td>Boundary Bonus (4)</td><td class="pts">+1</td></tr>
+            <tr><td>Six Bonus (6)</td><td class="pts">+2</td></tr>
+            <tr><td>30+ Runs Bonus</td><td class="pts">+5</td></tr>
+            <tr><td>Half-Century (50)</td><td class="pts">+10</td></tr>
+            <tr><td>75+ Runs Bonus</td><td class="pts">+15</td></tr>
+            <tr><td>Century (100)</td><td class="pts">+20</td></tr>
+            <tr><td>Dismissal for Duck</td><td class="pts">-2</td></tr>
+        </table>
+        
+        <div class="special-note">
+            <strong>(SR Bonus):</strong> Points = (Runs Scored - Balls Faced). 
+            <br><em>Example: 50 runs in 30 balls = +20 Bonus points.</em>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2>🥎 Bowling Points</h2>
+        <table class="rule-table">
+            <tr><th>Action</th><th class="pts">Points</th></tr>
+            <tr><td>1st Wicket</td><td class="pts">+20</td></tr>
+            <tr><td>2nd Wicket onwards</td><td class="pts">+25 /wk</td></tr>
+            <tr><td>Maiden Over</td><td class="pts">+10</td></tr>
+            <tr><td>Hat-trick Bonus</td><td class="pts">+15</td></tr>
+        </table>
+
+        <div class="highlight-box">
+            <h3 style="font-size:14px; margin:0 0 10px 0;">Economy Bonus (Min 2 Overs)</h3>
+            <table class="rule-table" style="font-size:12px;">
+                <tr><td>Under 5 RPO</td><td class="pts">+8</td></tr>
+                <tr><td>5 - 5.99 RPO</td><td class="pts">+6</td></tr>
+                <tr><td>6 - 7 RPO</td><td class="pts">+4</td></tr>
+                <tr><td>11 - 12 RPO</td><td class="pts">-4</td></tr>
+                <tr><td>Above 12 RPO</td><td class="pts">-6</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2>🧤 Fielding & Extras</h2>
+        <table class="rule-table">
+            <tr><th>Action</th><th class="pts">Points</th></tr>
+            <tr><td>Catch / Stumping</td><td class="pts">+8</td></tr>
+            <tr><td>Run-out (Direct/Assisted)</td><td class="pts">+8</td></tr>
+            <tr><td>Match Involvement</td><td class="pts">+4</td></tr>
+            <tr><td>Player of the Match</td><td class="pts">+20</td></tr>
+        </table>
+        <p style="font-size: 11px; color: var(--text-dim); margin-top: 15px;">
+            *Involvement Bonus (+4) is awarded to any player who records at least 1 point in the match stats.
+        </p>
+    </div>
+
+    <div class="section-card">
+        <h2>⭐ Multipliers</h2>
+        <table class="rule-table">
+            <tr><td>Captain (C)</td><td class="pts">2x Points</td></tr>
+            <tr><td>Vice-Captain (VC)</td><td class="pts">1.5x Points</td></tr>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

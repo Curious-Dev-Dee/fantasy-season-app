@@ -56,6 +56,11 @@
       color: #ff4d4d;
       border-color: rgba(255, 77, 77, 0.2);
     }
+
+    .logout-btn:hover {
+      background: rgba(255, 77, 77, 0.1);
+      border-color: #ff4d4d;
+    }
   </style>
 </head>
 
@@ -78,10 +83,23 @@
         <span class="arrow">›</span>
       </a>
 
-      <a href="#" class="menu-item" style="opacity: 0.5; pointer-events: none;">
+      <a href="scoring.html" class="menu-item">
         <div class="icon-box">
-          <span>🏆</span>
-          <span class="label">Tournament Rules (Soon)</span>
+          <span>📜</span>
+          <span class="label">Scorebook</span>
+        </div>
+        <span class="arrow">›</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Help & Support</h3>
+    <div class="menu-list">
+      <a href="mailto:satyara9jansahoo@gmail.com" class="menu-item">
+        <div class="icon-box">
+          <span>💬</span>
+          <span class="label">Contact Admin</span>
         </div>
         <span class="arrow">›</span>
       </a>
@@ -115,8 +133,11 @@
   // Simple Logout Logic
   document.getElementById('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signOut();
-    if (!error) window.location.href = "login.html";
+    const confirmed = confirm("Are you sure you want to sign out?");
+    if (confirmed) {
+        const { error } = await supabase.auth.signOut();
+        if (!error) window.location.href = "login.html";
+    }
   });
 </script>
 
