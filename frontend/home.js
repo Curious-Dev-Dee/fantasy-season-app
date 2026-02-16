@@ -130,13 +130,13 @@ saveProfileBtn.addEventListener("click", async () => {
 
   const { error } = await supabase
     .from("user_profiles")
-    .update({ 
+    .upsert({ 
+      user_id: currentUserId, // Explicitly include ID for upsert
       full_name: name, 
       team_name: tName,
       profile_completed: true 
-    })
-    .eq("user_id", currentUserId);
-
+    }, { onConflict: 'user_id' }); // Ensures it targets the right row
+    
   if (error) {
     console.error("Save error:", error);
     alert("Error saving profile. Try again.");
@@ -228,15 +228,23 @@ async function loadLeaderboardPreview() {
     .limit(3);
 
   if (leaderboard && leaderboard.length > 0) {
-    leaderboardContainer.innerHTML = leaderboard.map(row => `
-      <div class="leader-row">
-        <span>#${row.rank} ${row.team_name || 'Anonymous'}</span>
-        <span>${row.total_points} pts</span>
-      </div>
-    `).join("");
+    leaderboardContainer.innerHTML = ""; // Clear existing content
+
+    leaderboard.forEach(row => {
+      const div = document.createElement("div");
+      div.className = "leader-row";
+      
+      // We use innerHTML for the structure but NOT for the name
+      div.innerHTML = `<span>#${row.rank} <span class="team-name-text"></span></span>
+                       <span>${row.total_points} pts</span>`;
+      
+      // Inject name safely
+      div.querySelector(".team-name-text").textContent = row.team_name || 'Anonymous';
+      
+      leaderboardContainer.appendChild(div);
+    });
   }
 }
-
 function startCountdown(startTime) {
   if (countdownInterval) clearInterval(countdownInterval);
   const matchTime = new Date(startTime).getTime();

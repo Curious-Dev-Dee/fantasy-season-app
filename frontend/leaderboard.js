@@ -89,14 +89,17 @@ function renderLeaderboard(leaderboard, userId) {
       window.location.href = `team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name)}`;
     };
 
-    div.innerHTML = `
+div.innerHTML = `
   <div class="leader-rank">#${row.rank}</div>
-  <div class="leader-team">${row.team_name}</div>
+  <div class="leader-team"></div> 
   <div class="leader-points-group">
     <span class="leader-points">${row.total_points}</span>
     <span class="leader-arrow">›</span>
   </div>
 `;
+
+// New safe line:
+div.querySelector(".leader-team").textContent = row.team_name;
 
     leaderboardContainer.appendChild(div);
   });

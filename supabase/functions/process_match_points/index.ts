@@ -21,6 +21,13 @@ serve(async (req) => {
     const { match_id, tournament_id, scoreboard, pom_id } = await req.json();
     console.log(`[START] Processing Match: ${match_id}`);
 
+    // Helper to convert cricket overs (3.2) to mathematical overs (3.33)
+const getTrueOvers = (overs: number) => {
+  const wholeOvers = Math.floor(overs);
+  const balls = Math.round((overs - wholeOvers) * 10);
+  return wholeOvers + (balls / 6);
+};
+
     // 1. Fetch all players to map Names to IDs
     const { data: dbPlayers, error: pError } = await supabase
       .from('players')
@@ -76,15 +83,17 @@ serve(async (req) => {
       pts += (maidens * 10);
 
       // Economy Rate Calculation (Min 2 Overs)
-      const oversVal = Number(p.overs || 0);
-      if (oversVal >= 2) {
-        const rpo = Number(p.runs_conceded || 0) / oversVal;
-        if (rpo < 5) pts += 8;
-        else if (rpo < 6) pts += 6;
-        else if (rpo <= 7) pts += 4;
-        else if (rpo > 12) pts -= 6;
-        else if (rpo > 11) pts -= 4;
-      }
+const rawOvers = Number(p.overs || 0);
+if (rawOvers >= 2) {
+  const trueOvers = getTrueOvers(rawOvers); // Use the helper here
+  const rpo = Number(p.runs_conceded || 0) / trueOvers; // Precise RPO
+  
+  if (rpo < 5) pts += 8;
+  else if (rpo < 6) pts += 6;
+  else if (rpo <= 7) pts += 4;
+  else if (rpo > 12) pts -= 6;
+  else if (rpo > 11) pts -= 4;
+}
 
       // C. Fielding
       pts += (catches * 8);
@@ -107,7 +116,7 @@ serve(async (req) => {
         fours,
         sixes,
         wickets,
-        overs: oversVal,
+        overs: rawOvers,
         maidens,
         catches,
         stumpings,

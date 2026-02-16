@@ -339,36 +339,48 @@ function setupListeners() {
     });
 
     document.getElementById("saveTeamBtn").onclick = async () => {
-        if (state.saving) return;
-        state.saving = true;
-        render(); 
+    if (state.saving) return;
 
-        const { data: { user } } = await supabase.auth.getUser();
-        const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-
-        const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
-            user_id: user.id, 
-            tournament_id: TOURNAMENT_ID,
-            captain_id: state.captainId, 
-            vice_captain_id: state.viceCaptainId,
-            total_credits: totalCredits
-        }, { onConflict: 'user_id, tournament_id' }).select().single();
-
-        if(!error && team) {
-            await supabase.from("user_fantasy_team_players").delete().eq("user_fantasy_team_id", team.id);
-            if(state.selectedPlayers.length > 0) {
-                await supabase.from("user_fantasy_team_players").insert(
-                    state.selectedPlayers.map(p => ({ user_fantasy_team_id: team.id, player_id: p.id }))
-                );
-            }
-            showSuccessModal();
-        } else {
-            alert("Error saving team.");
+    // 1. Time-Gate Check
+    const upcomingMatch = state.matches[0];
+    if (upcomingMatch) {
+        const startTime = new Date(upcomingMatch.start_time).getTime();
+        const now = new Date().getTime();
+        
+        if (now >= startTime) {
+            alert("Match has already started! You can no longer save changes for this round.");
+            window.location.href = "home.html"; // Redirect back
+            return;
         }
-        state.saving = false;
-        render();
-    };
-}
+    }
+    
+    state.saving = true;
+    render(); 
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
+    const playerIds = state.selectedPlayers.map(p => p.id); // Extract just the IDs
+
+    // Use RPC (Remote Procedure Call) for an atomic save
+    const { error } = await supabase.rpc('save_fantasy_team_atomic', {
+        p_user_id: user.id,
+        p_tournament_id: TOURNAMENT_ID,
+        p_captain_id: state.captainId,
+        p_vice_captain_id: state.viceCaptainId,
+        p_total_credits: totalCredits,
+        p_player_ids: playerIds
+    });
+
+    if (!error) {
+        showSuccessModal();
+    } else {
+        console.error("Atomic Save Error:", error);
+        alert("Error saving team: " + error.message);
+    }
+    
+    state.saving = false;
+    render();
+};
 
 function showSuccessModal() {
     const nextMatch = state.matches[0];
