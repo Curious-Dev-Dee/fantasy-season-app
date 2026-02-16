@@ -1,3 +1,12 @@
+:root {
+  --primary-green: #9be15d;
+  --bg-dark: #020617;
+  --card-bg: #0f172a;
+  --border-color: #1e293b;
+  --text-main: #f8fafc;
+  --text-dim: #94a3b8;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -9,33 +18,38 @@ body {
   max-width: 420px;
   margin: auto;
   padding: 20px;
+  min-height: 100vh;
 }
 
-/* HEADER */
-
+/* --- HEADER --- */
 .leaderboard-header {
   margin-bottom: 20px;
 }
 
 .leaderboard-header h1 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
-/* SUMMARY */
-
+/* --- SUMMARY --- */
 .leaderboard-summary {
   background: linear-gradient(145deg, #111827, #0f172a);
   padding: 16px;
   border-radius: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   font-size: 13px;
   color: #9ca3af;
+  line-height: 1.5;
+  border: 1px solid var(--border-color);
 }
 
-/* LIST */
+.leaderboard-summary strong {
+  color: var(--primary-green);
+}
 
+/* --- LIST --- */
 .leaderboard-list {
   display: flex;
   flex-direction: column;
@@ -47,31 +61,64 @@ body {
   padding: 14px 16px;
   border-radius: 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
+.leader-row:active {
+  transform: scale(0.98);
+}
+
+/* --- ROW CONTENT ALIGNMENT --- */
 .leader-rank {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   width: 40px;
+  color: var(--text-dim);
 }
 
 .leader-team {
-  flex: 1;
+  flex: 1; /* Pushes the points group to the right */
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Handles long team names */
+  padding-right: 10px;
+}
+
+/* Grouping points and arrow for alignment */
+.leader-points-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .leader-points {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-green);
+  text-align: right;
+  min-width: 45px;
 }
 
-/* Highlight current user */
+.leader-arrow {
+  font-size: 18px;
+  color: var(--text-dim);
+  font-weight: 400;
+  opacity: 0.6;
+}
 
+/* --- HIGHLIGHT CURRENT USER --- */
 .leader-row.you {
-  background: rgba(154,224,0,0.08);
-  border: 1px solid rgba(154,224,0,0.3);
+  background: rgba(155, 225, 93, 0.08);
+  border: 1px solid rgba(155, 225, 93, 0.3);
+}
+
+.leader-row.you .leader-rank {
+  color: var(--primary-green);
 }

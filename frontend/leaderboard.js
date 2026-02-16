@@ -90,11 +90,13 @@ function renderLeaderboard(leaderboard, userId) {
     };
 
     div.innerHTML = `
-      <div class="leader-rank">#${row.rank}</div>
-      <div class="leader-team">${row.team_name}</div>
-      <div class="leader-points">${row.total_points}</div>
-      <div class="leader-arrow">›</div>
-    `;
+  <div class="leader-rank">#${row.rank}</div>
+  <div class="leader-team">${row.team_name}</div>
+  <div class="leader-points-group">
+    <span class="leader-points">${row.total_points}</span>
+    <span class="leader-arrow">›</span>
+  </div>
+`;
 
     leaderboardContainer.appendChild(div);
   });
