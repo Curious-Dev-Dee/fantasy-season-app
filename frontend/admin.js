@@ -10,6 +10,7 @@ const processBtn = document.getElementById("processBtn");
 const reportContainer = document.getElementById("reportContainer");
 const finalConfirmBtn = document.getElementById("finalConfirmBtn");
 const statusDiv = document.getElementById("status");
+const pomSelect = document.getElementById("pomSelect");
 
 /**
  * 1. INITIALIZATION & AUTH
@@ -69,13 +70,9 @@ processBtn.addEventListener("click", async () => {
         let rawData = JSON.parse(jsonStr);
         let scoreboard = [];
 
-        // --- SMART PARSER: Flattens CricAPI data and Merges Fielding ---
         if (rawData && rawData.data && rawData.data.scorecard) {
-            console.log("CricAPI Format Detected...");
             const playersMap = {};
-
             rawData.data.scorecard.forEach(inning => {
-                // A. Extract Batsmen stats
                 if (inning.batting) {
                     inning.batting.forEach(b => {
                         const name = b.batsman?.name;
@@ -92,7 +89,6 @@ processBtn.addEventListener("click", async () => {
                         }
                     });
                 }
-                // B. Extract Bowlers stats
                 if (inning.bowling) {
                     inning.bowling.forEach(bw => {
                         const name = bw.bowler?.name;
@@ -108,7 +104,6 @@ processBtn.addEventListener("click", async () => {
                         }
                     });
                 }
-                // C. Extract Catching/Fielding stats
                 if (inning.catching) {
                     inning.catching.forEach(c => {
                         const name = c.catcher?.name;
@@ -142,16 +137,22 @@ processBtn.addEventListener("click", async () => {
 
         const { data: dbPlayers } = await supabase
             .from('players')
-            .select('name')
+            .select('id, name')
             .in('real_team_id', [match.team_a_id, match.team_b_id]);
         
-        const dbNames = (dbPlayers || []).map(p => p.name.trim());
-        const scoreboardNames = scoreboard.map(p => p.player_name.trim());
-        const missing = scoreboardNames.filter(name => !dbNames.includes(name));
+        const dbPlayerMap = Object.fromEntries((dbPlayers || []).map(p => [p.name.trim().toLowerCase(), p.id]));
+        const dbNames = Object.keys(dbPlayerMap);
+
+        const scoreboardWithIds = scoreboard.map(p => ({
+            ...p,
+            player_id: dbPlayerMap[p.player_name.trim().toLowerCase()] || null
+        }));
+
+        const missing = scoreboardWithIds.filter(p => !p.player_id).map(p => p.player_name);
 
         reportContainer.style.display = "block";
         document.getElementById("reportStats").innerHTML = `
-            <span>Matched: <strong>${scoreboardNames.length - missing.length}</strong></span>
+            <span>Matched: <strong>${scoreboardWithIds.length - missing.length}</strong></span>
             <span style="margin-left:20px;">Missing: <strong style="color:red">${missing.length}</strong></span>
         `;
         
@@ -165,9 +166,13 @@ processBtn.addEventListener("click", async () => {
             document.getElementById("missingWrapper").style.display = "none";
             document.getElementById("successWrapper").style.display = "block";
             finalConfirmBtn.style.display = "block";
-            updateStatus("✨ Data verified (including Fielding). Ready to process.", "success");
+            updateStatus("✨ Data verified. Select Player of the Match and confirm.", "success");
             
-            finalConfirmBtn.onclick = () => executeUpdate(scoreboard);
+            // Populate POM Dropdown
+            pomSelect.innerHTML = `<option value="">-- Select POM --</option>` + 
+                scoreboardWithIds.map(p => `<option value="${p.player_id}">${p.player_name}</option>`).join('');
+
+            finalConfirmBtn.onclick = () => executeUpdate(scoreboardWithIds);
         }
     } catch (e) { 
         console.error(e);
@@ -179,9 +184,10 @@ processBtn.addEventListener("click", async () => {
  * 3. STAGE 2: EXECUTE UPDATE
  */
 async function executeUpdate(scoreboard) {
-    statusDiv.className = "status loading";
-    statusDiv.textContent = "🚀 Processing points and updating rankings...";
-    statusDiv.style.display = "block";
+    const pomId = pomSelect.value;
+    if (!pomId) return alert("Please select Player of the Match first!");
+
+    updateStatus("🚀 Processing points and updating rankings...", "loading");
     finalConfirmBtn.disabled = true;
 
     try {
@@ -189,20 +195,19 @@ async function executeUpdate(scoreboard) {
             body: { 
                 match_id: matchSelect.value, 
                 tournament_id: TOURNAMENT_ID, 
-                scoreboard: scoreboard 
+                scoreboard: scoreboard,
+                pom_id: pomId 
             }
         });
 
         if (error) throw error;
 
-        statusDiv.className = "status success";
-        statusDiv.textContent = "✅ Success! Fielding, Batting, and Bowling points updated.";
+        updateStatus("✅ Success! Match points and Leaderboard updated.", "success");
         scoreboardInput.value = "";
         reportContainer.style.display = "none";
         
     } catch (err) {
-        statusDiv.className = "status error";
-        statusDiv.textContent = "Error: " + (err.message || "Failed to process");
+        updateStatus("Error: " + (err.message || "Failed to process"), "error");
     } finally {
         finalConfirmBtn.disabled = false;
     }
