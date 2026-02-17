@@ -276,7 +276,7 @@ profileModal.addEventListener("click", (e) => {
 editButton.addEventListener("click", () => window.location.href = "team-builder.html");
 
 // "View Team" Button -> Goes to your team viewer
-viewXiBtn.addEventListener("click", () => window.location.href = "view-team.html");
+viewXiBtn.addEventListener("click", () => window.location.href = "team-view.html");
 
 // "Full Leaderboard" -> Goes to the rankings page
 viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "leaderboard.html");
