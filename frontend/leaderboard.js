@@ -8,7 +8,10 @@ init();
 
 async function init() {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { window.location.href = "login.html"; return; }
+  if (!session) { 
+    window.location.href = "login.html"; 
+    return; 
+  }
   const userId = session.user.id;
 
   const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
@@ -68,8 +71,14 @@ function renderLeaderboard(leaderboard, userId) {
   `).join('');
 }
 
-// Global function to navigate to team view
+/* =========================
+   SCOUTING NAVIGATION
+   ========================= */
 window.scoutUser = (uid, name) => {
-    if (!uid || uid === 'undefined') return;
-    window.location.href = `view-team.html?uid=${uid}&name=${encodeURIComponent(name)}`;
+    if (!uid || uid === 'undefined') {
+        console.warn("User ID missing for scouting");
+        return;
+    }
+    // ENSURE THIS FILENAME MATCHES YOUR ACTUAL FILE
+    window.location.href = `team-view.html?uid=${uid}&name=${encodeURIComponent(name)}`;
 };
