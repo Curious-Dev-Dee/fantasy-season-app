@@ -21,6 +21,11 @@ async function init() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = "login.html"; return; }
 
+  // Toggle Dropdowns
+  statusBtn.onclick = (e) => { e.stopPropagation(); statusPanel.classList.toggle("hidden"); teamPanel.classList.add("hidden"); };
+  teamBtn.onclick = (e) => { e.stopPropagation(); teamPanel.classList.toggle("hidden"); statusPanel.classList.add("hidden"); };
+  document.onclick = () => { statusPanel.classList.add("hidden"); teamPanel.classList.add("hidden"); };
+
   await loadData();
   renderStatusFilters();
   renderTeamFilters();
@@ -29,69 +34,69 @@ async function init() {
 
 async function loadData() {
   const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
-  if (!activeTournament) { matchesContainer.textContent = "No active tournament."; return; }
-
-  const tournamentId = activeTournament.id;
+  if (!activeTournament) return;
 
   const [mRes, tRes] = await Promise.all([
-    supabase.from("matches").select("*").eq("tournament_id", tournamentId).order("actual_start_time", { ascending: true }),
-    supabase.from("real_teams").select("*").eq("tournament_id", tournamentId)
+    supabase.from("matches").select("*").eq("tournament_id", activeTournament.id).order("actual_start_time", { ascending: true }),
+    supabase.from("real_teams").select("*").eq("tournament_id", activeTournament.id)
   ]);
 
   allMatches = mRes.data || [];
   allTeams = tRes.data || [];
 }
 
-// ... Dropdown behavior remains same ...
-
 function renderStatusFilters() {
   const statuses = ["all", "upcoming", "locked", "completed", "abandoned"];
-  statusFiltersContainer.innerHTML = "";
-  statuses.forEach(status => {
-    const chip = document.createElement("div");
-    chip.className = `filter-chip ${selectedStatuses.has(status) ? 'active' : ''}`;
-    chip.textContent = status === "all" ? "All Status" : status.charAt(0).toUpperCase() + status.slice(1);
+  statusFiltersContainer.innerHTML = statuses.map(s => `
+    <div class="filter-chip ${selectedStatuses.has(s) ? 'active' : ''}" data-status="${s}">
+      ${s === 'all' ? 'All Status' : s.toUpperCase()}
+    </div>
+  `).join('');
+
+  statusFiltersContainer.querySelectorAll('.filter-chip').forEach(chip => {
     chip.onclick = () => {
-      if (status === "all") { selectedStatuses = new Set(["all"]); } 
+      const s = chip.dataset.status;
+      if (s === "all") selectedStatuses = new Set(["all"]);
       else {
         selectedStatuses.delete("all");
-        selectedStatuses.has(status) ? selectedStatuses.delete(status) : selectedStatuses.add(status);
+        selectedStatuses.has(s) ? selectedStatuses.delete(s) : selectedStatuses.add(s);
         if (selectedStatuses.size === 0) selectedStatuses.add("all");
       }
       renderStatusFilters();
       renderMatches();
     };
-    statusFiltersContainer.appendChild(chip);
   });
 }
 
 function renderTeamFilters() {
-  teamFiltersContainer.innerHTML = "";
-  allTeams.forEach(team => {
-    const chip = document.createElement("div");
-    chip.className = `filter-chip ${selectedTeams.has(team.id) ? 'active' : ''}`;
-    chip.textContent = team.short_code;
+  teamFiltersContainer.innerHTML = allTeams.map(t => `
+    <div class="filter-chip ${selectedTeams.has(t.id) ? 'active' : ''}" data-id="${t.id}">
+      ${t.short_code}
+    </div>
+  `).join('');
+
+  teamFiltersContainer.querySelectorAll('.filter-chip').forEach(chip => {
     chip.onclick = () => {
-      selectedTeams.has(team.id) ? selectedTeams.delete(team.id) : selectedTeams.add(team.id);
+      const id = chip.dataset.id;
+      selectedTeams.has(id) ? selectedTeams.delete(id) : selectedTeams.add(id);
       renderTeamFilters();
       renderMatches();
     };
-    teamFiltersContainer.appendChild(chip);
   });
 }
 
 function renderMatches() {
   matchesContainer.innerHTML = "";
-  let filtered = allMatches.filter(m => {
-    const statusMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
-    const teamMatch = selectedTeams.size === 0 || selectedTeams.has(m.team_a_id) || selectedTeams.has(m.team_b_id);
-    return statusMatch && teamMatch;
+  const filtered = allMatches.filter(m => {
+    const sMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
+    const tMatch = selectedTeams.size === 0 || selectedTeams.has(m.team_a_id) || selectedTeams.has(m.team_b_id);
+    return sMatch && tMatch;
   });
 
   matchCountSummaryText.innerText = `Showing ${filtered.length} matches`;
 
-  if (filtered.length === 0) {
-    matchesContainer.innerHTML = `<div class="loading-state"><p>No matches found for these filters.</p></div>`;
+  if (!filtered.length) {
+    matchesContainer.innerHTML = `<div class="loading-state"><p>No matches found.</p></div>`;
     return;
   }
 
@@ -103,24 +108,13 @@ function renderMatches() {
     const card = document.createElement("div");
     card.className = `match-card status-${match.status}`;
     card.innerHTML = `
-      <div class="card-header">
-        <span class="match-date">${date}</span>
-        <i class="fas fa-info-circle" style="color: #475569"></i>
-      </div>
+      <div class="card-header"><span>${date}</span><i class="fas fa-info-circle"></i></div>
       <div class="team-display">
-        <div class="team-slot">
-            <div class="team-logo-circle">${tA?.short_code || '?'}</div>
-            <span style="font-size: 13px; font-weight: 600;">${tA?.short_code || 'TBA'}</span>
-        </div>
+        <div class="team-slot"><div class="team-logo">${tA?.short_code || '?'}</div><b>${tA?.short_code || 'TBA'}</b></div>
         <div class="vs-badge">VS</div>
-        <div class="team-slot">
-            <div class="team-logo-circle">${tB?.short_code || '?'}</div>
-            <span style="font-size: 13px; font-weight: 600;">${tB?.short_code || 'TBA'}</span>
-        </div>
+        <div class="team-slot"><div class="team-logo">${tB?.short_code || '?'}</div><b>${tB?.short_code || 'TBA'}</b></div>
       </div>
-      <div class="match-footer">
-        <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
-      </div>
+      <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
     `;
     matchesContainer.appendChild(card);
   });

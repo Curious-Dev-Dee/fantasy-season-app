@@ -5,6 +5,7 @@ body {
   font-family: 'Inter', sans-serif;
   background: #0b0f19;
   color: #fff;
+  overflow-x: hidden;
 }
 
 .fixtures-app {
@@ -21,17 +22,8 @@ body {
   margin-bottom: 24px;
 }
 
-.header-title h1 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.header-title p {
-  font-size: 13px;
-  color: #94a3b8;
-  margin: 2px 0 0;
-}
+.header-title h1 { font-size: 22px; margin: 0; }
+.header-title p { font-size: 13px; color: #94a3b8; margin: 2px 0 0; }
 
 .back-btn {
   background: #1e293b;
@@ -43,18 +35,17 @@ body {
   cursor: pointer;
 }
 
-/* FILTERS */
+/* FILTERS (Z-INDEX FIX) */
 .filters-section {
   position: sticky;
   top: 10px;
-  z-index: 100;
+  z-index: 1000; /* Ensure this is higher than cards */
   margin-bottom: 24px;
 }
 
-.filter-bar {
-  display: flex;
-  gap: 10px;
-}
+.filter-bar { display: flex; gap: 10px; }
+
+.filter-dropdown { position: relative; flex: 1; }
 
 .filter-btn {
   width: 100%;
@@ -64,7 +55,6 @@ body {
   padding: 12px;
   border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -79,9 +69,15 @@ body {
   border: 1px solid #334155;
   border-radius: 16px;
   padding: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  z-index: 101;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
 }
+
+.hidden { display: none; }
+
+.filter-options { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .filter-chip {
   padding: 8px 14px;
@@ -89,7 +85,6 @@ body {
   border: 1px solid #334155;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
   color: #94a3b8;
   cursor: pointer;
 }
@@ -97,46 +92,32 @@ body {
 .filter-chip.active {
   background: #9AE000;
   color: #000;
-  border-color: #9AE000;
+  font-weight: 700;
 }
 
 /* MATCH CARDS */
 .match-card {
-  background: #1e293b;
+  background: linear-gradient(145deg, #1e293b, #111827);
   border: 1px solid #334155;
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-}
-
-.match-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
-    background: var(--accent-color, #334155);
+  border-left: 4px solid var(--accent, #334155);
 }
 
 .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 15px;
-}
-
-.match-date {
     font-size: 12px;
     font-weight: 600;
     color: #94a3b8;
-    text-transform: uppercase;
 }
 
 .team-display {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
     margin-bottom: 15px;
 }
 
@@ -148,47 +129,42 @@ body {
     gap: 8px;
 }
 
-.team-logo-circle {
-    width: 50px;
-    height: 50px;
+.team-logo {
+    width: 45px;
+    height: 45px;
     background: #0f172a;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 14px;
-    color: #9AE000;
     border: 2px solid #334155;
 }
 
 .vs-badge {
-    font-size: 12px;
-    font-weight: 800;
-    color: #475569;
     background: #0f172a;
-    padding: 4px 8px;
+    padding: 4px 10px;
     border-radius: 8px;
-}
-
-.match-footer {
-    display: flex;
-    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: #475569;
 }
 
 .status-tag {
-    padding: 6px 16px;
-    border-radius: 12px;
+    text-align: center;
+    padding: 6px;
+    border-radius: 10px;
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-weight: 800;
 }
 
-/* STATUS THEMES */
-.tag-upcoming { background: rgba(154,224,0,0.1); color: #9AE000; --accent-color: #9AE000; }
-.tag-locked { background: rgba(245,158,11,0.1); color: #f59e0b; --accent-color: #f59e0b; }
-.tag-completed { background: rgba(59,130,246,0.1); color: #3b82f6; --accent-color: #3b82f6; }
-.tag-abandoned { background: rgba(239,68,68,0.1); color: #ef4444; --accent-color: #ef4444; }
+/* THEMES */
+.status-upcoming { --accent: #9AE000; }
+.status-locked { --accent: #f59e0b; }
+.status-abandoned { --accent: #ef4444; }
 
-.loading-state { text-align: center; padding: 40px; color: #64748b; }
-.loading-state i { font-size: 30px; margin-bottom: 10px; }
+.tag-upcoming { background: rgba(154,224,0,0.1); color: #9AE000; }
+.tag-locked { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.tag-abandoned { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+.loading-state { text-align: center; padding: 50px; color: #475569; }
