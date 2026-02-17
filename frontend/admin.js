@@ -11,6 +11,8 @@ const reportContainer = document.getElementById("reportContainer");
 const finalConfirmBtn = document.getElementById("finalConfirmBtn");
 const statusDiv = document.getElementById("status");
 const pomSelect = document.getElementById("pomSelect");
+const delayMatchSelect = document.getElementById("delayMatchSelect");
+const delayStatus = document.getElementById("delayStatus");
 
 /**
  * 1. INITIALIZATION & AUTH
@@ -34,7 +36,8 @@ async function init() {
     }
 
     console.log("✅ Admin verified. Loading matches...");
-    loadMatches();
+    await loadMatches();
+    await loadDelayMatches();
 }
 
 async function loadMatches() {
@@ -128,7 +131,6 @@ processBtn.addEventListener("click", async () => {
 
         if (!scoreboard.length) throw new Error("No player data found in JSON.");
 
-        // --- TYPO HUNTER ---
         const { data: match } = await supabase
             .from('matches')
             .select('team_a_id, team_b_id')
@@ -141,7 +143,6 @@ processBtn.addEventListener("click", async () => {
             .in('real_team_id', [match.team_a_id, match.team_b_id]);
         
         const dbPlayerMap = Object.fromEntries((dbPlayers || []).map(p => [p.name.trim().toLowerCase(), p.id]));
-        const dbNames = Object.keys(dbPlayerMap);
 
         const scoreboardWithIds = scoreboard.map(p => ({
             ...p,
@@ -168,7 +169,6 @@ processBtn.addEventListener("click", async () => {
             finalConfirmBtn.style.display = "block";
             updateStatus("✨ Data verified. Select Player of the Match and confirm.", "success");
             
-            // Populate POM Dropdown
             pomSelect.innerHTML = `<option value="">-- Select POM --</option>` + 
                 scoreboardWithIds.map(p => `<option value="${p.player_id}">${p.player_name}</option>`).join('');
 
@@ -213,37 +213,24 @@ async function executeUpdate(scoreboard) {
     }
 }
 
-function updateStatus(msg, type) {
-    statusDiv.textContent = msg;
-    statusDiv.className = `status ${type}`;
-    statusDiv.style.display = msg ? "block" : "none";
-}
-
 /**
  * 4. QUICK DELAY FEATURE
  */
-const delayMatchSelect = document.getElementById("delayMatchSelect");
-const delayStatus = document.getElementById("delayStatus");
-
-// Function to populate the second match dropdown
 async function loadDelayMatches() {
     const { data: matches } = await supabase
         .from('matches')
-        .select('id, match_number, team_a_id, team_b_id, actual_start_time')
+        .select('id, match_number, actual_start_time')
         .eq('tournament_id', TOURNAMENT_ID)
-        .eq('lock_processed', false) // Only show matches that aren't locked yet
+        .eq('lock_processed', false)
         .order('match_number');
 
     if (matches) {
-        // We reuse your teamMap logic if available, or just show match numbers
         delayMatchSelect.innerHTML = matches.map(m => `
             <option value="${m.id}">Match ${m.match_number} (Current: ${new Date(m.actual_start_time).toLocaleTimeString()})</option>
         `).join('');
     }
 }
 
-// Add event listeners to all delay buttons
-// Add event listeners to all delay buttons
 document.querySelectorAll('.delay-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
         const matchId = delayMatchSelect.value;
@@ -255,7 +242,6 @@ document.querySelectorAll('.delay-btn').forEach(btn => {
         updateDelayStatus(`Processing...`, "loading");
 
         try {
-            // 1. Fetch current actual time directly from the source
             const { data: match, error: fetchErr } = await supabase
                 .from('matches')
                 .select('actual_start_time')
@@ -264,49 +250,52 @@ document.querySelectorAll('.delay-btn').forEach(btn => {
 
             if (fetchErr) throw fetchErr;
 
-            // 2. Add minutes (1 minute = 60000 milliseconds)
             const oldTime = new Date(match.actual_start_time);
             const newTime = new Date(oldTime.getTime() + (mins * 60000));
 
             console.log("Original Time:", oldTime.toISOString());
             console.log("New Target Time:", newTime.toISOString());
 
-            // 3. Perform the Update
-            const { error: updateErr } = await supabase
+            // VERIFICATION STEP: Added .select() to ensure RLS isn't blocking the write
+            const { data: updateCheck, error: updateErr } = await supabase
                 .from('matches')
                 .update({ 
                     actual_start_time: newTime.toISOString(),
                     status: 'upcoming' 
                 })
-                .eq('id', matchId);
+                .eq('id', matchId)
+                .select(); // Critical for checking if any row was actually modified
 
             if (updateErr) throw updateErr;
 
-            updateDelayStatus(`✅ Success! Match 33 delayed by ${mins}m.`, "success");
-            
-            // 4. Refresh the dropdown to show the new 'Current' time
+            // If updateCheck is empty, the query matched 0 rows (usually due to RLS)
+            if (!updateCheck || updateCheck.length === 0) {
+                throw new Error("No rows updated. Check if you have RLS permissions to edit matches.");
+            }
+
+            updateDelayStatus(`✅ Success! Match time updated to ${newTime.toLocaleTimeString()}.`, "success");
             await loadDelayMatches();
             
         } catch (err) {
             console.error("Delay Update Failed:", err);
             updateDelayStatus(`❌ Error: ${err.message}`, "error");
+            alert(`Update Failed: ${err.message}`);
         } finally {
             btn.disabled = false;
         }
     });
 });
 
+function updateStatus(msg, type) {
+    statusDiv.textContent = msg;
+    statusDiv.className = `status ${type}`;
+    statusDiv.style.display = msg ? "block" : "none";
+}
+
 function updateDelayStatus(msg, type) {
     delayStatus.textContent = msg;
     delayStatus.style.display = "block";
     delayStatus.style.color = type === "error" ? "red" : (type === "success" ? "green" : "blue");
 }
-
-// Update your existing init() to also call loadDelayMatches()
-const originalInit = init;
-init = async () => {
-    await originalInit();
-    loadDelayMatches();
-};
 
 init();
