@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cricket Experts · View Team</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/team-view.css" />
 </head>
 <body>
@@ -12,24 +13,49 @@
   <header class="premium-header">
     <button class="back-circle" onclick="window.location.href='home.html'">←</button>
     <div class="header-center">
-  <h1 class="main-title" id="viewTitle">View Team</h1>
+        <h1 class="main-title" id="viewTitle">View Team</h1>
         <div id="countdownContainer" class="countdown-text hidden">
             Starts in: <span id="timer">00h 00m 00s</span>
         </div>
+        <button id="viewHistoryBtn" class="history-trigger">
+            <i class="fas fa-history"></i> Match History
+        </button>
     </div>
-    <div style="width: 40px;"></div> </header>
+    <div style="width: 40px;"></div>
+  </header>
 
   <div class="xi-toggle">
-    <button class="xi-tab active" id="tabUpcoming" data-tab="current">Loading...</button>
-    <button class="xi-tab" id="tabLocked" data-tab="locked">Loading...</button>
+    <button class="xi-tab active" id="tabUpcoming" data-tab="current">Upcoming XI</button>
+    <button class="xi-tab" id="tabLocked" data-tab="locked">Last Match</button>
   </div>
 
   <main class="team-field" id="teamContainer">
-    </main>
+      </main>
 
-  <footer class="team-status" id="teamStatus">
-    Ready
-  </footer>
+  <footer class="team-status" id="teamStatus">Ready</footer>
+
+  <div id="historyOverlay" class="overlay hidden">
+    <div class="overlay-content">
+        <div class="overlay-header">
+            <h3>Season History</h3>
+            <button class="close-btn" id="closeHistory">&times;</button>
+        </div>
+        <div id="historyList" class="scroll-area">
+            </div>
+    </div>
+  </div>
+
+  <div id="breakdownOverlay" class="overlay hidden">
+    <div class="overlay-content breakdown-view">
+        <div class="overlay-header">
+            <button class="back-arrow" id="backToHistory">← Back</button>
+            <h3 id="breakdownTitle">Match Details</h3>
+            <span></span> </div>
+        <div id="breakdownTeamContainer" class="team-field smaller-field">
+            </div>
+        <footer class="breakdown-footer" id="breakdownFooter"></footer>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="team-view.js"></script>
