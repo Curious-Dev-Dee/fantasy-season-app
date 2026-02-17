@@ -218,14 +218,15 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
    HISTORY FEATURE LOGIC
 ========================= */
 function setupHistoryListeners() {
-    // 1. Fetch and Display the list of all past matches
+    // 1. Fetch and Display the list of all past matches (With recalculation fix)
     historyBtn.onclick = async () => {
         historyOverlay.classList.remove("hidden");
         historyList.innerHTML = `<div class="spinner-small"></div>`;
 
+        // Fetch history and the underlying players/stats to calculate true totals
         const { data: history } = await supabase
             .from('user_match_teams')
-            .select('*, matches(match_number, team_a_id, team_b_id)')
+            .select('*, matches(match_number, team_a_id, team_b_id), user_match_team_players(player_id)')
             .eq('user_id', userId)
             .order('locked_at', { ascending: false });
 
@@ -234,22 +235,40 @@ function setupHistoryListeners() {
             return;
         }
 
-        historyList.innerHTML = history.map(h => `
-            <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
-                <div>
-                    <span class="h-m-num">MATCH ${h.matches.match_number}</span>
-                    <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
+        // Fetch ALL stats for the matches involved to calculate totals in one go
+        const matchIds = history.map(h => h.match_id);
+        const { data: allStats } = await supabase.from("player_match_stats").select("*").in("match_id", matchIds);
+
+        historyList.innerHTML = history.map(h => {
+            // Recalculate total for this specific history row
+            let rowTotal = 0;
+            const matchStats = allStats.filter(s => s.match_id === h.match_id);
+            const statsMap = Object.fromEntries(matchStats.map(s => [s.player_id, s.fantasy_points]));
+
+            h.user_match_team_players.forEach(p => {
+                let pPts = statsMap[p.player_id] || 0;
+                if (p.player_id === h.captain_id) pPts *= 2;
+                else if (p.player_id === h.vice_captain_id) pPts *= 1.5;
+                rowTotal += pPts;
+            });
+
+            return `
+                <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
+                    <div>
+                        <span class="h-m-num">MATCH ${h.matches.match_number}</span>
+                        <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
+                    </div>
+                    <div class="h-stats">
+                        <span class="h-pts">${rowTotal} PTS</span>
+                        <span class="h-subs">${h.subs_used_for_match} SUBS</span>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#475569; margin-left:10px;"></i>
                 </div>
-                <div class="h-stats">
-                    <span class="h-pts">${h.total_points || 0} PTS</span>
-                    <span class="h-subs">${h.subs_used_for_match} SUBS</span>
-                </div>
-                <i class="fas fa-chevron-right" style="color:#475569; margin-left:10px;"></i>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     };
 
-    // 2. View Breakdown for ONE specific match (with Live Points Calculation)
+    // 2. View Breakdown for ONE specific match
     window.viewMatchBreakdown = async (snapshotId) => {
         breakdownOverlay.classList.remove("hidden");
         const bContainer = document.getElementById("breakdownTeamContainer");
@@ -258,7 +277,6 @@ function setupHistoryListeners() {
         
         bContainer.innerHTML = `<div class="spinner-small"></div>`;
 
-        // Fetch snapshot and match details
         const { data: snap } = await supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single();
         const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId);
         
@@ -271,7 +289,6 @@ function setupHistoryListeners() {
 
         const statsMap = Object.fromEntries(statsRes.data.map(s => [s.player_id, s.fantasy_points]));
         
-        // --- SENIOR FIX: CALCULATE TOTAL SUM LIVE ---
         let calculatedTotal = 0;
         playersRes.data.forEach(p => {
             let pPts = statsMap[p.id] || 0;
@@ -280,14 +297,10 @@ function setupHistoryListeners() {
             calculatedTotal += pPts;
         });
 
-        // Use the universal renderer to draw the players on the field
         renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer);
-        
-        // Show the Recalculated Total in the fixed footer
         bFooter.innerHTML = `MATCH TOTAL: ${calculatedTotal} PTS | SUBS USED: ${snap.subs_used_for_match}`;
     };
 
-    // 3. Navigation Controls
     document.getElementById("closeHistory").onclick = () => historyOverlay.classList.add("hidden");
     document.getElementById("backToHistory").onclick = () => breakdownOverlay.classList.add("hidden");
 }
