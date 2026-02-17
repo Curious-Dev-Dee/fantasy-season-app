@@ -151,15 +151,15 @@ avatarInput.addEventListener("change", (e) => {
 /* =========================
    SAVE PROFILE (Defensive Save)
 ========================= */
+/* =========================
+   SAVE PROFILE (Defensive)
+========================= */
 saveProfileBtn.addEventListener("click", async () => {
     const newName = modalFullName.value.trim();
     const newTeam = modalTeamName.value.trim();
     const file = avatarInput.files[0];
 
-    if (!newName || !newTeam) {
-        alert("Please enter both your name and team name!");
-        return;
-    }
+    if (!newName || !newTeam) return alert("Please fill all fields.");
 
     saveProfileBtn.disabled = true;
     saveProfileBtn.textContent = "Saving...";
@@ -167,16 +167,14 @@ saveProfileBtn.addEventListener("click", async () => {
     try {
         let photoPath = existingProfile?.team_photo_url;
 
-        // 1. Handle Photo Upload (Requires SELECT policy now)
+        // 1. Handle Upload (Folder: userId/timestamp.png)
         if (file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
-            
-            const { error: uploadError } = await supabase.storage
+            const fileName = `${currentUserId}/${Date.now()}.${file.name.split('.').pop()}`;
+            const { error: upErr } = await supabase.storage
                 .from('team-avatars')
                 .upload(fileName, file, { upsert: true });
-
-            if (uploadError) throw uploadError;
+            
+            if (upErr) throw upErr;
             photoPath = fileName;
         }
 
@@ -186,7 +184,7 @@ saveProfileBtn.addEventListener("click", async () => {
             profile_completed: true 
         };
 
-        // Only update full_name if it changed
+        // Only send full_name if it changed
         if (newName !== existingProfile?.full_name) {
             profileData.full_name = newName;
         }
@@ -196,32 +194,31 @@ saveProfileBtn.addEventListener("click", async () => {
             profileData.team_photo_url = photoPath;
         }
         
-        // ONLY send team_name if it was never set (empty)
+        // ONLY send team_name if it was previously empty
+        // This stops the error for users like Satyaranjan who already have 'AvengersCTC'
         if (!existingProfile?.team_name) {
             profileData.team_name = newTeam;
         }
 
-        // 3. Perform the Upsert
-        const { error: dbError } = await supabase
+        // 3. Perform the Database Upsert
+        const { error: dbErr } = await supabase
             .from("user_profiles")
             .upsert(profileData, { onConflict: 'user_id' });
 
-        if (dbError) throw dbError;
+        if (dbErr) throw dbErr;
 
-        // 4. Success Cleanup
+        // Success Cleanup
         await fetchHomeData(currentUserId);
         profileModal.classList.add("hidden");
-        avatarInput.value = ""; 
 
     } catch (err) {
         console.error("Save Error:", err.message);
-        alert(err.message || "Something went wrong while saving.");
+        alert(err.message || "Update failed. Check your connection.");
     } finally {
         saveProfileBtn.disabled = false;
         saveProfileBtn.textContent = "Save & Start";
     }
 });
-
 /* =========================
    LEADERBOARD & UTILS
 ========================= */
