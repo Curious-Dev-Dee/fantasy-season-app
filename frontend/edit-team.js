@@ -8,7 +8,6 @@ let state = {
     lockedPlayerIds: [],    
     baseSubsRemaining: 80,  
     matches: [], 
-    teamsMap: {}, 
     captainId: null, 
     viceCaptainId: null, 
     filters: { 
@@ -21,99 +20,75 @@ let state = {
     saving: false 
 };
 
-// --- New: Global Countdown Variable ---
 let countdownInterval;
 
-/* =========================================
-   SENIOR DEV FIX: Wait for Auth Guard
-   Do not run logic until user is verified
-========================================= */
+/* =========================
+   INIT (Auth Guard Protected)
+========================= */
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
-    console.log("Team Builder: Auth confirmed for", user.email);
-    
-    // Start the app with the verified user
+    console.log("Edit Team: Auth confirmed for", user.email);
     init(user); 
 });
 
-const getTeamInfo = (id, useShort = false) => {
-    const team = state.teamsMap[id];
-    if (!team) return "Unknown";
-    return useShort ? team.short_code : team.name;
-};
-
-// Passed 'user' from the event listener
 async function init(user) {
     if (!user) return;
 
-    // 1. Fetch Real Teams
-    const { data: tData } = await supabase.from("real_teams").select("*").eq("tournament_id", TOURNAMENT_ID);
-    if (tData) {
-        tData.forEach(t => {
-            state.teamsMap[t.id] = { name: t.name, short_code: t.short_code };
-        });
-    }
+    // SENIOR DEV FIX: Parallel Fetching (All requests fire at once)
+    const [
+        { data: players },
+        { data: summary },
+        { data: lastLock },
+        { data: currentTeam },
+        { data: matches }
+    ] = await Promise.all([
+        // 1. Fetch Players (Pre-joined with Team Names via View)
+        supabase.from("player_pool_view").select("*").eq("is_active", true),
 
-    // 2. Fetch Active Players
-    const { data: pData } = await supabase.from("players").select("*").eq("is_active", true);
-    state.allPlayers = pData || [];
+        // 2. Fetch Subs
+        supabase.from("dashboard_summary").select("subs_remaining")
+            .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
 
-    // 3. Fetch Subs
-    const { data: summary } = await supabase
-        .from("dashboard_summary")
-        .select("subs_remaining")
-        .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID)
-        .maybeSingle();
+        // 3. Fetch Last Locked Team (For Subs calculation)
+        supabase.from("user_match_teams").select("id, user_match_team_players(player_id)")
+            .eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+            
+        // 4. Fetch Current Saved Team
+        supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)")
+            .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
+
+        // 5. Fetch Matches
+        supabase.from("matches").select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+            .eq("tournament_id", TOURNAMENT_ID).gt("start_time", new Date().toISOString())
+            .order("start_time", { ascending: true }).limit(5)
+    ]);
+
+    // --- PROCESS DATA ---
+
+    // 1. Players
+    state.allPlayers = players || [];
+
+    // 2. Subs
     state.baseSubsRemaining = summary?.subs_remaining ?? 80;
 
-    // 4. Fetch Last Locked Team
-    const { data: lastLock } = await supabase
-        .from("user_match_teams")
-        .select("id")
-        .eq("user_id", user.id)
-        .order("locked_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (lastLock) {
-        const { data: lp } = await supabase
-            .from("user_match_team_players")
-            .select("player_id")
-            .eq("user_match_team_id", lastLock.id);
-        state.lockedPlayerIds = (lp || []).map(p => p.player_id);
+    // 3. Locked Players
+    if (lastLock?.user_match_team_players) {
+        state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
     }
 
-    // 5. Fetch Current Team
-    const { data: team } = await supabase.from("user_fantasy_teams")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("tournament_id", TOURNAMENT_ID)
-        .maybeSingle();
-
-    if (team) {
-        state.captainId = team.captain_id;
-        state.viceCaptainId = team.vice_captain_id;
-        const { data: pIds } = await supabase.from("user_fantasy_team_players")
-            .select("player_id")
-            .eq("user_fantasy_team_id", team.id);
-        
-        state.selectedPlayers = (pIds || [])
-            .map(row => state.allPlayers.find(p => p.id === row.player_id))
-            .filter(Boolean);
+    // 4. Current Team Selection
+    if (currentTeam) {
+        state.captainId = currentTeam.captain_id;
+        state.viceCaptainId = currentTeam.vice_captain_id;
+        // Map saved IDs back to full player objects
+        const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
+        state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
     }
 
-    // 6. Fetch Next 5 UPCOMING matches
-    const { data: matches } = await supabase
-        .from("matches")
-        .select("*")
-        .eq("tournament_id", TOURNAMENT_ID)
-        .gt("start_time", new Date().toISOString())
-        .order("start_time", { ascending: true })
-        .limit(5);
+    // 5. Matches
     state.matches = matches || [];
-
-    // --- NEW: Trigger Dynamic Header ---
+    
+    // --- RENDER ---
     if (state.matches.length > 0) {
         updateHeaderMatch(state.matches[0]);
     }
@@ -123,44 +98,46 @@ async function init(user) {
     setupListeners();
 }
 
-// --- NEW FUNCTION: Manage Header Match & Countdown ---
+// --- HELPER: Get Team Code from Player Object directly ---
+const getTeamCode = (player) => player.team_short_code || "UNK";
+
+// --- HEADER & COUNTDOWN ---
 function updateHeaderMatch(match) {
     const nameEl = document.getElementById("upcomingMatchName");
     const timerEl = document.getElementById("headerCountdown");
-    
     if (!nameEl || !timerEl) return;
 
-    nameEl.innerText = `${getTeamInfo(match.team_a_id, true)} vs ${getTeamInfo(match.team_b_id, true)}`;
+    // Note: Supabase join returns objects, e.g. match.team_a.short_code
+    const teamA = match.team_a?.short_code || "TBA";
+    const teamB = match.team_b?.short_code || "TBA";
+    nameEl.innerText = `${teamA} vs ${teamB}`;
     
     if (countdownInterval) clearInterval(countdownInterval);
-    
     const targetDate = new Date(match.start_time).getTime();
     
     const startTimer = () => {
         const now = new Date().getTime();
         const diff = targetDate - now;
-
         if (diff <= 0) {
             timerEl.innerText = "MATCH LIVE";
             clearInterval(countdownInterval);
             return;
         }
-
         const h = Math.floor(diff / (1000 * 60 * 60));
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
-
         timerEl.innerText = `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
     };
-
     startTimer();
     countdownInterval = setInterval(startTimer, 1000);
 }
 
+// --- RENDER LOGIC ---
 function render() {
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
+    // Subs Logic
     let subsUsedInDraft = 0;
     if (state.lockedPlayerIds.length > 0) {
         subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
@@ -168,6 +145,7 @@ function render() {
     const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
     const isOverLimit = liveSubsRemaining < 0;
 
+    // Roles Count
     const roles = {
         WK: state.selectedPlayers.filter(p => p.role === "WK").length,
         BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
@@ -175,11 +153,12 @@ function render() {
         BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
     };
 
+    // UI Updates
     document.getElementById("playerCountLabel").innerText = count;
     document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
     
-    const subsEl = document.getElementById("subsRemainingLabel") || document.getElementById("subsRemaining");
+    const subsEl = document.getElementById("subsRemainingLabel");
     if (subsEl) {
         subsEl.innerText = liveSubsRemaining;
         subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
@@ -193,7 +172,7 @@ function render() {
     renderList("myXIList", state.selectedPlayers, true);  
     renderList("playerPoolList", state.allPlayers, false); 
 
-    // VALIDATION RULES
+    // Validation
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
     const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles;
 
@@ -209,15 +188,27 @@ function render() {
     }
 }
 
+// --- FILTER LOGIC ---
 function initFilters() {
-    const uniqueTeams = [...new Set(state.allPlayers.map(p => p.real_team_id))].filter(Boolean).sort();
-    renderCheckboxDropdown('teamMenu', uniqueTeams, 'teams', (id) => getTeamInfo(id));
+    // We filter by team_real_id (ID) but show team_short_code (Label)
+    // Map to get unique items
+    const teams = [];
+    const seenTeams = new Set();
+    state.allPlayers.forEach(p => {
+        if(!seenTeams.has(p.real_team_id)) {
+            seenTeams.add(p.real_team_id);
+            teams.push({ id: p.real_team_id, label: p.team_short_code });
+        }
+    });
+    
+    renderCheckboxDropdown('teamMenu', teams, 'teams', (t) => t.label);
     
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
     
+    // For matches filter
     renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => 
-        `M#${m.match_number}: ${getTeamInfo(m.team_a_id, true)} vs ${getTeamInfo(m.team_b_id, true)}`
+        `M#${m.match_number}: ${m.team_a?.short_code} vs ${m.team_b?.short_code}`
     );
 }
 
@@ -225,9 +216,8 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!container) return;
 
-    // Build the list items
     const listHtml = items.map(item => {
-        const value = typeof item === 'object' ? item.id : item;
+        const value = item.id || item; // Handle object vs primitive
         const label = labelFn(item);
         const isChecked = state.filters[filterKey].includes(value) ? 'checked' : '';
         return `
@@ -238,7 +228,6 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
             </label>`;
     }).join('');
 
-    // Add the new Action Buttons
     container.innerHTML = `
         <div class="dropdown-content">${listHtml}</div>
         <div class="dropdown-actions">
@@ -248,7 +237,7 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     `;
 }
 
-// Global helper to Select All
+// Global Filter Helpers
 window.selectAllFilters = (key, menuId) => {
     const checkboxes = document.querySelectorAll(`#${menuId} input[type="checkbox"]`);
     state.filters[key] = Array.from(checkboxes).map(cb => {
@@ -258,7 +247,6 @@ window.selectAllFilters = (key, menuId) => {
     render();
 };
 
-// Global helper to Clear All
 window.clearFilters = (key) => {
     state.filters[key] = [];
     const menuId = key === 'teams' ? 'teamMenu' : key === 'matches' ? 'matchMenu' : 'creditMenu';
@@ -267,7 +255,6 @@ window.clearFilters = (key) => {
     render();
 };
 
-// Helper for toggle filter (missing in original code but implied)
 window.toggleFilter = (key, value, el) => {
     const val = key === 'credits' ? parseFloat(value) : value;
     if (el.checked) {
@@ -278,10 +265,12 @@ window.toggleFilter = (key, value, el) => {
     render();
 };
 
+// --- LIST RENDERER ---
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
     let filtered = sourceList;
+    
     if (!isMyXi) {
         filtered = sourceList.filter(p => {
             if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
@@ -302,6 +291,8 @@ function renderList(containerId, sourceList, isMyXi) {
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
+        const teamCode = getTeamCode(p);
+        
         let controlsHtml = isMyXi ? `
             <div class="controls">
                 <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
@@ -314,13 +305,14 @@ function renderList(containerId, sourceList, isMyXi) {
             <div class="avatar-silhouette"></div>
             <div class="player-info">
                 <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
-                <span>${p.role} • ${getTeamInfo(p.real_team_id, true)} • ${p.credit} Cr</span>
+                <span>${p.role} • ${teamCode} • ${p.credit} Cr</span>
             </div>
             ${controlsHtml}
         </div>`;
     }).join('');
 }
 
+// --- ACTIONS ---
 window.togglePlayer = (id) => {
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
     if (idx > -1) {
@@ -346,6 +338,7 @@ window.setRole = (id, role) => {
 };
 
 function setupListeners() {
+    // View Toggles
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
@@ -356,6 +349,7 @@ function setupListeners() {
         };
     });
 
+    // Role Toggles
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -365,9 +359,11 @@ function setupListeners() {
         };
     });
 
+    // Search
     const searchInput = document.getElementById("playerSearch");
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
+    // Dropdowns
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
         if(btn) btn.onclick = (e) => { 
@@ -378,11 +374,12 @@ function setupListeners() {
             if(!isShowing) menu.classList.add('show');
         };
     });
-
+    
     document.addEventListener('click', () => { 
         document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
     });
 
+    // SAVE TEAM Logic (Writes to Table, not View)
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
@@ -409,6 +406,7 @@ function setupListeners() {
             showSuccessModal();
         } else {
             alert("Error saving team.");
+            console.error(error);
         }
         state.saving = false;
         render();
@@ -416,8 +414,11 @@ function setupListeners() {
 }
 
 function showSuccessModal() {
+    // FIX: Using match.team_a.short_code from the joined data
     const nextMatch = state.matches[0];
-    const matchLabel = nextMatch ? `${getTeamInfo(nextMatch.team_a_id, true)} vs ${getTeamInfo(nextMatch.team_b_id, true)}` : "Next Match";
+    const matchLabel = nextMatch 
+        ? `${nextMatch.team_a?.short_code} vs ${nextMatch.team_b?.short_code}` 
+        : "Next Match";
     
     const modal = document.createElement("div");
     modal.className = "success-modal-overlay";
@@ -434,21 +435,17 @@ function showSuccessModal() {
     `;
     document.body.appendChild(modal);
 
-    // Manual actions
     document.getElementById("btnChangeAgain").onclick = () => {
-        clearTimeout(autoRedirect); // Stop the auto-timer if they want to edit
+        clearTimeout(autoRedirect); 
         modal.remove();
     };
     
-    // FIX: Redirect to Clean URL
     document.getElementById("btnGoHome").onclick = () => {
         window.location.href = "/home";
     };
 
-    // --- NEW: Auto-Dismiss / Redirect after 3 seconds ---
     const autoRedirect = setTimeout(() => {
         if (document.body.contains(modal)) {
-            // FIX: Redirect to Clean URL
             window.location.href = "/home";
         }
     }, 3000);
