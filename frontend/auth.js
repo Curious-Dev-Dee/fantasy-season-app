@@ -1,18 +1,32 @@
 import { supabase } from "./supabase.js";
 
+const authContainer = document.getElementById("authContainer");
 const googleBtn = document.getElementById("googleLoginBtn");
 const spinner = document.querySelector(".spinner");
 const btnText = document.querySelector(".btn-text");
 const errorEl = document.getElementById("authError");
 
 /* =========================
-   SESSION MANAGEMENT (The Fix)
+   THE GATEKEEPER PATTERN (Fixes FOUC)
    ========================= */
-// onAuthStateChange handles both the initial load AND 
-// the moment the user returns from Google.
-supabase.auth.onAuthStateChange((event, session) => {
+// We check the session immediately. 
+// 1. If User exists -> Redirect immediately (User sees nothing)
+// 2. If No User -> Fade in the login screen (User sees login)
+
+supabase.auth.getSession().then(({ data: { session } }) => {
   if (session) {
-    window.location.replace("home.html"); // .replace prevents user from clicking 'back' to login
+    // User is already logged in, go to home
+    window.location.replace("/home.html"); 
+  } else {
+    // User is NOT logged in, show the UI gracefully
+    if (authContainer) authContainer.style.opacity = "1";
+    
+    // Set up the listener for future changes (like after they return from Google)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        window.location.replace("/home.html");
+      }
+    });
   }
 });
 
@@ -44,7 +58,13 @@ async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/home.html`,
+        // Since you are on Vercel, this is safer than window.location.origin
+        // Ensure this URL is exactly listed in Supabase Dashboard > Auth > URL Configuration
+        redirectTo: `${window.location.origin}/home.html`, 
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
 
@@ -55,7 +75,7 @@ async function signInWithGoogle() {
     setAuthLoading(false);
     
     if (errorEl) {
-      errorEl.textContent = "Sign-in failed. Please try again.";
+      errorEl.textContent = err.message || "Sign-in failed. Please try again.";
       errorEl.style.display = "block";
     }
   }
@@ -68,7 +88,7 @@ if (googleBtn) {
   googleBtn.addEventListener("click", signInWithGoogle);
 }
 
-// Fix: Re-enable button if user clicks 'back' from Google Auth screen
+// Mobile Safari Fix: Re-enable button if user swipes 'back'
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) {
     setAuthLoading(false);
