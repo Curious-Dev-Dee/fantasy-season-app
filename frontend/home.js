@@ -25,191 +25,109 @@ const saveProfileBtn = document.getElementById("saveProfileBtn");
 
 let countdownInterval;
 let currentUserId = null;
+let currentTournamentId = null; // Stored for saving profile later
 
 /* =========================
-   SENIOR DEV ARCHITECTURE: INIT
-   We wait for auth-guard.js to verify the user.
+   INIT (Auth Guard Protected)
 ========================= */
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
     currentUserId = user.id;
-    
     console.log("Home.js: Auth confirmed for", user.email);
-    
-    // Start the app logic now that we are safe
     startDashboard(currentUserId);
 });
 
 async function startDashboard(userId) {
-  // Reveal the dashboard (Auth Guard already removed body.loading-state, 
-  // but we ensure container is visible here too)
   document.querySelector('.app-container').style.visibility = 'visible';
   const loader = document.getElementById('loadingOverlay');
   if (loader) loader.style.display = 'none';
 
-  // Load Data
-  await loadProfile(userId);
-  await loadDashboard(userId);
-  await loadLeaderboardPreview();
+  // SENIOR DEV CHANGE: Parallel Execution
+  // We fetch User Data (View) and Top 3 Leaderboard at the same time.
+  await Promise.all([
+      fetchHomeData(userId),
+      loadLeaderboardPreview()
+  ]);
 
-  // Auto-refresh data every 30 seconds
+  // Refresh every 30s
   setInterval(() => {
-    loadDashboard(userId);
+    fetchHomeData(userId);
     loadLeaderboardPreview();
   }, 30000); 
 }
 
 /* =========================
-   PROFILE & MODAL LOGIC
+   DATA FETCHING (Optimized)
 ========================= */
+async function fetchHomeData(userId) {
+    // ONE DB CALL to get Profile, Rank, Subs, Tournament, and Next Match
+    const { data, error } = await supabase
+        .from('home_dashboard_view')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-avatarElement.addEventListener("click", () => {
-  profileModal.classList.remove("hidden");
-});
+    if (error || !data) {
+        console.error("Dashboard fetch error:", error);
+        return;
+    }
 
-profileModal.addEventListener("click", (e) => {
-  if (e.target === profileModal) {
-    profileModal.classList.add("hidden");
-  }
-});
+    currentTournamentId = data.tournament_id;
 
-async function loadProfile(userId) {
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (profile) {
-    renderProfile(profile);
-    modalFullName.value = profile.full_name || "";
-    modalTeamName.value = profile.team_name || "";
-  } else {
-    welcomeText.textContent = "Welcome back, Expert";
-    teamNameElement.textContent = "Set your team name";
-  }
-}
-
-function renderProfile(profile) {
-  const firstName = profile.full_name?.trim().split(" ")[0] || "Expert";
-  welcomeText.textContent = `Welcome back, ${firstName}`;
-  teamNameElement.textContent = profile.team_name || "Set your team name";
-
-  if (profile.team_photo_url) {
-    const { data } = supabase.storage
-      .from("team-avatars")
-      .getPublicUrl(profile.team_photo_url);
-    avatarElement.style.backgroundImage = `url(${data.publicUrl})`;
-    avatarElement.style.backgroundSize = "cover";
-    avatarElement.style.backgroundPosition = "center";
-  }
-}
-
-saveProfileBtn.addEventListener("click", async () => {
-  const name = modalFullName.value.trim();
-  const tName = modalTeamName.value.trim();
-
-  if (!name || !tName) {
-    alert("Please fill in both fields!");
-    return;
-  }
-
-  saveProfileBtn.disabled = true;
-  saveProfileBtn.textContent = "Saving...";
-
-  const { error } = await supabase
-    .from("user_profiles")
-    .upsert({ 
-      user_id: currentUserId, // Explicitly include ID
-      full_name: name, 
-      team_name: tName,
-      profile_completed: true 
-    }, { onConflict: 'user_id' });
+    // 1. Render Header & Tournament
+    tournamentNameElement.textContent = data.tournament_name || "Tournament";
     
-  if (error) {
-    console.error("Save error:", error);
-    alert("Error saving profile. Try again.");
-  } else {
-    welcomeText.textContent = `Welcome back, ${name.split(" ")[0]}`;
-    teamNameElement.textContent = tName;
-    profileModal.classList.add("hidden");
-  }
+    // 2. Render Profile
+    const firstName = data.full_name?.trim().split(" ")[0] || "Expert";
+    welcomeText.textContent = `Welcome back, ${firstName}`;
+    teamNameElement.textContent = data.team_name || "Set your team name";
+    
+    // Populate Modal Inputs
+    if (modalFullName.value === "") modalFullName.value = data.full_name || "";
+    if (modalTeamName.value === "") modalTeamName.value = data.team_name || "";
 
-  saveProfileBtn.disabled = false;
-  saveProfileBtn.textContent = "Save & Start";
-});
-
-/* =========================
-   DASHBOARD LOGIC
-========================= */
-async function loadDashboard(userId) {
-  const { data: activeTournament } = await supabase
-    .from("active_tournament")
-    .select("*")
-    .maybeSingle();
-
-  if (!activeTournament) return;
-  tournamentNameElement.textContent = activeTournament.name;
-
-  const { data: stats } = await supabase
-    .from("leaderboard_view")
-    .select("total_points, rank")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  const { data: summary } = await supabase
-    .from("dashboard_summary")
-    .select("subs_remaining")
-    .eq("user_id", userId)
-    .eq("tournament_id", activeTournament.id)
-    .maybeSingle();
-
-  scoreElement.textContent = stats?.total_points ?? 0;
-  rankElement.textContent = stats?.rank ? `#${stats.rank}` : "—";
-  subsElement.textContent = summary?.subs_remaining ?? 80;
-
-  const { data: upcomingMatch } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("tournament_id", activeTournament.id)
-    .gt("start_time", new Date().toISOString())
-    .order("start_time", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (upcomingMatch) {
-    const { data: teams } = await supabase
-      .from("real_teams")
-      .select("id, short_code")
-      .in("id", [upcomingMatch.team_a_id, upcomingMatch.team_b_id]);
-
-    if (teams?.length === 2) {
-      const teamA = teams.find(t => t.id === upcomingMatch.team_a_id);
-      const teamB = teams.find(t => t.id === upcomingMatch.team_b_id);
-      matchTeamsElement.textContent = `${teamA?.short_code || ""} vs ${teamB?.short_code || ""}`;
+    if (data.team_photo_url) {
+        const { data: imgData } = supabase.storage
+            .from("team-avatars")
+            .getPublicUrl(data.team_photo_url);
+        avatarElement.style.backgroundImage = `url(${imgData.publicUrl})`;
+        avatarElement.style.backgroundSize = "cover";
     }
 
-    const isLocked = upcomingMatch.lock_processed === true;
-    if (isLocked) {
-        editButton.disabled = true;
-        editButton.textContent = "Locked 🔒";
-        editButton.style.background = "#1f2937"; 
-        editButton.style.color = "#4b5563";      
+    // 3. Render Stats
+    scoreElement.textContent = data.total_points;
+    rankElement.textContent = data.rank > 0 ? `#${data.rank}` : "—";
+    subsElement.textContent = data.subs_remaining;
+
+    // 4. Render Upcoming Match (Parsed from JSON)
+    const match = data.upcoming_match;
+    if (match) {
+        matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+        
+        // Handle Lock State
+        if (match.is_locked) {
+            editButton.disabled = true;
+            editButton.textContent = "Locked 🔒";
+            editButton.style.background = "#1f2937"; 
+            editButton.style.color = "#4b5563";      
+        } else {
+            editButton.disabled = false;
+            editButton.textContent = "Change";
+            editButton.style.background = "#9AE000"; 
+            editButton.style.color = "#0c1117";
+        }
+
+        startCountdown(match.start_time);
     } else {
-        editButton.disabled = false;
-        editButton.textContent = "Change";
-        editButton.style.background = "#9AE000"; 
-        editButton.style.color = "#0c1117";
+        matchTeamsElement.textContent = "No upcoming match";
+        matchTimeElement.textContent = "Check Fixtures";
+        editButton.disabled = true;
     }
-
-    startCountdown(upcomingMatch.start_time);
-  } else {
-    matchTeamsElement.textContent = "No upcoming match";
-    editButton.disabled = true; 
-  }
 }
 
 async function loadLeaderboardPreview() {
+  // We still keep this separate because the View is User-Specific,
+  // but we need the Global Top 3 here.
   const { data: leaderboard } = await supabase
     .from("leaderboard_view")
     .select("team_name, total_points, rank")
@@ -217,23 +135,21 @@ async function loadLeaderboardPreview() {
     .limit(3);
 
   if (leaderboard && leaderboard.length > 0) {
-    leaderboardContainer.innerHTML = ""; // Clear existing content
-
+    leaderboardContainer.innerHTML = ""; 
     leaderboard.forEach(row => {
       const div = document.createElement("div");
       div.className = "leader-row";
-      
       div.innerHTML = `<span>#${row.rank} <span class="team-name-text"></span></span>
                        <span>${row.total_points} pts</span>`;
-      
-      // Inject name safely
       div.querySelector(".team-name-text").textContent = row.team_name || 'Anonymous';
-      
       leaderboardContainer.appendChild(div);
     });
   }
 }
 
+/* =========================
+   UTILITIES
+========================= */
 function startCountdown(startTime) {
   if (countdownInterval) clearInterval(countdownInterval);
   const matchTime = new Date(startTime).getTime();
@@ -256,12 +172,46 @@ function startCountdown(startTime) {
 }
 
 /* =========================
-   NAVIGATION (Updated to Clean URLs)
+   MODAL & NAVIGATION
 ========================= */
-// FIX: Removed .html to match Vercel config
+avatarElement.addEventListener("click", () => profileModal.classList.remove("hidden"));
+profileModal.addEventListener("click", (e) => {
+    if (e.target === profileModal) profileModal.classList.add("hidden");
+});
+
+// NOTE: We still write to the TABLE 'user_profiles', not the view.
+saveProfileBtn.addEventListener("click", async () => {
+  const name = modalFullName.value.trim();
+  const tName = modalTeamName.value.trim();
+
+  if (!name || !tName) { alert("Please fill in both fields!"); return; }
+
+  saveProfileBtn.disabled = true;
+  saveProfileBtn.textContent = "Saving...";
+
+  const { error } = await supabase
+    .from("user_profiles")
+    .upsert({ 
+      user_id: currentUserId, 
+      full_name: name, 
+      team_name: tName,
+      profile_completed: true 
+    }, { onConflict: 'user_id' });
+    
+  if (error) {
+    console.error("Save error:", error);
+    alert("Error saving profile. Try again.");
+  } else {
+    // Refresh the view data immediately to show changes
+    fetchHomeData(currentUserId);
+    profileModal.classList.add("hidden");
+  }
+
+  saveProfileBtn.disabled = false;
+  saveProfileBtn.textContent = "Save & Start";
+});
+
+// Navigation (Clean URLs)
 editButton.addEventListener("click", () => window.location.href = "/team-builder");
 viewXiBtn.addEventListener("click", () => window.location.href = "/team-view");
-
-viewFullLeaderboardBtn.addEventListener("click", () => {
-  window.location.href = "/leaderboard";
-});
+viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "/leaderboard");
