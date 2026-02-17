@@ -30,7 +30,7 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Navigation */
+        /* Sidebar Navigation - Fixed & Non-overlapping */
         .sidebar {
             width: 260px;
             background: #0f172a;
@@ -63,13 +63,12 @@
             align-items: center;
             gap: 12px;
             font-weight: 500;
-            transition: all 0.2s;
         }
 
         .nav-link.active { background: var(--primary); color: white; }
         .nav-link:hover:not(.active) { background: #1e293b; color: white; }
 
-        /* Main Content */
+        /* Main Content Area */
         .main-content {
             flex-grow: 1;
             padding: 40px;
@@ -83,7 +82,7 @@
         /* Layout Grid */
         .admin-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
             gap: 24px;
             align-items: start;
         }
@@ -97,7 +96,7 @@
         }
 
         .card-title {
-            font-size: 1.125rem;
+            font-size: 1.1rem;
             font-weight: 700;
             margin-bottom: 24px;
             color: var(--primary-dark);
@@ -110,12 +109,11 @@
 
         label {
             display: block;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-muted);
             margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
 
         select, textarea, input {
@@ -125,13 +123,6 @@
             border-radius: 8px;
             font-size: 0.95rem;
             margin-bottom: 20px;
-            background-color: #ffffff;
-            transition: border-color 0.2s;
-        }
-
-        select:focus, input:focus {
-            outline: none;
-            border-color: var(--primary);
         }
 
         /* Fixed Button Grid */
@@ -157,27 +148,10 @@
             gap: 4px;
         }
 
-        .delay-btn:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            transform: translateY(-1px);
-        }
+        .delay-btn:hover { background: #f1f5f9; transform: translateY(-1px); }
 
-        .abandon-match {
-            background: #fff7ed;
-            color: #9a3412;
-            border-color: #fdba74;
-        }
-
-        .abandon-match:hover { background: #ffedd5; }
-
-        .force-lock {
-            background: #fee2e2;
-            color: #dc2626;
-            border-color: #fecaca;
-        }
-
-        .force-lock:hover { background: #fecaca; }
+        .abandon-match { background: #fff7ed; color: #9a3412; border-color: #fdba74; }
+        .force-lock { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
 
         .btn-primary {
             background: var(--primary);
@@ -187,12 +161,8 @@
             border-radius: 8px;
             width: 100%;
             font-weight: 700;
-            font-size: 1rem;
             cursor: pointer;
-            transition: background 0.2s;
         }
-
-        .btn-primary:hover { background: var(--primary-dark); }
 
         /* Manual Override Section */
         .manual-bar {
@@ -215,21 +185,12 @@
             border-radius: 8px;
             text-align: center;
             font-weight: 700;
-            font-size: 0.9rem;
             display: none;
         }
 
-        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .loading { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-        .error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-
-        .report-box {
-            margin-top: 20px;
-            padding: 16px;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
+        .success { background: #dcfce7; color: #166534; }
+        .loading { background: #e0f2fe; color: #0369a1; }
+        .error { background: #fee2e2; color: #dc2626; }
     </style>
 </head>
 <body>
@@ -244,38 +205,28 @@
 
     <div class="main-content">
         <div class="dashboard-header">
-            <h2>Management Console</h2>
-            <p>Real-time match timing adjustments and scorecard processing.</p>
+            <h2>Match Command Center</h2>
+            <p>Admin tools for timing adjustments and points processing.</p>
         </div>
 
         <div class="admin-grid">
             
             <div class="card">
-                <div class="card-title"><i class="fas fa-clock-rotate-left"></i> Match Timing Control</div>
+                <div class="card-title"><i class="fas fa-clock"></i> Match Timing Control</div>
                 
                 <label>Select Active Match</label>
-                <select id="delayMatchSelect">
-                    <option value="">Fetching matches...</option>
-                </select>
+                <select id="delayMatchSelect"><option value="">Loading matches...</option></select>
 
                 <label>Quick Adjustments</label>
                 <div class="control-grid">
-                    <button class="delay-btn" data-mins="1"><span>+1m</span></button>
-                    <button class="delay-btn" data-mins="2"><span>+2m</span></button>
-                    <button class="delay-btn" data-mins="5"><span>+5m</span></button>
-                    <button class="delay-btn" data-mins="10"><span>+10m</span></button>
-                    <button class="delay-btn" data-mins="15"><span>+15m</span></button>
-                    <button class="delay-btn" data-mins="30"><span>+30m</span></button>
-                    
-                    <button id="abandonBtn" class="delay-btn abandon-match">
-                        <span>ABANDON</span>
-                        <i class="fas fa-ban" style="font-size: 0.8rem;"></i>
-                    </button>
-                    
-                    <button id="forceNowBtn" class="delay-btn force-lock">
-                        <span>LOCK</span>
-                        <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
-                    </button>
+                    <button class="delay-btn" data-mins="1">+1m</button>
+                    <button class="delay-btn" data-mins="2">+2m</button>
+                    <button class="delay-btn" data-mins="5">+5m</button>
+                    <button class="delay-btn" data-mins="10">+10m</button>
+                    <button class="delay-btn" data-mins="15">+15m</button>
+                    <button class="delay-btn" data-mins="30">+30m</button>
+                    <button id="abandonBtn" class="delay-btn abandon-match"><span>ABANDON</span><i class="fas fa-ban"></i></button>
+                    <button id="forceNowBtn" class="delay-btn force-lock"><span>LOCK</span><i class="fas fa-lock"></i></button>
                 </div>
 
                 <div class="manual-bar">
@@ -285,41 +236,32 @@
                     </div>
                     <button id="setCustomTimeBtn" class="btn-primary">Update</button>
                 </div>
-
                 <div id="delayStatus"></div>
             </div>
 
             <div class="card">
                 <div class="card-title"><i class="fas fa-calculator"></i> Points Processor</div>
                 
-                <label>Select Target Match</label>
-                <select id="matchSelect">
-                    <option value="">Fetching matches...</option>
-                </select>
+                <label>Select Completed Match</label>
+                <select id="matchSelect"><option value="">Fetching...</option></select>
 
-                <label>Scorecard JSON Input</label>
-                <textarea id="scoreboardInput" placeholder="Paste match JSON here..."></textarea>
+                <label>Scorecard JSON</label>
+                <textarea id="scoreboardInput" placeholder="Paste JSON scorecard here..."></textarea>
+                <button id="processBtn" class="btn-primary">Analyze Scorecard</button>
 
-                <button id="processBtn" class="btn-primary">Verify & Analyze Integrity</button>
-
-                <div id="reportContainer" class="report-box" style="display: none;">
-                    <div id="reportStats" style="font-weight: 800; color: var(--primary-dark); margin-bottom: 12px;"></div>
-                    
-                    <div id="missingWrapper" style="display: none;">
-                        <div style="background: #fff1f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; color: #991b1b; font-size: 0.85rem;">
-                            <strong><i class="fas fa-triangle-exclamation"></i> Mismatched Names:</strong>
-                            <ul id="missingList" style="margin-top: 8px; padding-left: 20px;"></ul>
-                        </div>
+                <div id="reportContainer" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <div id="reportStats" style="font-weight: 700; margin-bottom: 10px;"></div>
+                    <div id="missingWrapper" style="display: none; background: #fff1f2; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong style="color: #dc2626;">❌ Name Mismatches:</strong>
+                        <ul id="missingList" style="margin-top: 5px; font-size: 0.85rem;"></ul>
                     </div>
-
                     <div id="successWrapper" style="display: none;">
-                        <p style="color: var(--success); font-weight: 700;"><i class="fas fa-circle-check"></i> All players successfully mapped!</p>
-                        <label>Choose Player of the Match</label>
+                        <p style="color: var(--success); font-weight: 700;">✅ Verification Passed!</p>
+                        <label>Player of the Match</label>
                         <select id="pomSelect"></select>
-                        <button id="finalConfirmBtn" class="btn-primary" style="background: var(--success);">Finalize & Process All Points</button>
+                        <button id="finalConfirmBtn" class="btn-primary" style="background: var(--success);">Finalize & Push Points</button>
                     </div>
                 </div>
-
                 <div id="status"></div>
             </div>
 
