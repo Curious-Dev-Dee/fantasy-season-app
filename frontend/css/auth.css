@@ -42,21 +42,46 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* BUTTONS & SPINNER */
+/* Update or Add these specific rules to your CSS file */
+
 .auth-btn {
-  width: 100%; height: 48px; border-radius: 14px; border: none;
-  font-weight: 600; font-size: 15px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px; /* Space between the G and the text */
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden; /* Prevents giant icons from spilling out */
 }
 
+/* THE FIX: Specifically target the Google G */
+.google-icon-img {
+  width: 18px;  /* Professional standard size */
+  height: 18px; 
+  display: block;
+  object-fit: contain; /* Ensures the G doesn't look squashed */
+  flex-shrink: 0;      /* Prevents the text from squishing the icon */}
+
+  
 .auth-btn.primary { background-color: #a3ff12; color: #000; box-shadow: 0 6px 18px rgba(163, 255, 18, 0.25); }
 .auth-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(163, 255, 18, 0.4); }
 .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
 .spinner {
-  width: 18px; height: 18px; border: 2px solid #000; border-top: 2px solid transparent;
-  border-radius: 50%; animation: spin 0.8s linear infinite;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #000;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
 }
 
 .hidden { display: none !important; }
