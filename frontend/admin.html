@@ -16,19 +16,20 @@
             --text-muted: #64748b;
             --danger: #ef4444;
             --success: #22c55e;
-            --warning: #f59e0b;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
-            display: flex;
+            display: flex; /* Creates the Sidebar + Content side-by-side layout */
             min-height: 100vh;
         }
 
-        /* Sidebar Navigation */
+        /* Sidebar - Fixed and won't overlap */
         .sidebar {
             width: 260px;
             background: #0f172a;
@@ -36,17 +37,19 @@
             padding: 24px;
             display: flex;
             flex-direction: column;
-            position: fixed;
+            flex-shrink: 0; /* Prevents sidebar from shrinking */
+            position: sticky;
+            top: 0;
             height: 100vh;
         }
 
         .sidebar h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             margin-bottom: 40px;
+            color: var(--accent);
             display: flex;
             align-items: center;
             gap: 10px;
-            color: var(--accent);
         }
 
         .nav-link {
@@ -58,130 +61,82 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            transition: all 0.2s;
+            font-weight: 500;
         }
 
-        .nav-link.active {
-            background: var(--primary);
-            color: white;
-        }
+        .nav-link.active { background: var(--primary); color: white; }
+        .nav-link:hover:not(.active) { background: #1e293b; color: white; }
 
-        .nav-link:hover:not(.active) {
-            background: #1e293b;
-            color: white;
-        }
-
-        /* Main Content Area */
+        /* Main Content - Auto-fills the rest of the screen */
         .main-content {
-            margin-left: 260px;
             flex-grow: 1;
             padding: 40px;
+            max-width: 1200px; /* Centers the content on large screens */
         }
 
-        .dashboard-header {
-            margin-bottom: 32px;
-        }
+        .dashboard-header h2 { margin: 0; font-size: 1.8rem; }
+        .dashboard-header p { color: var(--text-muted); margin: 8px 0 32px; }
 
-        .dashboard-header h2 {
-            margin: 0;
-            font-size: 1.875rem;
-        }
-
-        .dashboard-header p {
-            color: var(--text-muted);
-            margin: 8px 0 0;
-        }
-
-        /* Grid Layout for Cards */
+        /* Layout Grid */
         .admin-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 24px;
-            align-items: start;
         }
 
         .card {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
         }
 
         .card-title {
-            font-size: 1.125rem;
+            font-size: 1.1rem;
             font-weight: 700;
             margin-bottom: 20px;
+            color: var(--primary-dark);
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: var(--primary-dark);
+            gap: 8px;
         }
 
-        /* Form Elements */
         label {
             display: block;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 8px;
             color: var(--text-muted);
+            margin-bottom: 6px;
         }
 
         select, textarea, input {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            box-sizing: border-box;
+            border-radius: 6px;
             margin-bottom: 16px;
+            font-size: 0.95rem;
         }
 
-        textarea {
-            height: 150px;
-            font-family: monospace;
-            background: #f1f5f9;
-        }
-
-        /* Buttons */
-        button {
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        /* Delay Controls Grid */
+        /* Fixed Button Grid */
         .control-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
         }
 
         .delay-btn {
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
-            padding: 10px;
+            padding: 10px 5px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
         }
 
-        .delay-btn:hover {
-            background: #e2e8f0;
-        }
+        .delay-btn:hover { background: #e2e8f0; }
 
         .force-lock {
             background: #fee2e2;
@@ -189,67 +144,72 @@
             border: 1px solid #fecaca;
         }
 
-        .force-lock:hover {
-            background: #fecaca;
-        }
+        .force-lock:hover { background: #fecaca; }
 
-        /* Status & Reports */
-        .report-box {
-            margin-top: 20px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .warning-list {
-            background: #fff1f2;
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
             padding: 12px;
-            border-radius: 8px;
-            color: #991b1b;
-            font-size: 0.85rem;
-        }
-
-        #status, #delayStatus {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 8px;
+            border-radius: 6px;
+            width: 100%;
             font-weight: 600;
-            text-align: center;
+            cursor: pointer;
         }
 
-        .loading { background: #e0f2fe; color: #0369a1; }
+        /* Custom Time Bar */
+        .manual-bar {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .manual-bar div { flex-grow: 1; }
+        .manual-bar input { margin-bottom: 0; }
+        .manual-bar button { width: auto; padding: 10px 20px; }
+
+        /* Status colors */
+        #status, #delayStatus {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
         .success { background: #dcfce7; color: #166534; }
+        .loading { background: #e0f2fe; color: #0369a1; }
         .error { background: #fee2e2; color: #dc2626; }
 
-        @media (max-width: 1100px) {
-            .admin-grid { grid-template-columns: 1fr; }
-        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h1><i class="fas fa-trophy"></i> Avengers League</h1>
+        <h1><i class="fas fa-trophy"></i> Avengers</h1>
         <a href="home.html" class="nav-link"><i class="fas fa-house"></i> Home</a>
         <a href="#" class="nav-link active"><i class="fas fa-gamepad"></i> Match Control</a>
-        <a href="admin_users.html" class="nav-link"><i class="fas fa-users"></i> Users</a>
-        <a href="admin_settings.html" class="nav-link"><i class="fas fa-gear"></i> Settings</a>
+        <a href="#" class="nav-link"><i class="fas fa-users"></i> Users</a>
+        <a href="#" class="nav-link"><i class="fas fa-gear"></i> Settings</a>
     </div>
 
     <div class="main-content">
         <div class="dashboard-header">
-            <h2>Match Management Portal</h2>
-            <p>Monitor live match timing and process points with integrity checks.</p>
+            <h2>Match Control Center</h2>
+            <p>Adjust match timing and process scorecard points.</p>
         </div>
 
         <div class="admin-grid">
             
             <div class="card">
-                <div class="card-title"><i class="fas fa-clock"></i> Match Delay Control</div>
+                <div class="card-title"><i class="fas fa-clock"></i> Delay Actions</div>
                 
-                <label>Active Match</label>
-                <select id="delayMatchSelect"><option value="">Loading matches...</option></select>
+                <label>Select Match</label>
+                <select id="delayMatchSelect"></select>
 
                 <label>Quick Extend</label>
                 <div class="control-grid">
@@ -263,43 +223,42 @@
                     <button id="forceNowBtn" class="delay-btn force-lock">LOCK 🔒</button>
                 </div>
 
-                <div style="display: flex; gap: 10px; align-items: flex-end;">
-                    <div style="flex-grow: 1;">
-                        <label>Manual Override (24h)</label>
+                <div class="manual-bar">
+                    <div>
+                        <label>Manual Override</label>
                         <input type="datetime-local" id="customTimeInput">
                     </div>
-                    <button id="setCustomTimeBtn" class="btn-primary" style="width: auto; margin-bottom: 16px;">Set</button>
+                    <button id="setCustomTimeBtn" class="btn-primary">Set</button>
                 </div>
 
-                <div id="delayStatus" style="display: none;"></div>
+                <div id="delayStatus"></div>
             </div>
 
             <div class="card">
                 <div class="card-title"><i class="fas fa-calculator"></i> Points Processor</div>
                 
-                <label>Select Completed Match</label>
-                <select id="matchSelect"><option value="">Fetching...</option></select>
+                <label>Completed Match</label>
+                <select id="matchSelect"></select>
 
-                <label>Paste Scorecard JSON</label>
-                <textarea id="scoreboardInput" placeholder="Paste data from Cricket API or manual JSON..."></textarea>
+                <label>Scorecard JSON</label>
+                <textarea id="scoreboardInput" placeholder="Paste JSON..."></textarea>
 
-                <button id="processBtn" class="btn-primary">Analyze Integrity</button>
+                <button id="processBtn" class="btn-primary">Analyze Scorecard</button>
 
-                <div id="reportContainer" class="report-box" style="display: none;">
+                <div id="reportContainer" class="report-box" style="display: none; margin-top: 15px;">
                     <div id="reportStats" style="font-weight: 700; margin-bottom: 10px;"></div>
                     
                     <div id="missingWrapper" style="display: none;">
                         <div class="warning-list">
-                            <strong>❌ Typo Found:</strong> The following names don't match our database:
-                            <ul id="missingList" style="margin-top: 8px;"></ul>
+                            <strong>Name Mismatches:</strong>
+                            <ul id="missingList"></ul>
                         </div>
                     </div>
 
                     <div id="successWrapper" style="display: none;">
-                        <p style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> Integrity Check Passed!</p>
-                        <label>Player of the Match (+20 pts)</label>
+                        <label>Player of the Match</label>
                         <select id="pomSelect"></select>
-                        <button id="finalConfirmBtn" class="btn-primary" style="background: var(--success);">Finalize & Push Points</button>
+                        <button id="finalConfirmBtn" class="btn-primary" style="background: var(--success);">Confirm Points</button>
                     </div>
                 </div>
 
