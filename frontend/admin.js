@@ -216,6 +216,16 @@ async function executeUpdate(scoreboard) {
 /**
  * 4. QUICK DELAY FEATURE
  */
+/**
+ * 4. ADVANCED MATCH CONTROL
+ */
+const delayMatchSelect = document.getElementById("delayMatchSelect");
+const delayStatus = document.getElementById("delayStatus");
+const customTimeInput = document.getElementById("customTimeInput");
+const setCustomTimeBtn = document.getElementById("setCustomTimeBtn");
+const forceNowBtn = document.getElementById("forceNowBtn");
+
+// 1. Populate Dropdown
 async function loadDelayMatches() {
     const { data: matches } = await supabase
         .from('matches')
@@ -226,76 +236,74 @@ async function loadDelayMatches() {
 
     if (matches) {
         delayMatchSelect.innerHTML = matches.map(m => `
-            <option value="${m.id}">Match ${m.match_number} (Current: ${new Date(m.actual_start_time).toLocaleTimeString()})</option>
+            <option value="${m.id}">Match ${m.match_number} (Current: ${new Date(m.actual_start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})</option>
         `).join('');
     }
 }
 
+// 2. Helper function to perform the actual update
+async function updateMatchTime(matchId, newIsoTime, label) {
+    updateDelayStatus(`Updating to ${label}...`, "loading");
+    try {
+        const { data: updateCheck, error } = await supabase
+            .from('matches')
+            .update({ 
+                actual_start_time: newIsoTime,
+                status: 'upcoming' 
+            })
+            .eq('id', matchId)
+            .select();
+
+        if (error) throw error;
+        if (!updateCheck || updateCheck.length === 0) throw new Error("Update failed. Check RLS.");
+
+        updateDelayStatus(`✅ Match Updated: ${new Date(newIsoTime).toLocaleTimeString()}`, "success");
+        await loadDelayMatches();
+    } catch (err) {
+        console.error(err);
+        updateDelayStatus(`❌ Error: ${err.message}`, "error");
+    }
+}
+
+// 3. Handle Incremental Buttons (+1, +2, +5 etc)
 document.querySelectorAll('.delay-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
         const matchId = delayMatchSelect.value;
         const mins = parseInt(btn.getAttribute('data-mins'));
-        
-        if (!matchId) return alert("Select a match first!");
-        
-        btn.disabled = true;
-        updateDelayStatus(`Processing...`, "loading");
+        if (!matchId) return alert("Select a match!");
 
-        try {
-            const { data: match, error: fetchErr } = await supabase
-                .from('matches')
-                .select('actual_start_time')
-                .eq('id', matchId)
-                .single();
-
-            if (fetchErr) throw fetchErr;
-
-            const oldTime = new Date(match.actual_start_time);
-            const newTime = new Date(oldTime.getTime() + (mins * 60000));
-
-            console.log("Original Time:", oldTime.toISOString());
-            console.log("New Target Time:", newTime.toISOString());
-
-            // VERIFICATION STEP: Added .select() to ensure RLS isn't blocking the write
-            const { data: updateCheck, error: updateErr } = await supabase
-                .from('matches')
-                .update({ 
-                    actual_start_time: newTime.toISOString(),
-                    status: 'upcoming' 
-                })
-                .eq('id', matchId)
-                .select(); // Critical for checking if any row was actually modified
-
-            if (updateErr) throw updateErr;
-
-            // If updateCheck is empty, the query matched 0 rows (usually due to RLS)
-            if (!updateCheck || updateCheck.length === 0) {
-                throw new Error("No rows updated. Check if you have RLS permissions to edit matches.");
-            }
-
-            updateDelayStatus(`✅ Success! Match time updated to ${newTime.toLocaleTimeString()}.`, "success");
-            await loadDelayMatches();
-            
-        } catch (err) {
-            console.error("Delay Update Failed:", err);
-            updateDelayStatus(`❌ Error: ${err.message}`, "error");
-            alert(`Update Failed: ${err.message}`);
-        } finally {
-            btn.disabled = false;
-        }
+        const { data } = await supabase.from('matches').select('actual_start_time').eq('id', matchId).single();
+        const newTime = new Date(new Date(data.actual_start_time).getTime() + (mins * 60000));
+        await updateMatchTime(matchId, newTime.toISOString(), `+${mins}m`);
     });
 });
 
-function updateStatus(msg, type) {
-    statusDiv.textContent = msg;
-    statusDiv.className = `status ${type}`;
-    statusDiv.style.display = msg ? "block" : "none";
-}
+// 4. Handle Custom Time Input
+setCustomTimeBtn.addEventListener('click', async () => {
+    const matchId = delayMatchSelect.value;
+    const customTime = customTimeInput.value;
+    if (!matchId || !customTime) return alert("Select match and time!");
+    
+    const newTime = new Date(customTime).toISOString();
+    await updateMatchTime(matchId, newTime, "Custom Time");
+});
+
+// 5. FORCE LOCK NOW (Immediate Trigger)
+forceNowBtn.addEventListener('click', async () => {
+    const matchId = delayMatchSelect.value;
+    if (!matchId) return alert("Select a match!");
+    
+    if (confirm("FORCE LOCK? This will instantly close team edits for ALL users.")) {
+        // We set the time to 5 seconds ago to ensure the Edge Function sees it as 'past due'
+        const now = new Date(Date.now() - 5000).toISOString();
+        await updateMatchTime(matchId, now, "IMMEDIATE LOCK");
+    }
+});
 
 function updateDelayStatus(msg, type) {
     delayStatus.textContent = msg;
     delayStatus.style.display = "block";
-    delayStatus.style.color = type === "error" ? "red" : (type === "success" ? "green" : "blue");
+    delayStatus.style.color = type === "error" ? "#dc2626" : (type === "success" ? "#166534" : "#1d4ed8");
 }
 
 init();

@@ -4,25 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <div class="card" style="margin-bottom: 20px;">
+    <div class="card" style="margin-bottom: 20px; border-left: 5px solid var(--primary);">
     <h2>🕒 Match Delay Control</h2>
-    <p style="font-size: 13px; color: #666;">Extend the lock time during rain or toss delays. This updates the <strong>Actual Start Time</strong>.</p>
+    <p style="font-size: 13px; color: #666;">Extend time or force an immediate lock.</p>
     
     <label>Select Active Match</label>
     <select id="delayMatchSelect"><option value="">Loading matches...</option></select>
 
-    <div class="delay-controls" style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="delay-btn" data-mins="5" style="background: #64748b;">+5m</button>
-        <button class="delay-btn" data-mins="10" style="background: #475569;">+10m</button>
-        <button class="delay-btn" data-mins="15" style="background: #334155;">+15m</button>
-        <button class="delay-btn" data-mins="30" style="background: #1e293b;">+30m</button>
+    <div class="delay-controls" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px;">
+        <button class="delay-btn" data-mins="1">+1m</button>
+        <button class="delay-btn" data-mins="2">+2m</button>
+        <button class="delay-btn" data-mins="3">+3m</button>
+        <button class="delay-btn" data-mins="5">+5m</button>
+        <button class="delay-btn" data-mins="10">+10m</button>
+        <button class="delay-btn" data-mins="15">+15m</button>
+        <button class="delay-btn" data-mins="30">+30m</button>
+        <button id="forceNowBtn" style="background: var(--danger); margin-top: 0;">LOCK NOW 🔒</button>
     </div>
+
+    <div style="margin-top: 15px; display: flex; gap: 10px; align-items: flex-end;">
+        <div style="flex-grow: 1;">
+            <label>Set Custom Time (24h format)</label>
+            <input type="datetime-local" id="customTimeInput" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+        </div>
+        <button id="setCustomTimeBtn" style="width: auto; margin-top: 0; background: #0f172a;">Set Time</button>
+    </div>
+
     <div id="delayStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold; display: none;"></div>
 </div>
-
-<div class="card">
-    <h2>🏏 Match Points Processor</h2>
-    ...
+...
 
     <title>Points Processing Portal</title>
     <style>
