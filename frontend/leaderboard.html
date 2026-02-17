@@ -3,46 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cricket Experts · Leaderboard</title>
-
+  <title>Leaderboard | Cricket Experts</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/leaderboard.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
 </head>
-
 <body>
 
 <div class="leaderboard-app page-with-nav">
-
   <header class="leaderboard-header">
-    <h1>Leaderboard</h1>
+    <button class="back-btn" onclick="window.location.href='home.html'"><i class="fas fa-chevron-left"></i></button>
+    <h1>Rankings</h1>
+    <div class="header-icon"><i class="fas fa-medal"></i></div>
   </header>
 
-  <section class="leaderboard-summary" id="leaderboardSummary">
-    Loading...
+  <section class="podium-section" id="podiumContainer">
+      </section>
+
+  <section class="user-summary-card" id="leaderboardSummary">
+    <div class="spinner-small"></div> Checking your rank...
   </section>
 
   <main id="leaderboardContainer" class="leaderboard-list">
-    <!-- rows injected dynamically -->
-  </main>
-
+    </main>
 </div>
 
 <nav class="bottom-nav">
-  <a href="home.html">
-    Home
-  </a>
-  <a href="fixtures.html">
-    Fixtures
-  </a>
-  <a href="prediction.html">
-    Prediction
-  </a>
-  <a href="leaderboard.html" class="active">
-    More
-  </a>
+  <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Play</span></a>
+  <a href="leaderboard.html" class="active"><i class="fas fa-ranking-star"></i><span>Rank</span></a>
 </nav>
 
 <script type="module" src="leaderboard.js"></script>
-
 </body>
 </html>

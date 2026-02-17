@@ -1,106 +1,75 @@
 import { supabase } from "./supabase.js";
 
-/* =========================
-   ELEMENTS
-========================= */
-
 const leaderboardContainer = document.getElementById("leaderboardContainer");
 const leaderboardSummary = document.getElementById("leaderboardSummary");
-
-/* =========================
-   INIT
-========================= */
+const podiumContainer = document.getElementById("podiumContainer");
 
 init();
 
 async function init() {
-
   const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    window.location.href = "login.html";
-    return;
-  }
-
+  if (!session) { window.location.href = "login.html"; return; }
   const userId = session.user.id;
 
-  const { data: activeTournament } = await supabase
-    .from("active_tournament")
-    .select("*")
-    .single();
-
-  if (!activeTournament) {
-    leaderboardSummary.textContent = "No active tournament.";
-    return;
-  }
-
-  const tournamentId = activeTournament.id;
+  const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
+  if (!activeTournament) return;
 
   const { data: leaderboard } = await supabase
     .from("leaderboard_view")
     .select("*")
-    .eq("tournament_id", tournamentId)
+    .eq("tournament_id", activeTournament.id)
     .order("rank", { ascending: true });
 
   if (!leaderboard || leaderboard.length === 0) {
-    leaderboardSummary.textContent = "No rankings available yet.";
+    leaderboardSummary.textContent = "Rankings will appear after the first match.";
     return;
   }
 
   renderLeaderboard(leaderboard, userId);
 }
 
-/* =========================
-   RENDER
-========================= */
-
 function renderLeaderboard(leaderboard, userId) {
+  // 1. Split Data
+  const top3 = leaderboard.slice(0, 3);
+  const remaining = leaderboard.slice(3);
 
-  leaderboardContainer.innerHTML = "";
+  // 2. Render Podium [2nd, 1st, 3rd layout]
+  const p2 = top3[1] || { team_name: 'TBA', total_points: 0, rank: 2 };
+  const p1 = top3[0] || { team_name: 'TBA', total_points: 0, rank: 1 };
+  const p3 = top3[2] || { team_name: 'TBA', total_points: 0, rank: 3 };
 
-  const totalUsers = leaderboard.length;
+  podiumContainer.innerHTML = [p2, p1, p3].map(user => `
+    <div class="podium-card ${user.rank === 1 ? 'first' : ''}" 
+         onclick="scoutUser('${user.user_id}', '${user.team_name}')">
+        <div class="rank-badge">${user.rank}</div>
+        <div class="podium-avatar" id="avatar-${user.rank}"></div>
+        <div class="podium-name">${user.team_name || 'Anonymous'}</div>
+        <div class="podium-pts">${user.total_points} pts</div>
+    </div>
+  `).join('');
 
+  // 3. Render User Summary
   const currentUserRow = leaderboard.find(row => row.user_id === userId);
-
   if (currentUserRow) {
     leaderboardSummary.innerHTML = `
-      You are ranked <strong>#${currentUserRow.rank}</strong> 
-      with <strong>${currentUserRow.total_points}</strong> points 
-      out of ${totalUsers} participants.
-    `;
-  } else {
-    leaderboardSummary.innerHTML = `
-      ${totalUsers} participants in this tournament.
+      Your Rank: #${currentUserRow.rank} &nbsp;•&nbsp; Score: ${currentUserRow.total_points}
     `;
   }
 
-  leaderboard.forEach(row => {
-
-    const div = document.createElement("div");
-    div.classList.add("leader-row");
-
-    if (row.user_id === userId) {
-      div.classList.add("you");
-    }
-
-    // NEW: Add Click Logic to Scout other teams
-    div.onclick = () => {
-      // Passes User ID and Team Name to the Team View page
-      window.location.href = `team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name)}`;
-    };
-
-div.innerHTML = `
-  <div class="leader-rank">#${row.rank}</div>
-  <div class="leader-team"></div> 
-  <div class="leader-points-group">
-    <span class="leader-points">${row.total_points}</span>
-    <span class="leader-arrow">›</span>
-  </div>
-`;
-
-// New safe line:
-div.querySelector(".leader-team").textContent = row.team_name;
-
-    leaderboardContainer.appendChild(div);
-  });
+  // 4. Render Remaining List (4th onwards)
+  leaderboardContainer.innerHTML = remaining.map(row => `
+    <div class="leader-row ${row.user_id === userId ? 'you' : ''}" 
+         onclick="scoutUser('${row.user_id}', '${row.team_name}')">
+      <div class="l-rank">#${row.rank}</div>
+      <div class="l-team">${row.team_name}</div>
+      <div class="l-pts">${row.total_points} pts</div>
+      <div class="l-arrow"><i class="fas fa-chevron-right"></i></div>
+    </div>
+  `).join('');
 }
+
+// Global function to navigate to team view
+window.scoutUser = (uid, name) => {
+    if (!uid || uid === 'undefined') return;
+    window.location.href = `view-team.html?uid=${uid}&name=${encodeURIComponent(name)}`;
+};
