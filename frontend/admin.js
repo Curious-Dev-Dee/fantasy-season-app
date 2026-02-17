@@ -243,6 +243,7 @@ async function loadDelayMatches() {
 }
 
 // Add event listeners to all delay buttons
+// Add event listeners to all delay buttons
 document.querySelectorAll('.delay-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
         const matchId = delayMatchSelect.value;
@@ -251,36 +252,44 @@ document.querySelectorAll('.delay-btn').forEach(btn => {
         if (!matchId) return alert("Select a match first!");
         
         btn.disabled = true;
-        updateDelayStatus(`Pushing Match ${matchId} by ${mins}m...`, "loading");
+        updateDelayStatus(`Processing...`, "loading");
 
         try {
-            // 1. Get current actual time
-            const { data: match } = await supabase
+            // 1. Fetch current actual time directly from the source
+            const { data: match, error: fetchErr } = await supabase
                 .from('matches')
                 .select('actual_start_time')
                 .eq('id', matchId)
                 .single();
 
-            // 2. Calculate new time
-            const newTime = new Date(new Date(match.actual_start_time).getTime() + mins * 60000);
+            if (fetchErr) throw fetchErr;
 
-            // 3. Update DB
-            const { error } = await supabase
+            // 2. Add minutes (1 minute = 60000 milliseconds)
+            const oldTime = new Date(match.actual_start_time);
+            const newTime = new Date(oldTime.getTime() + (mins * 60000));
+
+            console.log("Original Time:", oldTime.toISOString());
+            console.log("New Target Time:", newTime.toISOString());
+
+            // 3. Perform the Update
+            const { error: updateErr } = await supabase
                 .from('matches')
                 .update({ 
                     actual_start_time: newTime.toISOString(),
-                    status: 'upcoming' // Keep status as upcoming for Edge Function
+                    status: 'upcoming' 
                 })
                 .eq('id', matchId);
 
-            if (error) throw error;
+            if (updateErr) throw updateErr;
 
-            updateDelayStatus(`✅ Success! New Lock Time: ${newTime.toLocaleTimeString()}`, "success");
-            loadDelayMatches(); // Refresh dropdown info
+            updateDelayStatus(`✅ Success! Match 33 delayed by ${mins}m.`, "success");
+            
+            // 4. Refresh the dropdown to show the new 'Current' time
+            await loadDelayMatches();
             
         } catch (err) {
-            console.error(err);
-            updateDelayStatus("❌ Failed to update time.", "error");
+            console.error("Delay Update Failed:", err);
+            updateDelayStatus(`❌ Error: ${err.message}`, "error");
         } finally {
             btn.disabled = false;
         }
