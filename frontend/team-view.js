@@ -14,47 +14,33 @@ let realTeamsMap = {};
 
 init();
 
-
-async function init()
- {
-
-  const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
-realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
+async function init() {
+    const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
+    realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = "login.html"; return; }
 
-    // 1. Determine Identity and Mode
     const urlParams = new URLSearchParams(window.location.search);
     const scoutUid = urlParams.get('uid');
     const scoutName = urlParams.get('name');
 
     if (scoutUid && scoutUid !== session.user.id) {
-        // --- SCOUT MODE ---
         userId = scoutUid;
         isScoutMode = true;
-        
-        // Dynamic title from Leaderboard click
         if (viewTitle) viewTitle.textContent = scoutName || "User Team";
-        
         tabUpcoming.style.display = 'none';
         tabLocked.classList.add("active");
         tabUpcoming.classList.remove("active");
     } else {
-        // --- PERSONAL MODE ---
         userId = session.user.id;
         isScoutMode = false;
-
-        // Fetch your own team name from leaderboard_view
         const { data: myData } = await supabase
             .from("leaderboard_view")
             .select("team_name")
             .eq("user_id", userId)
             .maybeSingle();
-
-        if (viewTitle) {
-            viewTitle.textContent = myData?.team_name || "My XI";
-        }
+        if (viewTitle) viewTitle.textContent = myData?.team_name || "My XI";
     }
 
     const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
@@ -62,8 +48,6 @@ realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
     tournamentId = activeTournament.id;
 
     await setupMatchTabs();
-
-    // 2. Load Content
     isScoutMode ? loadLastLockedXI() : loadCurrentXI();
 }
 
@@ -72,14 +56,16 @@ async function setupMatchTabs() {
     const tMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
     if (!isScoutMode) {
+        // FIX: Update query to use actual_start_time
         const { data: upcoming } = await supabase.from("matches")
             .select("*").eq("tournament_id", tournamentId)
-            .gt("start_time", new Date().toISOString())
-            .order("start_time", { ascending: true }).limit(1).maybeSingle();
+            .gt("actual_start_time", new Date().toISOString())
+            .order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
 
         if (upcoming) {
             tabUpcoming.innerHTML = `${tMap[upcoming.team_a_id]} vs ${tMap[upcoming.team_b_id]} 🔓`;
-            tabUpcoming.dataset.startTime = upcoming.start_time;
+            // FIX: Use actual_start_time for the tab's countdown reference
+            tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
     }
 
@@ -102,6 +88,7 @@ async function setupMatchTabs() {
         });
     });
 }
+// ... [Rest of renderTeam and loadXI logic remains the same] ...
 
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);

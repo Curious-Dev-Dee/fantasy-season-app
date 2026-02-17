@@ -34,7 +34,6 @@ window.addEventListener('auth-verified', async (e) => {
 async function init(user) {
     if (!user) return;
 
-    // SENIOR DEV FIX: Parallel Fetching (All requests fire at once)
     const [
         { data: players },
         { data: summary },
@@ -42,53 +41,36 @@ async function init(user) {
         { data: currentTeam },
         { data: matches }
     ] = await Promise.all([
-        // 1. Fetch Players (Pre-joined with Team Names via View)
         supabase.from("player_pool_view").select("*").eq("is_active", true),
-
-        // 2. Fetch Subs
         supabase.from("dashboard_summary").select("subs_remaining")
             .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-
-        // 3. Fetch Last Locked Team (For Subs calculation)
         supabase.from("user_match_teams").select("id, user_match_team_players(player_id)")
             .eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
-            
-        // 4. Fetch Current Saved Team
         supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)")
             .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-
-        // 5. Fetch Matches
+        // FIX: Using actual_start_time for current and future matches
         supabase.from("matches").select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-            .eq("tournament_id", TOURNAMENT_ID).gt("start_time", new Date().toISOString())
-            .order("start_time", { ascending: true }).limit(5)
+            .eq("tournament_id", TOURNAMENT_ID)
+            .gt("actual_start_time", new Date().toISOString())
+            .order("actual_start_time", { ascending: true }).limit(5)
     ]);
 
-    // --- PROCESS DATA ---
-
-    // 1. Players
     state.allPlayers = players || [];
-
-    // 2. Subs
     state.baseSubsRemaining = summary?.subs_remaining ?? 80;
 
-    // 3. Locked Players
     if (lastLock?.user_match_team_players) {
         state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
     }
 
-    // 4. Current Team Selection
     if (currentTeam) {
         state.captainId = currentTeam.captain_id;
         state.viceCaptainId = currentTeam.vice_captain_id;
-        // Map saved IDs back to full player objects
         const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
         state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
     }
 
-    // 5. Matches
     state.matches = matches || [];
     
-    // --- RENDER ---
     if (state.matches.length > 0) {
         updateHeaderMatch(state.matches[0]);
     }
@@ -98,22 +80,20 @@ async function init(user) {
     setupListeners();
 }
 
-// --- HELPER: Get Team Code from Player Object directly ---
 const getTeamCode = (player) => player.team_short_code || "UNK";
 
-// --- HEADER & COUNTDOWN ---
 function updateHeaderMatch(match) {
     const nameEl = document.getElementById("upcomingMatchName");
     const timerEl = document.getElementById("headerCountdown");
     if (!nameEl || !timerEl) return;
 
-    // Note: Supabase join returns objects, e.g. match.team_a.short_code
     const teamA = match.team_a?.short_code || "TBA";
     const teamB = match.team_b?.short_code || "TBA";
     nameEl.innerText = `${teamA} vs ${teamB}`;
     
     if (countdownInterval) clearInterval(countdownInterval);
-    const targetDate = new Date(match.start_time).getTime();
+    // FIX: Use actual_start_time for the countdown target
+    const targetDate = new Date(match.actual_start_time).getTime();
     
     const startTimer = () => {
         const now = new Date().getTime();
@@ -131,7 +111,7 @@ function updateHeaderMatch(match) {
     startTimer();
     countdownInterval = setInterval(startTimer, 1000);
 }
-
+// ... [Rest of render and filter logic remains the same] ...
 // --- RENDER LOGIC ---
 function render() {
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
