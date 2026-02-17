@@ -12,7 +12,7 @@ const timerDisplay = document.getElementById("timer");
 const tabs = document.querySelectorAll(".xi-tab");
 const viewTitle = document.getElementById("viewTitle"); 
 
-// New History Elements
+// History & Overlay Elements
 const historyBtn = document.getElementById("viewHistoryBtn");
 const historyOverlay = document.getElementById("historyOverlay");
 const breakdownOverlay = document.getElementById("breakdownOverlay");
@@ -27,15 +27,14 @@ let realTeamsMap = {};
 init();
 
 async function init() {
-    // 1. Load Team Maps
+    // 1. Load Team Maps for Jersey Labels
     const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
     realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
-    // 2. Auth Guard
+    // 2. Auth Guard & User ID Identification
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = "login.html"; return; }
 
-    // 3. Determine Mode (Scout vs Self)
     const urlParams = new URLSearchParams(window.location.search);
     const scoutUid = urlParams.get('uid');
     const scoutName = urlParams.get('name');
@@ -44,7 +43,7 @@ async function init() {
         userId = scoutUid;
         isScoutMode = true;
         if (viewTitle) viewTitle.textContent = scoutName || "User Team";
-        tabUpcoming.style.display = 'none'; // Hide strategy in scout mode
+        tabUpcoming.style.display = 'none'; // Strategy is private in scout mode
         tabLocked.classList.add("active");
         tabUpcoming.classList.remove("active");
     } else {
@@ -62,7 +61,7 @@ async function init() {
     if (!activeTournament) return;
     tournamentId = activeTournament.id;
 
-    // 4. Load UI Components
+    // 3. Kick off UI rendering
     await setupMatchTabs();
     isScoutMode ? loadLastLockedXI() : loadCurrentXI();
     setupHistoryListeners();
@@ -134,7 +133,7 @@ async function loadCurrentXI() {
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     renderTeamLayout(players, userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);
-    teamStatus.textContent = "Current Strategy (Unlocked)";
+    teamStatus.textContent = "Strategy for Next Match";
 }
 
 async function loadLastLockedXI() {
@@ -145,7 +144,7 @@ async function loadLastLockedXI() {
         .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (!snapshot) {
-        teamContainer.innerHTML = "<p class='empty-msg'>No match history found.</p>";
+        teamContainer.innerHTML = "<p class='empty-msg'>No match snapshots available.</p>";
         return;
     }
 
@@ -157,7 +156,7 @@ async function loadLastLockedXI() {
 
     renderTeamLayout(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer);
     
-    // Recalculate total for Last Locked view as well to be safe
+    // Live Calculation for the Footer
     let calculatedTotal = 0;
     players.forEach(p => {
         let pPts = statsMap[p.id] || 0;
@@ -166,7 +165,7 @@ async function loadLastLockedXI() {
         calculatedTotal += pPts;
     });
 
-    teamStatus.textContent = `Points: ${calculatedTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
+    teamStatus.textContent = `Match Points: ${calculatedTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
 }
 
 /* =========================
@@ -219,19 +218,19 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
    HISTORY FEATURE LOGIC
 ========================= */
 function setupHistoryListeners() {
-    // 1. Open History List
+    // 1. Fetch and Display the list of all past matches
     historyBtn.onclick = async () => {
         historyOverlay.classList.remove("hidden");
         historyList.innerHTML = `<div class="spinner-small"></div>`;
 
-        const { data: history, error } = await supabase
+        const { data: history } = await supabase
             .from('user_match_teams')
             .select('*, matches(match_number, team_a_id, team_b_id)')
             .eq('user_id', userId)
             .order('locked_at', { ascending: false });
 
         if (!history || history.length === 0) {
-            historyList.innerHTML = "<p class='empty-msg'>No matches played yet this season.</p>";
+            historyList.innerHTML = "<p class='empty-msg'>No season history found for this user.</p>";
             return;
         }
 
@@ -250,7 +249,7 @@ function setupHistoryListeners() {
         `).join('');
     };
 
-    // 2. View Specific Match Breakdown (RECALCULATED FIX)
+    // 2. View Breakdown for ONE specific match (with Live Points Calculation)
     window.viewMatchBreakdown = async (snapshotId) => {
         breakdownOverlay.classList.remove("hidden");
         const bContainer = document.getElementById("breakdownTeamContainer");
@@ -259,6 +258,7 @@ function setupHistoryListeners() {
         
         bContainer.innerHTML = `<div class="spinner-small"></div>`;
 
+        // Fetch snapshot and match details
         const { data: snap } = await supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single();
         const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId);
         
@@ -271,7 +271,7 @@ function setupHistoryListeners() {
 
         const statsMap = Object.fromEntries(statsRes.data.map(s => [s.player_id, s.fantasy_points]));
         
-        // --- SENIOR FIX: CALCULATE TOTAL LIVE ---
+        // --- SENIOR FIX: CALCULATE TOTAL SUM LIVE ---
         let calculatedTotal = 0;
         playersRes.data.forEach(p => {
             let pPts = statsMap[p.id] || 0;
@@ -280,13 +280,14 @@ function setupHistoryListeners() {
             calculatedTotal += pPts;
         });
 
+        // Use the universal renderer to draw the players on the field
         renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer);
         
-        // Show the recalculated total here
-        bFooter.innerHTML = `Total Points: ${calculatedTotal} | Substitutions: ${snap.subs_used_for_match}`;
+        // Show the Recalculated Total in the fixed footer
+        bFooter.innerHTML = `MATCH TOTAL: ${calculatedTotal} PTS | SUBS USED: ${snap.subs_used_for_match}`;
     };
 
-    // 3. UI Close Handlers
+    // 3. Navigation Controls
     document.getElementById("closeHistory").onclick = () => historyOverlay.classList.add("hidden");
     document.getElementById("backToHistory").onclick = () => breakdownOverlay.classList.add("hidden");
 }
