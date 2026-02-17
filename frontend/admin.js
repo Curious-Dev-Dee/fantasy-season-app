@@ -3,7 +3,7 @@ import { supabase } from "./supabase.js";
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 const ADMIN_EMAIL = "satyara9jansahoo@gmail.com"; 
 
-// DOM Elements
+// --- DOM ELEMENTS (Unified) ---
 const matchSelect = document.getElementById("matchSelect");
 const scoreboardInput = document.getElementById("scoreboardInput");
 const processBtn = document.getElementById("processBtn");
@@ -11,8 +11,13 @@ const reportContainer = document.getElementById("reportContainer");
 const finalConfirmBtn = document.getElementById("finalConfirmBtn");
 const statusDiv = document.getElementById("status");
 const pomSelect = document.getElementById("pomSelect");
+
+// Match Control Elements
 const delayMatchSelect = document.getElementById("delayMatchSelect");
 const delayStatus = document.getElementById("delayStatus");
+const customTimeInput = document.getElementById("customTimeInput");
+const setCustomTimeBtn = document.getElementById("setCustomTimeBtn");
+const forceNowBtn = document.getElementById("forceNowBtn");
 
 /**
  * 1. INITIALIZATION & AUTH
@@ -35,11 +40,16 @@ async function init() {
         return;
     }
 
-    console.log("✅ Admin verified. Loading matches...");
-    await loadMatches();
-    await loadDelayMatches();
+    console.log("✅ Admin verified. Loading dashboard...");
+    await Promise.all([
+        loadMatches(),
+        loadDelayMatches()
+    ]);
 }
 
+/**
+ * 2. DATA LOADING
+ */
 async function loadMatches() {
     try {
         const { data: matches } = await supabase
@@ -62,8 +72,27 @@ async function loadMatches() {
     }
 }
 
+async function loadDelayMatches() {
+    try {
+        const { data: matches } = await supabase
+            .from('matches')
+            .select('id, match_number, actual_start_time')
+            .eq('tournament_id', TOURNAMENT_ID)
+            .eq('lock_processed', false)
+            .order('match_number');
+
+        if (matches) {
+            delayMatchSelect.innerHTML = matches.map(m => `
+                <option value="${m.id}">Match ${m.match_number} (Current: ${new Date(m.actual_start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})</option>
+            `).join('');
+        }
+    } catch (e) {
+        console.error("Delay match load failed", e);
+    }
+}
+
 /**
- * 2. STAGE 1: ANALYZE & TYPO HUNTER
+ * 3. STAGE 1: ANALYZE & TYPO HUNTER
  */
 processBtn.addEventListener("click", async () => {
     const jsonStr = scoreboardInput.value.trim();
@@ -181,7 +210,7 @@ processBtn.addEventListener("click", async () => {
 });
 
 /**
- * 3. STAGE 2: EXECUTE UPDATE
+ * 4. STAGE 2: EXECUTE POINTS UPDATE
  */
 async function executeUpdate(scoreboard) {
     const pomId = pomSelect.value;
@@ -214,34 +243,8 @@ async function executeUpdate(scoreboard) {
 }
 
 /**
- * 4. QUICK DELAY FEATURE
+ * 5. ADVANCED MATCH CONTROL (Time Delays & Force Lock)
  */
-/**
- * 4. ADVANCED MATCH CONTROL
- */
-const delayMatchSelect = document.getElementById("delayMatchSelect");
-const delayStatus = document.getElementById("delayStatus");
-const customTimeInput = document.getElementById("customTimeInput");
-const setCustomTimeBtn = document.getElementById("setCustomTimeBtn");
-const forceNowBtn = document.getElementById("forceNowBtn");
-
-// 1. Populate Dropdown
-async function loadDelayMatches() {
-    const { data: matches } = await supabase
-        .from('matches')
-        .select('id, match_number, actual_start_time')
-        .eq('tournament_id', TOURNAMENT_ID)
-        .eq('lock_processed', false)
-        .order('match_number');
-
-    if (matches) {
-        delayMatchSelect.innerHTML = matches.map(m => `
-            <option value="${m.id}">Match ${m.match_number} (Current: ${new Date(m.actual_start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})</option>
-        `).join('');
-    }
-}
-
-// 2. Helper function to perform the actual update
 async function updateMatchTime(matchId, newIsoTime, label) {
     updateDelayStatus(`Updating to ${label}...`, "loading");
     try {
@@ -265,7 +268,7 @@ async function updateMatchTime(matchId, newIsoTime, label) {
     }
 }
 
-// 3. Handle Incremental Buttons (+1, +2, +5 etc)
+// Incremental Buttons
 document.querySelectorAll('.delay-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
         const matchId = delayMatchSelect.value;
@@ -278,7 +281,7 @@ document.querySelectorAll('.delay-btn').forEach(btn => {
     });
 });
 
-// 4. Handle Custom Time Input
+// Custom Time Input
 setCustomTimeBtn.addEventListener('click', async () => {
     const matchId = delayMatchSelect.value;
     const customTime = customTimeInput.value;
@@ -288,17 +291,25 @@ setCustomTimeBtn.addEventListener('click', async () => {
     await updateMatchTime(matchId, newTime, "Custom Time");
 });
 
-// 5. FORCE LOCK NOW (Immediate Trigger)
+// Force Lock (Immediate Trigger)
 forceNowBtn.addEventListener('click', async () => {
     const matchId = delayMatchSelect.value;
     if (!matchId) return alert("Select a match!");
     
     if (confirm("FORCE LOCK? This will instantly close team edits for ALL users.")) {
-        // We set the time to 5 seconds ago to ensure the Edge Function sees it as 'past due'
         const now = new Date(Date.now() - 5000).toISOString();
         await updateMatchTime(matchId, now, "IMMEDIATE LOCK");
     }
 });
+
+/**
+ * UTILITIES
+ */
+function updateStatus(msg, type) {
+    statusDiv.textContent = msg;
+    statusDiv.className = `status ${type}`;
+    statusDiv.style.display = msg ? "block" : "none";
+}
 
 function updateDelayStatus(msg, type) {
     delayStatus.textContent = msg;
