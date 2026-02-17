@@ -263,10 +263,20 @@ avatarInput.addEventListener("change", (e) => {
     }
 });
 
+/* =========================
+   CORRECTED UI NAVIGATION
+========================= */
 avatarElement.addEventListener("click", () => profileModal.classList.remove("hidden"));
-profileModal.addEventListener("click", (e) => { if (e.target === profileModal) profileModal.classList.add("hidden"); });
 
-// Navigation links
-editButton.addEventListener("click", () => window.location.href = "prediction.html");
+profileModal.addEventListener("click", (e) => { 
+    if (e.target === profileModal) profileModal.classList.add("hidden"); 
+});
+
+// "Change" Button (Edit XI) -> Goes to your team editor
+editButton.addEventListener("click", () => window.location.href = "team-builder.html");
+
+// "View Team" Button -> Goes to your team viewer
 viewXiBtn.addEventListener("click", () => window.location.href = "view-team.html");
+
+// "Full Leaderboard" -> Goes to the rankings page
 viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "leaderboard.html");
