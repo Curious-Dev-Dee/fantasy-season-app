@@ -18,6 +18,7 @@ const delayStatus = document.getElementById("delayStatus");
 const customTimeInput = document.getElementById("customTimeInput");
 const setCustomTimeBtn = document.getElementById("setCustomTimeBtn");
 const forceNowBtn = document.getElementById("forceNowBtn");
+const abandonBtn = document.getElementById("abandonBtn");
 
 /**
  * 1. INITIALIZATION & AUTH
@@ -243,7 +244,7 @@ async function executeUpdate(scoreboard) {
 }
 
 /**
- * 5. ADVANCED MATCH CONTROL (Time Delays & Force Lock)
+ * 5. ADVANCED MATCH CONTROL (Time Delays, Force Lock, Abandon)
  */
 async function updateMatchTime(matchId, newIsoTime, label) {
     updateDelayStatus(`Updating to ${label}...`, "loading");
@@ -270,6 +271,9 @@ async function updateMatchTime(matchId, newIsoTime, label) {
 
 // Incremental Buttons
 document.querySelectorAll('.delay-btn').forEach(btn => {
+    // Skip special non-incremental buttons
+    if (btn.id === "abandonBtn" || btn.id === "forceNowBtn") return;
+
     btn.addEventListener('click', async () => {
         const matchId = delayMatchSelect.value;
         const mins = parseInt(btn.getAttribute('data-mins'));
@@ -299,6 +303,38 @@ forceNowBtn.addEventListener('click', async () => {
     if (confirm("FORCE LOCK? This will instantly close team edits for ALL users.")) {
         const now = new Date(Date.now() - 5000).toISOString();
         await updateMatchTime(matchId, now, "IMMEDIATE LOCK");
+    }
+});
+
+// Abandon Match
+abandonBtn.addEventListener('click', async () => {
+    const matchId = delayMatchSelect.value;
+    if (!matchId) return alert("Select a match!");
+
+    const confirmAbandon = confirm("🚨 ABANDON MATCH?\n\nThis will stop the auto-lock and users will NOT be charged for subs.");
+
+    if (confirmAbandon) {
+        updateDelayStatus("Abandoning match...", "loading");
+        try {
+            const { data: updateCheck, error } = await supabase
+                .from('matches')
+                .update({ 
+                    status: 'abandoned',
+                    lock_processed: true, 
+                    locked_at: new Date().toISOString()
+                })
+                .eq('id', matchId)
+                .select();
+
+            if (error) throw error;
+            if (!updateCheck || updateCheck.length === 0) throw new Error("Update failed. Check RLS.");
+
+            updateDelayStatus("🚫 Match Abandoned Successfully", "success");
+            await loadDelayMatches();
+        } catch (err) {
+            console.error(err);
+            updateDelayStatus(`❌ Error: ${err.message}`, "error");
+        }
     }
 });
 
