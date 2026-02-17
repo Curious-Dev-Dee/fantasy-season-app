@@ -37,6 +37,7 @@ async function loadData() {
   if (!activeTournament) return;
 
   const [mRes, tRes] = await Promise.all([
+    // Fetch using actual_start_time
     supabase.from("matches").select("*").eq("tournament_id", activeTournament.id).order("actual_start_time", { ascending: true }),
     supabase.from("real_teams").select("*").eq("tournament_id", activeTournament.id)
   ]);
@@ -87,6 +88,8 @@ function renderTeamFilters() {
 
 function renderMatches() {
   matchesContainer.innerHTML = "";
+  
+  // 1. Initial Filtering
   const filtered = allMatches.filter(m => {
     const sMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
     const tMatch = selectedTeams.size === 0 || selectedTeams.has(m.team_a_id) || selectedTeams.has(m.team_b_id);
@@ -100,19 +103,62 @@ function renderMatches() {
     return;
   }
 
-  filtered.forEach(match => {
+  // 2. Identify the "Last Locked" match (Latest match with 'locked' status)
+  const lastLocked = allMatches
+    .filter(m => m.status === 'locked')
+    .sort((a, b) => new Date(b.actual_start_time) - new Date(a.actual_start_time))[0];
+
+  // 3. Apply Smart Sorting Priority
+  const sorted = [...filtered].sort((a, b) => {
+    // Priority 1: The Match that just locked always stays on top
+    if (lastLocked && a.id === lastLocked.id) return -1;
+    if (lastLocked && b.id === lastLocked.id) return 1;
+
+    // Priority 2: Upcoming matches follow the last locked
+    if (a.status === 'upcoming' && b.status !== 'upcoming') return -1;
+    if (b.status === 'upcoming' && a.status !== 'upcoming') return 1;
+
+    // Sub-sort for Upcoming: Closest to NOW first (ASC)
+    if (a.status === 'upcoming' && b.status === 'upcoming') {
+        return new Date(a.actual_start_time) - new Date(b.actual_start_time);
+    }
+    
+    // Priority 3: All other past/locked matches at the bottom, newest first (DESC)
+    return new Date(b.actual_start_time) - new Date(a.actual_start_time);
+  });
+
+  // 4. Render the sorted cards
+  sorted.forEach(match => {
     const tA = allTeams.find(t => t.id === match.team_a_id);
     const tB = allTeams.find(t => t.id === match.team_b_id);
-    const date = new Date(match.actual_start_time).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    
+    // Formatting with actual_start_time
+    const date = new Date(match.actual_start_time).toLocaleString('en-IN', { 
+        day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
+    });
 
     const card = document.createElement("div");
     card.className = `match-card status-${match.status}`;
+    
+    // Visual indicator if this is the highlighted last-locked match
+    const isLatestHighlight = lastLocked && match.id === lastLocked.id;
+    const highlightLabel = isLatestHighlight ? `<span style="font-size: 10px; color: #f59e0b; margin-left: 10px;">• RECENTLY LOCKED</span>` : '';
+
     card.innerHTML = `
-      <div class="card-header"><span>${date}</span><i class="fas fa-info-circle"></i></div>
+      <div class="card-header">
+        <span>${date} ${highlightLabel}</span>
+        <i class="fas fa-info-circle"></i>
+      </div>
       <div class="team-display">
-        <div class="team-slot"><div class="team-logo">${tA?.short_code || '?'}</div><b>${tA?.short_code || 'TBA'}</b></div>
+        <div class="team-slot">
+            <div class="team-logo">${tA?.short_code || '?'}</div>
+            <b>${tA?.short_code || 'TBA'}</b>
+        </div>
         <div class="vs-badge">VS</div>
-        <div class="team-slot"><div class="team-logo">${tB?.short_code || '?'}</div><b>${tB?.short_code || 'TBA'}</b></div>
+        <div class="team-slot">
+            <div class="team-logo">${tB?.short_code || '?'}</div>
+            <b>${tB?.short_code || 'TBA'}</b>
+        </div>
       </div>
       <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
     `;
