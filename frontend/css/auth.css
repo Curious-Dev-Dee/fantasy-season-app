@@ -84,8 +84,18 @@ body {
   margin-left: 8px;
 }
 
-.hidden { display: none !important; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.hidden {
+  display: none !important;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 
 .auth-error { margin-top: 14px; font-size: 13px; color: #ff4d4d; display: none; min-height: 1.2em; }
 .auth-footer { margin-top: 40px; font-size: 12px; opacity: 0.4; }

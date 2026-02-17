@@ -2,49 +2,59 @@ import { supabase } from "./supabase.js";
 
 const authContainer = document.getElementById("authContainer");
 const googleBtn = document.getElementById("googleLoginBtn");
-const spinner = document.querySelector(".spinner");
-const btnText = document.querySelector(".btn-text");
+const btnText = googleBtn?.querySelector(".btn-text");
+const spinner = googleBtn?.querySelector(".spinner");
 const errorEl = document.getElementById("authError");
 
 /* =========================
-   THE GATEKEEPER PATTERN (Fixes FOUC)
+   SAFE APP BOOT
    ========================= */
-// We check the session immediately. 
-// 1. If User exists -> Redirect immediately (User sees nothing)
-// 2. If No User -> Fade in the login screen (User sees login)
+async function bootApp() {
+  try {
+    // Validate token with server (NOT cached session)
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-supabase.auth.getSession().then(({ data: { session } }) => {
-  if (session) {
-    // User is already logged in, go to home
-    window.location.replace("/home.html"); 
-  } else {
-    // User is NOT logged in, show the UI gracefully
-    if (authContainer) authContainer.style.opacity = "1";
-    
-    // Set up the listener for future changes (like after they return from Google)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        window.location.replace("/home.html");
-      }
-    });
+    if (error) throw error;
+
+    if (user) {
+      window.location.replace("/home.html");
+      return;
+    }
+
+    // If no user → show login UI
+    authContainer?.classList.remove("hidden");
+
+  } catch (err) {
+    console.error("Boot Error:", err);
+
+    // Even if Supabase fails, show login
+    authContainer?.classList.remove("hidden");
   }
-});
+}
+
+bootApp();
 
 /* =========================
-   UI STATE LOGIC
+   UI STATE
    ========================= */
 function setAuthLoading(isLoading) {
   if (!googleBtn) return;
-  
+
   googleBtn.disabled = isLoading;
-  
+
   if (isLoading) {
     spinner?.classList.remove("hidden");
-    if (btnText) btnText.textContent = "Verifying...";
-    if (errorEl) errorEl.style.display = "none";
+    btnText.textContent = "Redirecting...";
+    errorEl.style.display = "none";
+
+    // Fail-safe unlock after 10 seconds
+    setTimeout(() => {
+      setAuthLoading(false);
+    }, 10000);
+
   } else {
     spinner?.classList.add("hidden");
-    if (btnText) btnText.textContent = "Continue with Google";
+    btnText.textContent = "Continue with Google";
   }
 }
 
@@ -58,13 +68,7 @@ async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // Since you are on Vercel, this is safer than window.location.origin
-        // Ensure this URL is exactly listed in Supabase Dashboard > Auth > URL Configuration
-        redirectTo: `${window.location.origin}/home.html`, 
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
+        redirectTo: "https://fantasy-season-app.vercel.app/home.html",
       },
     });
 
@@ -73,22 +77,17 @@ async function signInWithGoogle() {
   } catch (err) {
     console.error("Auth Error:", err);
     setAuthLoading(false);
-    
-    if (errorEl) {
-      errorEl.textContent = err.message || "Sign-in failed. Please try again.";
-      errorEl.style.display = "block";
-    }
+
+    errorEl.textContent = "Sign-in failed. Please try again.";
+    errorEl.style.display = "block";
   }
 }
 
-/* =========================
-   EVENT LISTENERS
-   ========================= */
-if (googleBtn) {
-  googleBtn.addEventListener("click", signInWithGoogle);
-}
+googleBtn?.addEventListener("click", signInWithGoogle);
 
-// Mobile Safari Fix: Re-enable button if user swipes 'back'
+/* =========================
+   Safari Back Button Fix
+   ========================= */
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) {
     setAuthLoading(false);

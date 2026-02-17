@@ -4,13 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cricket Experts | Step into the Arena</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/auth.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
 
-  <div id="authContainer" class="auth-container" style="opacity: 0; transition: opacity 0.4s ease-in;">
+  <div id="authContainer" class="auth-container hidden">
     <section class="hero">
       <h1 class="hero-title">Cricket Experts</h1>
       <p class="hero-tagline">
@@ -26,12 +28,8 @@
     <section class="auth-card">
       <p class="card-heading">Step into the arena</p>
 
-      <button id="googleLoginBtn" class="auth-btn primary" aria-label="Continue with Google">
-        <img 
-          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-          alt="Google logo" 
-          class="google-icon-img"
-        />
+      <button id="googleLoginBtn" class="auth-btn primary">
+        <img src="assets/google.svg" alt="Google" class="google-icon-img"/>
         <span class="btn-text">Continue with Google</span>
         <span class="spinner hidden"></span>
       </button>
