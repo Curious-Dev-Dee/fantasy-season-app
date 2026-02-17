@@ -42,8 +42,7 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* Update or Add these specific rules to your CSS file */
-
+/* BUTTON STYLES */
 .auth-btn {
   width: 100%;
   height: 48px;
@@ -67,8 +66,8 @@ body {
   height: 18px; 
   display: block;
   object-fit: contain; /* Ensures the G doesn't look squashed */
-  flex-shrink: 0;      /* Prevents the text from squishing the icon */}
-
+  flex-shrink: 0;      /* Prevents the text from squishing the icon */
+}
   
 .auth-btn.primary { background-color: #a3ff12; color: #000; box-shadow: 0 6px 18px rgba(163, 255, 18, 0.25); }
 .auth-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(163, 255, 18, 0.4); }
@@ -84,6 +83,7 @@ body {
   margin-left: 8px;
 }
 
+/* CRITICAL UTILITY CLASS */
 .hidden {
   display: none !important;
 }
@@ -95,7 +95,6 @@ body {
     transition: none !important;
   }
 }
-
 
 .auth-error { margin-top: 14px; font-size: 13px; color: #ff4d4d; display: none; min-height: 1.2em; }
 .auth-footer { margin-top: 40px; font-size: 12px; opacity: 0.4; }

@@ -1,27 +1,25 @@
 import { supabase } from "./supabase.js";
 
 async function protectPage() {
-  try {
-    const { data, error } = await supabase.auth.getUser();
+  // 1. Check session locally first (Fast)
+  const { data: { session } } = await supabase.auth.getSession();
 
-    if (error || !data?.user) {
-      window.location.replace("/login.html");
-      return;
-    }
-
-    console.log("Authenticated user:", data.user.email);
-
-  } catch (err) {
-    console.error("Auth check failed:", err);
-    window.location.replace("/login.html");
+  if (!session) {
+    // Not logged in? Send back to login.
+    window.location.replace("login.html");
+    return;
   }
+
+  // 2. Logged in? Reveal the page.
+  document.body.classList.remove("loading-state");
+  console.log("Welcome back:", session.user.email);
 }
 
 protectPage();
 
-/* Listen for logout across tabs */
+// Watch for logout in other tabs
 supabase.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_OUT") {
-    window.location.replace("/login.html");
+    window.location.replace("login.html");
   }
 });

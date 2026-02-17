@@ -11,9 +11,30 @@
   <script type="module" src="auth-guard.js"></script>
 
   <style>
-    /* Hide dashboard cards until session is ready */
-    .app-container { visibility: hidden; }
+    /* SENIOR DEV PATTERN: State-Based Visibility 
+      This works with the "loading-state" class on the body tag.
+    */
+
+    /* State 1: LOADING (Body has 'loading-state') */
+    body.loading-state .app-container {
+      display: none; /* Hide the app while checking auth */
+    }
     
+    body.loading-state #loadingOverlay {
+      display: flex; /* Show the spinner */
+    }
+
+    /* State 2: LOADED (Body does NOT have 'loading-state') */
+    body .app-container {
+      display: block;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    body #loadingOverlay {
+      display: none; /* Hide spinner when done */
+    }
+
+    /* Standard Styles */
     #loadingOverlay {
       position: fixed; 
       inset: 0; 
@@ -34,8 +55,9 @@
     }
     
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* New View All Button Styling */
+    /* View All Button Styling */
     .view-all-btn {
       width: 100%;
       background: transparent;
@@ -58,9 +80,13 @@
       background: rgba(154, 224, 0, 0.05);
       border-color: #9AE000;
     }
+    
+    /* Utility to hide elements (used by logic scripts) */
+    .hidden { display: none !important; }
   </style>
 </head>
-<body>
+
+<body class="loading-state">
 
 <div id="loadingOverlay">
   <div class="spinner"></div>
@@ -84,22 +110,22 @@
 
   <section class="card stats-card">
     <div class="stat-inline">
-    <span class="stat-icon">📈</span>
-    <span class="stat-label">Score:</span>
-    <span class="stat-value" id="userScore">0</span>
-  </div>
-  <div class="divider"></div>
-  <div class="stat-inline">
-    <span class="stat-icon">🏆</span>
-    <span class="stat-label">Rank:</span>
-    <span class="stat-value highlight" id="userRank">—</span>
-  </div>
-  <div class="divider"></div>
-  <div class="stat-inline">
-    <span class="stat-icon">🔄</span>
-    <span class="stat-label">Subs:</span>
-    <span class="stat-value" id="subsRemaining">80</span>
-  </div>
+      <span class="stat-icon">📈</span>
+      <span class="stat-label">Score:</span>
+      <span class="stat-value" id="userScore">0</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-inline">
+      <span class="stat-icon">🏆</span>
+      <span class="stat-label">Rank:</span>
+      <span class="stat-value highlight" id="userRank">—</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-inline">
+      <span class="stat-icon">🔄</span>
+      <span class="stat-label">Subs:</span>
+      <span class="stat-value" id="subsRemaining">80</span>
+    </div>
   </section>
 
   <section class="card next-match-card">
