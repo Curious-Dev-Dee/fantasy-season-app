@@ -97,5 +97,5 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
 window.scoutUser = (uid, name) => {
     if (!uid || uid === 'undefined' || uid === 'null') return;
     // Ensure this filename matches your actual file (view-team.html or team-view.html)
-    window.location.href = `view-team.html?uid=${uid}&name=${encodeURIComponent(name)}`;
+    window.location.href = `team-view.html?uid=${uid}&name=${encodeURIComponent(name)}`;
 };
