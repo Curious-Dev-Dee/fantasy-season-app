@@ -19,9 +19,9 @@ body {
 
 /* --- Fix: Reduce Header Dominance --- */
 .app-header h1 {
-  font-size: 17px; /* Reduced from 20px */
-  font-weight: 500; /* Reduced from 600 */
-  color: #9ca3af;   /* Muted gray instead of bright white */
+  font-size: 17px; 
+  font-weight: 500; 
+  color: #9ca3af;   
   margin-bottom: 20px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -37,16 +37,17 @@ body {
 .stat-inline {
   display: flex;
   align-items: center;
-  gap: 5px; /* Tighter gap for icon+text */
+  gap: 5px; 
   white-space: nowrap;
 }
+
 /* ==========================================================================
    CARD STYLES
    ========================================================================== */
 .card {
   background: linear-gradient(145deg, #111827, #0f172a);
   border-radius: 16px;
-  padding: 15px 18px; /* Reduced from 20px to tighten vertical space */
+  padding: 15px 18px; 
   margin-bottom: 18px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.04);
@@ -65,8 +66,8 @@ body {
 }
 
 .team-avatar {
-  width: 52px;  /* Reduced from 64px */
-  height: 52px; /* Reduced from 64px */
+  width: 52px;  
+  height: 52px; 
   border-radius: 50%;
   background: linear-gradient(135deg, #1c2430, #0f141b);
   border: 2px solid rgba(154,224,0,0.5);
@@ -94,31 +95,30 @@ body {
 }
 
 /* STATS STRIP */
-/* --- Fix: Prevent "Subs" from hitting the edge --- */
 .stats-card {
   display: flex;
   align-items: center;
-  justify-content: space-around; /* Changed from space-between to center them better */
-  padding: 12px 10px;            /* Reduced side padding from 18px to 10px */
-  gap: 8px;                      /* Reduced gap slightly to fit icons */
+  justify-content: space-around; 
+  padding: 12px 10px;            
+  gap: 8px;                      
 }
 
 .stat-inline {
   display: flex;
   align-items: center;
-  gap: 4px;                      /* Tightened icon-to-text gap */
+  gap: 4px;                      
   white-space: nowrap;
-  flex: 1;                       /* Gives each stat equal breathing room */
-  justify-content: center;       /* Centers content within its 1/3rd of the bar */
+  flex: 1;                       
+  justify-content: center;       
 }
 
 .stat-label {
-  font-size: 11px;               /* Slightly smaller to save horizontal space */
+  font-size: 11px;               
   color: #9ca3af;
 }
 
 .stat-value {
-  font-size: 15px;               /* Slightly smaller to ensure fit */
+  font-size: 15px;               
   font-weight: 600;
   color: #ffffff;
 }
@@ -153,9 +153,8 @@ body {
   font-size: 14px;
   color: #9ca3af;
   margin-bottom: 18px;
-  /* Monospaced font ensures every character is the same width */
   font-family: 'JetBrains Mono', 'Courier New', monospace; 
-  font-variant-numeric: tabular-nums; /* Extra protection for standard fonts */
+  font-variant-numeric: tabular-nums; 
   letter-spacing: 0.5px;
 }
 
@@ -204,8 +203,8 @@ body {
 }
 
 .btn-hint {
-  font-size: 10px;        /* Very small so it doesn't distract */
-  color: #9ca3af;         /* Muted gray color */
+  font-size: 10px;
+  color: #9ca3af;
   text-align: center;
   margin-top: 10px;
   width: 100%;
@@ -234,15 +233,8 @@ body {
   color: #9AE000;
 }
 
-.leader-row.you {
-  background: rgba(154,224,0,0.08);
-  border-radius: 10px;
-  padding: 12px;
-  font-weight: 600;
-}
-
 /* ==========================================================================
-   MODAL STYLES
+   MODAL STYLES & PROFILE UPLOAD UI
    ========================================================================== */
 .modal {
   position: fixed;
@@ -253,10 +245,6 @@ body {
   justify-content: center;
   z-index: 10000;
   backdrop-filter: blur(10px);
-}
-
-.modal.hidden {
-  display: none;
 }
 
 .modal-content {
@@ -270,6 +258,50 @@ body {
   text-align: center;
 }
 
+/* --- Professional Avatar Upload UI --- */
+.upload-preview-container {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 24px;
+}
+
+#modalAvatarPreview {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid #9AE000;
+  background-color: #1c2430;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden; /* Important: crops the overlay into the circle */
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.upload-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7); 
+  backdrop-filter: blur(5px);
+  color: #9AE000;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 8px 0;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.upload-overlay:hover {
+  background: rgba(154, 224, 0, 0.4);
+  color: #fff;
+}
+
+/* --- Modal Typography & Inputs --- */
 .modal-content h2 {
   margin-top: 0;
   color: #9AE000;

@@ -154,8 +154,9 @@
     <h2>Complete Profile</h2>
     
     <div class="upload-preview-container">
-        <div id="modalAvatarPreview" class="team-avatar preview-mode"></div>
-        <label for="avatarInput" class="upload-label">Change Photo</label>
+        <div id="modalAvatarPreview" class="team-avatar">
+            <label for="avatarInput" class="upload-overlay">Change</label>
+        </div>
         <input type="file" id="avatarInput" accept="image/*" class="hidden" />
     </div>
 
@@ -163,7 +164,7 @@
     <input type="text" id="modalFullName" placeholder="e.g. MS Dhoni" />
     
     <label for="modalTeamName">Team Name</label>
-    <input type="text" id="modalTeamName" placeholder="e.g. Chennai Kings" />
+    <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" />
     
     <button id="saveProfileBtn" class="primary-btn full-width">Save & Start</button>
   </div>

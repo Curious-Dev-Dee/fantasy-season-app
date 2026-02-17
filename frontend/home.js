@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 /* =========================
-   ELEMENTS
+   ELEMENTS & STATE
 ========================= */
 const avatarElement = document.getElementById("teamAvatar");
 const welcomeText = document.getElementById("welcomeText");
@@ -27,7 +27,7 @@ const modalPreview = document.getElementById("modalAvatarPreview");
 
 let countdownInterval;
 let currentUserId = null;
-let currentTournamentId = null;
+let existingProfile = null; // Stores original data to prevent unauthorized overwrites
 
 /* =========================
    INIT (Auth Guard Protected)
@@ -44,12 +44,13 @@ async function startDashboard(userId) {
     const loader = document.getElementById('loadingOverlay');
     if (loader) loader.style.display = 'none';
 
-    // Parallel Execution
+    // Parallel Execution: Fetch your data and Top 3 simultaneously
     await Promise.all([
         fetchHomeData(userId),
         loadLeaderboardPreview()
     ]);
 
+    // Refresh every 30s
     setInterval(() => {
         fetchHomeData(userId);
         loadLeaderboardPreview();
@@ -57,7 +58,7 @@ async function startDashboard(userId) {
 }
 
 /* =========================
-   DATA FETCHING
+   DATA FETCHING (Using View)
 ========================= */
 async function fetchHomeData(userId) {
     const { data, error } = await supabase
@@ -71,7 +72,8 @@ async function fetchHomeData(userId) {
         return;
     }
 
-    currentTournamentId = data.tournament_id;
+    // Save existing data for defensive comparison
+    existingProfile = data;
 
     // 1. Render Header
     tournamentNameElement.textContent = data.tournament_name || "Tournament";
@@ -81,9 +83,16 @@ async function fetchHomeData(userId) {
     welcomeText.textContent = `Welcome back, ${firstName}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
     
-    // Sync Modal Inputs (Only if they are empty)
-    if (modalFullName.value === "") modalFullName.value = data.full_name || "";
-    if (modalTeamName.value === "") modalTeamName.value = data.team_name || "";
+    // Sync Modal Inputs
+    modalFullName.value = data.full_name || "";
+    modalTeamName.value = data.team_name || "";
+
+    // TEAM NAME LOCK: If a team name exists, disable the input
+    if (data.team_name) {
+        modalTeamName.disabled = true;
+        modalTeamName.style.opacity = "0.6";
+        modalTeamName.style.cursor = "not-allowed";
+    }
 
     if (data.team_photo_url) {
         const { data: imgData } = supabase.storage
@@ -140,28 +149,28 @@ avatarInput.addEventListener("change", (e) => {
 });
 
 /* =========================
-   SAVE PROFILE (Upload + Upsert)
+   SAVE PROFILE (Defensive Save)
 ========================= */
 saveProfileBtn.addEventListener("click", async () => {
-    const name = modalFullName.value.trim();
-    const tName = modalTeamName.value.trim();
+    const newName = modalFullName.value.trim();
+    const newTeam = modalTeamName.value.trim();
     const file = avatarInput.files[0];
 
-    if (!name || !tName) {
+    if (!newName || !newTeam) {
         alert("Please enter both your name and team name!");
         return;
     }
 
     saveProfileBtn.disabled = true;
-    saveProfileBtn.textContent = "Uploading...";
-
-    let photoPath = null;
+    saveProfileBtn.textContent = "Saving...";
 
     try {
-        // 1. Upload Image to Storage if file selected
+        let photoPath = existingProfile?.team_photo_url;
+
+        // 1. Handle Photo Upload (Requires SELECT policy now)
         if (file) {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${currentUserId}-${Math.floor(Date.now() / 1000)}.${fileExt}`;
+            const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
             
             const { error: uploadError } = await supabase.storage
                 .from('team-avatars')
@@ -171,31 +180,42 @@ saveProfileBtn.addEventListener("click", async () => {
             photoPath = fileName;
         }
 
-        // 2. Prepare Data for Database
+        // 2. Build Defensive Payload
         const profileData = { 
             user_id: currentUserId, 
-            full_name: name, 
-            team_name: tName,
             profile_completed: true 
         };
 
-        if (photoPath) profileData.team_photo_url = photoPath;
+        // Only update full_name if it changed
+        if (newName !== existingProfile?.full_name) {
+            profileData.full_name = newName;
+        }
 
-        // 3. Upsert to user_profiles table
+        // Only update photo if a new one was uploaded
+        if (photoPath !== existingProfile?.team_photo_url) {
+            profileData.team_photo_url = photoPath;
+        }
+        
+        // ONLY send team_name if it was never set (empty)
+        if (!existingProfile?.team_name) {
+            profileData.team_name = newTeam;
+        }
+
+        // 3. Perform the Upsert
         const { error: dbError } = await supabase
             .from("user_profiles")
             .upsert(profileData, { onConflict: 'user_id' });
 
         if (dbError) throw dbError;
 
-        // 4. Success: UI Cleanup
+        // 4. Success Cleanup
         await fetchHomeData(currentUserId);
         profileModal.classList.add("hidden");
-        avatarInput.value = ""; // Clear file selection
+        avatarInput.value = ""; 
 
     } catch (err) {
-        console.error("Save Error:", err);
-        alert("Something went wrong while saving your profile.");
+        console.error("Save Error:", err.message);
+        alert(err.message || "Something went wrong while saving.");
     } finally {
         saveProfileBtn.disabled = false;
         saveProfileBtn.textContent = "Save & Start";
@@ -247,13 +267,14 @@ function startCountdown(startTime) {
 }
 
 /* =========================
-   NAVIGATION
+   UI NAVIGATION & MODAL
 ========================= */
 avatarElement.addEventListener("click", () => profileModal.classList.remove("hidden"));
 profileModal.addEventListener("click", (e) => {
     if (e.target === profileModal) profileModal.classList.add("hidden");
 });
 
+// Clean URLs
 editButton.addEventListener("click", () => window.location.href = "/team-builder");
 viewXiBtn.addEventListener("click", () => window.location.href = "/team-view");
 viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "/leaderboard");
