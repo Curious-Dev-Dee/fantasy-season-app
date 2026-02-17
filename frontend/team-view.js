@@ -156,7 +156,17 @@ async function loadLastLockedXI() {
     const statsMap = Object.fromEntries(stats.map(s => [s.player_id, s.fantasy_points]));
 
     renderTeamLayout(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer);
-    teamStatus.textContent = `Points: ${snapshot.total_points || 0} | Subs Used: ${snapshot.subs_used_for_match}`;
+    
+    // Recalculate total for Last Locked view as well to be safe
+    let calculatedTotal = 0;
+    players.forEach(p => {
+        let pPts = statsMap[p.id] || 0;
+        if (p.id === snapshot.captain_id) pPts *= 2;
+        else if (p.id === snapshot.vice_captain_id) pPts *= 1.5;
+        calculatedTotal += pPts;
+    });
+
+    teamStatus.textContent = `Points: ${calculatedTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
 }
 
 /* =========================
@@ -240,7 +250,7 @@ function setupHistoryListeners() {
         `).join('');
     };
 
-    // 2. View Specific Match Breakdown
+    // 2. View Specific Match Breakdown (RECALCULATED FIX)
     window.viewMatchBreakdown = async (snapshotId) => {
         breakdownOverlay.classList.remove("hidden");
         const bContainer = document.getElementById("breakdownTeamContainer");
@@ -249,7 +259,6 @@ function setupHistoryListeners() {
         
         bContainer.innerHTML = `<div class="spinner-small"></div>`;
 
-        // Fetch snapshot and match details
         const { data: snap } = await supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single();
         const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId);
         
@@ -262,10 +271,19 @@ function setupHistoryListeners() {
 
         const statsMap = Object.fromEntries(statsRes.data.map(s => [s.player_id, s.fantasy_points]));
         
-        // Use the universal renderer for the breakdown
+        // --- SENIOR FIX: CALCULATE TOTAL LIVE ---
+        let calculatedTotal = 0;
+        playersRes.data.forEach(p => {
+            let pPts = statsMap[p.id] || 0;
+            if (p.id === snap.captain_id) pPts *= 2;
+            else if (p.id === snap.vice_captain_id) pPts *= 1.5;
+            calculatedTotal += pPts;
+        });
+
         renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer);
         
-        bFooter.innerHTML = `Total Score: ${snap.total_points} | Substitutions: ${snap.subs_used_for_match}`;
+        // Show the recalculated total here
+        bFooter.innerHTML = `Total Points: ${calculatedTotal} | Substitutions: ${snap.subs_used_for_match}`;
     };
 
     // 3. UI Close Handlers
