@@ -285,20 +285,26 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.75); /* Slightly darker for better contrast */
+    backdrop-filter: blur(4px);
     color: #9AE000;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    padding: 8px 0;
+    font-size: 9px;           /* Slightly smaller font for better fit */
+    font-weight: 900;           /* Heavier weight for readability */
+    letter-spacing: 0.5px;      /* Professional spacing */
+    padding: 6px 0 8px;         /* Adjusted bottom padding to balance vertical center */
     cursor: pointer;
     text-align: center;
-    transition: 0.2s ease;
+    line-height: 1;             /* Prevents line-height from pushing text down */
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;    /* Ensures perfect centering regardless of browser */
+    height: 28px;               /* Defined height for a consistent "slice" look */
 }
 
 .upload-overlay:hover {
     background: rgba(154, 224, 0, 0.4);
+    color: #fff;
 }
 
 /* --- Modal Typography & Inputs --- */
