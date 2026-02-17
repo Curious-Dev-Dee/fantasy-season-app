@@ -111,21 +111,34 @@ async function fetchHomeData(userId) {
 
     // 4. Upcoming Match
     const match = data.upcoming_match;
+
     if (match) {
         matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
         
+        // Convert strings to date objects for comparison
+        const originalTime = new Date(match.original_start_time);
+        const actualTime = new Date(match.actual_start_time);
+
+        // Smart Rain Logic: If actual time > original, show rain icon
+        if (actualTime > originalTime) {
+            matchTimeElement.innerHTML = `<span style="color: #ffb800; font-weight: 800;">Rain Delay 🌧️</span>`;
+            startCountdown(match.actual_start_time); 
+        } else {
+            startCountdown(match.actual_start_time);
+        }
+
+        // Handle the "Locked" state if match has already started/processed
         if (match.is_locked) {
             editButton.disabled = true;
             editButton.textContent = "Locked 🔒";
-            editButton.style.background = "#1f2937"; 
-            editButton.style.color = "#4b5563";      
+            editButton.style.background = "#1f2937";
+            editButton.style.color = "#4b5563";
         } else {
             editButton.disabled = false;
             editButton.textContent = "Change";
-            editButton.style.background = "#9AE000"; 
+            editButton.style.background = "#9AE000";
             editButton.style.color = "#0c1117";
         }
-        startCountdown(match.start_time);
     } else {
         matchTeamsElement.textContent = "No upcoming match";
         editButton.disabled = true;
@@ -148,9 +161,6 @@ avatarInput.addEventListener("change", (e) => {
     }
 });
 
-/* =========================
-   SAVE PROFILE (Defensive Save)
-========================= */
 /* =========================
    SAVE PROFILE (Defensive)
 ========================= */
@@ -195,7 +205,6 @@ saveProfileBtn.addEventListener("click", async () => {
         }
         
         // ONLY send team_name if it was previously empty
-        // This stops the error for users like Satyaranjan who already have 'AvengersCTC'
         if (!existingProfile?.team_name) {
             profileData.team_name = newTeam;
         }
@@ -219,6 +228,7 @@ saveProfileBtn.addEventListener("click", async () => {
         saveProfileBtn.textContent = "Save & Start";
     }
 });
+
 /* =========================
    LEADERBOARD & UTILS
 ========================= */
@@ -271,7 +281,7 @@ profileModal.addEventListener("click", (e) => {
     if (e.target === profileModal) profileModal.classList.add("hidden");
 });
 
-// Clean URLs
+// Navigation links
 editButton.addEventListener("click", () => window.location.href = "/team-builder");
 viewXiBtn.addEventListener("click", () => window.location.href = "/team-view");
 viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "/leaderboard");

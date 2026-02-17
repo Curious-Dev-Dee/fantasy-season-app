@@ -13,10 +13,10 @@ serve(async (_req) => {
     const { data: matches, error: matchError } = await supabase
       .from("matches")
       .select("*")
-      .lte("start_time", now)
+      // FIX: Now checks against the Actual Start Time (handles rain delays)
+      .lte("actual_start_time", now) 
       .eq("lock_processed", false)
       .eq("status", "upcoming");
-
 
     if (matchError) throw matchError;
 
@@ -105,22 +105,21 @@ async function lockUserTeamForMatch(
   );
 
   let subsUsed = 0;
-let totalSubsUsed = 0;
+  let totalSubsUsed = 0;
 
-// First ever valid match → NO subs
-if (lastSnapshot) {
-  subsUsed = currentPlayers.filter(
-    (p: string) => !previousPlayers.includes(p)
-  ).length;
+  // First ever valid match → NO subs
+  if (lastSnapshot) {
+    subsUsed = currentPlayers.filter(
+      (p: string) => !previousPlayers.includes(p)
+    ).length;
 
-  totalSubsUsed = lastSnapshot.total_subs_used + subsUsed;
-}
+    totalSubsUsed = lastSnapshot.total_subs_used + subsUsed;
+  }
 
-
-if (totalSubsUsed > 80) {
-  subsUsed = 0;
-  totalSubsUsed = 80;
-}
+  if (totalSubsUsed > 80) {
+    subsUsed = 0;
+    totalSubsUsed = 80;
+  }
 
   const { data: snapshot, error } = await supabase
     .from("user_match_teams")
@@ -133,7 +132,8 @@ if (totalSubsUsed > 80) {
       total_credits: team.total_credits,
       subs_used_for_match: subsUsed,
       total_subs_used: totalSubsUsed,
-      locked_at: match.start_time,
+      // FIX: Records the actual time the match locked
+      locked_at: match.actual_start_time, 
     })
     .select()
     .single();
