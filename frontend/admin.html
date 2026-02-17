@@ -3,102 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <div class="card" style="margin-bottom: 20px; border-left: 5px solid var(--primary);">
-    <h2>🕒 Match Delay Control</h2>
-    <p style="font-size: 13px; color: #666;">Extend time or force an immediate lock.</p>
-    
-    <label>Select Active Match</label>
-    <select id="delayMatchSelect"><option value="">Loading matches...</option></select>
-
-    <div class="delay-controls" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px;">
-        <button class="delay-btn" data-mins="1">+1m</button>
-        <button class="delay-btn" data-mins="2">+2m</button>
-        <button class="delay-btn" data-mins="3">+3m</button>
-        <button class="delay-btn" data-mins="5">+5m</button>
-        <button class="delay-btn" data-mins="10">+10m</button>
-        <button class="delay-btn" data-mins="15">+15m</button>
-        <button class="delay-btn" data-mins="30">+30m</button>
-        <button id="forceNowBtn" style="background: var(--danger); margin-top: 0;">LOCK NOW 🔒</button>
-    </div>
-
-    <div style="margin-top: 15px; display: flex; gap: 10px; align-items: flex-end;">
-        <div style="flex-grow: 1;">
-            <label>Set Custom Time (24h format)</label>
-            <input type="datetime-local" id="customTimeInput" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
-        </div>
-        <button id="setCustomTimeBtn" style="width: auto; margin-top: 0; background: #0f172a;">Set Time</button>
-    </div>
-
-    <div id="delayStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold; display: none;"></div>
-</div>
-...
-
-    <title>Points Processing Portal</title>
+    <title>Admin | Match Command Center</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #1d4ed8; --success: #166534; --danger: #dc2626; --bg: #f0f2f5; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 40px; color: #1c1e21; }
-        .card { max-width: 700px; margin: auto; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
-        label { display: block; margin: 20px 0 8px; font-weight: 600; font-size: 14px; }
-        select, textarea { width: 100%; padding: 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 16px; margin-bottom: 10px; }
-        textarea { height: 180px; font-family: monospace; font-size: 13px; resize: vertical; }
-        
-        button { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 24px; }
-        .confirm-btn { background: #10b981; margin-top: 20px; display: none; }
-        
-        /* Typo Hunter Styling */
-        .report-box { margin-top: 25px; padding: 20px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: none; }
-        .report-stats { display: flex; gap: 20px; margin-bottom: 15px; font-size: 14px; }
-        .warning-list { background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .warning-list h4 { color: var(--danger); margin: 0 0 10px 0; }
-        .warning-list ul { margin: 0; padding-left: 20px; font-size: 13px; color: #991b1b; }
-        
-        #status { margin-top: 20px; padding: 12px; border-radius: 6px; display: none; text-align: center; }
-        .error { display: block; background: #fee2e2; color: #dc2626; }
-        .success { display: block; background: #dcfce7; color: #166534; }
-        .loading { display: block; background: #e0f2fe; color: #0369a1; }
+        :root {
+            --primary: #1d4ed8;
+            --primary-dark: #1e3a8a;
+            --accent: #9AE000;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: #0f172a;
+            color: white;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar h1 {
+            font-size: 1.25rem;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+        }
+
+        .nav-link {
+            padding: 12px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-link:hover:not(.active) {
+            background: #1e293b;
+            color: white;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px;
+        }
+
+        .dashboard-header {
+            margin-bottom: 32px;
+        }
+
+        .dashboard-header h2 {
+            margin: 0;
+            font-size: 1.875rem;
+        }
+
+        .dashboard-header p {
+            color: var(--text-muted);
+            margin: 8px 0 0;
+        }
+
+        /* Grid Layout for Cards */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        select, textarea, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            height: 150px;
+            font-family: monospace;
+            background: #f1f5f9;
+        }
+
+        /* Buttons */
+        button {
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Delay Controls Grid */
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .delay-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .delay-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .force-lock {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .force-lock:hover {
+            background: #fecaca;
+        }
+
+        /* Status & Reports */
+        .report-box {
+            margin-top: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .warning-list {
+            background: #fff1f2;
+            padding: 12px;
+            border-radius: 8px;
+            color: #991b1b;
+            font-size: 0.85rem;
+        }
+
+        #status, #delayStatus {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .loading { background: #e0f2fe; color: #0369a1; }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #dc2626; }
+
+        @media (max-width: 1100px) {
+            .admin-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🏏 Match Points Processor</h2>
-    
-    <label>1. Select Match</label>
-    <select id="matchSelect"><option value="">Fetching...</option></select>
-
-    <label>2. Scorecard JSON</label>
-    <textarea id="scoreboardInput" placeholder="Paste JSON here..."></textarea>
-
-    <button id="processBtn">Analyze & Check for Typos</button>
-
-    <div id="reportContainer" class="report-box">
-        <h3>Match Integrity Report</h3>
-        <div id="reportStats" class="report-stats"></div>
-        
-        <div id="missingWrapper" style="display: none;">
-            <div class="warning-list">
-                <h4>❌ Name Mismatch Found</h4>
-                <ul id="missingList"></ul>
-            </div>
-        </div>
-
-        <div id="successWrapper" style="display: none;">
-            <p style="color: green; font-weight: bold;">✅ All players matched successfully!</p>
-            
-            <label>3. Select Player of the Match (+20 pts)</label>
-            <select id="pomSelect">
-                <option value="">-- Choose Winner --</option>
-            </select>
-        </div>
-
-        <button id="finalConfirmBtn" class="confirm-btn">Confirm & Process Points</button>
+    <div class="sidebar">
+        <h1><i class="fas fa-trophy"></i> Avengers League</h1>
+        <a href="home.html" class="nav-link"><i class="fas fa-house"></i> Home</a>
+        <a href="#" class="nav-link active"><i class="fas fa-gamepad"></i> Match Control</a>
+        <a href="admin_users.html" class="nav-link"><i class="fas fa-users"></i> Users</a>
+        <a href="admin_settings.html" class="nav-link"><i class="fas fa-gear"></i> Settings</a>
     </div>
 
-    <div id="status"></div>
-</div>
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h2>Match Management Portal</h2>
+            <p>Monitor live match timing and process points with integrity checks.</p>
+        </div>
 
-<script type="module" src="admin.js"></script>
+        <div class="admin-grid">
+            
+            <div class="card">
+                <div class="card-title"><i class="fas fa-clock"></i> Match Delay Control</div>
+                
+                <label>Active Match</label>
+                <select id="delayMatchSelect"><option value="">Loading matches...</option></select>
+
+                <label>Quick Extend</label>
+                <div class="control-grid">
+                    <button class="delay-btn" data-mins="1">+1m</button>
+                    <button class="delay-btn" data-mins="2">+2m</button>
+                    <button class="delay-btn" data-mins="3">+3m</button>
+                    <button class="delay-btn" data-mins="5">+5m</button>
+                    <button class="delay-btn" data-mins="10">+10m</button>
+                    <button class="delay-btn" data-mins="15">+15m</button>
+                    <button class="delay-btn" data-mins="30">+30m</button>
+                    <button id="forceNowBtn" class="delay-btn force-lock">LOCK 🔒</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label>Manual Override (24h)</label>
+                        <input type="datetime-local" id="customTimeInput">
+                    </div>
+                    <button id="setCustomTimeBtn" class="btn-primary" style="width: auto; margin-bottom: 16px;">Set</button>
+                </div>
+
+                <div id="delayStatus" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fas fa-calculator"></i> Points Processor</div>
+                
+                <label>Select Completed Match</label>
+                <select id="matchSelect"><option value="">Fetching...</option></select>
+
+                <label>Paste Scorecard JSON</label>
+                <textarea id="scoreboardInput" placeholder="Paste data from Cricket API or manual JSON..."></textarea>
+
+                <button id="processBtn" class="btn-primary">Analyze Integrity</button>
+
+                <div id="reportContainer" class="report-box" style="display: none;">
+                    <div id="reportStats" style="font-weight: 700; margin-bottom: 10px;"></div>
+                    
+                    <div id="missingWrapper" style="display: none;">
+                        <div class="warning-list">
+                            <strong>❌ Typo Found:</strong> The following names don't match our database:
+                            <ul id="missingList" style="margin-top: 8px;"></ul>
+                        </div>
+                    </div>
+
+                    <div id="successWrapper" style="display: none;">
+                        <p style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> Integrity Check Passed!</p>
+                        <label>Player of the Match (+20 pts)</label>
+                        <select id="pomSelect"></select>
+                        <button id="finalConfirmBtn" class="btn-primary" style="background: var(--success);">Finalize & Push Points</button>
+                    </div>
+                </div>
+
+                <div id="status"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
 </body>
 </html>
