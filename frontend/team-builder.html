@@ -4,31 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Team · Cricket Experts</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/team-builder.css">
     
     <script type="module" src="auth-guard.js"></script>
 
     <style>
         /* SENIOR DEV PATTERN: State-Based Visibility */
-        body.loading-state .app-container { display: none; }
-        body.loading-state #loadingOverlay { display: flex; }
+        
+        /* State 1: LOADING (Body has 'loading-state') */
+        body.loading-state .app-container {
+          display: none; /* Hide the app while checking auth */
+        }
+        
+        body.loading-state #loadingOverlay {
+          display: flex; /* Show the spinner */
+        }
     
-        body:not(.loading-state) .app-container {
-          display: flex; 
+        /* State 2: LOADED (Body does NOT have 'loading-state') */
+        body .app-container {
+          display: flex; /* Flex is needed for this specific layout */
           animation: fadeIn 0.4s ease-out;
         }
     
-        body:not(.loading-state) #loadingOverlay { display: none; }
+        body #loadingOverlay {
+          display: none; /* Hide spinner when done */
+        }
     
+        /* Standard Spinner Styles */
         #loadingOverlay {
-          position: fixed; inset: 0; background: #0c1117;
-          display: flex; align-items: center; justify-content: center; z-index: 999;
+          position: fixed; 
+          inset: 0; 
+          background: #0c1117;
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          z-index: 999;
         }
         
         .spinner {
-          width: 40px; height: 40px; border: 4px solid rgba(154, 224, 0, 0.1);
-          border-left-color: #9AE000; border-radius: 50%; animation: spin 1s linear infinite;
+          width: 40px; 
+          height: 40px; 
+          border: 4px solid rgba(154, 224, 0, 0.1);
+          border-left-color: #9AE000; 
+          border-radius: 50%; 
+          animation: spin 1s linear infinite;
         }
         
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -45,7 +64,7 @@
 <div class="app-container">
     <header class="edit-header">
         <div class="header-left">
-            <a href="home.html" class="icon-back"><i class="fas fa-chevron-left"></i></a>
+            <a href="/home" class="icon-back">←</a>
             <div class="header-info">
                 <h1>Edit Team</h1>
                 <p id="tournamentName">Tournament Selection</p>
@@ -84,13 +103,12 @@
         <div class="search-filter-wrapper">
             <input type="text" id="playerSearch" placeholder="Search player name...">
             
-            <div class="role-tabs-container" id="roleTabsContainer" data-active="0">
-                <div class="tab-indicator" id="roleIndicator"></div>
-                <div class="role-tab active" data-role="ALL" data-index="0">ALL</div>
-                <div class="role-tab" data-role="WK" data-index="1">WK <span class="role-count" id="count-WK"></span></div>
-                <div class="role-tab" data-role="BAT" data-index="2">BAT <span class="role-count" id="count-BAT"></span></div>
-                <div class="role-tab" data-role="AR" data-index="3">AR <span class="role-count" id="count-AR"></span></div>
-                <div class="role-tab" data-role="BOWL" data-index="4">BOWL <span class="role-count" id="count-BOWL"></span></div>
+            <div class="role-tabs-container">
+                <div class="role-tab active" data-role="ALL">ALL</div>
+                <div class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></div>
+                <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
+                <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
+                <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
             </div>
 
             <div class="dropdown-filters">
