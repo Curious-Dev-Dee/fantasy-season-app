@@ -259,13 +259,15 @@ body {
 }
 
 /* --- Professional Avatar Upload UI --- */
+/* Container for the avatar and floating button */
 .upload-preview-container {
     position: relative;
     width: 90px;
     height: 90px;
-    margin: 0 auto 20px;
+    margin: 0 auto 24px;
 }
 
+/* The circular avatar preview */
 #modalAvatarPreview {
     width: 90px;
     height: 90px;
@@ -274,43 +276,39 @@ body {
     background-color: #1c2430;
     background-size: cover;
     background-position: center;
-    overflow: hidden; /* Important: crops the overlay */
     position: relative;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-/* The sleek "Glassmorphism" overlay */
-.upload-overlay {
+/* The Floating Edit Icon Button */
+.edit-icon-btn {
     position: absolute;
     bottom: 0;
-    left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    color: #9AE000;
-    
-    /* Typography */
-    font-size: 10px;      /* Bumped back to 10px for readability */
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-
-    /* Perfect Centering Magic */
+    width: 30px;
+    height: 30px;
+    background: #9AE000;
+    color: #0c1117;
+    border-radius: 50%;
     display: flex;
-    align-items: center;     /* Ensures perfect vertical centering */
-    justify-content: center; /* Ensures perfect horizontal centering */
-    height: 30px;            /* A fixed height for the bar */
-    padding: 0;              /* Removed padding that was causing the offset */
-    
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 2px solid #111827; /* Dark border to make it pop against the image */
     transition: all 0.2s ease;
 }
 
-.upload-overlay:hover {
-    background: rgba(154, 224, 0, 0.4);
-    color: #fff;
+.edit-icon-btn:hover {
+    transform: scale(1.1);
+    background: #fff;
+    color: #9AE000;
 }
 
+/* Icon specific alignment tweak */
+.edit-icon-btn svg {
+    display: block;
+}
 /* --- Modal Typography & Inputs --- */
 .modal-content h2 {
   margin-top: 0;
