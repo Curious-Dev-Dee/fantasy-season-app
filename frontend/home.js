@@ -1,5 +1,7 @@
 import { supabase } from "./supabase.js";
 
+const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
+
 /* =========================
    ELEMENTS & STATE
 ========================= */
@@ -27,7 +29,7 @@ const modalPreview = document.getElementById("modalAvatarPreview");
 
 let countdownInterval;
 let currentUserId = null;
-let existingProfile = null; // Stores original data to prevent unauthorized overwrites
+let existingProfile = null; 
 
 /* =========================
    INIT (Auth Guard Protected)
@@ -40,17 +42,16 @@ window.addEventListener('auth-verified', async (e) => {
 });
 
 async function startDashboard(userId) {
-    document.querySelector('.app-container').style.visibility = 'visible';
-    const loader = document.getElementById('loadingOverlay');
-    if (loader) loader.style.display = 'none';
-
+    // Reveal app and hide global loader
+    document.body.classList.remove('loading-state');
+    
     // Parallel Execution: Fetch your data and Top 3 simultaneously
     await Promise.all([
         fetchHomeData(userId),
         loadLeaderboardPreview()
     ]);
 
-    // Refresh every 30s
+    // Refresh data every 30s to catch live score updates or admin time changes
     setInterval(() => {
         fetchHomeData(userId);
         loadLeaderboardPreview();
@@ -58,7 +59,7 @@ async function startDashboard(userId) {
 }
 
 /* =========================
-   DATA FETCHING (Using View)
+   DATA FETCHING (Smart Logic)
 ========================= */
 async function fetchHomeData(userId) {
     const { data, error } = await supabase
@@ -72,13 +73,10 @@ async function fetchHomeData(userId) {
         return;
     }
 
-    // Save existing data for defensive comparison
     existingProfile = data;
 
-    // 1. Render Header
+    // 1. Render Header & Profile
     tournamentNameElement.textContent = data.tournament_name || "Tournament";
-    
-    // 2. Render Profile
     const firstName = data.full_name?.trim().split(" ")[0] || "Expert";
     welcomeText.textContent = `Welcome back, ${firstName}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
@@ -94,45 +92,56 @@ async function fetchHomeData(userId) {
         modalTeamName.style.cursor = "not-allowed";
     }
 
+    // Avatar Loading
     if (data.team_photo_url) {
         const { data: imgData } = supabase.storage
             .from("team-avatars")
             .getPublicUrl(data.team_photo_url);
         
-        const avatarUrl = `${imgData.publicUrl}?t=${new Date().getTime()}`; // Cache busting
+        const avatarUrl = `${imgData.publicUrl}?t=${new Date().getTime()}`;
         avatarElement.style.backgroundImage = `url(${avatarUrl})`;
         modalPreview.style.backgroundImage = `url(${avatarUrl})`;
     }
 
-    // 3. Stats
-    scoreElement.textContent = data.total_points;
+    // 2. Stats
+    scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.rank > 0 ? `#${data.rank}` : "—";
-    subsElement.textContent = data.subs_remaining;
+    subsElement.textContent = data.subs_remaining ?? 80;
 
-    // 4. Upcoming Match
+    // 3. Upcoming Match Logic (Handles Delayed, Locked, and Abandoned)
     const match = data.upcoming_match;
 
     if (match) {
         matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
         
-        // Convert strings to date objects for comparison
         const originalTime = new Date(match.original_start_time);
         const actualTime = new Date(match.actual_start_time);
 
-        // Smart Rain Logic: If actual time > original, show rain icon
+        // A. ABANDONED STATUS
+        if (match.status === 'abandoned') {
+            if (countdownInterval) clearInterval(countdownInterval);
+            matchTimeElement.innerHTML = `<span style="color: #ef4444; font-weight: 800;"><i class="fas fa-ban"></i> Match Abandoned</span>`;
+            editButton.disabled = false; // Keep open for the next match
+            editButton.textContent = "Adjust XI";
+            return;
+        }
+
+        // B. RAIN DELAY STATUS
         if (actualTime > originalTime) {
-            matchTimeElement.innerHTML = `<span style="color: #ffb800; font-weight: 800;">Rain Delay 🌧️</span>`;
+            matchTimeElement.innerHTML = `<span style="color: #f59e0b; font-weight: 800;"><i class="fas fa-cloud-showers-heavy"></i> Rain Delay</span>`;
             startCountdown(match.actual_start_time); 
         } else {
             startCountdown(match.actual_start_time);
         }
 
-        // Handle the "Locked" state if match has already started/processed
-        if (match.is_locked) {
+        // C. LOCKED STATUS check
+        if (match.is_locked || match.status === 'locked') {
+            if (countdownInterval) clearInterval(countdownInterval);
+            matchTimeElement.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-lock"></i> Match Started</span>`;
             editButton.disabled = true;
-            editButton.textContent = "Locked 🔒";
-            editButton.style.background = "#1f2937";
-            editButton.style.color = "#4b5563";
+            editButton.textContent = "Locked";
+            editButton.style.background = "#1e293b";
+            editButton.style.color = "#475569";
         } else {
             editButton.disabled = false;
             editButton.textContent = "Change";
@@ -141,6 +150,7 @@ async function fetchHomeData(userId) {
         }
     } else {
         matchTeamsElement.textContent = "No upcoming match";
+        matchTimeElement.textContent = "Schedule pending";
         editButton.disabled = true;
     }
 }
@@ -177,7 +187,6 @@ saveProfileBtn.addEventListener("click", async () => {
     try {
         let photoPath = existingProfile?.team_photo_url;
 
-        // 1. Handle Upload (Folder: userId/timestamp.png)
         if (file) {
             const fileName = `${currentUserId}/${Date.now()}.${file.name.split('.').pop()}`;
             const { error: upErr } = await supabase.storage
@@ -188,41 +197,26 @@ saveProfileBtn.addEventListener("click", async () => {
             photoPath = fileName;
         }
 
-        // 2. Build Defensive Payload
         const profileData = { 
             user_id: currentUserId, 
             profile_completed: true 
         };
 
-        // Only send full_name if it changed
-        if (newName !== existingProfile?.full_name) {
-            profileData.full_name = newName;
-        }
+        if (newName !== existingProfile?.full_name) profileData.full_name = newName;
+        if (photoPath !== existingProfile?.team_photo_url) profileData.team_photo_url = photoPath;
+        if (!existingProfile?.team_name) profileData.team_name = newTeam;
 
-        // Only update photo if a new one was uploaded
-        if (photoPath !== existingProfile?.team_photo_url) {
-            profileData.team_photo_url = photoPath;
-        }
-        
-        // ONLY send team_name if it was previously empty
-        if (!existingProfile?.team_name) {
-            profileData.team_name = newTeam;
-        }
-
-        // 3. Perform the Database Upsert
         const { error: dbErr } = await supabase
             .from("user_profiles")
             .upsert(profileData, { onConflict: 'user_id' });
 
         if (dbErr) throw dbErr;
 
-        // Success Cleanup
         await fetchHomeData(currentUserId);
         profileModal.classList.add("hidden");
 
     } catch (err) {
-        console.error("Save Error:", err.message);
-        alert(err.message || "Update failed. Check your connection.");
+        alert(err.message || "Update failed.");
     } finally {
         saveProfileBtn.disabled = false;
         saveProfileBtn.textContent = "Save & Start";
@@ -230,7 +224,7 @@ saveProfileBtn.addEventListener("click", async () => {
 });
 
 /* =========================
-   LEADERBOARD & UTILS
+   LEADERBOARD PREVIEW
 ========================= */
 async function loadLeaderboardPreview() {
     const { data: leaderboard } = await supabase
@@ -244,8 +238,10 @@ async function loadLeaderboardPreview() {
         leaderboard.forEach(row => {
             const div = document.createElement("div");
             div.className = "leader-row";
-            div.innerHTML = `<span>#${row.rank} <span class="team-name-text"></span></span>
-                             <span>${row.total_points} pts</span>`;
+            div.innerHTML = `
+                <span>#${row.rank} <strong class="team-name-text"></strong></span>
+                <span class="pts-pill">${row.total_points} pts</span>
+            `;
             div.querySelector(".team-name-text").textContent = row.team_name || 'Anonymous';
             leaderboardContainer.appendChild(div);
         });
@@ -261,13 +257,13 @@ function startCountdown(startTime) {
         const distance = matchTime - now;
         if (distance <= 0) {
             clearInterval(countdownInterval);
-            matchTimeElement.textContent = "Match Starting"; 
+            matchTimeElement.textContent = "Match Live"; 
             return;
         }
         const h = Math.floor(distance / (1000 * 60 * 60));
         const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((distance % (1000 * 60)) / 1000);
-        matchTimeElement.textContent = `Starts in ${h}h ${m}m ${s}s`;
+        matchTimeElement.innerHTML = `<i class="far fa-clock"></i> Starts in ${h}h ${m}m ${s}s`;
     }
     updateCountdown();
     countdownInterval = setInterval(updateCountdown, 1000);
@@ -281,7 +277,7 @@ profileModal.addEventListener("click", (e) => {
     if (e.target === profileModal) profileModal.classList.add("hidden");
 });
 
-// Navigation links
-editButton.addEventListener("click", () => window.location.href = "/team-builder");
-viewXiBtn.addEventListener("click", () => window.location.href = "/team-view");
-viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "/leaderboard");
+// Navigation links (Updated to match your filenames)
+editButton.addEventListener("click", () => window.location.href = "prediction.html");
+viewXiBtn.addEventListener("click", () => window.location.href = "view-team.html");
+viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "leaderboard.html");

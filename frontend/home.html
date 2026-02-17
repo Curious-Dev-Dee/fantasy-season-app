@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cricket Experts</title>
+  <title>Cricket Experts | Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/home.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
   
@@ -12,27 +13,16 @@
 
   <style>
     /* SENIOR DEV PATTERN: State-Based Visibility */
-    
-    /* State 1: LOADING (Body has 'loading-state') */
-    body.loading-state .app-container {
-      display: none; /* Hide the app while checking auth */
-    }
-    
-    body.loading-state #loadingOverlay {
-      display: flex; /* Show the spinner */
-    }
+    body.loading-state .app-container { display: none; }
+    body.loading-state #loadingOverlay { display: flex; }
 
-    /* State 2: LOADED (Body does NOT have 'loading-state') */
-    body .app-container {
+    body:not(.loading-state) .app-container {
       display: block;
       animation: fadeIn 0.4s ease-out;
     }
 
-    body #loadingOverlay {
-      display: none; /* Hide spinner when done */
-    }
+    body:not(.loading-state) #loadingOverlay { display: none; }
 
-    /* Standard Styles */
     #loadingOverlay {
       position: fixed; 
       inset: 0; 
@@ -55,7 +45,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* View All Button Styling */
     .view-all-btn {
       width: 100%;
       background: transparent;
@@ -79,7 +68,6 @@
       border-color: #9AE000;
     }
     
-    /* Utility to hide elements (used by logic scripts) */
     .hidden { display: none !important; }
   </style>
 </head>
@@ -93,7 +81,12 @@
 <div class="app-container page-with-nav">
   
   <header class="app-header">
-    <h1 id="tournamentName">Tournament</h1>
+    <div class="header-content">
+        <h1 id="tournamentName">Tournament</h1>
+        <div class="header-icons">
+            <i class="fas fa-bell"></i>
+        </div>
+    </div>
   </header>
 
   <section class="card user-card">
@@ -108,42 +101,47 @@
 
   <section class="card stats-card">
     <div class="stat-inline">
-      <span class="stat-icon">📈</span>
+      <span class="stat-icon"><i class="fas fa-chart-line"></i></span>
       <span class="stat-label">Score:</span>
       <span class="stat-value" id="userScore">0</span>
     </div>
     <div class="divider"></div>
     <div class="stat-inline">
-      <span class="stat-icon">🏆</span>
+      <span class="stat-icon"><i class="fas fa-trophy"></i></span>
       <span class="stat-label">Rank:</span>
       <span class="stat-value highlight" id="userRank">—</span>
     </div>
     <div class="divider"></div>
     <div class="stat-inline">
-      <span class="stat-icon">🔄</span>
+      <span class="stat-icon"><i class="fas fa-arrows-rotate"></i></span>
       <span class="stat-label">Subs:</span>
       <span class="stat-value" id="subsRemaining">80</span>
     </div>
   </section>
 
   <section class="card next-match-card">
-    <p class="section-label">Upcoming Match</p>
+    <div class="match-badge">NEXT MATCH</div>
     <h3 class="match-teams" id="matchTeams">—</h3>
-    <p class="match-time" id="matchTime">Loading match...</p>
+    <p class="match-time" id="matchTime">
+        <i class="far fa-clock"></i> Loading match...
+    </p>
     <div class="match-actions">
       <button class="secondary-btn" id="viewXiBtn">View Team</button>
-      <button class="primary-btn" id="editXiBtn">Change</button>
+      <button class="primary-btn" id="editXiBtn">Edit XI</button>
     </div>
-    <div class="btn-hint">Edit your XI before match lock</div>
+    <div class="btn-hint">Locks at match start time</div>
   </section>
 
   <section class="card leaderboard-card">
-    <h3>Top Experts</h3>
+    <div class="section-header">
+        <h3>Top Experts</h3>
+        <i class="fas fa-ranking-star"></i>
+    </div>
     <div id="leaderboardContainer">
       <p style="color: #9ca3af; font-size: 13px;">Updating rankings...</p>
     </div>
     <button class="view-all-btn" id="viewFullLeaderboard">
-      View Full Leaderboard <span>›</span>
+      Full Leaderboard <i class="fas fa-chevron-right"></i>
     </button>
   </section>
 
@@ -154,32 +152,45 @@
     <h2>Complete Profile</h2>
     
     <div class="upload-preview-container">
-    <div id="modalAvatarPreview"></div>
-    
-    <label for="avatarInput" class="edit-icon-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-        </svg>
-    </label>
-    
-    <input type="file" id="avatarInput" accept="image/*" class="hidden" />
-</div>
+        <div id="modalAvatarPreview"></div>
+        <label for="avatarInput" class="edit-icon-btn">
+            <i class="fas fa-camera"></i>
+        </label>
+        <input type="file" id="avatarInput" accept="image/*" class="hidden" />
+    </div>
 
-    <label for="modalFullName">Your Name</label>
-    <input type="text" id="modalFullName" placeholder="e.g. MS Dhoni" />
+    <div class="input-group">
+        <label for="modalFullName">Your Name</label>
+        <input type="text" id="modalFullName" placeholder="e.g. Satyaranjan Sahoo" />
+    </div>
     
-    <label for="modalTeamName">Team Name</label>
-    <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" />
+    <div class="input-group">
+        <label for="modalTeamName">Team Name</label>
+        <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" />
+        <small>Note: Team name can only be set once.</small>
+    </div>
     
     <button id="saveProfileBtn" class="primary-btn full-width">Save & Start</button>
   </div>
 </div>
 
 <nav class="bottom-nav">
-  <a href="/home" class="active">Home</a>
-  <a href="/fixtures">Fixtures</a>
-  <a href="/prediction">Prediction</a>
-  <a href="/more">More</a>
+  <a href="home.html" class="active">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a href="fixtures.html">
+    <i class="fas fa-calendar-check"></i>
+    <span>Fixtures</span>
+  </a>
+  <a href="prediction.html">
+    <i class="fas fa-bolt"></i>
+    <span>Play</span>
+  </a>
+  <a href="more.html">
+    <i class="fas fa-bars"></i>
+    <span>More</span>
+  </a>
 </nav>
 
 <script type="module" src="home.js"></script>
