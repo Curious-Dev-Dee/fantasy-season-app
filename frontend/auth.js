@@ -7,18 +7,16 @@ const errorEl = document.getElementById("authError");
 
 /* =========================
    1. IMMEDIATE UI RENDER
-   Show UI instantly. Don't wait for Supabase.
-   This fixes the "White Screen" on mobile.
 ========================= */
+// Prevent white screen by showing UI immediately
 if (authContainer) authContainer.classList.remove("hidden");
 
 async function checkSession() {
-  // Check local session only (Instant)
   const { data: { session } } = await supabase.auth.getSession();
 
   if (session) {
-    // User is already logged in. Redirect immediately.
-    window.location.replace("home.html");
+    // SENIOR DEV FIX: Redirect to Clean URL '/home'
+    window.location.replace("/home");
   }
 }
 
@@ -38,8 +36,10 @@ async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // This handles both localhost and Vercel automatically
-        redirectTo: `${window.location.origin}/home.html`,
+        /* CRITICAL: This sends the user to https://your-app.vercel.app/home
+           Supabase MUST have this URL whitelisted in the dashboard.
+        */
+        redirectTo: `${window.location.origin}/home`,
       },
     });
 

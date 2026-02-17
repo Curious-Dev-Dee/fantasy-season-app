@@ -27,43 +27,32 @@ let countdownInterval;
 let currentUserId = null;
 
 /* =========================
-   INIT
+   SENIOR DEV ARCHITECTURE: INIT
+   We wait for auth-guard.js to verify the user.
 ========================= */
-async function initHome() {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (newSession) {
-        currentUserId = newSession.user.id;
-        startDashboard(currentUserId);
-        authListener.subscription.unsubscribe();
-      } else if (event === 'SIGNED_OUT') {
-        window.location.href = "login.html";
-      }
-    });
+window.addEventListener('auth-verified', async (e) => {
+    const user = e.detail.user;
+    currentUserId = user.id;
     
-    const finalCheck = await supabase.auth.getSession();
-    if (!finalCheck.data.session) {
-        window.location.href = "login.html";
-        return;
-    }
-  } else {
-    currentUserId = session.user.id;
+    console.log("Home.js: Auth confirmed for", user.email);
+    
+    // Start the app logic now that we are safe
     startDashboard(currentUserId);
-  }
-}
+});
 
 async function startDashboard(userId) {
+  // Reveal the dashboard (Auth Guard already removed body.loading-state, 
+  // but we ensure container is visible here too)
   document.querySelector('.app-container').style.visibility = 'visible';
   const loader = document.getElementById('loadingOverlay');
   if (loader) loader.style.display = 'none';
 
+  // Load Data
   await loadProfile(userId);
   await loadDashboard(userId);
   await loadLeaderboardPreview();
 
+  // Auto-refresh data every 30 seconds
   setInterval(() => {
     loadDashboard(userId);
     loadLeaderboardPreview();
@@ -131,11 +120,11 @@ saveProfileBtn.addEventListener("click", async () => {
   const { error } = await supabase
     .from("user_profiles")
     .upsert({ 
-      user_id: currentUserId, // Explicitly include ID for upsert
+      user_id: currentUserId, // Explicitly include ID
       full_name: name, 
       team_name: tName,
       profile_completed: true 
-    }, { onConflict: 'user_id' }); // Ensures it targets the right row
+    }, { onConflict: 'user_id' });
     
   if (error) {
     console.error("Save error:", error);
@@ -234,7 +223,6 @@ async function loadLeaderboardPreview() {
       const div = document.createElement("div");
       div.className = "leader-row";
       
-      // We use innerHTML for the structure but NOT for the name
       div.innerHTML = `<span>#${row.rank} <span class="team-name-text"></span></span>
                        <span>${row.total_points} pts</span>`;
       
@@ -245,6 +233,7 @@ async function loadLeaderboardPreview() {
     });
   }
 }
+
 function startCountdown(startTime) {
   if (countdownInterval) clearInterval(countdownInterval);
   const matchTime = new Date(startTime).getTime();
@@ -266,13 +255,13 @@ function startCountdown(startTime) {
   countdownInterval = setInterval(updateCountdown, 1000);
 }
 
-// Navigation
-editButton.addEventListener("click", () => window.location.href = "team-builder.html");
-viewXiBtn.addEventListener("click", () => window.location.href = "team-view.html");
+/* =========================
+   NAVIGATION (Updated to Clean URLs)
+========================= */
+// FIX: Removed .html to match Vercel config
+editButton.addEventListener("click", () => window.location.href = "/team-builder");
+viewXiBtn.addEventListener("click", () => window.location.href = "/team-view");
 
-// New Navigation for Leaderboard
 viewFullLeaderboardBtn.addEventListener("click", () => {
-  window.location.href = "leaderboard.html";
+  window.location.href = "/leaderboard";
 });
-
-initHome();

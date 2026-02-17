@@ -11,10 +11,8 @@
   <script type="module" src="auth-guard.js"></script>
 
   <style>
-    /* SENIOR DEV PATTERN: State-Based Visibility 
-      This works with the "loading-state" class on the body tag.
-    */
-
+    /* SENIOR DEV PATTERN: State-Based Visibility */
+    
     /* State 1: LOADING (Body has 'loading-state') */
     body.loading-state .app-container {
       display: none; /* Hide the app while checking auth */
@@ -167,10 +165,10 @@
 </div>
 
 <nav class="bottom-nav">
-  <a href="home.html" class="active">Home</a>
-  <a href="fixtures.html">Fixtures</a>
-  <a href="prediction.html">Prediction</a>
-  <a href="more.html">More</a>
+  <a href="/home" class="active">Home</a>
+  <a href="/fixtures">Fixtures</a>
+  <a href="/prediction">Prediction</a>
+  <a href="/more">More</a>
 </nav>
 
 <script type="module" src="home.js"></script>
