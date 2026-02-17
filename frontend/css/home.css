@@ -285,21 +285,25 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.75); /* Slightly darker for better contrast */
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(4px);
     color: #9AE000;
-    font-size: 9px;           /* Slightly smaller font for better fit */
-    font-weight: 900;           /* Heavier weight for readability */
-    letter-spacing: 0.5px;      /* Professional spacing */
-    padding: 6px 0 8px;         /* Adjusted bottom padding to balance vertical center */
-    cursor: pointer;
-    text-align: center;
-    line-height: 1;             /* Prevents line-height from pushing text down */
-    transition: all 0.2s ease;
+    
+    /* Typography */
+    font-size: 10px;      /* Bumped back to 10px for readability */
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+
+    /* Perfect Centering Magic */
     display: flex;
-    align-items: center;
-    justify-content: center;    /* Ensures perfect centering regardless of browser */
-    height: 28px;               /* Defined height for a consistent "slice" look */
+    align-items: center;     /* Ensures perfect vertical centering */
+    justify-content: center; /* Ensures perfect horizontal centering */
+    height: 30px;            /* A fixed height for the bar */
+    padding: 0;              /* Removed padding that was causing the offset */
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .upload-overlay:hover {
