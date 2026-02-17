@@ -246,49 +246,43 @@ window.toggleFilter = (key, value, el) => {
 };
 
 // --- LIST RENDERER ---
-/* =========================
-   UPDATED LIST RENDERER
-========================= */
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
-    let filtered = isMyXi ? sourceList : sourceList.filter(p => {
-        if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
-        if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
-        // ... (keep your other filter logic here)
-        return true;
-    });
+    let filtered = sourceList;
+    
+    if (!isMyXi) {
+        filtered = sourceList.filter(p => {
+            if (!p.name.toLowerCase().includes(state.filters.search.toLowerCase())) return false;
+            if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
+            if (state.filters.teams.length > 0 && !state.filters.teams.includes(p.real_team_id)) return false;
+            if (state.filters.credits.length > 0 && !state.filters.credits.includes(p.credit)) return false;
+            if (state.filters.matches.length > 0) {
+                const pTeam = p.real_team_id;
+                const inMatch = state.matches.some(m => 
+                    state.filters.matches.includes(m.id) && (m.team_a_id === pTeam || m.team_b_id === pTeam)
+                );
+                if (!inMatch) return false;
+            }
+            return true;
+        });
+    }
 
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
-        const teamCode = p.team_short_code || "UNK";
-
-        // 1. DYNAMIC PHOTO LOGIC
-        let avatarHtml = `<div class="avatar-silhouette"></div>`; // Default
+        const teamCode = getTeamCode(p);
         
-        if (p.photo_url) {
-            const { data } = supabase.storage.from('player-photos').getPublicUrl(p.photo_url);
-            const imageUrl = `${data.publicUrl}?t=${new Date().getTime()}`; // Cache busting
-            avatarHtml = `<div class="avatar-silhouette" 
-                               style="background-image: url('${imageUrl}'); 
-                                      background-size: cover; 
-                                      background-position: top center;
-                                      border: 1.5px solid var(--primary-green);">
-                          </div>`;
-        }
-
         let controlsHtml = isMyXi ? `
             <div class="controls">
                 <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
                 <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
                 <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
             </div>` : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
-
+        
         return `
         <div class="player-card ${isSelected ? 'selected' : ''}">
-            ${avatarHtml}
+            <div class="avatar-silhouette"></div>
             <div class="player-info">
                 <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
                 <span>${p.role} • ${teamCode} • ${p.credit} Cr</span>
@@ -297,6 +291,7 @@ function renderList(containerId, sourceList, isMyXi) {
         </div>`;
     }).join('');
 }
+
 // --- ACTIONS ---
 window.togglePlayer = (id) => {
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
