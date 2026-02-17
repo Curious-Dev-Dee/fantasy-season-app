@@ -1,3 +1,4 @@
+/* --- Global Resets --- */
 :root {
     --primary-green: #9be15d;
     --danger-red: #ef4444;
@@ -10,7 +11,6 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- Global Resets --- */
 * { 
     box-sizing: border-box; 
     margin: 0; 
@@ -35,12 +35,11 @@ body {
 }
 
 /* --- Header Section --- */
-/* --- Header Section (Updated for Split Layout) --- */
 .edit-header { 
-    padding: 12px 16px; /* Adjusted padding for better fit */
+    padding: 12px 16px; 
     display: flex; 
     align-items: center; 
-    justify-content: space-between; /* This pushes titles left and match-info right */
+    justify-content: space-between; 
     background: #0b0f14; 
     border-bottom: 1px solid var(--border-color); 
     position: sticky; 
@@ -49,7 +48,6 @@ body {
     height: var(--header-height);
 }
 
-/* Left side grouping */
 .header-left {
     display: flex;
     align-items: center;
@@ -76,9 +74,8 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Right side grouping (Upcoming Match & Timer) */
 .header-right {
-    text-align: right; /* Aligns text to the right edge */
+    text-align: right; 
 }
 
 .match-name {
@@ -91,15 +88,12 @@ body {
 .match-timer {
     font-size: 11px;
     font-weight: 700;
-    color: var(--primary-green); /* Highlights the countdown */
+    color: var(--primary-green); 
     margin-top: 2px;
-    font-variant-numeric: tabular-nums; /* Prevents text jumping during countdown */
+    font-variant-numeric: tabular-nums; 
 }
 
-.header-info h1 { font-size: 16px; font-weight: 700; color: var(--text-main); }
-.header-info p { font-size: 11px; color: var(--text-dim); }
-
-/* --- Sticky Controls (Progress & Filters) --- */
+/* --- Sticky Controls --- */
 .sticky-controls {
     position: sticky;
     top: var(--header-height);
@@ -153,7 +147,7 @@ body {
 .subs-text.negative { border-color: var(--danger-red); color: var(--danger-red); background: rgba(239, 68, 68, 0.05); }
 .subs-text strong { color: var(--primary-green); font-weight: 800; }
 
-/* --- View Tabs (MY XI / CHANGE) --- */
+/* --- View Tabs --- */
 .view-tabs { display: flex; padding: 10px 16px; gap: 10px; }
 .toggle-btn { 
     flex: 1; padding: 12px; border-radius: 12px; border: none; 
@@ -161,7 +155,7 @@ body {
 }
 .toggle-btn.active { background: var(--primary-green); color: #000; }
 
-/* --- Search & Role Filters --- */
+/* --- Search & Filters --- */
 .search-filter-wrapper { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
 
 #playerSearch { 
@@ -184,7 +178,7 @@ body {
 .role-tab.active { background: var(--primary-green); color: #000; border-color: var(--primary-green); }
 .role-count { font-size: 10px; font-weight: 800; }
 
-/* --- Dropdown Filters (FIXED POSITIONING) --- */
+/* --- Dropdown Filters --- */
 .dropdown-filters { display: flex; gap: 8px; margin-top: 10px; position: relative; }
 .dropdown { position: relative; flex: 1; }
 
@@ -194,33 +188,30 @@ body {
     font-weight: 700; cursor: pointer; text-align: center;
 }
 
-/* --- Fix: Mobile-friendly scrollable dropdowns --- */
 .dropdown-menu { 
     position: absolute; 
     top: 45px; 
     left: 0; 
     width: 240px; 
-    max-height: 350px; /* Limits height */
+    max-height: 350px; 
     background: #111827; 
     border: 1px solid #1e293b; 
     display: none; 
-    flex-direction: column; /* Stack content and footer */
+    flex-direction: column; 
     z-index: 1000; 
     border-radius: 14px; 
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); 
-    overflow: hidden; /* Keeps footer pinned */
+    overflow: hidden; 
 }
 
 .dropdown-menu.show { display: flex; }
 
-/* Scrollable area for the list */
 .dropdown-content {
     overflow-y: auto;
     flex: 1;
     padding: 6px;
 }
 
-/* --- Fix: Sticky Footer for Apply/Clear --- */
 .dropdown-actions {
     display: flex;
     justify-content: space-between;
@@ -277,7 +268,7 @@ body {
 .player-info strong { font-size: 14px; color: var(--text-main); display: block; margin-bottom: 2px; }
 .player-info span { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* --- Player Controls (C/VC) --- */
+/* --- Player Controls --- */
 .controls { display: flex; gap: 8px; align-items: center; }
 
 .cv-btn { 
@@ -295,7 +286,7 @@ body {
 .action-btn-circle.add { color: var(--primary-green); border-color: var(--primary-green); }
 .action-btn-circle.remove { color: var(--danger-red); border-color: var(--danger-red); }
 
-/* --- Save Bar (FIXED FOOTER) --- */
+/* --- Save Bar --- */
 .save-bar { 
     position: fixed; bottom: 0; width: 100%; max-width: 420px; 
     background: rgba(2, 6, 23, 0.95); padding: 20px 16px 30px; 
@@ -329,11 +320,10 @@ body {
 
 .modal-actions { display: flex; flex-direction: column; gap: 12px; }
 .modal-btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 14px; }
-/* --- Fix: Improved Modal Button Hierarchy --- */
 .modal-btn.primary { 
     background: var(--primary-green); 
     color: #000; 
-    order: 1; /* Puts 'Go to Home' at the top/first */
+    order: 1; 
     box-shadow: 0 4px 12px rgba(155, 225, 93, 0.3);
 }
 
@@ -344,9 +334,7 @@ body {
     order: 2;
 }
 
-.modal-btn:active {
-    transform: scale(0.98);
-}
+.modal-btn:active { transform: scale(0.98); }
 @keyframes modalPop {
     from { opacity: 0; transform: scale(0.8) translateY(20px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
@@ -355,3 +343,6 @@ body {
 /* Visibility Helpers */
 .view-mode { display: none; }
 .view-mode.active { display: block; }
+
+/* Utility */
+.hidden { display: none !important; }

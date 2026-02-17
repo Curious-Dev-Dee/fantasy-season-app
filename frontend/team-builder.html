@@ -5,13 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Team · Cricket Experts</title>
     <link rel="stylesheet" href="css/team-builder.css">
+    
+    <script type="module" src="auth-guard.js"></script>
+
+    <style>
+        /* SENIOR DEV PATTERN: State-Based Visibility */
+        
+        /* State 1: LOADING (Body has 'loading-state') */
+        body.loading-state .app-container {
+          display: none; /* Hide the app while checking auth */
+        }
+        
+        body.loading-state #loadingOverlay {
+          display: flex; /* Show the spinner */
+        }
+    
+        /* State 2: LOADED (Body does NOT have 'loading-state') */
+        body .app-container {
+          display: flex; /* Flex is needed for this specific layout */
+          animation: fadeIn 0.4s ease-out;
+        }
+    
+        body #loadingOverlay {
+          display: none; /* Hide spinner when done */
+        }
+    
+        /* Standard Spinner Styles */
+        #loadingOverlay {
+          position: fixed; 
+          inset: 0; 
+          background: #0c1117;
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          z-index: 999;
+        }
+        
+        .spinner {
+          width: 40px; 
+          height: 40px; 
+          border: 4px solid rgba(154, 224, 0, 0.1);
+          border-left-color: #9AE000; 
+          border-radius: 50%; 
+          animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      </style>
 </head>
-<body>
+
+<body class="loading-state">
+
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
 
 <div class="app-container">
     <header class="edit-header">
         <div class="header-left">
-            <a href="home.html" class="icon-back">←</a>
+            <a href="/home" class="icon-back">←</a>
             <div class="header-info">
                 <h1>Edit Team</h1>
                 <p id="tournamentName">Tournament Selection</p>

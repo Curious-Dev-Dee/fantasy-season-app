@@ -24,14 +24,26 @@ let state = {
 // --- New: Global Countdown Variable ---
 let countdownInterval;
 
+/* =========================================
+   SENIOR DEV FIX: Wait for Auth Guard
+   Do not run logic until user is verified
+========================================= */
+window.addEventListener('auth-verified', async (e) => {
+    const user = e.detail.user;
+    console.log("Team Builder: Auth confirmed for", user.email);
+    
+    // Start the app with the verified user
+    init(user); 
+});
+
 const getTeamInfo = (id, useShort = false) => {
     const team = state.teamsMap[id];
     if (!team) return "Unknown";
     return useShort ? team.short_code : team.name;
 };
 
-async function init() {
-    const { data: { user } } = await supabase.auth.getUser();
+// Passed 'user' from the event listener
+async function init(user) {
     if (!user) return;
 
     // 1. Fetch Real Teams
@@ -255,6 +267,17 @@ window.clearFilters = (key) => {
     render();
 };
 
+// Helper for toggle filter (missing in original code but implied)
+window.toggleFilter = (key, value, el) => {
+    const val = key === 'credits' ? parseFloat(value) : value;
+    if (el.checked) {
+        state.filters[key].push(val);
+    } else {
+        state.filters[key] = state.filters[key].filter(v => v !== val);
+    }
+    render();
+};
+
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -417,16 +440,16 @@ function showSuccessModal() {
         modal.remove();
     };
     
+    // FIX: Redirect to Clean URL
     document.getElementById("btnGoHome").onclick = () => {
-        window.location.href = "home.html";
+        window.location.href = "/home";
     };
 
     // --- NEW: Auto-Dismiss / Redirect after 3 seconds ---
     const autoRedirect = setTimeout(() => {
         if (document.body.contains(modal)) {
-            window.location.href = "home.html";
+            // FIX: Redirect to Clean URL
+            window.location.href = "/home";
         }
     }, 3000);
 }
-
-init();
