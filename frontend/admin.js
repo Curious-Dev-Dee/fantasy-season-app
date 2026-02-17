@@ -219,4 +219,85 @@ function updateStatus(msg, type) {
     statusDiv.style.display = msg ? "block" : "none";
 }
 
+/**
+ * 4. QUICK DELAY FEATURE
+ */
+const delayMatchSelect = document.getElementById("delayMatchSelect");
+const delayStatus = document.getElementById("delayStatus");
+
+// Function to populate the second match dropdown
+async function loadDelayMatches() {
+    const { data: matches } = await supabase
+        .from('matches')
+        .select('id, match_number, team_a_id, team_b_id, actual_start_time')
+        .eq('tournament_id', TOURNAMENT_ID)
+        .eq('lock_processed', false) // Only show matches that aren't locked yet
+        .order('match_number');
+
+    if (matches) {
+        // We reuse your teamMap logic if available, or just show match numbers
+        delayMatchSelect.innerHTML = matches.map(m => `
+            <option value="${m.id}">Match ${m.match_number} (Current: ${new Date(m.actual_start_time).toLocaleTimeString()})</option>
+        `).join('');
+    }
+}
+
+// Add event listeners to all delay buttons
+document.querySelectorAll('.delay-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const matchId = delayMatchSelect.value;
+        const mins = parseInt(btn.getAttribute('data-mins'));
+        
+        if (!matchId) return alert("Select a match first!");
+        
+        btn.disabled = true;
+        updateDelayStatus(`Pushing Match ${matchId} by ${mins}m...`, "loading");
+
+        try {
+            // 1. Get current actual time
+            const { data: match } = await supabase
+                .from('matches')
+                .select('actual_start_time')
+                .eq('id', matchId)
+                .single();
+
+            // 2. Calculate new time
+            const newTime = new Date(new Date(match.actual_start_time).getTime() + mins * 60000);
+
+            // 3. Update DB
+            const { error } = await supabase
+                .from('matches')
+                .update({ 
+                    actual_start_time: newTime.toISOString(),
+                    status: 'upcoming' // Keep status as upcoming for Edge Function
+                })
+                .eq('id', matchId);
+
+            if (error) throw error;
+
+            updateDelayStatus(`✅ Success! New Lock Time: ${newTime.toLocaleTimeString()}`, "success");
+            loadDelayMatches(); // Refresh dropdown info
+            
+        } catch (err) {
+            console.error(err);
+            updateDelayStatus("❌ Failed to update time.", "error");
+        } finally {
+            btn.disabled = false;
+        }
+    });
+});
+
+function updateDelayStatus(msg, type) {
+    delayStatus.textContent = msg;
+    delayStatus.style.display = "block";
+    delayStatus.style.color = type === "error" ? "red" : (type === "success" ? "green" : "blue");
+}
+
+// Update your existing init() to also call loadDelayMatches()
+const originalInit = init;
+init = async () => {
+    await originalInit();
+    loadDelayMatches();
+};
+
 init();

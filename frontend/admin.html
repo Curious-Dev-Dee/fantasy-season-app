@@ -3,6 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <div class="card" style="margin-bottom: 20px;">
+    <h2>🕒 Match Delay Control</h2>
+    <p style="font-size: 13px; color: #666;">Extend the lock time during rain or toss delays. This updates the <strong>Actual Start Time</strong>.</p>
+    
+    <label>Select Active Match</label>
+    <select id="delayMatchSelect"><option value="">Loading matches...</option></select>
+
+    <div class="delay-controls" style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="delay-btn" data-mins="5" style="background: #64748b;">+5m</button>
+        <button class="delay-btn" data-mins="10" style="background: #475569;">+10m</button>
+        <button class="delay-btn" data-mins="15" style="background: #334155;">+15m</button>
+        <button class="delay-btn" data-mins="30" style="background: #1e293b;">+30m</button>
+    </div>
+    <div id="delayStatus" style="margin-top: 10px; font-size: 13px; font-weight: bold; display: none;"></div>
+</div>
+
+<div class="card">
+    <h2>🏏 Match Points Processor</h2>
+    ...
+
     <title>Points Processing Portal</title>
     <style>
         :root { --primary: #1d4ed8; --success: #166534; --danger: #dc2626; --bg: #f0f2f5; }
