@@ -3,61 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cricket Experts</title>
-
+  <title>Cricket Experts | Step into the Arena</title>
   <link rel="stylesheet" href="css/auth.css" />
 </head>
 <body>
 
   <div class="auth-container">
-
-    <!-- HERO -->
     <section class="hero">
-      <h1 class="hero-title">
-        Cricket Experts
-      </h1>
-
+      <h1 class="hero-title">Cricket Experts</h1>
       <p class="hero-tagline">
         This is not for everyone.
         <span class="accent">Accept the challenge.</span>
       </p>
-
       <p class="hero-support">
-        Build your XI. Compete on knowledge.
+        Build your XI. Compete on knowledge.<br>
         Let your cricket decisions speak.
       </p>
     </section>
 
-    <!-- AUTH CARD -->
     <section class="auth-card">
-
       <p class="card-heading">Step into the arena</p>
 
-      <button 
-        id="googleLoginBtn" 
-        class="auth-btn primary"
-        aria-label="Continue with Google"
-      >
+      <button id="googleLoginBtn" class="auth-btn primary" aria-label="Continue with Google">
         <span class="google-icon">
-          <img 
-            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-            alt="Google logo"
-          />
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" />
         </span>
         <span class="btn-text">Continue with Google</span>
         <span class="spinner hidden"></span>
       </button>
 
-      <!-- ERROR MESSAGE -->
       <p id="authError" class="auth-error"></p>
-
     </section>
 
-    <!-- FOOTER -->
     <footer class="auth-footer">
       © 2026 Cricket Experts
     </footer>
-
   </div>
 
   <script type="module" src="auth.js"></script>
