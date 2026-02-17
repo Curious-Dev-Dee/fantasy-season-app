@@ -1,44 +1,49 @@
 /* =========================
    PREMIUM BOTTOM NAV
 ========================= */
-
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 420px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 420px; /* Matches your app container width */
   background: linear-gradient(145deg, #111827, #0f172a);
   display: flex;
   justify-content: space-around;
   padding: 12px 0;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  z-index: 100;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  z-index: 1000;
 }
 
 .bottom-nav a {
   text-decoration: none;
-  color: #9ca3af;
-  font-size: 12px;
+  color: #94a3b8; /* Muted slate color */
+  font-size: 11px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  transition: 0.2s ease;
+  gap: 5px;
+  transition: all 0.2s ease;
+  flex: 1;
 }
 
+.bottom-nav a i {
+  font-size: 18px; /* Professional icon size */
+}
+
+/* Active state matches your primary accent color */
 .bottom-nav a.active {
-  color: #9AE000;
-  font-weight: 600;
+  color: #9AE000; 
+  filter: drop-shadow(0 0 5px rgba(154, 224, 0, 0.3));
 }
 
-.bottom-nav a:hover {
-  color: #9AE000;
+.bottom-nav a.active i {
+  transform: translateY(-2px);
 }
 
-/* Add spacing so content doesn't hide behind nav */
-
+/* Spacing fix for the main container */
 .page-with-nav {
-  padding-bottom: 80px;
+  padding-bottom: 90px !important;
 }
