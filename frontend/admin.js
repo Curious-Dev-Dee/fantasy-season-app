@@ -51,7 +51,7 @@ async function loadDelayMatches() {
     const { data: matches } = await supabase.from('matches')
         .select('id, match_number, actual_start_time')
         .eq('tournament_id', TOURNAMENT_ID)
-        .eq('lock_processed', false) // Only show active/upcoming
+        .eq('lock_processed', false)
         .order('match_number');
 
     if (matches) {
@@ -69,17 +69,13 @@ async function updateMatchState(matchId, updates, label) {
     try {
         const { data, error } = await supabase.from('matches').update(updates).eq('id', matchId).select();
         if (error) throw error;
-        if (!data.length) throw new Error("No rows updated. Check RLS.");
-
         updateDelayStatus(`✅ Success! ${label}`, "success");
         await loadDelayMatches();
     } catch (err) {
-        console.error(err);
         updateDelayStatus(`❌ Error: ${err.message}`, "error");
     }
 }
 
-// Incremental Buttons
 document.querySelectorAll('.delay-btn').forEach(btn => {
     if (btn.id === "abandonBtn" || btn.id === "forceNowBtn") return;
     btn.addEventListener('click', async () => {
@@ -91,26 +87,19 @@ document.querySelectorAll('.delay-btn').forEach(btn => {
     });
 });
 
-// Force Lock
 forceNowBtn.addEventListener('click', async () => {
     const matchId = delayMatchSelect.value;
-    if (confirm("FORCE LOCK? Edits will close on the next minute tick.")) {
+    if (confirm("FORCE LOCK? The Edge function will process this in 60s.")) {
         const pastTime = new Date(Date.now() - 5000).toISOString();
         await updateMatchState(matchId, { actual_start_time: pastTime, status: 'upcoming' }, "Triggering Lock...");
     }
 });
 
-// Abandon
 abandonBtn.addEventListener('click', async () => {
     const matchId = delayMatchSelect.value;
-    if (confirm("🚨 ABANDON MATCH? No subs will be charged. This is permanent.")) {
-        await updateMatchState(matchId, { status: 'abandoned', lock_processed: true, locked_at: new Date().toISOString() }, "Abandoning Match");
+    if (confirm("🚨 ABANDON MATCH? No subs will be charged.")) {
+        await updateMatchState(matchId, { status: 'abandoned', lock_processed: true, locked_at: new Date().toISOString() }, "Match Abandoned");
     }
-});
-
-setCustomTimeBtn.addEventListener('click', async () => {
-    if (!customTimeInput.value) return alert("Select time");
-    await updateMatchState(delayMatchSelect.value, { actual_start_time: new Date(customTimeInput.value).toISOString() }, "Custom Override");
 });
 
 /**
@@ -122,31 +111,45 @@ processBtn.addEventListener("click", async () => {
 
     try {
         const rawData = JSON.parse(jsonStr);
-        let scoreboard = Array.isArray(rawData) ? rawData : rawData.data?.scorecard || [];
-        
-        // Simple map if using raw scorecard data
-        if (!Array.isArray(rawData)) {
-            const playersMap = {};
-            rawData.data.scorecard.forEach(inning => {
-                ["batting", "bowling", "catching"].forEach(key => {
-                    if (inning[key]) inning[key].forEach(p => {
-                        const name = p.batsman?.name || p.bowler?.name || p.catcher?.name;
-                        if (name) playersMap[name] = { player_name: name, ...playersMap[name], ...p };
-                    });
-                });
-            });
-            scoreboard = Object.values(playersMap);
-        }
+        let playersMap = {};
+        const scorecardArray = Array.isArray(rawData) ? rawData : (rawData.data?.scorecard || []);
 
+        // Flatten data and handle merge
+        scorecardArray.forEach(inning => {
+            ["batting", "bowling", "catching"].forEach(key => {
+                if (inning[key]) {
+                    inning[key].forEach(p => {
+                        const name = p.batsman?.name || p.bowler?.name || p.catcher?.name || p.player_name;
+                        if (name) {
+                            playersMap[name] = {
+                                player_name: name,
+                                ...playersMap[name],
+                                ...p,
+                                catches: (playersMap[name]?.catches || 0) + (p.catch || 0),
+                                stumpings: (playersMap[name]?.stumpings || 0) + (p.stumped || 0)
+                            };
+                        }
+                    });
+                }
+            });
+        });
+
+        const scoreboard = Object.values(playersMap);
         const { data: match } = await supabase.from('matches').select('team_a_id, team_b_id').eq('id', matchSelect.value).single();
         const { data: dbPlayers } = await supabase.from('players').select('id, name').in('real_team_id', [match.team_a_id, match.team_b_id]);
+        
         const dbPlayerMap = Object.fromEntries(dbPlayers.map(p => [p.name.trim().toLowerCase(), p.id]));
 
-        const scoreboardWithIds = scoreboard.map(p => ({ ...p, player_id: dbPlayerMap[p.player_name?.trim().toLowerCase()] || null }));
-        const missing = scoreboardWithIds.filter(p => !p.player_id).map(p => p.player_name);
+        // Create the FIXED payload with IDs
+        const fixedScoreboard = scoreboard.map(p => ({
+            ...p,
+            player_id: dbPlayerMap[p.player_name?.trim().toLowerCase()] || null
+        }));
+
+        const missing = fixedScoreboard.filter(p => !p.player_id).map(p => p.player_name);
 
         reportContainer.style.display = "block";
-        document.getElementById("reportStats").innerHTML = `Matched: ${scoreboardWithIds.length - missing.length} | Missing: ${missing.length}`;
+        document.getElementById("reportStats").innerHTML = `Matched: ${fixedScoreboard.length - missing.length} | Missing: ${missing.length}`;
         
         if (missing.length > 0) {
             document.getElementById("missingWrapper").style.display = "block";
@@ -155,20 +158,29 @@ processBtn.addEventListener("click", async () => {
         } else {
             document.getElementById("missingWrapper").style.display = "none";
             document.getElementById("successWrapper").style.display = "block";
-            pomSelect.innerHTML = scoreboardWithIds.map(p => `<option value="${p.player_id}">${p.player_name}</option>`).join('');
-            finalConfirmBtn.onclick = () => executeUpdate(scoreboardWithIds);
+            pomSelect.innerHTML = fixedScoreboard.map(p => `<option value="${p.player_id}">${p.player_name}</option>`).join('');
+            
+            // Critical: Pass the fixed list to execute
+            finalConfirmBtn.onclick = () => executeUpdate(fixedScoreboard, matchSelect.value);
         }
-    } catch (e) { alert(e.message); }
+    } catch (e) { alert("JSON Error: " + e.message); }
 });
 
-async function executeUpdate(scoreboard) {
-    updateStatus("Processing...", "loading");
+async function executeUpdate(fixedScoreboard, matchId) {
+    updateStatus("Processing points...", "loading");
     try {
         const { error } = await supabase.functions.invoke('process_match_points', {
-            body: { match_id: matchSelect.value, tournament_id: TOURNAMENT_ID, scoreboard, pom_id: pomSelect.value }
+            body: { 
+                match_id: matchId, 
+                tournament_id: TOURNAMENT_ID, 
+                scoreboard: fixedScoreboard, 
+                pom_id: pomSelect.value 
+            }
         });
         if (error) throw error;
-        updateStatus("✅ Points Processed!", "success");
+        updateStatus("✅ Points and Leaderboard Updated!", "success");
+        reportContainer.style.display = "none";
+        scoreboardInput.value = "";
     } catch (err) { updateStatus(`❌ Error: ${err.message}`, "error"); }
 }
 
