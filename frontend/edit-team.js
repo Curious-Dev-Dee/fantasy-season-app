@@ -246,6 +246,7 @@ window.toggleFilter = (key, value, el) => {
 };
 
 // --- LIST RENDERER ---
+// --- LIST RENDERER (Updated to show photos) ---
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -273,6 +274,13 @@ function renderList(containerId, sourceList, isMyXi) {
         const isLocked = state.lockedPlayerIds.includes(p.id);
         const teamCode = getTeamCode(p);
         
+        // --- PHOTO LOGIC START ---
+        // Generates the live URL for the photo from your 'player-photos' bucket
+        const photoUrl = p.photo_url 
+            ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
+            : 'images/default-avatar.png'; // Fallback if no photo is assigned
+        // --- PHOTO LOGIC END ---
+        
         let controlsHtml = isMyXi ? `
             <div class="controls">
                 <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
@@ -282,7 +290,7 @@ function renderList(containerId, sourceList, isMyXi) {
         
         return `
         <div class="player-card ${isSelected ? 'selected' : ''}">
-            <div class="avatar-silhouette"></div>
+            <div class="avatar-silhouette" style="background-image: url('${photoUrl}'); background-size: cover; background-position: center;"></div>
             <div class="player-info">
                 <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
                 <span>${p.role} • ${teamCode} • ${p.credit} Cr</span>
