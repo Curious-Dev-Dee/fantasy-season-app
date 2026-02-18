@@ -130,6 +130,7 @@ async function loadCurrentXI() {
     }
 
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
+    // Fetching * automatically includes photo_url column
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     renderTeamLayout(players, userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);
@@ -195,13 +196,18 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
                 displayPts = `<div class="player-pts">${pts} pts</div>`;
             }
 
+            // --- PHOTO LOGIC ---
+            const photoUrl = p.photo_url 
+                ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
+                : 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
+
             const circle = document.createElement("div");
             circle.className = `player-circle ${p.id === captainId ? 'captain' : ''} ${p.id === viceCaptainId ? 'vice-captain' : ''}`;
             
             circle.innerHTML = `
                 ${p.id === captainId ? '<div class="badge captain-badge">C</div>' : ''}
                 ${p.id === viceCaptainId ? '<div class="badge vice-badge">VC</div>' : ''}
-                <div class="avatar">
+                <div class="avatar" style="background-image: url('${photoUrl}'); background-size: cover; background-position: center;">
                     <div class="team-init-label">${realTeamsMap[p.real_team_id] || 'TBA'}</div>
                 </div>
                 <div class="player-name">${p.name}</div>
@@ -218,12 +224,11 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
    HISTORY FEATURE LOGIC
 ========================= */
 function setupHistoryListeners() {
-    // 1. Fetch and Display the list of all past matches (With recalculation fix)
+    // 1. Fetch and Display the list of all past matches
     historyBtn.onclick = async () => {
         historyOverlay.classList.remove("hidden");
         historyList.innerHTML = `<div class="spinner-small"></div>`;
 
-        // Fetch history and the underlying players/stats to calculate true totals
         const { data: history } = await supabase
             .from('user_match_teams')
             .select('*, matches(match_number, team_a_id, team_b_id), user_match_team_players(player_id)')
@@ -235,12 +240,10 @@ function setupHistoryListeners() {
             return;
         }
 
-        // Fetch ALL stats for the matches involved to calculate totals in one go
         const matchIds = history.map(h => h.match_id);
         const { data: allStats } = await supabase.from("player_match_stats").select("*").in("match_id", matchIds);
 
         historyList.innerHTML = history.map(h => {
-            // Recalculate total for this specific history row
             let rowTotal = 0;
             const matchStats = allStats.filter(s => s.match_id === h.match_id);
             const statsMap = Object.fromEntries(matchStats.map(s => [s.player_id, s.fantasy_points]));
