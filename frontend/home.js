@@ -88,7 +88,7 @@ async function fetchHomeData(userId) {
         modalTeamName.style.opacity = "0.6";
     }
 
-    // Avatar
+    // User Avatar (team-avatars bucket)
     if (data.team_photo_url) {
         const { data: imgData } = supabase.storage
             .from("team-avatars")
@@ -99,16 +99,32 @@ async function fetchHomeData(userId) {
         modalPreview.style.backgroundImage = `url(${avatarUrl})`;
     }
 
-    // 2. Main Stats
+    // 2. Main Stats (Using user_rank alias)
     scoreElement.textContent = data.total_points || 0;
-    rankElement.textContent = data.rank > 0 ? `#${data.rank}` : "—";
+    rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
     subsElement.textContent = data.subs_remaining ?? 80;
 
-    // 3. Match Logic (Delayed, Locked, Abandoned)
+    // 3. Match Logic (Enriched with Logos)
     const match = data.upcoming_match;
 
     if (match) {
         matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+
+        // Render Real Team Logos (team-logos bucket)
+        const updateTeamLogo = (path, elementId) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (path) {
+                const { data: logoData } = supabase.storage.from('team-logos').getPublicUrl(path);
+                el.style.backgroundImage = `url(${logoData.publicUrl})`;
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+            }
+        };
+
+        updateTeamLogo(match.team_a_logo, "teamALogo");
+        updateTeamLogo(match.team_b_logo, "teamBLogo");
         
         // ABANDONED STATUS
         if (match.status === 'abandoned') {
@@ -129,13 +145,12 @@ async function fetchHomeData(userId) {
             editButton.textContent = "Locked";
             editButton.style.background = "#1e293b";
         } else {
-            // Check for Rain Delay warning
+            // Rain Delay Logic
             const originalTime = new Date(match.original_start_time);
             const actualTime = new Date(match.actual_start_time);
             
             if (actualTime > originalTime) {
                 console.log("Rain delay detected");
-                // The countdown function handles the color/timer
             }
             
             startCountdown(match.actual_start_time);
@@ -146,6 +161,8 @@ async function fetchHomeData(userId) {
     } else {
         matchTeamsElement.textContent = "No upcoming match";
         editButton.disabled = true;
+        document.getElementById("teamALogo").style.display = "none";
+        document.getElementById("teamBLogo").style.display = "none";
     }
 }
 
@@ -167,7 +184,6 @@ function startCountdown(startTime) {
             return;
         }
 
-        // THRESHOLD LOGIC
         const minsRemaining = distance / (1000 * 60);
         
         if (minsRemaining <= 10) {
@@ -188,7 +204,7 @@ function startCountdown(startTime) {
 }
 
 /* =========================
-   LEADERBOARD PREVIEW (FIXED)
+   LEADERBOARD PREVIEW
 ========================= */
 async function loadLeaderboardPreview() {
     const { data: leaderboard } = await supabase
@@ -249,7 +265,7 @@ saveProfileBtn.addEventListener("click", async () => {
 });
 
 /* =========================
-   UI NAVIGATION
+   UI NAVIGATION & EVENTS
 ========================= */
 avatarInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
@@ -263,20 +279,12 @@ avatarInput.addEventListener("change", (e) => {
     }
 });
 
-/* =========================
-   CORRECTED UI NAVIGATION
-========================= */
 avatarElement.addEventListener("click", () => profileModal.classList.remove("hidden"));
 
 profileModal.addEventListener("click", (e) => { 
     if (e.target === profileModal) profileModal.classList.add("hidden"); 
 });
 
-// "Change" Button (Edit XI) -> Goes to your team editor
 editButton.addEventListener("click", () => window.location.href = "team-builder.html");
-
-// "View Team" Button -> Goes to your team viewer
 viewXiBtn.addEventListener("click", () => window.location.href = "team-view.html");
-
-// "Full Leaderboard" -> Goes to the rankings page
 viewFullLeaderboardBtn.addEventListener("click", () => window.location.href = "leaderboard.html");
