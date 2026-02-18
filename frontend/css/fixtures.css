@@ -129,16 +129,22 @@ body {
     gap: 8px;
 }
 
+/* UPDATED FOR LOGO SUPPORT */
 .team-logo {
-    width: 45px;
-    height: 45px;
+    width: 48px; /* Slightly larger for better visibility */
+    height: 48px;
     background: #0f172a;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
+    font-size: 12px; /* For fallback text */
     border: 2px solid #334155;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    overflow: hidden; /* Keeps images within the circle */
 }
 
 .vs-badge {
