@@ -38,11 +38,6 @@ body {
     margin: 0;
 }
 
-.header-icons i {
-    font-size: 20px;
-    color: #94a3b8;
-}
-
 /* --- CARD DEFAULTS --- */
 .card {
     background: #1e293b;
@@ -122,7 +117,7 @@ body {
     background-color: #334155;
 }
 
-/* --- NEXT MATCH CARD --- */
+/* --- NEXT MATCH CARD (UPDATED FOR LOGOS) --- */
 .next-match-card {
     background: linear-gradient(145deg, #1e293b, #111827);
     position: relative;
@@ -137,10 +132,31 @@ body {
     margin-bottom: 10px;
 }
 
+/* New Flex Container for Logos + Text */
+.match-vs-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin: 15px 0 20px;
+}
+
+.team-logo-dashboard {
+    width: 48px;
+    height: 48px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: none; /* JS will show this once URL is loaded */
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+}
+
 .match-teams {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
-    margin: 5px 0 12px;
+    margin: 0;
+    color: #ffffff;
+    letter-spacing: -0.5px;
 }
 
 /* NEON DYNAMIC COUNTDOWN */
@@ -150,6 +166,7 @@ body {
     margin-bottom: 24px;
     display: flex;
     align-items: center;
+    justify-content: center; /* Centered with logos */
     gap: 8px;
     transition: color 0.3s ease;
 }
@@ -304,13 +321,5 @@ body {
     outline: none;
 }
 
-.input-group small {
-    display: block;
-    margin-top: 6px;
-    font-size: 11px;
-    color: #64748b;
-}
-
 .full-width { width: 100%; }
-
 .hidden { display: none !important; }

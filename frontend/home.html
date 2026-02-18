@@ -78,20 +78,27 @@
     </div>
   </section>
 
-  <section class="card next-match-card">
-    <div class="match-badge-small">NEXT MATCH</div>
-    <h3 class="match-teams" id="matchTeams">—</h3>
-    
-    <p class="match-time neon-green" id="matchTime">
-        <i class="far fa-clock"></i> Loading...
-    </p>
+<section class="card next-match-card">
+  <div class="match-badge-small">NEXT MATCH</div>
+  
+  <div class="match-vs-header">
+      <div id="teamALogo" class="team-logo-dashboard"></div>
+      
+      <h3 class="match-teams" id="matchTeams">—</h3>
+      
+      <div id="teamBLogo" class="team-logo-dashboard"></div>
+  </div>
+  
+  <p class="match-time neon-green" id="matchTime">
+      <i class="far fa-clock"></i> Loading...
+  </p>
 
-    <div class="match-actions">
-      <button class="secondary-btn" id="viewXiBtn">View Team</button>
-      <button class="primary-btn" id="editXiBtn">Change</button>
-    </div>
-    <div class="btn-hint">Locks at match start time</div>
-  </section>
+  <div class="match-actions">
+    <button class="secondary-btn" id="viewXiBtn">View Team</button>
+    <button class="primary-btn" id="editXiBtn">Change</button>
+  </div>
+  <div class="btn-hint">Locks at match start time</div>
+</section>
 
   <section class="card leaderboard-card">
     <div class="section-header">
