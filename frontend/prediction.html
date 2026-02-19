@@ -10,7 +10,6 @@
 </head>
 
 <body>
-
 <div class="app-container page-with-nav">
 
   <header class="fun-header">
@@ -53,19 +52,29 @@
     <p class="lock-hint">Points: +1 Correct | -1 Wrong</p>
   </section>
 
-  <section class="card chat-card">
-    <div class="chat-header">
-        <span>Expert Sledge-Box</span>
-        <i class="fas fa-comments"></i>
-    </div>
-    <div id="chatMessages" class="chat-display">
-        <p class="empty-chat">Start the sledge! 🏏</p>
-    </div>
-    <div class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Write a message..." maxlength="100">
-        <button id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
-    </div>
-  </section>
+  <button id="chatToggleBtn" class="chat-fab">
+      <i class="fas fa-comments"></i>
+      <span class="chat-badge hidden" id="newMsgBadge"></span>
+  </button>
+
+  <div id="chatDrawer" class="chat-drawer drawer-hidden">
+      <div class="drawer-header">
+          <div class="header-info">
+              <i class="fas fa-circle-nodes"></i>
+              <span>Expert Sledge-Box</span>
+          </div>
+          <button id="closeChatBtn" class="close-drawer">&times;</button>
+      </div>
+      
+      <div id="chatMessages" class="chat-display">
+          <p class="empty-chat">Start the sledge! 🏏</p>
+      </div>
+
+      <div class="chat-input-area">
+          <input type="text" id="chatInput" placeholder="Write a message..." maxlength="100">
+          <button id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+  </div>
 
 </div>
 

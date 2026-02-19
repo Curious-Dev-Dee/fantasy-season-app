@@ -1,258 +1,70 @@
 :root {
-    --fun-neon: #00f2ff; /* Cyan Glow */
-    --fun-accent: #9AE000; /* Matching your theme green */
+    --fun-neon: #00f2ff;
+    --fun-accent: #9AE000;
     --fun-bg: #0f172a;
     --fun-card: #1e293b;
 }
 
-body {
-    background-color: #0b0f19;
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-}
+body { background-color: #0b0f19; margin: 0; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+.app-container { padding: 20px 16px 100px; max-width: 480px; margin: 0 auto; }
 
-.app-container {
-    padding: 20px 16px 100px;
-    max-width: 480px;
-    margin: 0 auto;
-}
-
-/* --- FUN HEADER --- */
-.fun-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.fun-header h1 {
-    font-size: 20px;
-    margin: 0;
-    font-weight: 800;
-    background: linear-gradient(90deg, #fff, var(--fun-neon));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-#predictionSubtext {
-    font-size: 12px;
-    color: #94a3b8;
-    margin: 4px 0 0;
-}
-
+/* --- HEADER & PILL --- */
+.fun-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.fun-header h1 { font-size: 20px; margin: 0; font-weight: 800; color: #fff; }
 .prediction-score-pill {
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid var(--fun-neon);
-    padding: 8px 14px;
-    border-radius: 20px;
-    color: var(--fun-neon);
-    font-weight: 800;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+    background: rgba(0, 242, 255, 0.1); border: 1px solid var(--fun-neon);
+    padding: 8px 14px; border-radius: 20px; color: var(--fun-neon); font-weight: 800;
 }
 
 /* --- PREDICTOR CARD --- */
 .predict-card {
     background: linear-gradient(165deg, #1e293b, #0f172a);
-    border: 1px solid #334155;
-    border-radius: 24px;
-    padding: 20px;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
+    border-radius: 24px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155;
 }
-
-.predict-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
-    background: var(--fun-neon);
-}
-
-.card-header-fun {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: #94a3b8;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-}
-
-.live-pulse {
-    width: 8px; height: 8px;
-    background: #ff4757;
-    border-radius: 50%;
-    margin-right: 8px;
-    animation: pulse 1.5s infinite;
-    box-shadow: 0 0 8px #ff4757;
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.95); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.5; }
-    100% { transform: scale(0.95); opacity: 1; }
-}
-
-/* --- PREDICTION INPUTS --- */
-.prediction-group {
-    margin-bottom: 20px;
-}
-
-.prediction-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 10px;
-}
-
-.team-toggle-grid {
-    display: flex;
-    gap: 12px;
-}
-
+.prediction-group { margin-bottom: 20px; }
+.prediction-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.team-toggle-grid { display: flex; gap: 12px; }
 .team-btn {
-    flex: 1;
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: white;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
+    flex: 1; background: #0f172a; border: 1px solid #334155; color: white;
+    padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;
+}
+.team-btn.selected { border-color: var(--fun-neon); background: rgba(0, 242, 255, 0.1); color: var(--fun-neon); }
+.fun-select { width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 14px; border-radius: 12px; }
+.fun-submit-btn { width: 100%; padding: 16px; background: var(--fun-neon); color: #000; border-radius: 14px; font-weight: 800; border: none; }
+
+/* --- FLOATING CHAT BUTTON (FAB) --- */
+.chat-fab {
+    position: fixed; bottom: 85px; right: 20px; width: 60px; height: 60px;
+    background: var(--fun-neon); border: none; border-radius: 50%;
+    font-size: 24px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 25px rgba(0, 242, 255, 0.4); z-index: 2000; cursor: pointer;
+}
+.chat-badge {
+    position: absolute; top: 5px; right: 5px; width: 12px; height: 12px;
+    background: #ff4757; border: 2px solid #0b0f19; border-radius: 50%;
 }
 
-.team-btn.selected {
-    border-color: var(--fun-neon);
-    background: rgba(0, 242, 255, 0.1);
-    color: var(--fun-neon);
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+/* --- SLIDE-UP DRAWER --- */
+.chat-drawer {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 75vh;
+    background: #0f172a; border-radius: 30px 30px 0 0;
+    border-top: 2px solid var(--fun-neon); z-index: 3000;
+    display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.drawer-hidden { transform: translateY(100%); }
 
-.fun-select {
-    width: 100%;
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: white;
-    padding: 14px;
-    border-radius: 12px;
-    font-family: inherit;
-    outline: none;
-}
+.drawer-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+.close-drawer { background: none; border: none; color: #fff; font-size: 32px; cursor: pointer; }
 
-.fun-submit-btn {
-    width: 100%;
-    padding: 16px;
-    background: var(--fun-neon);
-    color: #000;
-    border: none;
-    border-radius: 14px;
-    font-weight: 800;
-    font-size: 15px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 242, 255, 0.3);
-}
+.chat-display { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13px; }
+.chat-msg.other { background: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-msg.mine { background: var(--fun-neon); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; }
+.msg-user { display: block; font-size: 10px; font-weight: 800; margin-bottom: 4px; color: var(--fun-neon); }
+.chat-msg.mine .msg-user { color: rgba(0,0,0,0.6); }
 
-.fun-submit-btn:disabled {
-    background: #334155;
-    color: #64748b;
-    box-shadow: none;
-}
+.chat-input-area { padding: 15px; display: flex; gap: 10px; border-top: 1px solid #334155; background: #0f172a; }
+#chatInput { flex: 1; background: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; outline: none; }
+#sendChatBtn { background: var(--fun-neon); border: none; width: 50px; border-radius: 12px; cursor: pointer; }
 
-.lock-hint {
-    text-align: center;
-    font-size: 11px;
-    color: #64748b;
-    margin-top: 12px;
-}
-
-/* --- CHAT BOX --- */
-.chat-card {
-    background: #1e293b;
-    border-radius: 24px;
-    display: flex;
-    flex-direction: column;
-    height: 350px;
-}
-
-.chat-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #334155;
-    display: flex;
-    justify-content: space-between;
-    font-weight: 700;
-    font-size: 14px;
-}
-
-.chat-display {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.chat-msg {
-    max-width: 85%;
-    padding: 10px 14px;
-    border-radius: 16px;
-    font-size: 13px;
-    line-height: 1.4;
-    position: relative;
-}
-
-.chat-msg.other {
-    background: #0f172a;
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-}
-
-.chat-msg.mine {
-    background: var(--fun-neon);
-    color: #000;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-}
-
-.msg-user {
-    display: block;
-    font-size: 10px;
-    font-weight: 800;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    color: var(--fun-neon);
-}
-
-.chat-msg.mine .msg-user { color: #000; opacity: 0.7; }
-
-.chat-input-area {
-    padding: 15px;
-    display: flex;
-    gap: 10px;
-    border-top: 1px solid #334155;
-}
-
-#chatInput {
-    flex: 1;
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 12px;
-    outline: none;
-}
-
-#sendChatBtn {
-    background: var(--fun-neon);
-    color: #000;
-    border: none;
-    width: 45px;
-    border-radius: 12px;
-    cursor: pointer;
-}
+.hidden { display: none !important; }
