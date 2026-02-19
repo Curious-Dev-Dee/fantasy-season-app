@@ -55,35 +55,63 @@ async function init() {
    CORE PREDICTION LOGIC
 ========================= */
 async function fetchNextMatch() {
-    // 1. Fetch match and check if points are already processed
-    const { data: match } = await supabase.from("matches")
+    // 1. Fetch the match with 'upcoming' status ordered by the closest start time
+    const { data: match, error } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
+        .eq("status", "upcoming") // CRITICAL: Only show matches that haven't started
         .order("actual_start_time", { ascending: true })
-        .limit(1).maybeSingle();
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        console.error("Error fetching next match:", error);
+        return;
+    }
 
     if (!match) {
-        winnerToggle.innerHTML = "<p class='empty-msg'>No matches available.</p>";
+        // If no upcoming matches, check if a match is currently 'locked' (Live)
+        const { data: liveMatch } = await supabase.from("matches")
+            .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
+            .eq("tournament_id", currentTournamentId)
+            .eq("status", "locked")
+            .order("actual_start_time", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+        if (!liveMatch) {
+            document.getElementById("predictorCard").innerHTML = `
+                <div style="text-align:center; padding: 40px 20px;">
+                    <i class="fas fa-calendar-times" style="font-size: 40px; color: var(--text-slate); margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-slate);">No upcoming matches scheduled.</p>
+                </div>`;
+            return;
+        }
+        
+        // Show the locked match state
+        currentMatchId = liveMatch.id;
+        renderSelectionView(liveMatch);
+        lockUIForLiveMatch();
         return;
     }
 
     currentMatchId = match.id;
 
-    // AUTOMATION SWITCH: If points are out, show Results. If not, show Selection.
+    // Check if points are already processed for this specific match (Safety Check)
     if (match.points_processed === true) {
         renderResultView(match);
     } else {
         renderSelectionView(match);
-        
-        // If match is 'locked' (started), disable voting but show the picks
-        if (match.status === 'locked') {
-            submitBtn.disabled = true;
-            submitBtn.textContent = "MATCH IN PROGRESS ⏳";
-            submitBtn.style.opacity = "0.7";
-        }
     }
 }
 
+// Helper to handle the "Locked" state UI
+function lockUIForLiveMatch() {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "MATCH IN PROGRESS ⏳";
+    submitBtn.style.background = "#334155";
+    submitBtn.style.opacity = "0.7";
+}
 async function renderSelectionView(match) {
     document.getElementById("predictionSubtext").textContent = `Next: ${match.team_a.short_code} vs ${match.team_b.short_code}`;
 
