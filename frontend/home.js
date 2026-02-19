@@ -41,16 +41,13 @@ window.addEventListener('auth-verified', async (e) => {
 });
 
 async function startDashboard(userId) {
-    // Reveal app and hide global loader
     document.body.classList.remove('loading-state');
     
-    // Parallel Execution: Fetch your data and Top 3 simultaneously
     await Promise.all([
         fetchHomeData(userId),
         loadLeaderboardPreview()
     ]);
 
-    // Refresh data every 30s to catch live score updates
     setInterval(() => {
         fetchHomeData(userId);
         loadLeaderboardPreview();
@@ -59,15 +56,6 @@ async function startDashboard(userId) {
 
 /* =========================
    CORE DASHBOARD LOGIC
-========================= */
-/* =========================
-   CORE DASHBOARD LOGIC (UPDATED)
-========================= */
-/* =========================
-   CORE DASHBOARD LOGIC (FIXED)
-========================= */
-/* =========================
-   CORE DASHBOARD LOGIC (FIXED & RESTORED)
 ========================= */
 async function fetchHomeData(userId) {
     const { data, error } = await supabase
@@ -89,17 +77,15 @@ async function fetchHomeData(userId) {
     welcomeText.textContent = `Welcome back, ${firstName}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
 
-    // 2. RESTORED: Avatar & Modal Syncing
+    // 2. Avatar & Modal Syncing
     modalFullName.value = data.full_name || "";
     modalTeamName.value = data.team_name || "";
     
-    // Disable team name change if already set
     if (data.team_name) {
         modalTeamName.disabled = true;
         modalTeamName.style.opacity = "0.6";
     }
 
-    // Fetch User Avatar from Storage
     if (data.team_photo_url) {
         const { data: imgData } = supabase.storage
             .from("team-avatars")
@@ -119,9 +105,13 @@ async function fetchHomeData(userId) {
     const match = data.upcoming_match;
 
     if (match) {
-        matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+        // --- DELAY DETECTION ---
+        const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
+        const delayBadge = isDelayed ? ' <span class="delay-badge">Delayed</span>' : '';
+        
+        matchTeamsElement.innerHTML = `${match.team_a_code} vs ${match.team_b_code}${delayBadge}`;
 
-        // Render Real Team Logos using the correct paths
+        // Render Logos
         const updateTeamLogo = (path, elementId) => {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -137,7 +127,6 @@ async function fetchHomeData(userId) {
         updateTeamLogo(match.team_a_logo, "teamALogo");
         updateTeamLogo(match.team_b_logo, "teamBLogo");
         
-        // Status Check Logic
         const startTime = new Date(match.actual_start_time).getTime();
         const now = new Date().getTime();
 
@@ -148,7 +137,6 @@ async function fetchHomeData(userId) {
             editButton.textContent = "Locked";
             editButton.style.background = "#1e293b";
         } else {
-            // Valid upcoming match, start countdown
             if (!isNaN(startTime)) {
                 startCountdown(match.actual_start_time);
             }
@@ -162,7 +150,7 @@ async function fetchHomeData(userId) {
         document.getElementById("teamALogo").style.display = "none";
         document.getElementById("teamBLogo").style.display = "none";
     }
-}
+} // FIXED: Closed fetchHomeData function
 
 /* =========================
    DYNAMIC NEON COUNTDOWN
