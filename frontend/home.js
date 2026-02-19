@@ -63,6 +63,9 @@ async function startDashboard(userId) {
 /* =========================
    CORE DASHBOARD LOGIC (UPDATED)
 ========================= */
+/* =========================
+   CORE DASHBOARD LOGIC (FIXED)
+========================= */
 async function fetchHomeData(userId) {
     const { data, error } = await supabase
         .from('home_dashboard_view')
@@ -77,22 +80,25 @@ async function fetchHomeData(userId) {
 
     existingProfile = data;
 
-    // ... (Keep Header, Profile, and Stat logic the same) ...
+    // 1. Header & Profile
+    tournamentNameElement.textContent = data.tournament_name || "Tournament";
+    const firstName = data.full_name?.trim().split(" ")[0] || "Expert";
+    welcomeText.textContent = `Welcome back, ${firstName}`;
+    teamNameElement.textContent = data.team_name || "Set your team name";
+
+    // 2. Stats
     scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
-    
-    // Dynamic Sub Display
     subsElement.textContent = data.subs_remaining;
 
-    // 3. Match Logic (Fixing the NaN and Missing Data)
+    // 3. Match Logic (Fixing NaN and Missing Data)
     const match = data.upcoming_match;
 
     if (match) {
-        // Log to debug if needed: console.log("Next Match Data:", match);
-        
+        // Fix for Team Names
         matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
 
-        // Render Real Team Logos
+        // Fix for Team Logos
         const updateTeamLogo = (path, elementId) => {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -107,40 +113,25 @@ async function fetchHomeData(userId) {
 
         updateTeamLogo(match.team_a_logo, "teamALogo");
         updateTeamLogo(match.team_b_logo, "teamBLogo");
+
+        // Fix for Countdown/Lock Status
+        const startTime = new Date(match.actual_start_time);
         
-        if (match.status === 'abandoned') {
-            if (countdownInterval) clearInterval(countdownInterval);
-            matchTimeElement.innerHTML = `<span style="color: #ef4444; font-weight: 800;"><i class="fas fa-ban"></i> Match Abandoned</span>`;
-            return;
-        }
-
-        // Check if locked OR if time has already passed
-        const startTime = new Date(match.actual_start_time).getTime();
-        const now = new Date().getTime();
-
-        if (match.is_locked || match.status === 'locked' || startTime <= now) {
+        // If Date is invalid or status is locked
+        if (isNaN(startTime.getTime()) || match.is_locked || match.status === 'locked') {
             if (countdownInterval) clearInterval(countdownInterval);
             matchTimeElement.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-lock"></i> Match Started</span>`;
             editButton.disabled = true;
             editButton.textContent = "Locked";
-            editButton.style.background = "#1e293b";
         } else {
-            // FIX: Ensure startTime is a valid number before calling countdown
-            if (!isNaN(startTime)) {
-                startCountdown(match.actual_start_time);
-            } else {
-                matchTimeElement.textContent = "TBD";
-            }
-            
+            // Valid date found, start the clock
+            startCountdown(match.actual_start_time);
             editButton.disabled = false;
             editButton.textContent = "Change";
-            editButton.style.background = "#9AE000";
         }
     } else {
         matchTeamsElement.textContent = "No upcoming match";
         editButton.disabled = true;
-        document.getElementById("teamALogo").style.display = "none";
-        document.getElementById("teamBLogo").style.display = "none";
     }
 }
 /* =========================
