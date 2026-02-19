@@ -31,14 +31,12 @@ let countdownInterval;
 ========================= */
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
-    console.log("Edit Team: Auth confirmed for", user.email);
     init(user); 
 });
 
 async function init(user) {
     if (!user) return;
 
-    // FETCHING DATA: Switched to home_dashboard_view for Stage/Booster status
     const [
         { data: players },
         { data: dashboardData }, 
@@ -60,8 +58,6 @@ async function init(user) {
     ]);
 
     state.allPlayers = players || [];
-    
-    // Sync Dashboard and Booster State
     state.baseSubsRemaining = dashboardData?.subs_remaining ?? 80;
     state.s8BoosterUsed = dashboardData?.s8_booster_used ?? false;
     state.boosterActiveInDraft = currentTeam?.use_booster ?? false;
@@ -127,12 +123,11 @@ function render() {
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
-    // 1. Stage-Aware Subs Logic
     let subsUsedInDraft = 0;
     const isResetMatch = state.currentMatchNumber === 41 || state.currentMatchNumber === 53;
 
     if (isResetMatch) {
-        subsUsedInDraft = 0; // Everything is free
+        subsUsedInDraft = 0; 
     } else if (state.lockedPlayerIds.length > 0) {
         subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
     }
@@ -140,7 +135,6 @@ function render() {
     const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
     const isOverLimit = liveSubsRemaining < 0;
 
-    // 2. Booster Logic
     const boosterContainer = document.getElementById("boosterContainer");
     const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
     
@@ -153,15 +147,6 @@ function render() {
         }
     }
 
-    // Roles Count
-    const roles = {
-        WK: state.selectedPlayers.filter(p => p.role === "WK").length,
-        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
-        AR: state.selectedPlayers.filter(p => p.role === "AR").length,
-        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
-    };
-
-    // UI Updates
     document.getElementById("playerCountLabel").innerText = count;
     document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
@@ -178,6 +163,13 @@ function render() {
         }
     }
 
+    const roles = {
+        WK: state.selectedPlayers.filter(p => p.role === "WK").length,
+        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
+        AR: state.selectedPlayers.filter(p => p.role === "AR").length,
+        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
+    };
+
     ["WK", "BAT", "AR", "BOWL"].forEach(role => {
         const el = document.getElementById(`count-${role}`);
         if(el) el.innerText = roles[role] > 0 ? roles[role] : "";
@@ -186,7 +178,6 @@ function render() {
     renderList("myXIList", state.selectedPlayers, true);  
     renderList("playerPoolList", state.allPlayers, false); 
 
-    // Validation
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
     const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles;
 
@@ -225,6 +216,7 @@ function initFilters() {
     );
 }
 
+// FIXED: 'val' corrected to 'value'
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!container) return;
@@ -232,7 +224,7 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const listHtml = items.map(item => {
         const value = item.id || item; 
         const label = labelFn(item);
-        const isChecked = state.filters[filterKey].includes(val) ? 'checked' : '';
+        const isChecked = state.filters[filterKey].includes(value) ? 'checked' : ''; 
         return `
             <label class="filter-item">
                 <input type="checkbox" value="${value}" ${isChecked} 
@@ -250,7 +242,6 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     `;
 }
 
-// Global Filter Helpers
 window.selectAllFilters = (key, menuId) => {
     const checkboxes = document.querySelectorAll(`#${menuId} input[type="checkbox"]`);
     state.filters[key] = Array.from(checkboxes).map(cb => {
@@ -396,7 +387,6 @@ function setupListeners() {
         document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
     });
 
-    /* SAVE TEAM Logic (Updated for Booster) */
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
@@ -405,7 +395,6 @@ function setupListeners() {
         const { data: { user } } = await supabase.auth.getUser();
         const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
         
-        // Capture Booster choice from HTML checkbox
         const boosterToggled = document.getElementById("boosterToggle")?.checked || false;
 
         const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
@@ -414,7 +403,7 @@ function setupListeners() {
             captain_id: state.captainId, 
             vice_captain_id: state.viceCaptainId,
             total_credits: totalCredits,
-            use_booster: boosterToggled // NEW FIELD
+            use_booster: boosterToggled 
         }, { onConflict: 'user_id, tournament_id' }).select().single();
 
         if(!error && team) {
@@ -461,7 +450,7 @@ function showSuccessModal() {
     };
     
     document.getElementById("btnGoHome").onclick = () => {
-        window.location.href = "home.html"; // Fixed navigation to match app flow
+        window.location.href = "home.html";
     };
 
     const autoRedirect = setTimeout(() => {
