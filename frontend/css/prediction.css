@@ -156,6 +156,22 @@ body {
     box-shadow: none;
 }
 
+/* --- DUAL-VIEW DIVIDER --- */
+.card-divider {
+    border: 0;
+    border-top: 1px solid #334155;
+    margin: 25px -20px 20px -20px;
+}
+
+#recentResultContainer {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* --- RESULT VIEW & PERCENTAGE BARS --- */
 .result-header { text-align: center; margin-bottom: 24px; }
 .theme-neon-text { color: var(--neon-green); text-shadow: 0 0 10px rgba(154, 224, 0, 0.3); }
