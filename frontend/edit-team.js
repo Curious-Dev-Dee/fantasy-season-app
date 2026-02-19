@@ -122,19 +122,23 @@ function render() {
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
-    let subsUsedInDraft = 0;
-    const isResetMatch = state.currentMatchNumber === 41 || state.currentMatchNumber === 53;
+    /* Inside the render() function */
 
-    if (isResetMatch) {
-        subsUsedInDraft = 0; 
-    } else if (state.lockedPlayerIds.length > 0) {
-        subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
-    }
+// 1. Existing logic for subsUsed
+let subsUsedInDraft = 0;
+const isResetMatch = state.currentMatchNumber === 41 || state.currentMatchNumber === 53;
 
-    const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
-    const isOverLimit = liveSubsRemaining < 0;
+if (isResetMatch) {
+    subsUsedInDraft = 0; 
+} else if (state.lockedPlayerIds.length > 0) {
+    subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
+}
 
-    // BOOSTER LOGIC - Updated for "Use Once" rule
+// 2. THE FIX: Ensure isOverLimit is FALSE if it's a reset match
+const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
+
+// UPDATED LINE: If it's a reset match, it can NEVER be over the limit
+const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber === 53) ? false : (liveSubsRemaining < 0);    // BOOSTER LOGIC - Updated for "Use Once" rule
     const boosterContainer = document.getElementById("boosterContainer");
     const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
     
