@@ -136,6 +136,10 @@ function renderMatches() {
         day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
     });
 
+    const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
+
+    const delayLabel = isDelayed ? `<span class="delay-badge">DELAYED</span>` : '';
+
     const card = document.createElement("div");
     card.className = `match-card status-${match.status}`;
     
