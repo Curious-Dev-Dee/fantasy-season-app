@@ -2,55 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cricket Experts · Predict & Win</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Predict & Win | Cricket Experts</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/prediction.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
 </head>
-
 <body>
-<div class="app-container page-with-nav">
 
-  <header class="fun-header">
-    <div class="header-left">
-        <h1>Predict & Win 🎯</h1>
-        <p id="predictionSubtext">Next Match: Loading...</p>
-    </div>
-    <div class="prediction-score-pill">
-        <i class="fas fa-coins"></i> <span id="userPredictionScore">0</span>
-    </div>
-  </header>
+<div class="prediction-page">
+  <div class="scroll-content">
+    <header class="fun-header">
+      <div class="header-left">
+          <h1>Predict & Win 🎯</h1>
+          <p id="predictionSubtext">Next Match: Loading...</p>
+      </div>
+      <div class="prediction-score-pill">
+          <i class="fas fa-coins"></i> <span id="userPredictionScore">0</span>
+      </div>
+    </header>
 
-  <section class="card predict-card" id="predictorCard">
-    <div class="card-header-fun">
-        <span class="live-pulse"></span> LOCK YOUR GUESSES
-    </div>
-    
-    <div class="prediction-group">
-        <label><i class="fas fa-trophy"></i> Who will win?</label>
-        <div class="team-toggle-grid" id="winnerToggle">
-            <p class="loading-small">Fetching teams...</p>
-        </div>
-    </div>
+    <section class="card predict-card" id="predictorCard">
+      <div class="card-header-fun"><span class="live-pulse"></span> LOCK YOUR GUESSES</div>
+      
+      <div class="prediction-group">
+          <label><i class="fas fa-trophy"></i> Who will win?</label>
+          <div class="team-toggle-grid" id="winnerToggle"></div>
+      </div>
 
-    <div class="prediction-group">
-        <label><i class="fas fa-star"></i> Man of the Match?</label>
-        <select id="mvpSelect" class="fun-select">
-            <option value="">Select a Player...</option>
-        </select>
-    </div>
+      <div class="prediction-group">
+          <label><i class="fas fa-star"></i> Man of the Match?</label>
+          <select id="mvpSelect" class="fun-select"><option value="">Select a Player...</option></select>
+      </div>
 
-    <div class="prediction-group">
-        <label><i class="fas fa-user-ninja"></i> Today's Top Expert User?</label>
-        <select id="userPredictSelect" class="fun-select">
-            <option value="">Select an Expert...</option>
-        </select>
-    </div>
+      <div class="prediction-group">
+          <label><i class="fas fa-user-ninja"></i> Today's Top Expert User?</label>
+          <select id="userPredictSelect" class="fun-select"><option value="">Select an Expert...</option></select>
+      </div>
 
-    <button id="submitPredictionBtn" class="fun-submit-btn">LOCK PREDICTIONS</button>
-    <p class="lock-hint">Points: +1 Correct | -1 Wrong</p>
-  </section>
+      <button id="submitPredictionBtn" class="fun-submit-btn">LOCK PREDICTIONS</button>
+    </section>
+  </div>
 
   <button id="chatToggleBtn" class="chat-fab">
       <i class="fas fa-comments"></i>
@@ -59,31 +51,23 @@
 
   <div id="chatDrawer" class="chat-drawer drawer-hidden">
       <div class="drawer-header">
-          <div class="header-info">
-              <i class="fas fa-circle-nodes"></i>
-              <span>Expert Sledge-Box</span>
-          </div>
-          <button id="closeChatBtn" class="close-drawer">&times;</button>
+          <span>Expert Sledge-Box</span>
+          <button id="closeChatBtn">&times;</button>
       </div>
-      
-      <div id="chatMessages" class="chat-display">
-          <p class="empty-chat">Start the sledge! 🏏</p>
-      </div>
-
+      <div id="chatMessages" class="chat-display"></div>
       <div class="chat-input-area">
-          <input type="text" id="chatInput" placeholder="Write a message..." maxlength="100">
+          <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
           <button id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
       </div>
   </div>
 
+  <nav class="bottom-nav">
+    <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+    <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Play</span></a>
+    <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
+  </nav>
 </div>
-
-<nav class="bottom-nav">
-  <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-  <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Play</span></a>
-  <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
-</nav>
 
 <script type="module" src="prediction.js"></script>
 </body>
