@@ -10,7 +10,6 @@ let state = {
     matches: [], 
     captainId: null, 
     viceCaptainId: null, 
-    // NEW STATE PROPERTIES FOR REAL GAME
     s8BoosterUsed: false, 
     boosterActiveInDraft: false, 
     currentMatchNumber: 0,
@@ -140,7 +139,6 @@ function render() {
     const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
     
     if (boosterContainer) {
-        // Show ONLY if: 1. It's the right matches AND 2. User hasn't used it yet this season
         if (isBoosterWindow && state.s8BoosterUsed === false) {
             boosterContainer.classList.remove("hidden");
             document.getElementById("boosterToggle").checked = state.boosterActiveInDraft;
@@ -218,7 +216,6 @@ function initFilters() {
     );
 }
 
-// FIXED: 'val' corrected to 'value'
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!container) return;

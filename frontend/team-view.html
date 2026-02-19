@@ -13,16 +13,25 @@
   
   <header class="premium-header">
     <button class="back-circle" onclick="window.location.href='home.html'">←</button>
+
     <div class="header-center">
-        <h1 class="main-title" id="viewTitle">View Team</h1>
-        <div id="countdownContainer" class="countdown-text hidden">
-            Starts in: <span id="timer">00h 00m 00s</span>
-        </div>
-        <button id="viewHistoryBtn" class="history-trigger">
-            <i class="fas fa-history"></i> Match History
-        </button>
+    <h1 class="main-title" id="viewTitle">View Team</h1>
+    
+    <div id="boosterIndicator" class="booster-indicator-view hidden">
+        🚀 2X BOOSTER ACTIVE
     </div>
-    <div style="width: 40px;"></div> </header>
+
+    <div id="countdownContainer" class="countdown-text hidden">
+        Starts in: <span id="timer">00h 00m 00s</span>
+    </div>
+    <button id="viewHistoryBtn" class="history-trigger">
+        <i class="fas fa-history"></i> Match History
+    </button>
+
+  </div>
+
+
+  <div style="width: 40px;"></div> </header>
 
   <div class="xi-toggle">
     <button class="xi-tab active" id="tabUpcoming" data-tab="current">Upcoming XI</button>
@@ -46,12 +55,19 @@
   </div>
 
   <div id="breakdownOverlay" class="overlay hidden">
+  
+    <div id="breakdownOverlay" class="overlay hidden">
     <div class="overlay-content breakdown-view">
-        
         <div class="overlay-header">
             <button class="back-arrow" id="backToHistory">← Back</button>
             <h3 id="breakdownTitle">Match Details</h3>
-            <span></span> </div>
+            <span></span> 
+        </div>
+
+        <div id="breakdownBooster" class="booster-indicator-view hidden" style="margin: 10px auto; display: table;">
+            🚀 2X BOOSTER USED
+        </div>
+        
         
         <div class="breakdown-body">
             <div id="breakdownTeamContainer" class="team-field smaller-field">
