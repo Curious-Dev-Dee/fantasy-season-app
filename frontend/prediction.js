@@ -37,7 +37,7 @@ async function init() {
     if (!activeTourney) return;
     currentTournamentId = activeTourney.id;
 
-    // Load Parallel Data
+    // Load Data
     await Promise.all([
         fetchNextMatch(),
         fetchExpertsList(),
@@ -47,6 +47,7 @@ async function init() {
 
     setupDrawerListeners();
     subscribeToChat();
+    // Only check existing if we are still in selection mode
     checkExistingPrediction();
 }
 
@@ -54,20 +55,36 @@ async function init() {
    CORE PREDICTION LOGIC
 ========================= */
 async function fetchNextMatch() {
-    // Fetches the next upcoming match and includes the real team details
+    // 1. Fetch match and check if points are already processed
     const { data: match } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
-        .gt("actual_start_time", new Date().toISOString())
         .order("actual_start_time", { ascending: true })
         .limit(1).maybeSingle();
 
     if (!match) {
-        winnerToggle.innerHTML = "<p class='empty-msg'>No upcoming matches found.</p>";
+        winnerToggle.innerHTML = "<p class='empty-msg'>No matches available.</p>";
         return;
     }
 
     currentMatchId = match.id;
+
+    // AUTOMATION SWITCH: If points are out, show Results. If not, show Selection.
+    if (match.points_processed === true) {
+        renderResultView(match);
+    } else {
+        renderSelectionView(match);
+        
+        // If match is 'locked' (started), disable voting but show the picks
+        if (match.status === 'locked') {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "MATCH IN PROGRESS ⏳";
+            submitBtn.style.opacity = "0.7";
+        }
+    }
+}
+
+async function renderSelectionView(match) {
     document.getElementById("predictionSubtext").textContent = `Next: ${match.team_a.short_code} vs ${match.team_b.short_code}`;
 
     // Render Winner Buttons
@@ -82,6 +99,7 @@ async function fetchNextMatch() {
         .in("real_team_id", [match.team_a.id, match.team_b.id])
         .order("name", { ascending: true });
 
+    mvpSelect.innerHTML = `<option value="">Select a Player...</option>`;
     players.forEach(p => {
         const opt = document.createElement("option");
         opt.value = p.id;
@@ -89,9 +107,10 @@ async function fetchNextMatch() {
         mvpSelect.appendChild(opt);
     });
 
-    // Add Toggle Click Listeners
+    // Toggle logic for Team Buttons
     winnerToggle.querySelectorAll(".team-option").forEach(btn => {
         btn.onclick = () => {
+            if (match.status === 'locked') return; // Prevent clicking if match started
             winnerToggle.querySelectorAll(".team-option").forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
             selectedWinnerId = btn.dataset.id;
@@ -99,11 +118,67 @@ async function fetchNextMatch() {
     });
 }
 
+async function renderResultView(match) {
+    const card = document.getElementById("predictorCard");
+    
+    // 1. Fetch Stats from the SQL View we created
+    const [statsRes, winnerRes, motmRes] = await Promise.all([
+        supabase.from("prediction_stats_view").select("*").eq("match_id", match.id),
+        supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single(),
+        supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single()
+    ]);
+
+    const stats = statsRes.data?.[0];
+    const winnerTeam = winnerRes.data;
+    const motmPlayer = motmRes.data;
+
+    // 2. Fetch the Rank 1 Expert Name
+    const { data: topExpert } = await supabase.from("user_profiles")
+        .select("team_name")
+        .eq("user_id", stats?.predicted_top_user_id)
+        .single();
+
+    // 3. Update the Card UI to show Percentages & Official Winners
+    card.innerHTML = `
+        <div class="result-header">
+            <span class="final-badge">MATCH COMPLETED</span>
+            <h3 class="theme-neon-text">Official Results</h3>
+        </div>
+        
+        <div class="result-item">
+            <div class="result-row">
+                <label>Match Winner</label>
+                <span class="winner-val">${winnerTeam?.short_code || 'N/A'}</span>
+            </div>
+            <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.winner_pct || 0}%"></div></div>
+            <div class="pct-label">${stats?.winner_pct || 0}% picked correctly (${stats?.winner_votes || 0} votes)</div>
+        </div>
+
+        <div class="result-item">
+            <div class="result-row">
+                <label>Man of the Match</label>
+                <span class="winner-val">${motmPlayer?.name || 'N/A'}</span>
+            </div>
+            <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.mvp_pct || 0}%"></div></div>
+            <div class="pct-label">${stats?.mvp_pct || 0}% picked correctly</div>
+        </div>
+
+        <div class="result-item">
+            <div class="result-row">
+                <label>Top Expert (Rank 1)</label>
+                <span class="winner-val">${topExpert?.team_name || 'N/A'}</span>
+            </div>
+            <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.top_user_pct || 0}%"></div></div>
+            <div class="pct-label">${stats?.top_user_pct || 0}% predicted this expert</div>
+        </div>
+    `;
+}
+
 async function fetchExpertsList() {
-    // Fetch user profiles for the prediction dropdown
     const { data: experts } = await supabase.from("user_profiles").select("user_id, team_name").limit(50);
+    userPredictSelect.innerHTML = `<option value="">Select an Expert...</option>`;
     experts.forEach(e => {
-        if (e.user_id === currentUserId) return; // Users shouldn't predict themselves
+        if (e.user_id === currentUserId) return;
         const opt = document.createElement("option");
         opt.value = e.user_id;
         opt.textContent = e.team_name || "Expert User";
@@ -112,7 +187,6 @@ async function fetchExpertsList() {
 }
 
 async function fetchUserPredictionPoints() {
-    // Aggregates points from user_predictions table for the current user
     const { data } = await supabase.from("user_predictions")
         .select("points_earned")
         .eq("user_id", currentUserId);
@@ -198,7 +272,6 @@ function renderMessage(msg) {
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Show red dot if drawer is closed and it's an incoming message
     if (chatDrawer.classList.contains("drawer-hidden") && !isMine) {
         newMsgBadge.classList.remove("hidden");
     }
@@ -209,16 +282,13 @@ sendChatBtn.onclick = async () => {
     if (!text) return;
 
     chatInput.value = "";
-    // Insert to DB - the Realtime listener handles the UI update
-    const { error } = await supabase.from("game_chat").insert({
+    await supabase.from("game_chat").insert({
         user_id: currentUserId,
         message: text
     });
-    if (error) console.error("Chat error:", error);
 };
 
 function subscribeToChat() {
-    // Subscribes to the game_chat table for real-time updates
     supabase.channel('public:game_chat')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'game_chat' }, async (payload) => {
             const { data: userData } = await supabase.from("user_profiles")

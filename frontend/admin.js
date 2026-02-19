@@ -10,7 +10,9 @@ const processBtn = document.getElementById("processBtn");
 const reportContainer = document.getElementById("reportContainer");
 const finalConfirmBtn = document.getElementById("finalConfirmBtn");
 const statusDiv = document.getElementById("status");
+const winnerSelect = document.getElementById("winnerSelect");
 const pomSelect = document.getElementById("pomSelect");
+
 
 /**
  * 1. INITIALIZATION & AUTH
@@ -166,8 +168,18 @@ processBtn.addEventListener("click", async () => {
             document.getElementById("missingWrapper").style.display = "none";
             document.getElementById("successWrapper").style.display = "block";
             finalConfirmBtn.style.display = "block";
-            updateStatus("✨ Data verified. Select Player of the Match and confirm.", "success");
+
+            updateStatus("✨ Data verified. Select Winner and POM.", "success");  
             
+            // NEW: Populate Winner Dropdown (Team A and Team B)
+        const { data: mData } = await supabase.from('matches').select('team_a:real_teams!team_a_id(id, short_code), team_b:real_teams!team_b_id(id, short_code)').eq('id', matchSelect.value).single();
+
+        winnerSelect.innerHTML = `
+        <option value="">-- Select Winner --</option>
+        <option value="${mData.team_a.id}">${mData.team_a.short_code}</option>
+        <option value="${mData.team_b.id}">${mData.team_b.short_code}</option>
+        <option value="abandoned">Match Abandoned/No Result</option>`;
+
             // Populate POM Dropdown
             pomSelect.innerHTML = `<option value="">-- Select POM --</option>` + 
                 scoreboardWithIds.map(p => `<option value="${p.player_id}">${p.player_name}</option>`).join('');
@@ -185,9 +197,11 @@ processBtn.addEventListener("click", async () => {
  */
 async function executeUpdate(scoreboard) {
     const pomId = pomSelect.value;
-    if (!pomId) return alert("Please select Player of the Match first!");
+    const winnerId = winnerSelect.value; // NEW
 
-    updateStatus("🚀 Processing points and updating rankings...", "loading");
+    if (!pomId || !winnerId) return alert("Please select both Match Winner and POM!");
+
+    updateStatus("🚀 Processing points and updating predictions...", "loading");
     finalConfirmBtn.disabled = true;
 
     try {
@@ -196,13 +210,15 @@ async function executeUpdate(scoreboard) {
                 match_id: matchSelect.value, 
                 tournament_id: TOURNAMENT_ID, 
                 scoreboard: scoreboard,
-                pom_id: pomId 
+                pom_id: pomId,
+                winner_id: winnerId // NEW: Send this to Edge Function
             }
         });
+        // ... rest of your existing logic
 
         if (error) throw error;
 
-        updateStatus("✅ Success! Match points and Leaderboard updated.", "success");
+        updateStatus("✅ Success! Match points, Leaderboard updated and Prediction updated.", "success");
         scoreboardInput.value = "";
         reportContainer.style.display = "none";
         

@@ -138,15 +138,24 @@ if (rawOvers >= 2) {
     if (upsertError) throw upsertError;
 
     // 4. Trigger the SQL RPC to update User Leaderboards
-    const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', { 
-      target_match_id: match_id 
-    });
+    // ... (inside the try block, after step 3)
 
-    if (rpcError) throw rpcError;
+// 4. Trigger the SQL RPC to update User Leaderboards AND Fun Zone Predictions
+const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', { 
+  target_match_id: match_id,
+  p_winner_id: winner_id, // NEW: Pass winner from req.json()
+  p_pom_id: pom_id        // NEW: Pass pom_id from req.json()
+});
 
-    // 5. Mark match as processed
-    await supabase.from('matches').update({ points_processed: true }).eq('id', match_id);
+if (rpcError) throw rpcError;
 
+// 5. Mark match as processed and save official winner/motm to matches table
+await supabase.from('matches').update({ 
+    points_processed: true,
+    winner_id: winner_id, // Saved for results view
+    man_of_the_match_id: pom_id, // Saved for results view
+    status: 'completed' // Important for UI toggle
+}).eq('id', match_id);
     return new Response(JSON.stringify({ success: true, players_processed: statsToUpsert.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
