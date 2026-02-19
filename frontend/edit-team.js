@@ -135,11 +135,13 @@ function render() {
     const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
     const isOverLimit = liveSubsRemaining < 0;
 
+    // BOOSTER LOGIC - Updated for "Use Once" rule
     const boosterContainer = document.getElementById("boosterContainer");
     const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
     
     if (boosterContainer) {
-        if (isBoosterWindow && !state.s8BoosterUsed) {
+        // Show ONLY if: 1. It's the right matches AND 2. User hasn't used it yet this season
+        if (isBoosterWindow && state.s8BoosterUsed === false) {
             boosterContainer.classList.remove("hidden");
             document.getElementById("boosterToggle").checked = state.boosterActiveInDraft;
         } else {

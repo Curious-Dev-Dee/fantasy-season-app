@@ -353,11 +353,11 @@ body {
 
 /* --- SUPER 8 BOOSTER STYLES --- */
 .booster-wrapper {
-    background: linear-gradient(135deg, rgba(155, 225, 93, 0.1) 0%, rgba(15, 23, 42, 0) 100%);
-    border: 1px dashed rgba(155, 225, 93, 0.3);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 15px;
+    background: linear-gradient(135deg, rgba(154, 224, 0, 0.1) 0%, rgba(15, 23, 42, 0.4) 100%);
+    border: 1px dashed rgba(154, 224, 0, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 10px 16px 20px; /* Added side margins to match player list padding */
     animation: pulseGlow 2s infinite;
 }
 
