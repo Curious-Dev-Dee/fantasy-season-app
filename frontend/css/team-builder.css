@@ -350,3 +350,87 @@ body {
 
 /* Utility */
 .hidden { display: none !important; }
+
+/* --- SUPER 8 BOOSTER STYLES --- */
+.booster-wrapper {
+    background: linear-gradient(135deg, rgba(155, 225, 93, 0.1) 0%, rgba(15, 23, 42, 0) 100%);
+    border: 1px dashed rgba(155, 225, 93, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 15px;
+    animation: pulseGlow 2s infinite;
+}
+
+.booster-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.booster-text {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--primary-green);
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(155, 225, 93, 0.4);
+}
+
+.booster-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    margin-left: 26px;
+    font-style: italic;
+}
+
+/* Custom Checkbox as a Switch */
+#boosterToggle {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-green);
+    border-radius: 4px;
+    background: transparent;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#boosterToggle:checked {
+    background: var(--primary-green);
+}
+
+#boosterToggle:checked::after {
+    content: '⚡';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: #000;
+}
+
+/* Special "FREE" Sub Label Styling */
+#subsRemainingLabel:contains("FREE") {
+    animation: neonFlash 1.5s ease-in-out infinite alternate;
+}
+
+/* Animations for Premium Feel */
+@keyframes pulseGlow {
+    0% { border-color: rgba(155, 225, 93, 0.3); box-shadow: 0 0 0px rgba(155, 225, 93, 0); }
+    50% { border-color: rgba(155, 225, 93, 0.6); box-shadow: 0 0 10px rgba(155, 225, 93, 0.1); }
+    100% { border-color: rgba(155, 225, 93, 0.3); box-shadow: 0 0 0px rgba(155, 225, 93, 0); }
+}
+
+@keyframes neonFlash {
+    from { text-shadow: 0 0 2px #fff, 0 0 5px var(--primary-green); }
+    to { text-shadow: 0 0 5px #fff, 0 0 15px var(--primary-green); }
+}
+
+/* --- Adjustments to existing Save Bar --- */
+.save-bar {
+    padding-top: 15px; /* Added breathing room for booster */
+    height: auto; /* Allow bar to expand with booster */
+}

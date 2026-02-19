@@ -139,8 +139,14 @@
     </main>
 
     <div class="save-bar">
-        <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
+    <div id="boosterContainer" class="booster-wrapper hidden">
+        <label class="booster-label">
+            <input type="checkbox" id="boosterToggle">
+            <span class="booster-text">🚀 USE 2X MATCH BOOSTER</span>
+        </label>
+        <div class="booster-hint">Double your total points for this match!</div>
     </div>
+    <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
 </div>
 
 <script type="module" src="edit-team.js"></script>

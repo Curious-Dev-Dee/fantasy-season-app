@@ -79,6 +79,7 @@ async function lockUserTeamForMatch(
   match: any,
   team: any
 ) {
+  // 1. Prevent double snapshots
   const { data: existing } = await supabase
     .from("user_match_teams")
     .select("id")
@@ -88,6 +89,7 @@ async function lockUserTeamForMatch(
 
   if (existing) return;
 
+  // 2. Fetch the most recent snapshot for sub-comparison
   const { data: lastSnapshot } = await supabase
     .from("user_match_teams")
     .select("id, total_subs_used")
@@ -104,11 +106,15 @@ async function lockUserTeamForMatch(
     (p: any) => p.player_id
   );
 
+  // 3. ENHANCED SUB LOGIC
   let subsUsed = 0;
   let totalSubsUsed = 0;
 
-  // First ever valid match → NO subs
-  if (lastSnapshot) {
+  // RESET POINTS: Match 41 (Super 8) and Match 53 (Knockouts)
+  if (match.match_number === 41 || match.match_number === 53) {
+    subsUsed = 0;      // "Free 11" logic
+    totalSubsUsed = 0; // Fresh start for the new stage
+  } else if (lastSnapshot) {
     subsUsed = currentPlayers.filter(
       (p: string) => !previousPlayers.includes(p)
     ).length;
@@ -116,11 +122,23 @@ async function lockUserTeamForMatch(
     totalSubsUsed = lastSnapshot.total_subs_used + subsUsed;
   }
 
-  if (totalSubsUsed > 80) {
-    subsUsed = 0;
-    totalSubsUsed = 80;
+  // Stage-based Hard Caps
+  if (match.match_number >= 53) {
+    if (totalSubsUsed > 5) totalSubsUsed = 5; // Knockout Cap
+  } else if (match.match_number >= 41) {
+    if (totalSubsUsed > 30) totalSubsUsed = 30; // Super 8 Cap
+  } else {
+    if (totalSubsUsed > 80) totalSubsUsed = 80; // Group Stage Cap
   }
 
+  // 4. BOOSTER TRACKING
+  // Only allow Booster activation from Match 43 to Match 52
+  let boosterToApply = false;
+  if (match.match_number >= 43 && match.match_number <= 52) {
+    boosterToApply = team.use_booster || false;
+  }
+
+  // 5. Create the Snapshot
   const { data: snapshot, error } = await supabase
     .from("user_match_teams")
     .insert({
@@ -132,8 +150,8 @@ async function lockUserTeamForMatch(
       total_credits: team.total_credits,
       subs_used_for_match: subsUsed,
       total_subs_used: totalSubsUsed,
-      // FIX: Records the actual time the match locked
-      locked_at: match.actual_start_time, 
+      use_booster: boosterToApply, // NEW: Locks the booster choice
+      locked_at: match.actual_start_time,
     })
     .select()
     .single();
@@ -141,6 +159,15 @@ async function lockUserTeamForMatch(
   if (error) {
     console.error("Snapshot insert failed", error);
     return;
+  }
+
+  // 6. If Booster was used, mark it permanently in the user's tournament record
+  if (boosterToApply) {
+    await supabase
+      .from("user_tournament_points")
+      .update({ s8_booster_used: true })
+      .eq("user_id", team.user_id)
+      .eq("tournament_id", match.tournament_id);
   }
 
   const rows = currentPlayers.map((playerId: string) => ({

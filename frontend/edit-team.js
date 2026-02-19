@@ -10,6 +10,10 @@ let state = {
     matches: [], 
     captainId: null, 
     viceCaptainId: null, 
+    // NEW STATE PROPERTIES FOR REAL GAME
+    s8BoosterUsed: false, 
+    boosterActiveInDraft: false, 
+    currentMatchNumber: 0,
     filters: { 
         search: "", 
         role: "ALL", 
@@ -34,21 +38,21 @@ window.addEventListener('auth-verified', async (e) => {
 async function init(user) {
     if (!user) return;
 
+    // FETCHING DATA: Switched to home_dashboard_view for Stage/Booster status
     const [
         { data: players },
-        { data: summary },
+        { data: dashboardData }, 
         { data: lastLock },
         { data: currentTeam },
         { data: matches }
     ] = await Promise.all([
         supabase.from("player_pool_view").select("*").eq("is_active", true),
-        supabase.from("dashboard_summary").select("subs_remaining")
-            .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
+        supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used")
+            .eq("user_id", user.id).maybeSingle(),
         supabase.from("user_match_teams").select("id, user_match_team_players(player_id)")
             .eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)")
             .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-        // FIX: Using actual_start_time for current and future matches
         supabase.from("matches").select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
             .eq("tournament_id", TOURNAMENT_ID)
             .gt("actual_start_time", new Date().toISOString())
@@ -56,7 +60,11 @@ async function init(user) {
     ]);
 
     state.allPlayers = players || [];
-    state.baseSubsRemaining = summary?.subs_remaining ?? 80;
+    
+    // Sync Dashboard and Booster State
+    state.baseSubsRemaining = dashboardData?.subs_remaining ?? 80;
+    state.s8BoosterUsed = dashboardData?.s8_booster_used ?? false;
+    state.boosterActiveInDraft = currentTeam?.use_booster ?? false;
 
     if (lastLock?.user_match_team_players) {
         state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
@@ -70,6 +78,7 @@ async function init(user) {
     }
 
     state.matches = matches || [];
+    state.currentMatchNumber = state.matches[0]?.match_number || 0;
     
     if (state.matches.length > 0) {
         updateHeaderMatch(state.matches[0]);
@@ -92,7 +101,6 @@ function updateHeaderMatch(match) {
     nameEl.innerText = `${teamA} vs ${teamB}`;
     
     if (countdownInterval) clearInterval(countdownInterval);
-    // FIX: Use actual_start_time for the countdown target
     const targetDate = new Date(match.actual_start_time).getTime();
     
     const startTimer = () => {
@@ -111,19 +119,39 @@ function updateHeaderMatch(match) {
     startTimer();
     countdownInterval = setInterval(startTimer, 1000);
 }
-// ... [Rest of render and filter logic remains the same] ...
-// --- RENDER LOGIC ---
+
+/* =========================
+   RENDER LOGIC
+========================= */
 function render() {
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
-    // Subs Logic
+    // 1. Stage-Aware Subs Logic
     let subsUsedInDraft = 0;
-    if (state.lockedPlayerIds.length > 0) {
+    const isResetMatch = state.currentMatchNumber === 41 || state.currentMatchNumber === 53;
+
+    if (isResetMatch) {
+        subsUsedInDraft = 0; // Everything is free
+    } else if (state.lockedPlayerIds.length > 0) {
         subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
     }
+
     const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
     const isOverLimit = liveSubsRemaining < 0;
+
+    // 2. Booster Logic
+    const boosterContainer = document.getElementById("boosterContainer");
+    const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
+    
+    if (boosterContainer) {
+        if (isBoosterWindow && !state.s8BoosterUsed) {
+            boosterContainer.classList.remove("hidden");
+            document.getElementById("boosterToggle").checked = state.boosterActiveInDraft;
+        } else {
+            boosterContainer.classList.add("hidden");
+        }
+    }
 
     // Roles Count
     const roles = {
@@ -140,8 +168,14 @@ function render() {
     
     const subsEl = document.getElementById("subsRemainingLabel");
     if (subsEl) {
-        subsEl.innerText = liveSubsRemaining;
-        subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
+        if (isResetMatch) {
+            subsEl.innerText = "FREE";
+            subsEl.parentElement.style.color = "#9AE000";
+        } else {
+            subsEl.innerText = liveSubsRemaining;
+            subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
+            subsEl.parentElement.style.color = isOverLimit ? "#ef4444" : "inherit";
+        }
     }
 
     ["WK", "BAT", "AR", "BOWL"].forEach(role => {
@@ -168,10 +202,10 @@ function render() {
     }
 }
 
-// --- FILTER LOGIC ---
+/* =========================
+   FILTER LOGIC
+========================= */
 function initFilters() {
-    // We filter by team_real_id (ID) but show team_short_code (Label)
-    // Map to get unique items
     const teams = [];
     const seenTeams = new Set();
     state.allPlayers.forEach(p => {
@@ -186,7 +220,6 @@ function initFilters() {
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
     
-    // For matches filter
     renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => 
         `M#${m.match_number}: ${m.team_a?.short_code} vs ${m.team_b?.short_code}`
     );
@@ -197,9 +230,9 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     if(!container) return;
 
     const listHtml = items.map(item => {
-        const value = item.id || item; // Handle object vs primitive
+        const value = item.id || item; 
         const label = labelFn(item);
-        const isChecked = state.filters[filterKey].includes(value) ? 'checked' : '';
+        const isChecked = state.filters[filterKey].includes(val) ? 'checked' : '';
         return `
             <label class="filter-item">
                 <input type="checkbox" value="${value}" ${isChecked} 
@@ -245,8 +278,9 @@ window.toggleFilter = (key, value, el) => {
     render();
 };
 
-// --- LIST RENDERER ---
-// --- LIST RENDERER (Updated to show photos) ---
+/* =========================
+   LIST RENDERER
+========================= */
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -274,12 +308,9 @@ function renderList(containerId, sourceList, isMyXi) {
         const isLocked = state.lockedPlayerIds.includes(p.id);
         const teamCode = getTeamCode(p);
         
-        // --- PHOTO LOGIC START ---
-        // Generates the live URL for the photo from your 'player-photos' bucket
         const photoUrl = p.photo_url 
             ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
-            : 'images/default-avatar.png'; // Fallback if no photo is assigned
-        // --- PHOTO LOGIC END ---
+            : 'images/default-avatar.png'; 
         
         let controlsHtml = isMyXi ? `
             <div class="controls">
@@ -300,7 +331,9 @@ function renderList(containerId, sourceList, isMyXi) {
     }).join('');
 }
 
-// --- ACTIONS ---
+/* =========================
+   ACTIONS
+========================= */
 window.togglePlayer = (id) => {
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
     if (idx > -1) {
@@ -326,7 +359,6 @@ window.setRole = (id, role) => {
 };
 
 function setupListeners() {
-    // View Toggles
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
@@ -337,7 +369,6 @@ function setupListeners() {
         };
     });
 
-    // Role Toggles
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -347,11 +378,9 @@ function setupListeners() {
         };
     });
 
-    // Search
     const searchInput = document.getElementById("playerSearch");
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
-    // Dropdowns
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
         if(btn) btn.onclick = (e) => { 
@@ -367,7 +396,7 @@ function setupListeners() {
         document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
     });
 
-    // SAVE TEAM Logic (Writes to Table, not View)
+    /* SAVE TEAM Logic (Updated for Booster) */
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
@@ -375,13 +404,17 @@ function setupListeners() {
 
         const { data: { user } } = await supabase.auth.getUser();
         const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
+        
+        // Capture Booster choice from HTML checkbox
+        const boosterToggled = document.getElementById("boosterToggle")?.checked || false;
 
         const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
             user_id: user.id, 
             tournament_id: TOURNAMENT_ID,
             captain_id: state.captainId, 
             vice_captain_id: state.viceCaptainId,
-            total_credits: totalCredits
+            total_credits: totalCredits,
+            use_booster: boosterToggled // NEW FIELD
         }, { onConflict: 'user_id, tournament_id' }).select().single();
 
         if(!error && team) {
@@ -402,7 +435,6 @@ function setupListeners() {
 }
 
 function showSuccessModal() {
-    // FIX: Using match.team_a.short_code from the joined data
     const nextMatch = state.matches[0];
     const matchLabel = nextMatch 
         ? `${nextMatch.team_a?.short_code} vs ${nextMatch.team_b?.short_code}` 
@@ -429,12 +461,12 @@ function showSuccessModal() {
     };
     
     document.getElementById("btnGoHome").onclick = () => {
-        window.location.href = "/home";
+        window.location.href = "home.html"; // Fixed navigation to match app flow
     };
 
     const autoRedirect = setTimeout(() => {
         if (document.body.contains(modal)) {
-            window.location.href = "/home";
+            window.location.href = "home.html";
         }
     }, 3000);
 }
