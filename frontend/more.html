@@ -1,25 +1,224 @@
-<div class="menu-list">
-  <a href="stats.html" class="menu-item">
-    <div class="icon-box">
-      <i class="fas fa-chart-bar" style="color: var(--accent)"></i>
-      <span class="label">Player Stats & History</span>
-    </div>
-    <span class="arrow">›</span>
-  </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cricket Experts · More</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/bottom-nav.css" />
+  
+  <style>
+    :root {
+      --bg-dark: #0c1117;
+      --card-bg: #1e293b;
+      --neon-cyan: #00f2ff;
+      --neon-green: #9AE000;
+      --text-slate: #94a3b8;
+    }
 
-  <a href="how-to-play.html" class="menu-item">
-    <div class="icon-box">
-        <i class="fas fa-book-open" style="color: var(--accent)"></i>
-        <span class="label">How to Play</span>
-    </div>
-    <span class="arrow">›</span>
-  </a>
+    body {
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
 
-  <a href="scoring.html" class="menu-item">
-    <div class="icon-box">
-      <i class="fas fa-scroll" style="color: var(--accent)"></i>
-      <span class="label">Scorebook</span>
+    .app-container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 24px 16px 100px; /* Extra padding for bottom nav */
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    /* HEADER */
+    .app-header {
+      margin-bottom: 30px;
+    }
+
+    .app-header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0;
+      color: #fff;
+    }
+
+    /* MENU SECTIONS */
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-slate);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      padding-left: 5px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: transparent;
+      border-radius: 14px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .menu-item:active {
+      background: rgba(154, 224, 0, 0.1);
+      transform: scale(0.98);
+    }
+
+    .menu-item .icon-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .menu-item .icon-box i {
+      font-size: 18px;
+      color: var(--neon-cyan);
+      width: 24px;
+      text-align: center;
+    }
+
+    .menu-item .label {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .menu-item .arrow {
+      color: var(--text-slate);
+      font-size: 16px;
+    }
+
+    /* SPECIAL BUTTONS */
+    .logout-btn {
+      color: #ff4d4d !important;
+    }
+
+    .logout-btn i {
+      color: #ff4d4d !important;
+    }
+
+    .admin-badge {
+      font-size: 9px;
+      background: var(--neon-cyan);
+      color: #000;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 900;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app-container">
+
+  <header class="app-header">
+    <h1>More</h1>
+  </header>
+
+  <div class="section-title">Game Features</div>
+  <section class="card">
+    <div class="menu-list">
+      <a href="stats.html" class="menu-item">
+        <div class="icon-box">
+          <i class="fas fa-chart-bar"></i>
+          <span class="label">Player Stats & History</span>
+        </div>
+        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+      </a>
+
+      <a href="how-to-play.html" class="menu-item">
+        <div class="icon-box">
+          <i class="fas fa-book-open"></i>
+          <span class="label">How to Play</span>
+        </div>
+        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+      </a>
+
+      <a href="scoring.html" class="menu-item">
+        <div class="icon-box">
+          <i class="fas fa-scroll"></i>
+          <span class="label">Scorebook</span>
+        </div>
+        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+      </a>
     </div>
-    <span class="arrow">›</span>
-  </a>
+  </section>
+
+  <div class="section-title">Help & Support</div>
+  <section class="card">
+    <div class="menu-list">
+      <a href="mailto:satyaranjansahoo@gmail.com" class="menu-item">
+        <div class="icon-box">
+          <i class="fas fa-envelope-open-text"></i>
+          <span class="label">Contact Admin <span class="admin-badge">SUPPORT</span></span>
+        </div>
+        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+      </a>
+    </div>
+  </section>
+
+  <div class="section-title">Account Settings</div>
+  <section class="card">
+    <div class="menu-list">
+      <a href="#" id="logoutBtn" class="menu-item logout-btn">
+        <div class="icon-box">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="label">Sign Out</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
 </div>
+
+<nav class="bottom-nav">
+  <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Play</span></a>
+  <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
+</nav>
+
+<script type="module">
+  import { supabase } from "./supabase.js";
+  
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const confirmed = confirm("Are you sure you want to sign out from Cricket Experts?");
+    if (confirmed) {
+        const { error } = await supabase.auth.signOut();
+        if (!error) {
+          window.location.href = "login.html";
+        } else {
+          alert("Logout failed: " + error.message);
+        }
+    }
+  });
+</script>
+
+</body>
+</html>
