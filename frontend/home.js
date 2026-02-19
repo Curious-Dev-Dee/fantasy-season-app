@@ -78,6 +78,9 @@ async function fetchHomeData(userId) {
         return;
     }
 
+    // Debugging: uncomment this to see the JSON in your browser console
+    // console.log("Dashboard Data:", data);
+
     existingProfile = data;
 
     // 1. Header & Profile
@@ -86,23 +89,23 @@ async function fetchHomeData(userId) {
     welcomeText.textContent = `Welcome back, ${firstName}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
 
-    // 2. Stats
+    // 2. Main Stats
     scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
     subsElement.textContent = data.subs_remaining;
 
-    // 3. Match Logic (Fixing NaN and Missing Data)
+    // 3. Match Logic
     const match = data.upcoming_match;
 
     if (match) {
-        // Fix for Team Names
         matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
 
-        // Fix for Team Logos
+        // FIX: Render Real Team Logos using the correct paths
         const updateTeamLogo = (path, elementId) => {
             const el = document.getElementById(elementId);
             if (!el) return;
             if (path) {
+                // Ensure the path is just the filename from your 'photo_name' column
                 const { data: logoData } = supabase.storage.from('team-logos').getPublicUrl(path);
                 el.style.backgroundImage = `url(${logoData.publicUrl})`;
                 el.style.display = "block";
@@ -111,23 +114,24 @@ async function fetchHomeData(userId) {
             }
         };
 
+        // Note: Check if your view uses 'team_a_logo' or 'photo_name'
         updateTeamLogo(match.team_a_logo, "teamALogo");
         updateTeamLogo(match.team_b_logo, "teamBLogo");
-
-        // Fix for Countdown/Lock Status
-        const startTime = new Date(match.actual_start_time);
         
-        // If Date is invalid or status is locked
-        if (isNaN(startTime.getTime()) || match.is_locked || match.status === 'locked') {
+        // FIX: Status Check Logic
+        // We only lock if the database explicitly says is_locked or status is 'locked'
+        if (match.is_locked === true || match.status === 'locked') {
             if (countdownInterval) clearInterval(countdownInterval);
             matchTimeElement.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-lock"></i> Match Started</span>`;
             editButton.disabled = true;
             editButton.textContent = "Locked";
+            editButton.style.background = "#1e293b";
         } else {
-            // Valid date found, start the clock
+            // It is 'upcoming', so show the countdown
             startCountdown(match.actual_start_time);
             editButton.disabled = false;
             editButton.textContent = "Change";
+            editButton.style.background = "#9AE000";
         }
     } else {
         matchTeamsElement.textContent = "No upcoming match";
