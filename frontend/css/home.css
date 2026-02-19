@@ -79,31 +79,37 @@ body {
 }
 
 /* --- STATS CARD --- */
+/* --- STATS CARD (Optimized for 4 items) --- */
 .stats-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
+    padding: 15px 12px; /* Reduced side padding to fit 4 columns */
 }
 
 .stat-inline {
     display: flex;
+    flex-direction: column; /* Stack label and value for better mobile fit */
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    flex: 1; /* Give each stat equal space */
 }
 
 .stat-icon {
-    font-size: 14px;
+    font-size: 12px; /* Slightly smaller icon */
     color: #94a3b8;
+    margin-bottom: 2px;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: 10px; /* Smaller label for tight spaces */
     color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 .stat-value {
-    font-size: 15px;
+    font-size: 14px; /* Balanced font size */
     font-weight: 700;
 }
 
@@ -111,12 +117,16 @@ body {
     color: #9AE000;
 }
 
-.divider {
-    width: 1px;
-    height: 24px;
-    background-color: #334155;
+/* Booster-specific styling */
+#boosterStatus {
+    transition: color 0.3s ease;
 }
 
+.divider {
+    width: 1px;
+    height: 20px;
+    background-color: #334155;
+}
 /* --- NEXT MATCH CARD (UPDATED FOR LOGOS) --- */
 .next-match-card {
     background: linear-gradient(145deg, #1e293b, #111827);

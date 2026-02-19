@@ -19,6 +19,9 @@ const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
 const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
 
+const boosterStatusEl = document.getElementById("boosterStatus");
+const boosterIconEl = document.getElementById("boosterIcon");
+
 const profileModal = document.getElementById("profileModal");
 const modalFullName = document.getElementById("modalFullName");
 const modalTeamName = document.getElementById("modalTeamName");
@@ -97,10 +100,26 @@ async function fetchHomeData(userId) {
     }
 
     // 3. Main Stats
+    // 3. Main Stats
     scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
     subsElement.textContent = data.subs_remaining;
 
+    // NEW: Booster Inventory Logic
+    if (boosterStatusEl && boosterIconEl) {
+        if (data.s8_booster_used) {
+            boosterStatusEl.textContent = "0";
+            // Gray out the icon and text if used
+            boosterStatusEl.style.color = "#64748b"; 
+            boosterIconEl.style.color = "#64748b";
+        } else {
+            boosterStatusEl.textContent = "1";
+            // Neon green if available
+            boosterStatusEl.style.color = "#9AE000";
+            boosterIconEl.style.color = "#9AE000";
+        }
+    }
+    
     // 4. Match Logic
     const match = data.upcoming_match;
 
