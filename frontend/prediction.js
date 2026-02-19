@@ -314,6 +314,18 @@ async function loadChatHistory() {
     }
 }
 
+// --- EMOJI LOGIC ---
+const emojiBar = document.getElementById("emojiBar");
+
+emojiBar.querySelectorAll("span").forEach(emojiBtn => {
+    emojiBtn.onclick = () => {
+        // Append emoji to the current input value
+        chatInput.value += emojiBtn.textContent;
+        // Keep focus on the input so the user can keep typing
+        chatInput.focus();
+    };
+});
+
 function renderMessage(msg) {
     const isMine = msg.user_id === currentUserId;
     const div = document.createElement("div");
