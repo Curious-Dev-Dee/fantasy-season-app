@@ -1,0 +1,107 @@
+:root {
+    --bg-dark: #0f172a;
+    --card-bg: #1e293b;
+    --neon-green: #9AE000;
+    --neon-red: #ff4d4d;
+    --text-main: #f8fafc;
+    --text-dim: #94a3b8;
+}
+
+body.admin-body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    margin: 0;
+}
+
+/* SIDEBAR */
+.admin-sidebar {
+    width: 240px;
+    height: 100vh;
+    background: #020617;
+    border-right: 1px solid #1e293b;
+    padding: 20px;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--neon-green);
+    margin-bottom: 40px;
+}
+
+.nav-links li {
+    list-style: none;
+    padding: 15px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 8px;
+}
+
+.nav-links li:hover, .nav-links li.active {
+    color: var(--neon-green);
+    background: rgba(154, 224, 0, 0.1);
+}
+
+/* AUDIT CARDS */
+.audit-header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 30px;
+}
+
+.audit-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.audit-card span { color: var(--text-dim); font-size: 0.8rem; }
+
+.neon-border {
+    border: 1px solid var(--neon-green);
+    box-shadow: 0 0 10px rgba(154, 224, 0, 0.2);
+}
+
+/* TABLE STYLING */
+.table-container {
+    padding: 0 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #334155;
+}
+
+th { color: var(--neon-green); font-size: 0.9rem; }
+
+.pts-badge {
+    background: var(--neon-green);
+    color: black;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+#userSearch {
+    background: #020617;
+    border: 1px solid #334155;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 300px;
+}

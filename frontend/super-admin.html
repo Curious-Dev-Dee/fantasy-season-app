@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Command | FantasyCric26</title>
+    <link rel="stylesheet" href="css/super-admin.css">
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+</head>
+<body class="admin-body">
+    <nav class="admin-sidebar">
+        <div class="logo">FC26<span>ADM</span></div>
+        <ul class="nav-links">
+            <li class="active"><i class="fas fa-chart-line"></i> Audit</li>
+            <li><i class="fas fa-users"></i> Users</li>
+            <li><i class="fas fa-question-circle"></i> Queries <span class="badge" id="queryBadge">0</span></li>
+            <li><i class="fas fa-trophy"></i> Matches</li>
+        </ul>
+    </nav>
+
+    <main class="admin-content">
+        <header class="audit-header">
+            <div class="audit-card">
+                <span>TOTAL USERS</span>
+                <h2 id="totalUsers">0</h2>
+            </div>
+            <div class="audit-card">
+                <span>ACTIVE BOOSTERS</span>
+                <h2 id="activeBoosters">0</h2>
+            </div>
+            <div class="audit-card neon-border">
+                <span>OPEN QUERIES</span>
+                <h2 id="openQueries">0</h2>
+            </div>
+        </header>
+
+        <section class="table-container">
+            <div class="table-header">
+                <h3>User Audit Log</h3>
+                <input type="text" id="userSearch" placeholder="Search by Team or Name...">
+            </div>
+            <table id="auditTable">
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Full Name</th>
+                        <th>Points</th>
+                        <th>Subs Left</th>
+                        <th>Booster</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="auditBody">
+                    </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>
