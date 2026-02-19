@@ -66,6 +66,9 @@ async function startDashboard(userId) {
 /* =========================
    CORE DASHBOARD LOGIC (FIXED)
 ========================= */
+/* =========================
+   CORE DASHBOARD LOGIC (FIXED & RESTORED)
+========================= */
 async function fetchHomeData(userId) {
     const { data, error } = await supabase
         .from('home_dashboard_view')
@@ -78,34 +81,51 @@ async function fetchHomeData(userId) {
         return;
     }
 
-    // Debugging: uncomment this to see the JSON in your browser console
-    // console.log("Dashboard Data:", data);
-
     existingProfile = data;
 
-    // 1. Header & Profile
+    // 1. Header & Profile Text
     tournamentNameElement.textContent = data.tournament_name || "Tournament";
     const firstName = data.full_name?.trim().split(" ")[0] || "Expert";
     welcomeText.textContent = `Welcome back, ${firstName}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
 
-    // 2. Main Stats
+    // 2. RESTORED: Avatar & Modal Syncing
+    modalFullName.value = data.full_name || "";
+    modalTeamName.value = data.team_name || "";
+    
+    // Disable team name change if already set
+    if (data.team_name) {
+        modalTeamName.disabled = true;
+        modalTeamName.style.opacity = "0.6";
+    }
+
+    // Fetch User Avatar from Storage
+    if (data.team_photo_url) {
+        const { data: imgData } = supabase.storage
+            .from("team-avatars")
+            .getPublicUrl(data.team_photo_url);
+        
+        const avatarUrl = `${imgData.publicUrl}?t=${new Date().getTime()}`;
+        avatarElement.style.backgroundImage = `url(${avatarUrl})`;
+        modalPreview.style.backgroundImage = `url(${avatarUrl})`;
+    }
+
+    // 3. Main Stats
     scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
     subsElement.textContent = data.subs_remaining;
 
-    // 3. Match Logic
+    // 4. Match Logic
     const match = data.upcoming_match;
 
     if (match) {
         matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
 
-        // FIX: Render Real Team Logos using the correct paths
+        // Render Real Team Logos using the correct paths
         const updateTeamLogo = (path, elementId) => {
             const el = document.getElementById(elementId);
             if (!el) return;
             if (path) {
-                // Ensure the path is just the filename from your 'photo_name' column
                 const { data: logoData } = supabase.storage.from('team-logos').getPublicUrl(path);
                 el.style.backgroundImage = `url(${logoData.publicUrl})`;
                 el.style.display = "block";
@@ -114,21 +134,24 @@ async function fetchHomeData(userId) {
             }
         };
 
-        // Note: Check if your view uses 'team_a_logo' or 'photo_name'
         updateTeamLogo(match.team_a_logo, "teamALogo");
         updateTeamLogo(match.team_b_logo, "teamBLogo");
         
-        // FIX: Status Check Logic
-        // We only lock if the database explicitly says is_locked or status is 'locked'
-        if (match.is_locked === true || match.status === 'locked') {
+        // Status Check Logic
+        const startTime = new Date(match.actual_start_time).getTime();
+        const now = new Date().getTime();
+
+        if (match.is_locked === true || match.status === 'locked' || startTime <= now) {
             if (countdownInterval) clearInterval(countdownInterval);
             matchTimeElement.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-lock"></i> Match Started</span>`;
             editButton.disabled = true;
             editButton.textContent = "Locked";
             editButton.style.background = "#1e293b";
         } else {
-            // It is 'upcoming', so show the countdown
-            startCountdown(match.actual_start_time);
+            // Valid upcoming match, start countdown
+            if (!isNaN(startTime)) {
+                startCountdown(match.actual_start_time);
+            }
             editButton.disabled = false;
             editButton.textContent = "Change";
             editButton.style.background = "#9AE000";
@@ -136,8 +159,11 @@ async function fetchHomeData(userId) {
     } else {
         matchTeamsElement.textContent = "No upcoming match";
         editButton.disabled = true;
+        document.getElementById("teamALogo").style.display = "none";
+        document.getElementById("teamBLogo").style.display = "none";
     }
 }
+
 /* =========================
    DYNAMIC NEON COUNTDOWN
 ========================= */
