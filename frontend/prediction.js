@@ -37,16 +37,18 @@ async function init() {
     if (!activeTourney) return;
     currentTournamentId = activeTourney.id;
 
-    // Load Data
+    // Load Parallel Data
     await Promise.all([
         fetchNextMatch(),
-        fetchExpertsList(),
+        fetchExpertsList(), // Now includes self
         loadChatHistory(),
-        fetchUserPredictionPoints()
+        fetchUserPredictionPoints(),
+        fetchMiniLeaderboard() // New card data
     ]);
 
     setupDrawerListeners();
     subscribeToChat();
+    // Verify if current user already has a saved prediction for the active match
     checkExistingPrediction();
 }
 
@@ -54,13 +56,23 @@ async function init() {
    CORE PREDICTION LOGIC
 ========================= */
 
+// NEW: Strict UI Lockdown
+function disableAllInputs() {
+    submitBtn.disabled = true;
+    mvpSelect.disabled = true;
+    userPredictSelect.disabled = true;
+    winnerToggle.querySelectorAll(".team-option").forEach(btn => {
+        btn.style.pointerEvents = "none";
+        btn.style.opacity = "0.7";
+    });
+}
+
 /**
  * DUAL-FETCH LOGIC:
- * 1. Fetches Match 44 (Upcoming) for the TOP section.
- * 2. Fetches Match 43 (Processed) for the BOTTOM section.
+ * Handles Match 44 (Top) and Match 43 (Bottom) simultaneously.
  */
 async function fetchNextMatch() {
-    // 1. Get the next game for users to predict (e.g., Match 44)
+    // 1. Get the next game for users to predict
     const { data: upcomingMatch } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
@@ -68,7 +80,7 @@ async function fetchNextMatch() {
         .order("actual_start_time", { ascending: true })
         .limit(1).maybeSingle();
 
-    // 2. Get the last finished game that has results (e.g., Match 43)
+    // 2. Get the last finished game with processed results
     const { data: lastFinishedMatch } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
@@ -76,12 +88,12 @@ async function fetchNextMatch() {
         .order("actual_start_time", { ascending: false })
         .limit(1).maybeSingle();
 
-    // 3. Handle Top Section (Upcoming Selection)
+    // 3. Populate Selection View (Top)
     if (upcomingMatch) {
         currentMatchId = upcomingMatch.id;
         renderSelectionView(upcomingMatch);
     } else {
-        // If no upcoming, check if a match is currently 'locked' (Live)
+        // Check for locked matches if no upcoming ones exist
         const { data: liveMatch } = await supabase.from("matches")
             .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
             .eq("tournament_id", currentTournamentId)
@@ -96,12 +108,12 @@ async function fetchNextMatch() {
         } else {
             document.getElementById("selectionView").innerHTML = `
                 <div style="text-align:center; padding: 20px;">
-                    <p style="color: var(--text-slate); font-size: 13px;">No upcoming matches for now.</p>
+                    <p style="color: var(--text-slate); font-size: 13px;">No new matches to predict.</p>
                 </div>`;
         }
     }
 
-    // 4. Handle Bottom Section (Recent Results)
+    // 4. Populate Result View (Bottom)
     if (lastFinishedMatch) {
         document.getElementById("recentResultContainer").classList.remove("hidden");
         renderResultView(lastFinishedMatch);
@@ -199,17 +211,38 @@ async function renderResultView(match) {
     `;
 }
 
-/* --- SUPPORTING FUNCTIONS (UNCHANGED) --- */
+/* --- SUPPORTING FUNCTIONS --- */
 
 async function fetchExpertsList() {
+    // Shows all teams including own
     const { data: experts } = await supabase.from("user_profiles").select("user_id, team_name").limit(50);
     userPredictSelect.innerHTML = `<option value="">Select an Expert...</option>`;
-    experts.forEach(e => {
-        if (e.user_id === currentUserId) return;
+    experts?.forEach(e => {
         const opt = document.createElement("option");
         opt.value = e.user_id;
-        opt.textContent = e.team_name || "Expert User";
+        // Allows user to select their own team as Rank 1
+        opt.textContent = (e.user_id === currentUserId) ? `${e.team_name} (Me)` : e.team_name;
         userPredictSelect.appendChild(opt);
+    });
+}
+
+async function fetchMiniLeaderboard() {
+    const { data: topTeams } = await supabase.from("prediction_leaderboard").select("*");
+    const tbody = document.getElementById("miniLeaderboardBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    topTeams?.forEach(team => {
+        const row = `
+            <tr>
+                <td><div class="team-cell"><img src="${team.team_photo_url || 'img/default-team.png'}" class="mini-logo"> ${team.team_name}</div></td>
+                <td class="bold">${team.total_points}</td>
+                <td>${team.total_matches * 3}</td>
+                <td class="txt-green">${team.total_correct}</td>
+                <td class="txt-red">${team.total_incorrect}</td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
     });
 }
 
@@ -235,12 +268,13 @@ submitBtn.onclick = async () => {
         predicted_top_user_id: topUserId
     }, { onConflict: 'user_id, match_id' });
 
-    if (error) {
+    if (!error) {
+        submitBtn.textContent = "LOCKED ✅";
+        disableAllInputs(); // LOCK UI
+    } else {
         alert("Action failed. Check match status.");
         submitBtn.disabled = false;
         submitBtn.textContent = "LOCK PREDICTIONS";
-    } else {
-        submitBtn.textContent = "LOCKED ✅";
     }
 };
 
@@ -248,15 +282,20 @@ async function checkExistingPrediction() {
     if (!currentMatchId) return;
     const { data } = await supabase.from("user_predictions").select("*").eq("user_id", currentUserId).eq("match_id", currentMatchId).maybeSingle();
     if (data) {
-        submitBtn.disabled = true;
         submitBtn.textContent = "LOCKED ✅";
         mvpSelect.value = data.predicted_mvp_id;
         userPredictSelect.value = data.predicted_top_user_id;
         const btn = winnerToggle.querySelector(`[data-id="${data.predicted_winner_id}"]`);
         if (btn) btn.classList.add("selected");
         selectedWinnerId = data.predicted_winner_id;
+        
+        disableAllInputs(); // LOCK UI
     }
 }
+
+/* =========================
+   REAL-TIME CHAT & UI
+========================= */
 
 function setupDrawerListeners() {
     chatToggleBtn.onclick = () => {

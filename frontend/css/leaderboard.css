@@ -120,3 +120,20 @@ body {
 
 .spinner-small { width: 15px; height: 15px; border: 2px solid rgba(0,0,0,0.1); border-left-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* LEADERBOARD TABLE */
+.leaderboard-card { margin-top: 20px; padding: 15px; }
+.leaderboard-table-wrapper { overflow-x: auto; margin-top: 10px; }
+.mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mini-table th { text-align: left; color: var(--text-slate); padding-bottom: 10px; border-bottom: 1px solid #334155; }
+.mini-table td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+.team-cell { display: flex; align-items: center; gap: 8px; font-weight: 600; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-logo { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--neon-cyan); }
+
+.bold { font-weight: 800; color: var(--neon-cyan); }
+.txt-green { color: var(--neon-green); }
+.txt-red { color: #ff4757; }
+
+/* DISABLE STATE */
+select:disabled { opacity: 0.7; color: var(--text-slate); cursor: not-allowed; border-color: transparent; }
