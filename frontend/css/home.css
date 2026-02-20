@@ -11,14 +11,13 @@ body {
     min-height: 100vh;
 }
 
-/* FIX: This ensures all cards take full width and stack vertically */
 .app-container {
     width: 100%;
     max-width: 480px; 
-    padding: 20px 16px 140px; /* Space for bottom navigation */
+    padding: 20px 16px 140px; /* Space for Bottom Nav */
     box-sizing: border-box;
     display: flex;
-    flex-direction: column; /* FORCES VERTICAL STACK */
+    flex-direction: column; /* FORCES VERTICAL STACK FOR ALL CARDS */
     align-items: center;
 }
 
@@ -43,7 +42,7 @@ body {
     margin: 0;
 }
 
-/* --- CARD DEFAULTS (FIXED WIDTH) --- */
+/* --- CARD DEFAULTS --- */
 .card {
     width: 100%;
     background: #1e293b;
@@ -51,8 +50,8 @@ body {
     padding: 20px;
     margin-bottom: 16px;
     border: 1px solid #334155;
-    box-sizing: border-box; /* Prevents padding from breaking width */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
 }
 
 /* --- USER PROFILE CARD --- */
@@ -65,7 +64,7 @@ body {
 .welcome-text { font-size: 13px; color: #94a3b8; margin: 0; }
 .team-subtitle { font-size: 18px; font-weight: 800; color: #9AE000; margin: 2px 0 0; }
 
-/* --- STATS CARD (4 COLS) --- */
+/* --- STATS CARD --- */
 .stats-card { display: flex; justify-content: space-between; align-items: center; padding: 15px 12px; }
 .stat-inline { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
 .stat-icon { font-size: 12px; color: #94a3b8; margin-bottom: 2px; }
@@ -78,49 +77,35 @@ body {
 .next-match-card { background: linear-gradient(145deg, #1e293b, #111827); border-left: 4px solid #9AE000; }
 .match-badge-small { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px; }
 .match-vs-header { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 15px 0 20px; }
-.team-logo-dashboard { width: 48px; height: 48px; background-size: contain; background-position: center; background-repeat: no-repeat; display: block; filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1)); }
-.match-teams { font-size: 26px; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.5px; }
-.match-time { font-size: 14px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.team-logo-dashboard { width: 48px; height: 48px; background-size: contain; background-position: center; display: block; }
+.match-teams { font-size: 26px; font-weight: 800; color: #ffffff; }
+.match-time { font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .neon-green { color: #9AE000; }
 .match-actions { display: flex; gap: 12px; }
-.primary-btn { flex: 1.2; background-color: #9AE000; color: #0c1117; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; }
-.secondary-btn { flex: 1; background-color: #334155; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; }
-.btn-hint { font-size: 11px; color: #64748b; text-align: center; margin-top: 10px; }
+.primary-btn { flex: 1.2; background-color: #9AE000; color: #0c1117; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+.secondary-btn { flex: 1; background-color: #334155; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
-/* --- LEADERBOARD CARD --- */
+/* --- RESTORED LEADERBOARD CARD STYLES --- */
 .leaderboard-card { width: 100%; box-sizing: border-box; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .section-header h3 { font-size: 16px; margin: 0; }
 .section-header i { color: #f59e0b; }
+.leader-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; font-size: 14px; }
+.leader-row:last-child { border: none; }
+.pts-pill { background: rgba(154, 224, 0, 0.1); color: #9AE000; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 12px; }
 .view-all-btn { width: 100%; background: none; border: 1px solid #334155; color: #94a3b8; padding: 10px; border-radius: 10px; margin-top: 15px; font-weight: 600; cursor: pointer; }
 
-/* --- REWARDS SECTION (FIXED AT BOTTOM) --- */
-.mobile-prize-wrapper {
-    width: 100%;
-    margin-top: 8px;
-    box-sizing: border-box;
-}
-
+/* --- REWARD SECTION STYLES --- */
+.mobile-prize-wrapper { width: 100%; box-sizing: border-box; margin-top: 8px; }
 .prize-card-single {
-    background: #1e293b;
-    border: 1.5px solid #9AE000; /* Neon Expert Border */
-    border-radius: 20px;
-    padding: 20px;
-    width: 100%;
-    box-sizing: border-box;
+    background: #1e293b; border: 1.5px solid #9AE000;
+    border-radius: 20px; padding: 20px; width: 100%; box-sizing: border-box;
 }
-
 .prize-header-compact { text-align: center; margin-bottom: 15px; }
 .prize-header-compact h2 { color: #9AE000; font-size: 1.1rem; margin: 0; }
 .prize-header-compact p { color: #94a3b8; font-size: 0.8rem; margin: 4px 0 0; }
-
 .prize-list-stack { display: flex; flex-direction: column; gap: 10px; }
-.prize-row {
-    display: flex; align-items: center;
-    background: rgba(255,255,255,0.03);
-    padding: 10px; border-radius: 12px;
-    border: 1px solid #334155;
-}
+.prize-row { display: flex; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid #334155; }
 .rank-1-highlight { border-color: #9AE000; background: rgba(154, 224, 0, 0.05); }
 .rank-tag { background: #9AE000; color: #000; font-weight: 800; font-size: 10px; padding: 4px 8px; border-radius: 6px; min-width: 55px; text-align: center; }
 .prize-info-wrap { display: flex; align-items: center; margin-left: 12px; }
@@ -128,8 +113,3 @@ body {
 .text-meta { margin-left: 10px; }
 .text-meta h3 { font-size: 0.85rem; margin: 0; color: #fff; }
 .text-meta span { font-size: 0.7rem; color: #94a3b8; }
-
-/* --- MODALS & OVERLAYS --- */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(5px); }
-.modal-content { background: #1e293b; width: 85%; max-width: 380px; border-radius: 24px; padding: 30px; border: 1px solid #334155; }
-.full-width { width: 100%; }
