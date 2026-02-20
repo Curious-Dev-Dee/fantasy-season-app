@@ -354,82 +354,102 @@ body {
     50% { opacity: 0.5; }
     100% { opacity: 1; }
 }
-/* Container at the very bottom */
-.master-prize-container {
-    padding: 20px;
-    margin-top: auto; /* Pushes to bottom of flex containers */
+/* Forces the section to break away from any sidebars */
+.mobile-prize-wrapper {
     width: 100%;
+    padding: 20px 15px 100px 15px; /* Extra bottom padding so it doesn't hide behind nav menu */
     box-sizing: border-box;
+    clear: both; 
 }
 
-.prize-master-card {
-    background: #1e293b; /* Card-bg */
-    border: 1px solid #9AE000; /* Neon Border */
-    border-radius: 20px;
+.prize-card-single {
+    background: #1e293b;
+    border: 1px solid #9AE000;
+    border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-.prize-header h2 {
+.prize-header-compact {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.prize-header-compact h2 {
     color: #9AE000;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin: 0;
+    text-transform: uppercase;
 }
 
-.prize-header p {
+.prize-header-compact p {
     color: #94a3b8;
     font-size: 0.8rem;
-    margin: 5px 0 20px 0;
+    margin: 5px 0 0 0;
 }
 
-/* Desktop: Side-by-Side */
-.prize-flex-grid {
+.prize-list-stack {
     display: flex;
-    justify-content: space-around;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.prize-row {
+    display: flex;
     align-items: center;
-    gap: 15px;
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #334155;
 }
 
-.rank-item {
-    text-align: center;
-    flex: 1;
+.rank-1-highlight {
+    border-color: #9AE000;
+    background: rgba(154, 224, 0, 0.05);
 }
 
-.prize-img {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    margin: 10px 0;
-}
-
-.rank-label {
+.rank-tag {
+    background: #9AE000;
+    color: #000;
     font-weight: 800;
     font-size: 0.7rem;
-    color: #000;
-    background: #9AE000;
-    padding: 2px 10px;
-    border-radius: 10px;
-    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 60px;
+    text-align: center;
 }
 
-.prize-details h3 { font-size: 0.9rem; margin: 5px 0 0 0; }
-.prize-details span { font-size: 0.7rem; color: #94a3b8; }
-
-.rank-divider {
-    width: 1px;
-    height: 60px;
-    background: #334155;
+.prize-info-wrap {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
 }
 
-/* MOBILE OPTIMIZATION */
-@media (max-width: 600px) {
-    .prize-flex-grid {
-        flex-direction: column; /* Stack vertically on phones */
-        gap: 25px;
-    }
-    
-    .rank-divider {
-        width: 80%;
-        height: 1px; /* Horizontal line instead of vertical */
+.prize-thumb {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+}
+
+.text-meta {
+    margin-left: 12px;
+}
+
+.text-meta h3 {
+    font-size: 0.9rem;
+    margin: 0;
+    color: #fff;
+}
+
+.text-meta span {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+/* Adjustments for Desktop to keep it centered */
+@media (min-width: 768px) {
+    .mobile-prize-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
     }
 }
