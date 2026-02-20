@@ -354,3 +354,64 @@ body {
     50% { opacity: 0.5; }
     100% { opacity: 1; }
 }
+
+.prize-section {
+    padding: 60px 20px;
+    background: #020617; /* Deep Z-Black */
+    text-align: center;
+}
+
+.prize-header h2 {
+    color: #9AE000; /* Neon Green */
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.prize-header p { color: #94a3b8; margin-bottom: 40px; }
+
+.prize-grid {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Makes Rank 1 stand taller */
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.prize-card {
+    background: #1e293b;
+    border-radius: 15px;
+    padding: 25px;
+    width: 240px;
+    border: 1px solid #334155;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.prize-card:hover { transform: translateY(-10px); }
+
+.gold { border: 2px solid #fbbf24; height: 320px; } /* Rank 1 is taller */
+.silver { border: 1px solid #94a3b8; height: 280px; }
+.bronze { border: 1px solid #b45309; height: 280px; }
+
+.rank-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #9AE000;
+    color: #000;
+    font-weight: 800;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.prize-image img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin: 20px 0;
+}
+
+.prize-card h3 { color: #f8fafc; margin: 10px 0; }
+.prize-card p { color: #94a3b8; font-size: 0.85rem; }
