@@ -37,24 +37,14 @@ let existingProfile = null;
    ONESIGNAL & PUSH LOGIC
 ========================= */
 async function initOneSignal(userId) {
-    // Check if the script actually loaded before trying to use it
-    if (!window.OneSignalDeferred) {
-        console.warn("OneSignal: Script blocked by browser/ad-blocker.");
-        return; 
-    }
-
-    try {
-        window.OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
-                notifyButton: { enable: false },
-            });
-            await OneSignal.login(userId);
-            console.log("OneSignal: Expert Linked ->", userId);
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+            appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+            notifyButton: { enable: false }
         });
-    } catch (err) {
-        console.error("OneSignal Init Failed:", err);
-    }
+        await OneSignal.login(userId); // Link user to notifications
+    });
 }
 
 function showNeonNotificationPrompt() {
