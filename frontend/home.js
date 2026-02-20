@@ -37,23 +37,20 @@ let existingProfile = null;
    ONESIGNAL & PUSH LOGIC
 ========================= */
 async function initOneSignal(userId) {
+    // Check if the script actually loaded before trying to use it
+    if (!window.OneSignalDeferred) {
+        console.warn("OneSignal: Script blocked by browser/ad-blocker.");
+        return; 
+    }
+
     try {
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
+        window.OneSignalDeferred.push(async function(OneSignal) {
             await OneSignal.init({
-                appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4", // Fixed from your screenshot
-                safari_web_id: "web.onesignal.auto.1764979e-4a6c-4860-93a9-95a98a97a95a", // Example format
+                appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
                 notifyButton: { enable: false },
             });
-
-            // Link Expert Identity
             await OneSignal.login(userId);
             console.log("OneSignal: Expert Linked ->", userId);
-
-            // Optional: Show the custom neon prompt if they haven't decided yet
-            if (Notification.permission === 'default') {
-                showNeonNotificationPrompt();
-            }
         });
     } catch (err) {
         console.error("OneSignal Init Failed:", err);
