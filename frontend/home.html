@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/bottom-nav.css" />
   
   <script type="module" src="auth-guard.js"></script>
+
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
   <link rel="manifest" href="manifest.json">
@@ -32,6 +33,7 @@
     
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -47,7 +49,7 @@
   <header class="app-header">
     <div class="header-content">
         <h1 id="tournamentName">Tournament</h1>
-    </div>
+        </div>
   </header>
 
   <section class="card user-card">
@@ -84,24 +86,29 @@
       <span class="stat-label">Boost</span>
       <span class="stat-value" id="boosterStatus">1</span>
     </div>
-  </section>
+</section>
 
-  <section class="card next-match-card">
-    <div class="match-badge-small">NEXT MATCH</div>
-    <div class="match-vs-header">
-        <div id="teamALogo" class="team-logo-dashboard"></div>
-        <h3 class="match-teams" id="matchTeams">—</h3>
-        <div id="teamBLogo" class="team-logo-dashboard"></div>
-    </div>
-    <p class="match-time neon-green" id="matchTime">
-        <i class="far fa-clock"></i> Loading...
-    </p>
-    <div class="match-actions">
-      <button class="secondary-btn" id="viewXiBtn">View Team</button>
-      <button class="primary-btn" id="editXiBtn">Change</button>
-    </div>
-    <div class="btn-hint">Locks at match start time</div>
-  </section>
+<section class="card next-match-card">
+  <div class="match-badge-small">NEXT MATCH</div>
+  
+  <div class="match-vs-header">
+      <div id="teamALogo" class="team-logo-dashboard"></div>
+      
+      <h3 class="match-teams" id="matchTeams">—</h3>
+      
+      <div id="teamBLogo" class="team-logo-dashboard"></div>
+  </div>
+  
+  <p class="match-time neon-green" id="matchTime">
+      <i class="far fa-clock"></i> Loading...
+  </p>
+
+  <div class="match-actions">
+    <button class="secondary-btn" id="viewXiBtn">View Team</button>
+    <button class="primary-btn" id="editXiBtn">Change</button>
+  </div>
+  <div class="btn-hint">Locks at match start time</div>
+</section>
 
   <section class="card leaderboard-card">
     <div class="section-header">
@@ -122,6 +129,7 @@
               <h2>🏆 Top Reward for Experts</h2>
               <p>Exclusive gift hampers</p>
           </div>
+
           <div class="prize-list-stack">
               <div class="prize-row rank-1-highlight">
                   <div class="rank-tag">Rank #1</div>
@@ -133,6 +141,7 @@
                       </div>
                   </div>
               </div>
+
               <div class="prize-row">
                   <div class="rank-tag">Rank #2</div>
                   <div class="prize-info-wrap">
@@ -143,6 +152,7 @@
                       </div>
                   </div>
               </div>
+
               <div class="prize-row">
                   <div class="rank-tag">Rank #3</div>
                   <div class="prize-info-wrap">
@@ -157,7 +167,29 @@
       </div>
   </section>
 
-</div> <nav class="bottom-nav">
+</div> <div id="profileModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Complete Profile</h2>
+    <div class="upload-preview-container">
+        <div id="modalAvatarPreview"></div>
+        <label for="avatarInput" class="edit-icon-btn">
+            <i class="fas fa-camera"></i>
+        </label>
+        <input type="file" id="avatarInput" accept="image/*" class="hidden" />
+    </div>
+    <div class="input-group">
+        <label for="modalFullName">Your Name</label>
+        <input type="text" id="modalFullName" placeholder="e.g. Satyaranjan Sahoo" />
+    </div>
+    <div class="input-group">
+        <label for="modalTeamName">Team Name</label>
+        <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" />
+    </div>
+    <button id="saveProfileBtn" class="primary-btn full-width">Save & Start</button>
+  </div>
+</div>
+
+<nav class="bottom-nav">
   <a href="home.html" class="active"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
   <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
