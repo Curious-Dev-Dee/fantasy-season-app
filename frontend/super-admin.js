@@ -1,5 +1,24 @@
 import { supabase } from "./supabase.js";
 
+window.addEventListener('auth-verified', async (e) => {
+    const user = e.detail.user;
+    
+    // Check if user is actually an admin
+    const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .single();
+
+    if (!profile || !profile.is_admin) {
+        alert("Access Denied: Admins Only.");
+        window.location.href = "home.html";
+        return;
+    }
+
+    // If they ARE admin, proceed to load the dashboard
+    loadAdminDashboard();
+});
 /* =========================
    INITIALIZATION
 ========================= */
