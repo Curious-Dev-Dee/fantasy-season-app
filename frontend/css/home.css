@@ -354,64 +354,82 @@ body {
     50% { opacity: 0.5; }
     100% { opacity: 1; }
 }
+/* Container at the very bottom */
+.master-prize-container {
+    padding: 20px;
+    margin-top: auto; /* Pushes to bottom of flex containers */
+    width: 100%;
+    box-sizing: border-box;
+}
 
-.prize-section {
-    padding: 60px 20px;
-    background: #020617; /* Deep Z-Black */
-    text-align: center;
+.prize-master-card {
+    background: #1e293b; /* Card-bg */
+    border: 1px solid #9AE000; /* Neon Border */
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .prize-header h2 {
-    color: #9AE000; /* Neon Green */
-    letter-spacing: 2px;
-    margin-bottom: 10px;
+    color: #9AE000;
+    font-size: 1.2rem;
+    margin: 0;
 }
 
-.prize-header p { color: #94a3b8; margin-bottom: 40px; }
-
-.prize-grid {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end; /* Makes Rank 1 stand taller */
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.prize-card {
-    background: #1e293b;
-    border-radius: 15px;
-    padding: 25px;
-    width: 240px;
-    border: 1px solid #334155;
-    position: relative;
-    transition: transform 0.3s ease;
-}
-
-.prize-card:hover { transform: translateY(-10px); }
-
-.gold { border: 2px solid #fbbf24; height: 320px; } /* Rank 1 is taller */
-.silver { border: 1px solid #94a3b8; height: 280px; }
-.bronze { border: 1px solid #b45309; height: 280px; }
-
-.rank-badge {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #9AE000;
-    color: #000;
-    font-weight: 800;
-    padding: 5px 15px;
-    border-radius: 20px;
+.prize-header p {
+    color: #94a3b8;
     font-size: 0.8rem;
+    margin: 5px 0 20px 0;
 }
 
-.prize-image img {
-    width: 120px;
-    height: 120px;
+/* Desktop: Side-by-Side */
+.prize-flex-grid {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+}
+
+.rank-item {
+    text-align: center;
+    flex: 1;
+}
+
+.prize-img {
+    width: 80px;
+    height: 80px;
     object-fit: contain;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
-.prize-card h3 { color: #f8fafc; margin: 10px 0; }
-.prize-card p { color: #94a3b8; font-size: 0.85rem; }
+.rank-label {
+    font-weight: 800;
+    font-size: 0.7rem;
+    color: #000;
+    background: #9AE000;
+    padding: 2px 10px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.prize-details h3 { font-size: 0.9rem; margin: 5px 0 0 0; }
+.prize-details span { font-size: 0.7rem; color: #94a3b8; }
+
+.rank-divider {
+    width: 1px;
+    height: 60px;
+    background: #334155;
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 600px) {
+    .prize-flex-grid {
+        flex-direction: column; /* Stack vertically on phones */
+        gap: 25px;
+    }
+    
+    .rank-divider {
+        width: 80%;
+        height: 1px; /* Horizontal line instead of vertical */
+    }
+}
