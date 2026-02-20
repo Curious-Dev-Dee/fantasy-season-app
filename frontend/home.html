@@ -8,6 +8,21 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/home.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
+
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#9AE000">
+
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4", // Your unique ID from the screenshot
+    });
+  });
+</script>
   
   <script type="module" src="auth-guard.js"></script>
 
@@ -142,6 +157,8 @@
     <button id="saveProfileBtn" class="primary-btn full-width">Save & Start</button>
   </div>
 </div>
+
+<div id="notificationPrompt" class="hidden"></div>
 
 <nav class="bottom-nav">
   <a href="home.html" class="active"><i class="fas fa-house"></i><span>Home</span></a>

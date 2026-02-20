@@ -34,11 +34,75 @@ let currentUserId = null;
 let existingProfile = null; 
 
 /* =========================
+   ONESIGNAL & PUSH LOGIC
+========================= */
+async function initOneSignal(userId) {
+    try {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4", // Fixed from your screenshot
+                safari_web_id: "web.onesignal.auto.1764979e-4a6c-4860-93a9-95a98a97a95a", // Example format
+                notifyButton: { enable: false },
+            });
+
+            // Link Expert Identity
+            await OneSignal.login(userId);
+            console.log("OneSignal: Expert Linked ->", userId);
+
+            // Optional: Show the custom neon prompt if they haven't decided yet
+            if (Notification.permission === 'default') {
+                showNeonNotificationPrompt();
+            }
+        });
+    } catch (err) {
+        console.error("OneSignal Init Failed:", err);
+    }
+}
+
+function showNeonNotificationPrompt() {
+    const promptContainer = document.getElementById("notificationPrompt");
+    if (!promptContainer) return;
+
+    promptContainer.classList.remove("hidden");
+    promptContainer.style.cssText = `
+        position: fixed; bottom: 90px; left: 16px; right: 16px;
+        background: #1e293b; border: 1px solid #9AE000;
+        padding: 16px; border-radius: 16px; z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        display: flex; flex-direction: column; gap: 12px;
+        animation: fadeIn 0.5s ease-out;
+    `;
+
+    promptContainer.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-bell" style="color: #9AE000;"></i>
+            <span style="font-weight: 700; font-size: 14px;">Enable Match Alerts?</span>
+        </div>
+        <p style="margin:0; font-size: 12px; color: #94a3b8;">Get a nudge 15 mins before match lock.</p>
+        <div style="display: flex; gap: 8px;">
+            <button id="btnAllowPush" style="flex:1; background:#9AE000; color:#000; border:none; padding:8px; border-radius:8px; font-weight:700;">ALLOW</button>
+            <button id="btnDismissPush" style="flex:1; background:#334155; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:700;">LATER</button>
+        </div>
+    `;
+
+    document.getElementById("btnAllowPush").onclick = () => {
+        window.OneSignal.showNativePrompt();
+        promptContainer.remove();
+    };
+    document.getElementById("btnDismissPush").onclick = () => promptContainer.remove();
+}
+
+/* =========================
    INIT (Auth Guard Protected)
 ========================= */
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
     currentUserId = user.id;
+    
+    // One-time Setup
+    await initOneSignal(currentUserId);
+    
     console.log("Home.js: Starting dashboard for", user.email);
     startDashboard(currentUserId);
 });
@@ -51,6 +115,7 @@ async function startDashboard(userId) {
         loadLeaderboardPreview()
     ]);
 
+    // Background refresh every 30s
     setInterval(() => {
         fetchHomeData(userId);
         loadLeaderboardPreview();
@@ -74,13 +139,11 @@ async function fetchHomeData(userId) {
 
     existingProfile = data;
 
-    // 1. Header & Profile Text
     tournamentNameElement.textContent = data.tournament_name || "Tournament";
     const firstName = data.full_name?.trim().split(" ")[0] || "Expert";
     welcomeText.textContent = `Welcome back, ${firstName}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
 
-    // 2. Avatar & Modal Syncing
     modalFullName.value = data.full_name || "";
     modalTeamName.value = data.team_name || "";
     
@@ -99,38 +162,30 @@ async function fetchHomeData(userId) {
         modalPreview.style.backgroundImage = `url(${avatarUrl})`;
     }
 
-    // 3. Main Stats
-    // 3. Main Stats
     scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
     subsElement.textContent = data.subs_remaining;
 
-    // NEW: Booster Inventory Logic
     if (boosterStatusEl && boosterIconEl) {
         if (data.s8_booster_used) {
             boosterStatusEl.textContent = "0";
-            // Gray out the icon and text if used
             boosterStatusEl.style.color = "#64748b"; 
             boosterIconEl.style.color = "#64748b";
         } else {
             boosterStatusEl.textContent = "1";
-            // Neon green if available
             boosterStatusEl.style.color = "#9AE000";
             boosterIconEl.style.color = "#9AE000";
         }
     }
-    
-    // 4. Match Logic
+
     const match = data.upcoming_match;
 
     if (match) {
-        // --- DELAY DETECTION ---
         const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
         const delayBadge = isDelayed ? ' <span class="delay-badge">Delayed</span>' : '';
         
         matchTeamsElement.innerHTML = `${match.team_a_code} vs ${match.team_b_code}${delayBadge}`;
 
-        // Render Logos
         const updateTeamLogo = (path, elementId) => {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -169,7 +224,7 @@ async function fetchHomeData(userId) {
         document.getElementById("teamALogo").style.display = "none";
         document.getElementById("teamBLogo").style.display = "none";
     }
-} // FIXED: Closed fetchHomeData function
+}
 
 /* =========================
    DYNAMIC NEON COUNTDOWN
