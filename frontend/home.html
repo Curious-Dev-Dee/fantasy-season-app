@@ -14,12 +14,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#9AE000">
 
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script src="/onesignal-sdk.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
-      appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4", // Your unique ID from the screenshot
+      appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
     });
   });
 </script>
