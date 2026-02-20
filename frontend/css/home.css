@@ -13,9 +13,29 @@ body {
 
 .app-container {
     width: 100%;
-    max-width: 480px;
+    max-width: 480px; /* Standard mobile app width */
     padding: 20px 16px 100px;
     box-sizing: border-box;
+}
+
+/* --- HEADER --- */
+.app-header {
+    margin-bottom: 24px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-header h1 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
 }
 
 /* --- CARD DEFAULTS --- */
@@ -25,9 +45,10 @@ body {
     padding: 20px;
     margin-bottom: 16px;
     border: 1px solid #334155;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* --- USER PROFILE CARD (RESTORED) --- */
+/* --- USER PROFILE CARD --- */
 .user-info {
     display: flex;
     align-items: center;
@@ -41,38 +62,87 @@ body {
     background-color: #0c1117;
     background-size: cover;
     background-position: center;
-    border: 2px solid #9AE000;
+    border: 2px solid #9AE000; /* Neon border */
 }
 
-.welcome-text { font-size: 13px; color: #94a3b8; margin: 0; }
-.team-subtitle { font-size: 18px; font-weight: 800; color: #9AE000; margin: 2px 0 0; }
+.welcome-text {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0;
+}
 
-/* --- STATS CARD (RESTORED 4-COLUMN) --- */
+.team-subtitle {
+    font-size: 18px;
+    font-weight: 800;
+    color: #9AE000;
+    margin: 2px 0 0;
+}
+
+/* --- STATS CARD --- */
+/* --- STATS CARD (Optimized for 4 items) --- */
 .stats-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 12px;
+    padding: 15px 12px; /* Reduced side padding to fit 4 columns */
 }
 
 .stat-inline {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Stack label and value for better mobile fit */
     align-items: center;
-    flex: 1;
+    gap: 4px;
+    flex: 1; /* Give each stat equal space */
 }
 
-.stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 600; margin-top: 4px; }
-.stat-value { font-size: 14px; font-weight: 700; }
-.stat-value.highlight { color: #9AE000; }
-.divider { width: 1px; height: 20px; background-color: #334155; }
+.stat-icon {
+    font-size: 12px; /* Slightly smaller icon */
+    color: #94a3b8;
+    margin-bottom: 2px;
+}
 
-/* --- NEXT MATCH CARD (RESTORED LOGO ALIGNMENT) --- */
+.stat-label {
+    font-size: 10px; /* Smaller label for tight spaces */
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 14px; /* Balanced font size */
+    font-weight: 700;
+}
+
+.stat-value.highlight {
+    color: #9AE000;
+}
+
+/* Booster-specific styling */
+#boosterStatus {
+    transition: color 0.3s ease;
+}
+
+.divider {
+    width: 1px;
+    height: 20px;
+    background-color: #334155;
+}
+/* --- NEXT MATCH CARD (UPDATED FOR LOGOS) --- */
 .next-match-card {
     background: linear-gradient(145deg, #1e293b, #111827);
+    position: relative;
     border-left: 4px solid #9AE000;
 }
 
+.match-badge-small {
+    font-size: 10px;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+/* New Flex Container for Logos + Text */
 .match-vs-header {
     display: flex;
     align-items: center;
@@ -87,31 +157,90 @@ body {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    display: none; /* JS will show this once URL is loaded */
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
 }
 
-.match-teams { font-size: 26px; font-weight: 800; margin: 0; color: #ffffff; }
+.match-teams {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
 
-.match-actions { display: flex; gap: 12px; }
-.primary-btn { flex: 1.2; background-color: #9AE000; color: #0c1117; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-.secondary-btn { flex: 1; background-color: #334155; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+/* NEON DYNAMIC COUNTDOWN */
+.match-time {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centered with logos */
+    gap: 8px;
+    transition: color 0.3s ease;
+}
 
-/* --- NEW LEADERBOARD ROW STYLING (MATCHING YOUR PIC) --- */
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.neon-green { color: #9AE000; text-shadow: 0 0 8px rgba(154, 224, 0, 0.4); }
+.neon-orange { color: #fb923c; text-shadow: 0 0 8px rgba(251, 146, 60, 0.4); }
+.neon-red { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+
+.match-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.primary-btn {
+    flex: 1.2;
+    background-color: #9AE000;
+    color: #0c1117;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.secondary-btn {
+    flex: 1;
+    background-color: #334155;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.btn-hint {
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* --- LEADERBOARD CARD --- */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
 .section-header h3 { font-size: 16px; margin: 0; }
+.section-header i { color: #f59e0b; }
 
 .leader-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid #334155;
+    font-size: 14px;
 }
 
 .leader-row:last-child { border: none; }
-
-.leader-name-group { display: flex; align-items: center; gap: 10px; }
-.leader-rank-text { color: #94a3b8; font-weight: 800; font-size: 14px; width: 20px; }
-.leader-name-text { font-size: 14px; font-weight: 600; color: #ffffff; }
 
 .pts-pill {
     background: rgba(154, 224, 0, 0.1);
@@ -122,14 +251,106 @@ body {
     font-size: 12px;
 }
 
-.view-all-btn {
+/* --- MODAL STYLING --- */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #1e293b;
+    width: 85%;
+    max-width: 380px;
+    border-radius: 24px;
+    padding: 30px;
+    border: 1px solid #334155;
+}
+
+.upload-preview-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 25px;
+}
+
+#modalAvatarPreview {
     width: 100%;
-    background: #334155;
-    color: #ffffff;
-    border: none;
-    padding: 12px;
-    border-radius: 12px;
-    font-weight: 700;
-    margin-top: 10px;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #0c1117;
+    background-size: cover;
+    border: 3px solid #9AE000;
+}
+
+.edit-icon-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #9AE000;
+    color: #000;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    font-size: 14px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.input-group input {
+    width: 100%;
+    background: #0c1117;
+    border: 1px solid #334155;
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    border-color: #9AE000;
+    outline: none;
+}
+
+.full-width { width: 100%; }
+.hidden { display: none !important; }
+
+/* Styling for the Delay Hint */
+.delay-badge {
+    font-size: 10px;
+    background: rgba(251, 146, 60, 0.2);
+    color: #fb923c;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(251, 146, 60, 0.4);
+    margin-left: 8px;
+    text-transform: uppercase;
+    font-weight: 800;
+    vertical-align: middle;
+    animation: pulseDelay 2s infinite;
+}
+
+@keyframes pulseDelay {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
 }
