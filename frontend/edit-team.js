@@ -301,39 +301,65 @@ function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    // Calculate current state for fading logic
+    // 1. Current Stats
     const totalCreditsUsed = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const remainingCredits = 100 - totalCreditsUsed;
     const currentCount = state.selectedPlayers.length;
+    const slotsLeft = 11 - currentCount;
+
+    // 2. Calculate Role Requirements (Minimums: 1 WK, 3 BAT, 1 AR, 3 BOWL)
+    const currentRoles = {
+        WK: state.selectedPlayers.filter(p => p.role === "WK").length,
+        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
+        AR: state.selectedPlayers.filter(p => p.role === "AR").length,
+        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
+    };
+
+    const minRequired = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+    
+    // Calculate how many more players we NEED for each role
+    const neededRoles = {};
+    let totalNeededSlots = 0;
+    
+    for (const role in minRequired) {
+        const debt = Math.max(0, minRequired[role] - currentRoles[role]);
+        neededRoles[role] = debt;
+        totalNeededSlots += debt;
+    }
 
     let filtered = sourceList;
     if (!isMyXi) {
-        // ... (Keep your existing filter logic for search, role, teams, etc.)
+        // ... keep your existing search/team/credit filters here ...
     }
 
     container.innerHTML = filtered.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
         
-        // --- SMART FADE LOGIC ---
         let isDisabled = false;
         let fadeClass = "";
 
         if (!isMyXi && !isSelected) {
-            // Disable if: 11 players already picked OR not enough credits
             const tooExpensive = Number(p.credit) > remainingCredits;
             const squadFull = currentCount >= 11;
+            
+            // --- DYNAMIC ROLE FADING LOGIC ---
+            // If the slots remaining exactly match the number of players still needed for roles
+            const forceMandatoryRoles = (slotsLeft <= totalNeededSlots);
+            const thisRoleIsNeeded = neededRoles[p.role] > 0;
 
-            if (tooExpensive || squadFull) {
+            // FADE if: Squad is full, OR too expensive, OR we must pick a specific role and this isn't it
+            if (squadFull || tooExpensive || (forceMandatoryRoles && !thisRoleIsNeeded)) {
                 isDisabled = true;
                 fadeClass = "player-faded"; 
             }
         }
 
-const photoUrl = p.photo_url 
+        const photoUrl = p.photo_url 
             ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
             : 'images/default-avatar.png'; 
         
+        // ... (Keep the rest of your button and template logic here) ...        
         let controlsHtml = isMyXi ? `
             <div class="controls">
                 <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
