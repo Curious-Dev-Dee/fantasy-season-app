@@ -172,20 +172,40 @@ async function renderSelectionView(match) {
 async function renderResultView(match) {
     const resultContainer = document.getElementById("resultView");
     
-    const [statsRes, winnerRes, motmRes] = await Promise.all([
-        supabase.from("prediction_stats_view").select("*").eq("match_id", match.id),
-        supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single(),
-        supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single()
-    ]);
+    // 1. Fetch Stats first to see if we even have prediction data
+    const { data: statsArray } = await supabase
+        .from("prediction_stats_view")
+        .select("*")
+        .eq("match_id", match.id);
+    
+    const stats = statsArray?.[0];
 
-    const stats = statsRes.data?.[0];
+    // 2. Only fetch Team/Player/Expert if the IDs exist to avoid 400 errors
+    const fetchPromises = [];
+    
+    if (match.winner_id) {
+        fetchPromises.push(supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single());
+    } else {
+        fetchPromises.push(Promise.resolve({ data: { short_code: 'TBA' } }));
+    }
+
+    if (match.man_of_the_match_id) {
+        fetchPromises.push(supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single());
+    } else {
+        fetchPromises.push(Promise.resolve({ data: { name: 'TBA' } }));
+    }
+
+    if (stats?.predicted_top_user_id) {
+        fetchPromises.push(supabase.from("user_profiles").select("team_name").eq("user_id", stats.predicted_top_user_id).single());
+    } else {
+        fetchPromises.push(Promise.resolve({ data: { team_name: 'TBA' } }));
+    }
+
+    const [winnerRes, motmRes, expertRes] = await Promise.all(fetchPromises);
+
     const winnerTeam = winnerRes.data;
     const motmPlayer = motmRes.data;
-
-    const { data: topExpert } = await supabase.from("user_profiles")
-        .select("team_name")
-        .eq("user_id", stats?.predicted_top_user_id)
-        .single();
+    const topExpert = expertRes.data;
 
     resultContainer.innerHTML = `
         <div class="result-header">
@@ -194,30 +214,21 @@ async function renderResultView(match) {
         </div>
         
         <div class="result-item">
-            <div class="result-row">
-                <label>Match Winner</label>
-                <span class="winner-val">${winnerTeam?.short_code || 'N/A'}</span>
-            </div>
+            <div class="result-row"><label>Winner</label><span class="winner-val">${winnerTeam?.short_code || 'TBA'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.winner_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.winner_pct || 0}% picked correctly (${stats?.winner_votes || 0} votes)</div>
+            <div class="pct-label">${stats?.winner_pct || 0}% correct (${stats?.winner_votes || 0} votes)</div>
         </div>
 
         <div class="result-item">
-            <div class="result-row">
-                <label>Man of the Match</label>
-                <span class="winner-val">${motmPlayer?.name || 'N/A'}</span>
-            </div>
+            <div class="result-row"><label>Man of the Match</label><span class="winner-val">${motmPlayer?.name || 'TBA'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.mvp_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.mvp_pct || 0}% picked correctly (${stats?.mvp_votes || 0} votes)</div>
+            <div class="pct-label">${stats?.mvp_pct || 0}% correct (${stats?.mvp_votes || 0} votes)</div>
         </div>
 
         <div class="result-item">
-            <div class="result-row">
-                <label>Top Expert (Rank 1)</label>
-                <span class="winner-val">${topExpert?.team_name || 'N/A'}</span>
-            </div>
+            <div class="result-row"><label>Top Expert</label><span class="winner-val">${topExpert?.team_name || 'TBA'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.top_user_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.top_user_pct || 0}% picked correctly (${stats?.top_user_votes || 0} votes)</div>
+            <div class="pct-label">${stats?.top_user_pct || 0}% correct (${stats?.top_user_votes || 0} votes)</div>
         </div>
     `;
 }
