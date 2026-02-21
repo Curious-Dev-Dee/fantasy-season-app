@@ -34,36 +34,41 @@ let currentUserId = null;
 let existingProfile = null; 
 
 /* =========================
-   ONESIGNAL & PUSH LOGIC (FIXED)
+   ONESIGNAL & PUSH LOGIC
 ========================= */
 async function initOneSignal(userId) {
     if (!window.OneSignalDeferred) {
-        console.warn("OneSignal: SDK blocked by client.");
+        console.warn("OneSignal: SDK blocked by client (AdBlock/Privacy). Push disabled.");
         return; 
     }
 
-    window.OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-            appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
-            notifyButton: { enable: false }
-        });
+    try {
+        window.OneSignalDeferred.push(async function(OneSignal) {
+            // 1. Initialize SDK
+            await OneSignal.init({
+                appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+                notifyButton: { enable: false }
+            });
 
-        // Expert Identity Link karein
-        await OneSignal.login(userId);
-        
-        // 🚀 CRITICAL FIX: Push Subscription ID lo aur Supabase mein save karo
-        const onesignalId = OneSignal.User.PushSubscription.id;
-        
-        if (onesignalId) {
-            const { error } = await supabase
-                .from('user_profiles')
-                .update({ onesignal_id: onesignalId })
-                .eq('user_id', userId);
+            // 2. Link Expert Identity
+            await OneSignal.login(userId);
+
+            // 3. CAPTURE & SAVE ID: This is what powers your personalized Hinglish alerts
+            const onesignalId = OneSignal.User.PushSubscription.id;
             
-            if (error) console.error("OneSignal ID Update Failed:", error);
-            else console.log("OneSignal ID Saved for Personalized Teasing!");
-        }
-    });
+            if (onesignalId) {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({ onesignal_id: onesignalId })
+                    .eq('user_id', userId);
+                
+                if (error) console.error("OneSignal ID Sync Error:", error);
+                else console.log("OneSignal ID synced to Database for Expert:", userId);
+            }
+        });
+    } catch (err) {
+        console.error("OneSignal: Handshake failed", err);
+    }
 }
 
 function showNeonNotificationPrompt() {
@@ -71,7 +76,32 @@ function showNeonNotificationPrompt() {
     if (!promptContainer) return;
 
     promptContainer.classList.remove("hidden");
-    // ... (aapka existing CSS style logic same rahega)
+    promptContainer.style.cssText = `
+        position: fixed; bottom: 90px; left: 16px; right: 16px;
+        background: #1e293b; border: 1px solid #9AE000;
+        padding: 16px; border-radius: 16px; z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        display: flex; flex-direction: column; gap: 12px;
+        animation: fadeIn 0.5s ease-out;
+    `;
+
+    promptContainer.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-bell" style="color: #9AE000;"></i>
+            <span style="font-weight: 700; font-size: 14px;">Enable Match Alerts?</span>
+        </div>
+        <p style="margin:0; font-size: 12px; color: #94a3b8;">Get a nudge 15 mins before match lock.</p>
+        <div style="display: flex; gap: 8px;">
+            <button id="btnAllowPush" style="flex:1; background:#9AE000; color:#000; border:none; padding:8px; border-radius:8px; font-weight:700;">ALLOW</button>
+            <button id="btnDismissPush" style="flex:1; background:#334155; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:700;">LATER</button>
+        </div>
+    `;
+
+    document.getElementById("btnAllowPush").onclick = () => {
+        window.OneSignal.showNativePrompt();
+        promptContainer.remove();
+    };
+    document.getElementById("btnDismissPush").onclick = () => promptContainer.remove();
 }
 
 /* =========================
@@ -81,22 +111,7 @@ window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
     currentUserId = user.id;
     
-    // Yahan ID update aur OneSignal dono manage honge
-    await initOneSignal(currentUserId);
-    
-    console.log("Home.js: Starting dashboard for", user.email);
-    startDashboard(currentUserId);
-});
-
-// ... (Baki saara startDashboard, fetchHomeData, leaderboard, countdown logic same rahega)
-/* =========================
-   INIT (Auth Guard Protected)
-========================= */
-window.addEventListener('auth-verified', async (e) => {
-    const user = e.detail.user;
-    currentUserId = user.id;
-    
-    // One-time Setup
+    // Setup Push & Identity
     await initOneSignal(currentUserId);
     
     console.log("Home.js: Starting dashboard for", user.email);
