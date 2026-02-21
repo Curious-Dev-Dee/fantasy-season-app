@@ -7,39 +7,44 @@ const podiumContainer = document.getElementById("podiumContainer");
 init();
 
 async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { window.location.href = "login.html"; return; }
-  const userId = session.user.id;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = "login.html"; return; }
+    const userId = session.user.id;
 
-  const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
-  if (!activeTournament) return;
+    // Check if we are viewing a specific private league
+    const urlParams = new URLSearchParams(window.location.search);
+    const leagueId = urlParams.get('league_id');
 
-  // 1. Fetch Leaderboard & User Profiles in parallel for speed
-  const [leaderboardRes, profilesRes] = await Promise.all([
-    supabase
-      .from("leaderboard_view")
-      .select("*")
-      .eq("tournament_id", activeTournament.id)
-      .order("rank", { ascending: true }),
-    supabase
-      .from("user_profiles")
-      .select("user_id, team_photo_url")
-  ]);
+    const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
+    if (!activeTournament) return;
 
-  const leaderboard = leaderboardRes.data;
-  const profiles = profilesRes.data || [];
+    let query;
+    if (leagueId) {
+        // Fetch from Private View
+        query = supabase.from("private_league_leaderboard").select("*").eq("league_id", leagueId);
+        document.querySelector('h1').textContent = "League Standings";
+    } else {
+        // Fetch from Overall View
+        query = supabase.from("leaderboard_view").select("*").eq("tournament_id", activeTournament.id);
+    }
 
-  if (!leaderboard || leaderboard.length === 0) {
-    leaderboardSummary.textContent = "Rankings will appear after the first match.";
-    return;
-  }
+    const [leaderboardRes, profilesRes] = await Promise.all([
+        query.order("total_points", { ascending: false }),
+        supabase.from("user_profiles").select("user_id, team_photo_url")
+    ]);
 
-  // 2. Create a map for quick photo URL lookups
-  const avatarMap = new Map(profiles.map(p => [p.user_id, p.team_photo_url]));
+    const leaderboard = leaderboardRes.data;
+    const profiles = profilesRes.data || [];
 
-  renderLeaderboard(leaderboard, userId, avatarMap);
+    // Map ranks appropriately (use rank_in_league if private)
+    const normalizedData = leaderboard.map(row => ({
+        ...row,
+        rank: leagueId ? row.rank_in_league : row.rank
+    }));
+
+    const avatarMap = new Map(profiles.map(p => [p.user_id, p.team_photo_url]));
+    renderLeaderboard(normalizedData, userId, avatarMap);
 }
-
 function renderLeaderboard(leaderboard, userId, avatarMap) {
   // 1. Split Data
   const top3 = leaderboard.slice(0, 3);

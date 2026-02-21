@@ -123,6 +123,16 @@ async function startDashboard(userId) {
     
     await Promise.all([
         fetchHomeData(userId),
+        loadLeaderboardPreview(),
+        fetchPrivateLeagueData(userId) // NEW: Fetch Private League Standings
+    ]);
+    
+    // ... rest of your interval code
+
+    document.body.classList.remove('loading-state');
+    
+    await Promise.all([
+        fetchHomeData(userId),
         loadLeaderboardPreview()
     ]);
 
@@ -136,6 +146,60 @@ async function startDashboard(userId) {
 /* =========================
    CORE DASHBOARD LOGIC
 ========================= */
+
+async function fetchPrivateLeagueData(userId) {
+    // 1. Check for league membership
+    const { data: membership } = await supabase
+        .from('league_members')
+        .select('league_id, leagues(name, invite_code)')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    const card = document.getElementById('privateLeagueCard');
+    const container = document.getElementById('privateLeaderboardContainer');
+
+    if (!membership) {
+        card.classList.add('hidden'); // Hide if not in a league
+        return;
+    }
+
+    card.classList.remove('hidden');
+    document.getElementById('privateLeagueName').textContent = membership.leagues.name;
+    document.getElementById('privateInviteCode').textContent = membership.leagues.invite_code;
+
+    // 2. Fetch Top 3 members of this specific league
+    const { data: members } = await supabase
+        .from('private_league_leaderboard')
+        .select('team_name, total_points, rank_in_league, user_id')
+        .eq('league_id', membership.league_id)
+        .order('total_points', { ascending: false })
+        .limit(3);
+
+    if (members) {
+        container.innerHTML = members.map(row => `
+            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
+                <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
+                <span class="pts-pill">${row.total_points} pts</span>
+            </div>
+        `).join('');
+
+        // Find and set current user's rank in this league
+        const me = members.find(m => m.user_id === userId);
+        if (me) document.getElementById('privateLeagueRank').textContent = `#${me.rank_in_league}`;
+    }
+
+    // 3. Handle "View All" Navigation
+    document.getElementById('viewPrivateLeaderboard').onclick = () => {
+        window.location.href = `leaderboard.html?league_id=${membership.league_id}`;
+    };
+
+    // 4. Click to Copy Invite Code
+    document.getElementById('privateInviteCode').onclick = () => {
+        navigator.clipboard.writeText(membership.leagues.invite_code);
+        alert("Invite Code Copied! Share it with your friends.");
+    };
+}
+
 async function fetchHomeData(userId) {
     const { data, error } = await supabase
         .from('home_dashboard_view')

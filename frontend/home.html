@@ -113,6 +113,29 @@
   <div class="btn-hint">Locks at match start time</div>
 </section>
 
+<section class="card leaderboard-card hidden" id="privateLeagueCard">
+    <div class="section-header">
+        <div style="display: flex; flex-direction: column;">
+            <h3 id="privateLeagueName" style="color: #9AE000;">My League</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0;">
+                Code: <span id="privateInviteCode" style="color: #fff; font-weight: 700; cursor: pointer;">--</span>
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 10px; color: #94a3b8; margin: 0;">YOUR RANK</p>
+            <span id="privateLeagueRank" style="font-size: 18px; font-weight: 800; color: #00f2ff;">#--</span>
+        </div>
+    </div>
+    
+    <div id="privateLeaderboardContainer">
+        <p style="color: #9ca3af; font-size: 13px;">Fetching league standings...</p>
+    </div>
+    
+    <button class="view-all-btn" id="viewPrivateLeaderboard">
+        League Standings <i class="fas fa-chevron-right"></i>
+    </button>
+</section>
+
   <section class="card leaderboard-card">
     <div class="section-header">
         <h3>Top Experts</h3>
