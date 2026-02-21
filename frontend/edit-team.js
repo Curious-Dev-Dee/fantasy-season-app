@@ -129,51 +129,47 @@ function updateHeaderMatch(match) {
    RENDER LOGIC
 ========================= */
 function render() {
-    // 1. APPLY FILTERS FIRST
+    // 1. APPLY ALL FILTERS (Added Match Logic here)
     const filteredPlayers = state.allPlayers.filter(p => {
+        // Search Filter
         const matchesSearch = p.name.toLowerCase().includes(state.filters.search.toLowerCase());
+        
+        // Role Filter
         const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
+        
+        // Team Filter
         const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
+        
+        // Credit Filter
         const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
         
-        return matchesSearch && matchesRole && matchesTeam && matchesCredit;
+        // MATCH FILTER (New Logic)
+        // If a match is selected, show players belonging to either Team A or Team B of that match
+        const matchesMatch = state.filters.matches.length === 0 || state.filters.matches.some(mId => {
+            const m = state.matches.find(match => match.id === mId);
+            return m && (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id);
+        });
+
+        return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesMatch;
     });
-  
-    // 2. Pass THIS filtered list to the player pool renderer
-    renderList("playerPoolList", filteredPlayers, false);
-    
+
+    // 2. STATS & CALCULATIONS
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
-    /* Inside the render() function */
+    let subsUsedInDraft = 0;
+    const isResetMatch = state.currentMatchNumber === 41 || state.currentMatchNumber === 53;
 
-// 1. Existing logic for subsUsed
-let subsUsedInDraft = 0;
-const isResetMatch = state.currentMatchNumber === 41 || state.currentMatchNumber === 53;
-
-if (isResetMatch) {
-    subsUsedInDraft = 0; 
-} else if (state.lockedPlayerIds.length > 0) {
-    subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
-}
-
-// 2. THE FIX: Ensure isOverLimit is FALSE if it's a reset match
-const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
-
-// UPDATED LINE: If it's a reset match, it can NEVER be over the limit
-const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber === 53) ? false : (liveSubsRemaining < 0);    // BOOSTER LOGIC - Updated for "Use Once" rule
-    const boosterContainer = document.getElementById("boosterContainer");
-    const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
-    
-    if (boosterContainer) {
-        if (isBoosterWindow && state.s8BoosterUsed === false) {
-            boosterContainer.classList.remove("hidden");
-            document.getElementById("boosterToggle").checked = state.boosterActiveInDraft;
-        } else {
-            boosterContainer.classList.add("hidden");
-        }
+    if (isResetMatch) {
+        subsUsedInDraft = 0; 
+    } else if (state.lockedPlayerIds.length > 0) {
+        subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
     }
 
+    const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
+    const isOverLimit = (isResetMatch) ? false : (liveSubsRemaining < 0);
+
+    // 3. UI UPDATES (Labels & Progress)
     document.getElementById("playerCountLabel").innerText = count;
     document.getElementById("creditCount").innerText = totalCredits.toFixed(1);
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
@@ -190,6 +186,7 @@ const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber
         }
     }
 
+    // 4. ROLE COUNT DISPLAY
     const roles = {
         WK: state.selectedPlayers.filter(p => p.role === "WK").length,
         BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
@@ -202,33 +199,28 @@ const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber
         if(el) el.innerText = roles[role] > 0 ? roles[role] : "";
     });
 
+    // 5. RENDER LISTS
+    // We render the My XI normally...
     renderList("myXIList", state.selectedPlayers, true);  
-    renderList("playerPoolList", state.allPlayers, false); 
-
-    /* --- DYNAMIC VALIDATION LOGIC --- */
-    /* --- UPDATED DYNAMIC VALIDATION LOGIC --- */
-    const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
     
-    // THE FIX: Added explicit check for state.captainId AND state.viceCaptainId
-    const isValid = count === 11 && 
-                    state.captainId && 
-                    state.viceCaptainId && 
-                    totalCredits <= 100 && 
-                    !isOverLimit && 
-                    hasRequiredRoles;
+    // ...BUT we only render the FILTERED list for the Player Pool!
+    renderList("playerPoolList", filteredPlayers, false); 
+
+    // --- CRITICAL AUDIT: REMOVED THE DUPLICATE RENDERLIST CALL THAT WAS OVERWRITING YOUR FILTERS ---
+
+    // 6. VALIDATION & SAVE BUTTON
+    const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
+    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles;
 
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
 
-    // Priority-based messaging (The user sees the most important error first)
     if (state.saving) {
         saveBtn.innerText = "SAVING...";
     } else if (isOverLimit) {
         saveBtn.innerText = "OUT OF SUBS!";
     } else if (count < 11) {
         saveBtn.innerText = `ADD ${11 - count} MORE PLAYERS`;
-    } else if (count > 11) {
-        saveBtn.innerText = `REMOVE ${count - 11} PLAYERS`;
     } else if (!hasRequiredRoles) {
         saveBtn.innerText = "REQ: 1 WK, 3 BAT, 1 AR, 3 BOWL";
     } else if (totalCredits > 100) {
@@ -241,7 +233,6 @@ const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber
         saveBtn.innerText = "SAVE TEAM";
     }
 }
-
 /* =========================
    FILTER LOGIC
 ========================= */
