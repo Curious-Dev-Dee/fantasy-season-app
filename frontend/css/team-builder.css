@@ -443,3 +443,20 @@ body {
     padding-top: 15px; /* Added breathing room for booster */
     height: auto; /* Allow bar to expand with booster */
 }
+
+/* Faded state for unavailable players */
+.player-card.player-faded {
+    opacity: 0.4;
+    filter: grayscale(0.8);
+    pointer-events: none; /* Prevents clicks on the whole card */
+    background: rgba(15, 23, 42, 0.5); /* Darken them slightly */
+}
+
+/* Ensure the disabled button looks unclickable */
+.action-btn-circle:disabled {
+    background: #1e293b;
+    color: #475569;
+    border-color: #334155;
+    cursor: not-allowed;
+    box-shadow: none;
+}
