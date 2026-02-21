@@ -488,3 +488,14 @@ body {
     opacity: 0.3;
     filter: grayscale(1);
 }
+
+/* Add to team-builder.css */
+.role-tab.incomplete {
+    border: 1px solid #ef4444;
+    color: #ef4444;
+}
+
+.role-tab.complete {
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+}

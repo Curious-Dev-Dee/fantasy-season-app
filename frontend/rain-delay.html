@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin: Rain Delay Reset</title>
+    <style>
+        body { font-family: sans-serif; background: #0c1117; color: white; padding: 20px; }
+        .card { background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; margin: auto; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #30363d; background: #0d1117; color: white; }
+        button { background: #238636; color: white; font-weight: bold; cursor: pointer; border: none; }
+        button.danger { background: #da3633; }
+        .match-info { font-size: 0.9em; color: #8b949e; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🌧️ Match Delay Reset</h2>
+        <p style="font-size: 0.8em; color: #ef4444;">Warning: This will delete locked team history for the selected match and move it back to 'upcoming'.</p>
+        
+        <label>1. Select Match</label>
+        <select id="matchSelect">
+            <option value="">Loading matches...</option>
+        </select>
+
+        <label>2. Set New Start Time (Your Local Time)</label>
+        <input type="datetime-local" id="newStartTime">
+
+        <button id="resetBtn" class="danger">RESET MATCH & OPEN EDITING</button>
+        <div id="statusLog" class="match-info"></div>
+    </div>
+
+    <script type="module" src="rain-delay.js"></script>
+</body>
+</html>

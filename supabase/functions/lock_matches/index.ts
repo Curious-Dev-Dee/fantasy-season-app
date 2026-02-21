@@ -90,10 +90,12 @@ async function lockUserTeamForMatch(
   if (existing) return;
 
   // 2. Fetch the most recent snapshot for sub-comparison
-  const { data: lastSnapshot } = await supabase
+  // ... (inside lockUserTeamForMatch)
+const { data: lastSnapshot } = await supabase
     .from("user_match_teams")
     .select("id, total_subs_used")
     .eq("user_id", team.user_id)
+    .neq("match_id", match.id) // <--- ADD THIS LINE
     .order("locked_at", { ascending: false })
     .limit(1)
     .maybeSingle();

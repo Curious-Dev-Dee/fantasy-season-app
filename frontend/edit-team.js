@@ -36,26 +36,39 @@ window.addEventListener('auth-verified', async (e) => {
 async function init(user) {
     if (!user) return;
 
+    // 1. Fetch Matches first to identify the "Current" match
+    const { data: matches } = await supabase.from("matches")
+        .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+        .eq("tournament_id", TOURNAMENT_ID)
+        .gt("actual_start_time", new Date().toISOString())
+        .order("actual_start_time", { ascending: true }).limit(5);
+
+    state.matches = matches || [];
+    const currentMatchId = state.matches[0]?.id; // This is the match we are editing for
+    state.currentMatchNumber = state.matches[0]?.match_number || 0;
+
+    // 2. Fetch the rest in parallel, EXCLUDING the currentMatchId from lastLock
     const [
         { data: players },
         { data: dashboardData }, 
         { data: lastLock },
-        { data: currentTeam },
-        { data: matches }
+        { data: currentTeam }
     ] = await Promise.all([
         supabase.from("player_pool_view").select("*").eq("is_active", true),
         supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used")
             .eq("user_id", user.id).maybeSingle(),
+        
+        // FIX: The query now ignores the current match to survive rain delays
         supabase.from("user_match_teams").select("id, user_match_team_players(player_id)")
-            .eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+            .eq("user_id", user.id)
+            .neq("match_id", currentMatchId) 
+            .order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+
         supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)")
             .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-        supabase.from("matches").select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-            .eq("tournament_id", TOURNAMENT_ID)
-            .gt("actual_start_time", new Date().toISOString())
-            .order("actual_start_time", { ascending: true }).limit(5)
     ]);
 
+    // ... (rest of your state assignment remains the same)
     state.allPlayers = players || [];
     state.baseSubsRemaining = dashboardData?.subs_remaining ?? 80;
     state.s8BoosterUsed = dashboardData?.s8_booster_used ?? false;
@@ -64,7 +77,8 @@ async function init(user) {
     if (lastLock?.user_match_team_players) {
         state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
     }
-
+    
+    // ... (rest of your function)
     if (currentTeam) {
         state.captainId = currentTeam.captain_id;
         state.viceCaptainId = currentTeam.vice_captain_id;
@@ -72,9 +86,6 @@ async function init(user) {
         state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
     }
 
-    state.matches = matches || [];
-    state.currentMatchNumber = state.matches[0]?.match_number || 0;
-    
     if (state.matches.length > 0) {
         updateHeaderMatch(state.matches[0]);
     }
@@ -83,7 +94,6 @@ async function init(user) {
     render();
     setupListeners();
 }
-
 const getTeamCode = (player) => player.team_short_code || "UNK";
 
 function updateHeaderMatch(match) {
