@@ -152,73 +152,75 @@ body {
     transform: scale(1.05);
 }
 
-/* --- FLOATING CHAT BOX --- */
-.chat-drawer {
+/* --- CHAT TOGGLE BUTTON (FAB) --- */
+.chat-fab {
     position: fixed; 
-    bottom: 90px; /* Above the bottom nav */
+    bottom: 90px; /* Positioned above the bottom nav */
     right: 20px; 
-    width: 320px; /* Compact box width */
-    height: 450px; /* Smaller height so it doesn't cover everything */
-    background: var(--bg-dark); 
-    border: 1px solid #334155;
-    border-top: 2px solid var(--neon-cyan);
-    z-index: 2000; 
-    display: flex; 
-    flex-direction: column; 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 20px; 
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-    overflow: hidden;
+    width: 56px; 
+    height: 56px;
+    background: var(--neon-cyan); 
+    border: none; 
+    border-radius: 50%;
+    font-size: 22px; 
+    color: #000; 
+    box-shadow: 0 4px 20px rgba(0, 242, 255, 0.4); 
+    z-index: 9999; /* Higher than everything else */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* When hidden, move it down and fade it out */
+/* --- THE CHAT BOX (CORNER WIDGET) --- */
+.chat-drawer {
+    position: fixed; 
+    bottom: 160px; /* Above the FAB */
+    right: 20px; 
+    width: 320px; 
+    height: 450px; 
+    background: var(--bg-dark); 
+    border: 1px solid #334155;
+    border-top: 3px solid var(--neon-cyan);
+    z-index: 9998; 
+    display: flex; 
+    flex-direction: column; 
+    border-radius: 20px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+}
+
 .drawer-hidden { 
-    transform: translateY(20px); 
+    transform: translateY(20px) scale(0.9); 
     opacity: 0; 
     pointer-events: none; 
 }
 
-/* --- CHAT BUBBLES (The "Messy" Fix) --- */
-.chat-display { 
-    flex: 1; 
-    padding: 15px; 
-    overflow-y: auto; 
+/* --- PREDICTION & RESULT CARD POLISH --- */
+.result-item { 
+    margin-bottom: 18px; 
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.result-row { 
     display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
+    justify-content: space-between; 
+    margin-bottom: 8px; 
 }
 
-.chat-bubble {
-    max-width: 85%;
-    padding: 10px 14px;
-    border-radius: 15px;
-    font-size: 13px;
-    line-height: 1.4;
-    position: relative;
-}
+.result-row label { color: var(--text-slate); font-size: 12px; font-weight: 700; }
+.winner-val { color: #fff; font-weight: 800; font-size: 14px; }
 
-.chat-bubble.other {
-    align-self: flex-start;
-    background: var(--card-bg);
-    border: 1px solid #334155;
-    border-bottom-left-radius: 2px;
+/* FIX CLUMPING TEXT (WinnerTBA -> Winner: TBA) */
+.pct-label { 
+    font-size: 11px; 
+    color: var(--neon-green); 
+    margin-top: 6px; 
+    font-weight: 600; 
+    letter-spacing: 0.3px;
 }
-
-.chat-bubble.mine {
-    align-self: flex-end;
-    background: var(--neon-cyan);
-    color: #000;
-    border-bottom-right-radius: 2px;
-}
-
-.msg-user {
-    display: block;
-    font-size: 10px;
-    font-weight: 800;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-}
-
 .other .msg-user { color: var(--neon-green); }
 .mine .msg-user { color: rgba(0,0,0,0.5); }
 /* --- MINI LEADERBOARD --- */

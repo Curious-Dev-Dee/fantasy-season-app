@@ -168,37 +168,27 @@ async function renderSelectionView(match) {
 
 async function renderResultView(match) {
     const resultContainer = document.getElementById("resultView");
-    
-    // 🛡️ Error-Proof Fetching
-    const { data: statsArray } = await supabase.from("prediction_stats_view").select("*").eq("match_id", match.id);
-    const stats = statsArray?.[0];
-
-    const fetchPromises = [];
-    fetchPromises.push(match.winner_id ? supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single() : Promise.resolve({ data: { short_code: 'TBA' } }));
-    fetchPromises.push(match.man_of_the_match_id ? supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single() : Promise.resolve({ data: { name: 'TBA' } }));
-    fetchPromises.push(stats?.predicted_top_user_id ? supabase.from("user_profiles").select("team_name").eq("user_id", stats.predicted_top_user_id).single() : Promise.resolve({ data: { team_name: 'TBA' } }));
-
-    const [winnerRes, motmRes, expertRes] = await Promise.all(fetchPromises);
+    // ... (keep your existing fetch logic) ...
 
     resultContainer.innerHTML = `
-        <div class="result-header" style="text-align:center; margin-bottom:15px;">
-            <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
+        <div class="result-header" style="text-align:center; margin-bottom:20px;">
+            <span class="final-badge">LATEST RESULT</span>
+            <h3 class="theme-neon-text" style="margin-top:10px;">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
         </div>
         
         <div class="result-item">
-            <div class="result-row"><label>Winner</label><span class="winner-val">${winnerRes.data.short_code}</span></div>
+            <div class="result-row"><label>WINNER</label> <span class="winner-val">${winnerRes.data.short_code || 'TBA'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.winner_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.winner_pct || 0}% correct (${stats?.winner_votes || 0} votes)</div>
+            <div class="pct-label">${stats?.winner_pct || 0}% picked correctly (${stats?.winner_votes || 0} votes)</div>
         </div>
 
         <div class="result-item">
-            <div class="result-row"><label>Man of the Match</label><span class="winner-val">${motmRes.data.name}</span></div>
+            <div class="result-row"><label>MAN OF THE MATCH</label> <span class="winner-val">${motmRes.data.name || 'TBA'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.mvp_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.mvp_pct || 0}% correct (${stats?.mvp_votes || 0} votes)</div>
+            <div class="pct-label">${stats?.mvp_pct || 0}% picked correctly (${stats?.mvp_votes || 0} votes)</div>
         </div>
     `;
 }
-
 /* =========================
    PRIVATE LEAGUE LOGIC
 ========================= */
