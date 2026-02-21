@@ -330,7 +330,7 @@ function renderList(containerId, sourceList, isMyXi) {
             }
         }
 
-        const photoUrl = p.photo_url 
+const photoUrl = p.photo_url 
             ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
             : 'images/default-avatar.png'; 
         
@@ -344,9 +344,12 @@ function renderList(containerId, sourceList, isMyXi) {
                 ${isDisabled ? 'disabled' : ''} 
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
         
+        // --- UPDATED RETURN TEMPLATE ---
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
-            <div class="avatar-silhouette" style="background-image: url('${photoUrl}')"></div>
+            <div class="avatar-container">
+                <img src="${photoUrl}" class="player-avatar" alt="${p.name}">
+            </div>
             <div class="player-info">
                 <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
                 <span>${p.role} • ${getTeamCode(p)} • ${p.credit} Cr</span>
