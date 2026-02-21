@@ -129,9 +129,21 @@ function updateHeaderMatch(match) {
    RENDER LOGIC
 ========================= */
 function render() {
-    const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const count = state.selectedPlayers.length;
+    // 1. First, apply all filters to create a subset of players
+    const filteredPlayers = state.allPlayers.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(state.filters.search.toLowerCase());
+        const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
+        const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
+        const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
+        
+        return matchesSearch && matchesRole && matchesTeam && matchesCredit;
+    });
 
+    // 2. Pass THIS filtered list to the player pool renderer
+    renderList("playerPoolList", filteredPlayers, false); 
+    
+    // ... rest of your render logic ...
+}
     /* Inside the render() function */
 
 // 1. Existing logic for subsUsed
