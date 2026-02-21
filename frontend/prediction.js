@@ -226,6 +226,7 @@ async function renderSelectionView(match) {
   });
 }
 
+/* --- FIXED RESULT VIEW (Added missing Top Expert) --- */
 async function renderResultView(match) {
   const container = document.getElementById("resultView");
   const { data: statsArray } = await supabase
@@ -237,25 +238,13 @@ async function renderResultView(match) {
 
   const fetchPromises = [
     match.winner_id
-      ? supabase
-          .from("real_teams")
-          .select("short_code")
-          .eq("id", match.winner_id)
-          .single()
+      ? supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single()
       : Promise.resolve({ data: { short_code: "TBA" } }),
     match.man_of_the_match_id
-      ? supabase
-          .from("players")
-          .select("name")
-          .eq("id", match.man_of_the_match_id)
-          .single()
+      ? supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single()
       : Promise.resolve({ data: { name: "TBA" } }),
     stats?.predicted_top_user_id
-      ? supabase
-          .from("user_profiles")
-          .select("team_name")
-          .eq("user_id", stats.predicted_top_user_id)
-          .single()
+      ? supabase.from("user_profiles").select("team_name").eq("user_id", stats.predicted_top_user_id).single()
       : Promise.resolve({ data: { team_name: "TBA" } }),
   ];
 
@@ -264,34 +253,28 @@ async function renderResultView(match) {
   container.innerHTML = `
     <div class="result-header" style="text-align:center; margin-bottom:15px;">
       <span class="final-badge">LATEST RESULT</span>
-      <h3 class="theme-neon-text">
-        ${match.team_a.short_code} vs ${match.team_b.short_code}
-      </h3>
+      <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
     </div>
 
-    ${renderResultItem(
-      "Winner",
-      wRes.data?.short_code || "TBA",
-      stats?.winner_pct,
-      stats?.winner_votes
-    )}
-
-    ${renderResultItem(
-      "Man of the Match",
-      mRes.data?.name || "TBA",
-      stats?.mvp_pct,
-      stats?.mvp_votes
-    )}
-
-    ${renderResultItem(
-      "Top Expert",
-      eRes.data?.team_name || "TBA",
-      stats?.top_user_pct,
-      stats?.top_user_votes
-    )}
+    ${renderResultItem("Winner", wRes.data?.short_code || "TBA", stats?.winner_pct, stats?.winner_votes)}
+    ${renderResultItem("Man of the Match", mRes.data?.name || "TBA", stats?.mvp_pct, stats?.mvp_votes)}
+    ${renderResultItem("Top Expert", eRes.data?.team_name || "TBA", stats?.top_user_pct, stats?.top_user_votes)}
   `;
 }
 
+/* --- FIXED DRAWER (Added 50ms Scroll Delay) --- */
+function setupDrawerListeners() {
+  chatToggleBtn.onclick = (e) => {
+    e.stopPropagation();
+    chatDrawer.classList.remove("drawer-hidden");
+    newMsgBadge.classList.add("hidden");
+    // Delay ensures the DOM is ready before scrolling
+    setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 50);
+  };
+  closeChatBtn.onclick = () => chatDrawer.classList.add("drawer-hidden");
+  globalChatTab.onclick = () => switchChatMode("global");
+  privateChatTab.onclick = () => switchChatMode("private");
+}
 function renderResultItem(label, val, pct, votes) {
   return `
     <div class="result-item">
