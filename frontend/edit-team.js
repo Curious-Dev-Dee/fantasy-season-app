@@ -139,6 +139,9 @@ function render() {
         return matchesSearch && matchesRole && matchesTeam && matchesCredit;
     });
   
+    // 2. Pass THIS filtered list to the player pool renderer
+    renderList("playerPoolList", filteredPlayers, false);
+    
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const count = state.selectedPlayers.length;
 
