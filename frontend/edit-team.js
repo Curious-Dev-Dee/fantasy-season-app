@@ -143,7 +143,7 @@ function render() {
     renderList("playerPoolList", filteredPlayers, false); 
     
     // ... rest of your render logic ...
-}
+
     /* Inside the render() function */
 
 // 1. Existing logic for subsUsed
