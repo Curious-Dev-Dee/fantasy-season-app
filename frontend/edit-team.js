@@ -182,18 +182,30 @@ const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber
     renderList("myXIList", state.selectedPlayers, true);  
     renderList("playerPoolList", state.allPlayers, false); 
 
+    /* --- DYNAMIC VALIDATION LOGIC --- */
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
     const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles;
 
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
 
-    if (isOverLimit) {
+    // Priority-based messaging
+    if (state.saving) {
+        saveBtn.innerText = "SAVING...";
+    } else if (isOverLimit) {
         saveBtn.innerText = "OUT OF SUBS!";
-    } else if (!hasRequiredRoles && count === 11) {
-        saveBtn.innerText = "1 WK, 3 BAT, 1 AR, 3 BOWL REQ.";
+    } else if (count < 11) {
+        saveBtn.innerText = `ADD ${11 - count} MORE PLAYERS`;
+    } else if (count > 11) {
+        saveBtn.innerText = `REMOVE ${count - 11} PLAYERS`;
+    } else if (!hasRequiredRoles) {
+        saveBtn.innerText = "REQ: 1 WK, 3 BAT, 1 AR, 3 BOWL";
+    } else if (totalCredits > 100) {
+        saveBtn.innerText = `EXCEEDED BY ${(totalCredits - 100).toFixed(1)} Cr`;
+    } else if (!state.captainId || !state.viceCaptainId) {
+        saveBtn.innerText = "SELECT CAPTAIN & VC";
     } else {
-        saveBtn.innerText = state.saving ? "SAVING..." : "SAVE TEAM";
+        saveBtn.innerText = "SAVE TEAM";
     }
 }
 
