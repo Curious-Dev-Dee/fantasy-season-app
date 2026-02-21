@@ -1,257 +1,37 @@
-/* --- ROOT VARIABLES --- */
 :root {
     --bg-dark: #0c1117;
     --card-bg: #1e293b;
     --neon-green: #9AE000;
     --neon-cyan: #00f2ff;
     --text-slate: #94a3b8;
-    
-    /* Tier Colors */
-    --tier-bronze: #cd7f32;
-    --tier-silver: #c0c0c0;
-    --tier-gold: #ffd700;
-    --tier-diamond: #b9f2ff;
 }
 
-/* --- BASE LAYOUT --- */
-body { 
-    background: var(--bg-dark); 
-    color: #fff; 
-    margin: 0; 
-    font-family: 'Inter', sans-serif; 
-    height: 100vh; 
-    overflow: hidden; 
-}
+body { background: var(--bg-dark); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+.scroll-content { padding: 20px 16px 150px; flex: 1; overflow-y: auto; }
 
-.prediction-page { 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    position: relative; 
-}
+/* --- CARD DESIGN --- */
+.card { background: var(--card-bg); border-radius: 20px; border: 1px solid #334155; padding: 20px; margin-bottom: 20px; }
+.card-header-fun { font-size: 10px; font-weight: 800; color: var(--text-slate); letter-spacing: 1px; margin-bottom: 15px; }
 
-.scroll-content { 
-    flex: 1; 
-    overflow-y: auto; 
-    padding: 24px 16px 120px; 
-}
+/* --- RESULT CARD FIX --- */
+.result-item { margin-bottom: 18px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; }
+.result-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.result-row label { font-size: 11px; color: var(--text-slate); font-weight: 700; }
+.winner-val { font-size: 14px; font-weight: 800; color: #fff; }
+.pct-bar-bg { height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden; }
+.pct-bar-fill { height: 100%; background: var(--neon-green); transition: width 1s ease; }
+.pct-label { font-size: 10px; color: var(--neon-green); margin-top: 6px; }
 
-/* --- SKELETON SCREENS --- */
-.skeleton-container { padding: 24px 16px; }
-.skeleton-card {
-    height: 150px;
-    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
-    background-size: 200% 100%;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    animation: shimmer 1.5s infinite linear;
-}
+/* --- FLOATING CHAT WIDGET --- */
+.chat-fab { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; background: var(--neon-cyan); border-radius: 50%; z-index: 9999; border: none; box-shadow: 0 4px 20px rgba(0, 242, 255, 0.4); cursor: pointer; }
+.chat-drawer { position: fixed; bottom: 160px; right: 20px; width: 320px; height: 450px; background: var(--bg-dark); border: 1px solid #334155; border-top: 3px solid var(--neon-cyan); border-radius: 20px; z-index: 9998; display: flex; flex-direction: column; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.drawer-hidden { transform: translateY(20px) scale(0.9); opacity: 0; pointer-events: none; }
 
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-/* --- HEADER PILLS --- */
-.fun-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 24px; 
-}
-
-.streak-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 800;
-    margin-top: 5px;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.score-pill { 
-    background: rgba(0, 242, 255, 0.1); 
-    border: 1px solid var(--neon-cyan); 
-    padding: 8px 14px; 
-    border-radius: 20px; 
-    color: var(--neon-cyan); 
-    font-weight: 800; 
-    font-size: 14px;
-}
-
-/* --- CUSTOM MODALS --- */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: flex-end; /* Slide up from bottom */
-    justify-content: center;
-    z-index: 3000;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-content {
-    background: var(--card-bg);
-    width: 100%;
-    max-width: 500px;
-    padding: 30px;
-    border-radius: 30px 30px 0 0;
-    border-top: 2px solid var(--neon-cyan);
-    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-}
-
-/* --- CARDS & INTERACTION --- */
-.card { 
-    background: var(--card-bg); 
-    border-radius: 20px; 
-    border: 1px solid #334155; 
-    padding: 20px; 
-}
-
-.card-header-fun { 
-    font-size: 10px; 
-    font-weight: 800; 
-    color: var(--text-slate); 
-    letter-spacing: 1px; 
-    margin-bottom: 20px; 
-    display: flex; 
-    align-items: center; 
-    text-transform: uppercase;
-}
-
-.team-toggle-grid { display: flex; gap: 10px; }
-.team-option {
-    flex: 1; 
-    background: var(--bg-dark); 
-    border: 1px solid #334155; 
-    color: #fff;
-    padding: 14px; 
-    border-radius: 12px; 
-    font-weight: 800; 
-    cursor: pointer; 
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.team-option.selected { 
-    border-color: var(--neon-cyan); 
-    color: var(--neon-cyan); 
-    background: rgba(0, 242, 255, 0.05); 
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-    transform: scale(1.05);
-}
-
-/* --- CHAT TOGGLE BUTTON (FAB) --- */
-.chat-fab {
-    position: fixed; 
-    bottom: 90px; /* Positioned above the bottom nav */
-    right: 20px; 
-    width: 56px; 
-    height: 56px;
-    background: var(--neon-cyan); 
-    border: none; 
-    border-radius: 50%;
-    font-size: 22px; 
-    color: #000; 
-    box-shadow: 0 4px 20px rgba(0, 242, 255, 0.4); 
-    z-index: 9999; /* Higher than everything else */
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* --- THE CHAT BOX (CORNER WIDGET) --- */
-.chat-drawer {
-    position: fixed; 
-    bottom: 160px; /* Above the FAB */
-    right: 20px; 
-    width: 320px; 
-    height: 450px; 
-    background: var(--bg-dark); 
-    border: 1px solid #334155;
-    border-top: 3px solid var(--neon-cyan);
-    z-index: 9998; 
-    display: flex; 
-    flex-direction: column; 
-    border-radius: 20px; 
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-}
-
-.drawer-hidden { 
-    transform: translateY(20px) scale(0.9); 
-    opacity: 0; 
-    pointer-events: none; 
-}
-
-/* --- PREDICTION & RESULT CARD POLISH --- */
-.result-item { 
-    margin-bottom: 18px; 
-    background: rgba(255,255,255,0.03);
-    padding: 12px;
-    border-radius: 12px;
-}
-
-.result-row { 
-    display: flex; 
-    justify-content: space-between; 
-    margin-bottom: 8px; 
-}
-
-.result-row label { color: var(--text-slate); font-size: 12px; font-weight: 700; }
-.winner-val { color: #fff; font-weight: 800; font-size: 14px; }
-
-/* FIX CLUMPING TEXT (WinnerTBA -> Winner: TBA) */
-.pct-label { 
-    font-size: 11px; 
-    color: var(--neon-green); 
-    margin-top: 6px; 
-    font-weight: 600; 
-    letter-spacing: 0.3px;
-}
+/* --- CHAT BUBBLES --- */
+.chat-display { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 15px; position: relative; font-size: 13px; line-height: 1.4; }
+.chat-bubble.other { align-self: flex-start; background: #2d3748; border-bottom-left-radius: 2px; }
+.chat-bubble.mine { align-self: flex-end; background: var(--neon-cyan); color: #000; border-bottom-right-radius: 2px; }
+.msg-user { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; }
 .other .msg-user { color: var(--neon-green); }
 .mine .msg-user { color: rgba(0,0,0,0.5); }
-/* --- MINI LEADERBOARD --- */
-.mini-table tr {
-    transition: background 0.3s ease;
-}
-
-.mini-table tr:hover {
-    background: rgba(154, 224, 0, 0.05);
-}
-
-/* --- UTILS --- */
-.hidden { display: none !important; }
-
-.theme-btn-primary { 
-    width: 100%; 
-    padding: 16px; 
-    background: var(--neon-cyan); 
-    color: #000; 
-    border-radius: 12px; 
-    font-weight: 800; 
-    border: none; 
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 242, 255, 0.2);
-}
-
-.theme-btn-secondary {
-    background: rgba(148, 163, 184, 0.1);
-    color: #fff;
-    border: 1px solid #334155;
-    padding: 12px;
-    border-radius: 12px;
-    font-weight: 700;
-}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cricket Experts · Play</title>
+  <title>Cricket Expert · Play</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/prediction.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
@@ -15,34 +15,32 @@
     
     <header class="fun-header">
       <div class="header-left">
-          <h1 class="theme-title">Predict & Win 🎯</h1>
-          <p id="predictionSubtext" class="sub-label">Next Match: Loading...</p>
+          <h1 class="theme-title">Cricket Expert 🎯</h1>
+          <div class="streak-pill"><i class="fas fa-fire"></i> <span id="loginStreak">1</span> Day Streak</div>
       </div>
       <div class="score-pill">
           <i class="fas fa-coins"></i> <span id="userPredictionScore">0</span>
       </div>
     </header>
 
-    <section class="card league-card" id="leagueManagementCard" style="margin-bottom: 20px;">
+    <section class="card league-card" id="leagueManagementCard">
       <div class="card-header-fun">PRIVATE LEAGUE</div>
-      
       <div id="noLeagueView" class="league-setup">
-        <p class="sub-label">Play with your friends in a private group.</p>
-        <div class="league-btn-group" style="display: flex; gap: 10px; margin-top: 12px;">
-          <button id="createLeagueBtn" class="theme-btn-secondary" style="flex:1;">CREATE</button>
-          <button id="joinLeagueBtn" class="theme-btn-secondary" style="flex:1;">JOIN</button>
+        <p class="sub-label">Play with friends in a private group.</p>
+        <div class="league-btn-group">
+          <button id="createLeagueBtn" class="theme-btn-secondary">CREATE</button>
+          <button id="joinLeagueBtn" class="theme-btn-secondary">JOIN</button>
         </div>
       </div>
-
       <div id="activeLeagueView" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="league-row-header">
           <div class="league-info">
-            <h3 id="displayLeagueName" style="color: #9AE000; margin: 0; font-size: 18px;">--</h3>
-            <p class="sub-label">Code: <span id="displayInviteCode" style="color:#fff; font-weight:bold; letter-spacing: 1px; cursor: pointer;">--</span></p>
+            <h3 id="displayLeagueName">--</h3>
+            <p class="sub-label">Code: <span id="displayInviteCode" class="copyable">--</span></p>
           </div>
-          <div style="text-align: right;">
-            <p class="sub-label" style="margin:0;">YOUR RANK</p>
-            <span id="leagueRankVal" style="font-size: 20px; font-weight: 800; color: #00f2ff;">#--</span>
+          <div class="league-rank">
+            <p class="sub-label">LEAGUE RANK</p>
+            <span id="leagueRankVal">#--</span>
           </div>
         </div>
       </div>
@@ -51,6 +49,7 @@
     <section class="card predict-card" id="predictorCard">
       <div id="selectionView">
         <div class="card-header-fun"><span class="live-pulse"></span> LOCK YOUR GUESSES</div>
+        <p id="predictionSubtext" class="sub-label" style="margin-bottom: 15px;">Next: Loading...</p>
         
         <div class="prediction-group">
             <label><i class="fas fa-trophy"></i> Who will win?</label>
@@ -59,16 +58,12 @@
 
         <div class="prediction-group">
             <label><i class="fas fa-star"></i> Man of the Match?</label>
-            <select id="mvpSelect" class="theme-select">
-                <option value="">Select a Player...</option>
-            </select>
+            <select id="mvpSelect" class="theme-select"><option value="">Select a Player...</option></select>
         </div>
 
         <div class="prediction-group">
             <label><i class="fas fa-user-ninja"></i> Today's Rank 1 Team?</label>
-            <select id="userPredictSelect" class="theme-select">
-                <option value="">Select an Expert...</option>
-            </select>
+            <select id="userPredictSelect" class="theme-select"><option value="">Select an Expert...</option></select>
         </div>
 
         <button id="submitPredictionBtn" class="theme-btn-primary">LOCK PREDICTIONS</button>
@@ -76,23 +71,18 @@
 
       <div id="recentResultContainer" class="hidden">
         <hr class="card-divider">
-        <div id="resultView">
-            </div>
+        <div id="resultView"></div>
       </div>
     </section>
 
-    <section class="card mini-leaderboard-card" style="margin-top: 20px;">
-      <div class="card-header-fun">
-          <i class="fas fa-fire" style="color: #ff4757;"></i> TOP 3 PREDICTORS
-      </div>
+    <section class="card mini-leaderboard-card">
+      <div class="card-header-fun"><i class="fas fa-fire"></i> TOP 3 PREDICTORS</div>
       <div class="mini-table-wrapper">
-          <table class="mini-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-              <tbody id="miniLeaderboardBody">
-                  </tbody>
+          <table class="mini-table">
+              <tbody id="miniLeaderboardBody"></tbody>
           </table>
       </div>
     </section>
-
   </div>
 
   <button id="chatToggleBtn" class="chat-fab">
@@ -101,21 +91,17 @@
   </button>
 
   <div id="chatDrawer" class="chat-drawer drawer-hidden">
-      <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
-          <div class="chat-toggle-tabs" style="display: flex; background: #0c1117; padding: 4px; border-radius: 12px; border: 1px solid #334155;">
-              <button id="globalChatTab" class="chat-tab active" style="border:none; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer;">GLOBAL</button>
-              <button id="privateChatTab" class="chat-tab" disabled style="border:none; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; color: #94a3b8; background: none;">PRIVATE</button>
+      <div class="drawer-header">
+          <div class="chat-toggle-tabs">
+              <button id="globalChatTab" class="chat-tab active">GLOBAL</button>
+              <button id="privateChatTab" class="chat-tab" disabled>PRIVATE</button>
           </div>
-          <button id="closeChatBtn" class="close-x" style="background: none; border: none; color: #fff; font-size: 24px;">&times;</button>
+          <button id="closeChatBtn" class="close-x">&times;</button>
       </div>
-
       <div id="chatMessages" class="chat-display"></div>
-
       <div class="emoji-bar" id="emojiBar">
-          <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🤫</span>
-          <span>🎯</span><span>🚀</span><span>💯</span><span>🥶</span><span>👑</span>
+          <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🤫</span><span>🎯</span>
       </div>
-
       <div class="chat-input-area">
           <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
           <button id="sendChatBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
