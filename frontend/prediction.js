@@ -77,50 +77,63 @@ async function init() {
   checkExistingPrediction();
 }
 
-/* STREAK LOGIC */
+/* STREAK LOGIC - AUDITED & FIXED */
 async function handleDailyStreak(userId) {
-  const today = new Date().toISOString().split("T")[0];
+  try {
+    const today = new Date().toISOString().split("T")[0];
 
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("last_login, streak_count")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  const lastLogin = profile?.last_login;
-  const streakCount = profile?.streak_count || 0;
-
-  if (!lastLogin) {
-    const { data: updated } = await supabase
+    // 1. Try to fetch the user profile
+    const { data: profile, error: fetchError } = await supabase
       .from("user_profiles")
-      .update({ last_login: today, streak_count: 1 })
+      .select("last_login, streak_count")
       .eq("user_id", userId)
-      .select("streak_count")
       .maybeSingle();
-    loginStreakSpan.textContent = updated?.streak_count || 1;
-    return;
+
+    if (fetchError) throw fetchError;
+
+    let newStreak = profile?.streak_count || 0;
+    const lastLogin = profile?.last_login;
+
+    if (!lastLogin) {
+      // Brand new user: Start at 1
+      newStreak = 1;
+    } else if (lastLogin === today) {
+      // Already logged in today: Stay the same
+      loginStreakSpan.textContent = newStreak;
+      return;
+    } else {
+      // Calculate difference between dates
+      const lastDate = new Date(lastLogin);
+      const todayDate = new Date(today);
+      const diffTime = Math.abs(todayDate - lastDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        newStreak += 1; // Consecutive day
+      } else {
+        newStreak = 1; // Missed a day, reset to 1
+      }
+    }
+
+    // 2. Use UPSERT to either update or create the row
+    const { error: upsertError } = await supabase
+      .from("user_profiles")
+      .upsert({ 
+        user_id: userId, 
+        last_login: today, 
+        streak_count: newStreak 
+      }, { onConflict: 'user_id' });
+
+    if (upsertError) throw upsertError;
+
+    loginStreakSpan.textContent = newStreak;
+
+  } catch (err) {
+    console.error("Streak System Error:", err.message);
+    // Fallback so the app doesn't look broken
+    loginStreakSpan.textContent = "1"; 
   }
-
-  if (lastLogin === today) {
-    loginStreakSpan.textContent = streakCount;
-    return;
-  }
-
-  const last = new Date(lastLogin);
-  const diffDays = Math.floor((new Date(today) - last) / (1000 * 60 * 60 * 24));
-
-  let newStreak = (diffDays === 1) ? streakCount + 1 : 1;
-
-  const { data: updated } = await supabase
-    .from("user_profiles")
-    .update({ last_login: today, streak_count: newStreak })
-    .eq("user_id", userId)
-    .select("streak_count")
-    .maybeSingle();
-
-  loginStreakSpan.textContent = updated?.streak_count || newStreak;
 }
-
 /* MATCH & PREDICTION */
 async function fetchNextMatch() {
   const { data: upcomingMatch } = await supabase
