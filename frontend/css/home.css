@@ -255,12 +255,13 @@ body {
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(12, 17, 23, 0.85); /* Slightly darker */
+    backdrop-filter: blur(8px); /* This creates the premium feel */
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    backdrop-filter: blur(5px);
+
 }
 
 .modal-content {
@@ -373,4 +374,11 @@ body {
     background: rgba(154, 224, 0, 0.05);
     border-color: #9AE000;
     color: #9AE000;
+}
+
+#leaderboardContainer, #privateLeaderboardContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Adds breathing room between experts */
+    margin-top: 10px;
 }
