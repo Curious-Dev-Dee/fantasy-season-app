@@ -5,31 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin: Rain Delay Reset</title>
     <style>
-        body { font-family: sans-serif; background: #0c1117; color: white; padding: 20px; }
-        .card { background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; max-width: 500px; margin: auto; }
-        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #30363d; background: #0d1117; color: white; }
-        button { background: #238636; color: white; font-weight: bold; cursor: pointer; border: none; }
-        button.danger { background: #da3633; }
-        .match-info { font-size: 0.9em; color: #8b949e; margin-top: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0c1117; color: white; padding: 20px; }
+        .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; max-width: 450px; margin: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h2 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }
+        label { font-size: 0.85rem; color: #8b949e; margin-top: 15px; display: block; }
+        
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Quick Actions Grid */
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 10px 0; }
+        .quick-actions button { background: #30363d; padding: 8px; font-size: 0.8rem; margin: 0; }
+        .quick-actions button:hover { background: #444c56; }
+        
+        button#resetBtn { background: #da3633; color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 20px; transition: opacity 0.2s; }
+        button#resetBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .match-info { font-size: 0.85rem; color: #8b949e; margin-top: 15px; padding: 10px; border-radius: 6px; background: #0d1117; border-left: 4px solid #f85149; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>🌧️ Match Delay Reset</h2>
-        <p style="font-size: 0.8em; color: #ef4444;">Warning: This will delete locked team history for the selected match and move it back to 'upcoming'.</p>
+        <h2>🌧️ Delay Manager</h2>
         
         <label>1. Select Match</label>
         <select id="matchSelect">
-            <option value="">Loading matches...</option>
+            <option value="">Fetching active matches...</option>
         </select>
 
-        <label>2. Set New Start Time (Your Local Time)</label>
+        <label>2. Quick Adjust (Adds to current time)</label>
+        <div class="quick-actions">
+            <button type="button" onclick="addMinutes(15)">+15m</button>
+            <button type="button" onclick="addMinutes(30)">+30m</button>
+            <button type="button" onclick="addMinutes(60)">+1h</button>
+        </div>
+
+        <label>3. Manual Start Time</label>
         <input type="datetime-local" id="newStartTime">
 
-        <button id="resetBtn" class="danger">RESET MATCH & OPEN EDITING</button>
-        <div id="statusLog" class="match-info"></div>
+        <button id="resetBtn">RESET & OPEN EDITING</button>
+        <div id="statusLog" class="match-info">Select a match to start.</div>
     </div>
 
     <script type="module" src="rain-delay.js"></script>
+    <script>
+        // Helper to quickly set time
+        function addMinutes(mins) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + mins);
+            
+            // Format for datetime-local: YYYY-MM-DDTHH:MM
+            const offset = now.getTimezoneOffset() * 60000;
+            const localISOTime = new Date(now - offset).toISOString().slice(0, 16);
+            document.getElementById('newStartTime').value = localISOTime;
+        }
+        window.addMinutes = addMinutes; // Make global for the buttons
+    </script>
 </body>
 </html>
