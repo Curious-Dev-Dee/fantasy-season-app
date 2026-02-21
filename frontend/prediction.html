@@ -2,29 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Cricket Expert · Fun</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/prediction.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
 </head>
 <body>
-
 <div class="prediction-page">
   <div class="scroll-content">
-    
+
+    <!-- HEADER -->
     <header class="fun-header">
       <div class="header-left">
-          <h1 class="theme-title">Predict & Win 🎯</h1>
-          <div class="streak-pill"><i class="fas fa-fire"></i> <span id="loginStreak">1</span> Day Streak</div>
+        <h1 class="theme-title">Predict & Win 🎯</h1>
+        <div class="streak-pill">
+          <i class="fas fa-fire"></i>
+          <span id="loginStreak">0</span> Day Streak
+        </div>
+        <p id="predictionSubtext" class="sub-label">Next: Loading...</p>
       </div>
       <div class="score-pill">
-          <i class="fas fa-coins"></i> <span id="userPredictionScore">0</span>
+        <i class="fas fa-coins"></i>
+        <span id="userPredictionScore">0</span>
       </div>
     </header>
 
+    <!-- PRIVATE LEAGUE -->
     <section class="card league-card" id="leagueManagementCard">
       <div class="card-header-fun">PRIVATE LEAGUE</div>
+
       <div id="noLeagueView" class="league-setup">
         <p class="sub-label">Play with friends in a private group.</p>
         <div class="league-btn-group">
@@ -32,11 +41,15 @@
           <button id="joinLeagueBtn" class="theme-btn-secondary">JOIN</button>
         </div>
       </div>
+
       <div id="activeLeagueView" class="hidden">
         <div class="league-row-header">
           <div class="league-info">
             <h3 id="displayLeagueName">--</h3>
-            <p class="sub-label">Code: <span id="displayInviteCode" class="copyable">--</span></p>
+            <p class="sub-label">
+              Code:
+              <span id="displayInviteCode" class="copyable">--</span>
+            </p>
           </div>
           <div class="league-rank">
             <p class="sub-label">YOUR RANK</p>
@@ -46,27 +59,35 @@
       </div>
     </section>
 
+    <!-- PREDICTION CARD -->
     <section class="card predict-card" id="predictorCard">
       <div id="selectionView">
-        <div class="card-header-fun"><span class="live-pulse"></span> LOCK YOUR GUESSES</div>
-        <p id="predictionSubtext" class="sub-label">Next: Loading...</p>
-        
-        <div class="prediction-group">
-            <label><i class="fas fa-trophy"></i> Who will win?</label>
-            <div class="team-toggle-grid" id="winnerToggle"></div>
+        <div class="card-header-fun">
+          <span class="live-pulse"></span> LOCK YOUR GUESSES
         </div>
 
         <div class="prediction-group">
-            <label><i class="fas fa-star"></i> Man of the Match?</label>
-            <select id="mvpSelect" class="theme-select"><option value="">Select a Player...</option></select>
+          <label><i class="fas fa-trophy"></i> Who will win?</label>
+          <div class="team-toggle-grid" id="winnerToggle"></div>
         </div>
 
         <div class="prediction-group">
-            <label><i class="fas fa-user-ninja"></i> Today's Rank 1 Team?</label>
-            <select id="userPredictSelect" class="theme-select"><option value="">Select an Expert...</option></select>
+          <label><i class="fas fa-star"></i> Man of the Match?</label>
+          <select id="mvpSelect" class="theme-select">
+            <option value="">Select a Player...</option>
+          </select>
         </div>
 
-        <button id="submitPredictionBtn" class="theme-btn-primary">LOCK PREDICTIONS</button>
+        <div class="prediction-group">
+          <label><i class="fas fa-user-ninja"></i> Today's Rank 1 Team?</label>
+          <select id="userPredictSelect" class="theme-select">
+            <option value="">Select an Expert...</option>
+          </select>
+        </div>
+
+        <button id="submitPredictionBtn" class="theme-btn-primary">
+          LOCK PREDICTIONS
+        </button>
       </div>
 
       <div id="recentResultContainer" class="hidden">
@@ -75,39 +96,50 @@
       </div>
     </section>
 
+    <!-- MINI LEADERBOARD -->
     <section class="card mini-leaderboard-card">
-      <div class="card-header-fun"><i class="fas fa-fire"></i> TOP 3 PREDICTORS</div>
+      <div class="card-header-fun">
+        <i class="fas fa-fire"></i> TOP 3 PREDICTORS
+      </div>
       <div class="mini-table-wrapper">
-          <table class="mini-table">
-              <tbody id="miniLeaderboardBody"></tbody>
-          </table>
+        <table class="mini-table">
+          <tbody id="miniLeaderboardBody"></tbody>
+        </table>
       </div>
     </section>
   </div>
 
+  <!-- CHAT FAB -->
   <button id="chatToggleBtn" class="chat-fab">
-      <i class="fas fa-comments"></i>
-      <span class="chat-badge hidden" id="newMsgBadge"></span>
+    <i class="fas fa-comments"></i>
+    <span class="chat-badge hidden" id="newMsgBadge"></span>
   </button>
 
+  <!-- CHAT DRAWER -->
   <div id="chatDrawer" class="chat-drawer drawer-hidden">
-      <div class="drawer-header">
-          <div class="chat-toggle-tabs">
-              <button id="globalChatTab" class="chat-tab active">GLOBAL</button>
-              <button id="privateChatTab" class="chat-tab" disabled>PRIVATE</button>
-          </div>
-          <button id="closeChatBtn" class="close-x">&times;</button>
+    <div class="drawer-header">
+      <div class="chat-toggle-tabs">
+        <button id="globalChatTab" class="chat-tab active">GLOBAL</button>
+        <button id="privateChatTab" class="chat-tab" disabled>PRIVATE</button>
       </div>
-      <div id="chatMessages" class="chat-display"></div>
-      <div class="emoji-bar" id="emojiBar">
-          <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🎯</span>
-      </div>
-      <div class="chat-input-area">
-          <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
-          <button id="sendChatBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
-      </div>
+      <button id="closeChatBtn" class="close-x">&times;</button>
+    </div>
+
+    <div id="chatMessages" class="chat-display"></div>
+
+    <div class="emoji-bar" id="emojiBar">
+      <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🎯</span>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
+      <button id="sendChatBtn" class="send-btn">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
   </div>
 
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
     <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
