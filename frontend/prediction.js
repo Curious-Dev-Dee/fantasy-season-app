@@ -55,18 +55,16 @@ async function init() {
     if (!activeTourney) return;
     currentTournamentId = activeTourney.id;
 
-    // Load Parallel Data
+    // 🚀 Speed: Parallel Data Loading
     await Promise.all([
         fetchNextMatch(),
         fetchExpertsList(),
-        checkUserLeagueStatus(), // Checks if in private group
+        checkUserLeagueStatus(), 
         fetchUserPredictionPoints(),
         fetchMiniLeaderboard()
     ]);
 
-    // Initial Chat Load depends on league status
     await loadChatHistory();
-
     setupDrawerListeners();
     setupLeagueUIListeners();
     subscribeToChat();
@@ -88,6 +86,7 @@ function disableAllInputs() {
 }
 
 async function fetchNextMatch() {
+    // 1. Prediction Target
     const { data: upcomingMatch } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
@@ -95,6 +94,7 @@ async function fetchNextMatch() {
         .order("actual_start_time", { ascending: true })
         .limit(1).maybeSingle();
 
+    // 2. Engagement Target (Previous Match Result)
     const { data: lastFinishedMatch } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
@@ -106,6 +106,7 @@ async function fetchNextMatch() {
         currentMatchId = upcomingMatch.id;
         renderSelectionView(upcomingMatch);
     } else {
+        // Fallback for Locked Matches
         const { data: liveMatch } = await supabase.from("matches")
             .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
             .eq("tournament_id", currentTournamentId)
@@ -118,10 +119,7 @@ async function fetchNextMatch() {
             renderSelectionView(liveMatch);
             lockUIForLiveMatch();
         } else {
-            document.getElementById("selectionView").innerHTML = `
-                <div style="text-align:center; padding: 20px;">
-                    <p style="color: var(--text-slate); font-size: 13px;">No new matches to predict.</p>
-                </div>`;
+            document.getElementById("selectionView").innerHTML = `<p class="sub-label" style="text-align:center;">No new matches to predict.</p>`;
         }
     }
 
@@ -135,7 +133,6 @@ function lockUIForLiveMatch() {
     submitBtn.disabled = true;
     submitBtn.textContent = "MATCH IN PROGRESS ⏳";
     submitBtn.style.background = "#334155";
-    submitBtn.style.opacity = "0.7";
 }
 
 async function renderSelectionView(match) {
@@ -172,76 +169,44 @@ async function renderSelectionView(match) {
 async function renderResultView(match) {
     const resultContainer = document.getElementById("resultView");
     
-    // 1. Fetch Stats first to see if we even have prediction data
-    const { data: statsArray } = await supabase
-        .from("prediction_stats_view")
-        .select("*")
-        .eq("match_id", match.id);
-    
+    // 🛡️ Error-Proof Fetching
+    const { data: statsArray } = await supabase.from("prediction_stats_view").select("*").eq("match_id", match.id);
     const stats = statsArray?.[0];
 
-    // 2. Only fetch Team/Player/Expert if the IDs exist to avoid 400 errors
     const fetchPromises = [];
-    
-    if (match.winner_id) {
-        fetchPromises.push(supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single());
-    } else {
-        fetchPromises.push(Promise.resolve({ data: { short_code: 'TBA' } }));
-    }
-
-    if (match.man_of_the_match_id) {
-        fetchPromises.push(supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single());
-    } else {
-        fetchPromises.push(Promise.resolve({ data: { name: 'TBA' } }));
-    }
-
-    if (stats?.predicted_top_user_id) {
-        fetchPromises.push(supabase.from("user_profiles").select("team_name").eq("user_id", stats.predicted_top_user_id).single());
-    } else {
-        fetchPromises.push(Promise.resolve({ data: { team_name: 'TBA' } }));
-    }
+    fetchPromises.push(match.winner_id ? supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single() : Promise.resolve({ data: { short_code: 'TBA' } }));
+    fetchPromises.push(match.man_of_the_match_id ? supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single() : Promise.resolve({ data: { name: 'TBA' } }));
+    fetchPromises.push(stats?.predicted_top_user_id ? supabase.from("user_profiles").select("team_name").eq("user_id", stats.predicted_top_user_id).single() : Promise.resolve({ data: { team_name: 'TBA' } }));
 
     const [winnerRes, motmRes, expertRes] = await Promise.all(fetchPromises);
 
-    const winnerTeam = winnerRes.data;
-    const motmPlayer = motmRes.data;
-    const topExpert = expertRes.data;
-
     resultContainer.innerHTML = `
-        <div class="result-header">
-            <span class="final-badge">LATEST RESULT</span>
+        <div class="result-header" style="text-align:center; margin-bottom:15px;">
             <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
         </div>
         
         <div class="result-item">
-            <div class="result-row"><label>Winner</label><span class="winner-val">${winnerTeam?.short_code || 'TBA'}</span></div>
+            <div class="result-row"><label>Winner</label><span class="winner-val">${winnerRes.data.short_code}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.winner_pct || 0}%"></div></div>
             <div class="pct-label">${stats?.winner_pct || 0}% correct (${stats?.winner_votes || 0} votes)</div>
         </div>
 
         <div class="result-item">
-            <div class="result-row"><label>Man of the Match</label><span class="winner-val">${motmPlayer?.name || 'TBA'}</span></div>
+            <div class="result-row"><label>Man of the Match</label><span class="winner-val">${motmRes.data.name}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.mvp_pct || 0}%"></div></div>
             <div class="pct-label">${stats?.mvp_pct || 0}% correct (${stats?.mvp_votes || 0} votes)</div>
         </div>
-
-        <div class="result-item">
-            <div class="result-row"><label>Top Expert</label><span class="winner-val">${topExpert?.team_name || 'TBA'}</span></div>
-            <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.top_user_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.top_user_pct || 0}% correct (${stats?.top_user_votes || 0} votes)</div>
-        </div>
     `;
 }
+
 /* =========================
    PRIVATE LEAGUE LOGIC
 ========================= */
 
 async function checkUserLeagueStatus() {
-    const { data, error } = await supabase
-        .from('league_members')
+    const { data } = await supabase.from('league_members')
         .select('league_id, leagues(name, invite_code)')
-        .eq('user_id', currentUserId)
-        .maybeSingle();
+        .eq('user_id', currentUserId).maybeSingle();
 
     if (data) {
         activeLeagueId = data.league_id;
@@ -251,13 +216,8 @@ async function checkUserLeagueStatus() {
         displayInviteCode.textContent = data.leagues.invite_code;
         privateChatTab.disabled = false;
 
-        // Fetch rank from the private view
-        const { data: rankData } = await supabase
-            .from('private_league_leaderboard')
-            .select('rank_in_league')
-            .eq('user_id', currentUserId)
-            .eq('league_id', activeLeagueId)
-            .maybeSingle();
+        const { data: rankData } = await supabase.from('private_league_leaderboard')
+            .select('rank_in_league').eq('user_id', currentUserId).eq('league_id', activeLeagueId).maybeSingle();
         
         if (rankData) leagueRankVal.textContent = `#${rankData.rank_in_league}`;
     }
@@ -265,55 +225,36 @@ async function checkUserLeagueStatus() {
 
 function setupLeagueUIListeners() {
     createLeagueBtn.onclick = async () => {
-        const name = prompt("Enter a cool name for your League:");
+        const name = prompt("Name your League:");
         if (!name) return;
-        
-        const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-        const { data: league, error } = await supabase.from('leagues').insert([{
-            name: name,
-            invite_code: inviteCode,
-            owner_id: currentUserId
-        }]).select().single();
-
-        if (error) return alert("Error creating league.");
-
-        await supabase.from('league_members').insert([{
-            league_id: league.id,
-            user_id: currentUserId
-        }]);
-
-        alert(`League Created! Invite friends with code: ${inviteCode}`);
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const { data: league } = await supabase.from('leagues').insert([{ name: name, invite_code: code, owner_id: currentUserId }]).select().single();
+        await supabase.from('league_members').insert([{ league_id: league.id, user_id: currentUserId }]);
         window.location.reload();
     };
 
     joinLeagueBtn.onclick = async () => {
         const code = prompt("Enter Invite Code:");
         if (!code) return;
-
         const { data: league } = await supabase.from('leagues').select('id').eq('invite_code', code.toUpperCase()).single();
-        if (!league) return alert("Invalid Code!");
-
-        const { error } = await supabase.from('league_members').insert([{
-            league_id: league.id,
-            user_id: currentUserId
-        }]);
-
-        if (error) return alert("You're already in this league or it failed.");
-        alert("Joined Successfully!");
-        window.location.reload();
+        if (league) {
+            await supabase.from('league_members').insert([{ league_id: league.id, user_id: currentUserId }]);
+            window.location.reload();
+        } else {
+            alert("Invalid Code!");
+        }
     };
 }
 
 /* =========================
-   CHAT & UI LOGIC
+   SLEDGE-BOX & CHAT LOGIC
 ========================= */
 
 function setupDrawerListeners() {
     chatToggleBtn.onclick = () => {
         chatDrawer.classList.remove("drawer-hidden");
         newMsgBadge.classList.add("hidden");
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50);
     };
     closeChatBtn.onclick = () => chatDrawer.classList.add("drawer-hidden");
 
@@ -324,28 +265,21 @@ function setupDrawerListeners() {
 async function switchChatMode(mode) {
     if (mode === 'private' && !activeLeagueId) return;
     chatMode = mode;
-    
     globalChatTab.classList.toggle('active', mode === 'global');
     privateChatTab.classList.toggle('active', mode === 'private');
-
+    chatMessages.innerHTML = `<p class="sub-label" style="text-align:center;">Switching context...</p>`;
     await loadChatHistory();
-    subscribeToChat(); // Resubscribe with new filter
+    subscribeToChat();
 }
 
 async function loadChatHistory() {
-    let query = supabase.from("game_chat")
-        .select("*, user_profiles(team_name)")
-        .order("created_at", { ascending: false })
-        .limit(25);
-
+    let query = supabase.from("game_chat").select("*, user_profiles(team_name)").order("created_at", { ascending: false }).limit(25);
     if (chatMode === 'private') query = query.eq('league_id', activeLeagueId);
     else query = query.is('league_id', null);
 
     const { data: messages } = await query;
-    if (messages) {
-        chatMessages.innerHTML = "";
-        messages.reverse().forEach(msg => renderMessage(msg));
-    }
+    chatMessages.innerHTML = "";
+    messages?.reverse().forEach(msg => renderMessage(msg));
 }
 
 function renderMessage(msg) {
@@ -362,67 +296,44 @@ sendChatBtn.onclick = async () => {
     const text = chatInput.value.trim();
     if (!text) return;
     chatInput.value = "";
-    
-    const payload = { 
+    await supabase.from("game_chat").insert({ 
         user_id: currentUserId, 
-        message: text,
+        message: text, 
         league_id: chatMode === 'private' ? activeLeagueId : null 
-    };
-    await supabase.from("game_chat").insert(payload);
+    });
 };
 
 function subscribeToChat() {
     if (chatSubscription) supabase.removeChannel(chatSubscription);
-
-    const filter = chatMode === 'private' 
-        ? `league_id=eq.${activeLeagueId}` 
-        : `league_id=is.null`;
-
-    chatSubscription = supabase.channel(`chat:${chatMode}`)
-        .on('postgres_changes', { 
-            event: 'INSERT', 
-            schema: 'public', 
-            table: 'game_chat',
-            filter: filter 
-        }, async (payload) => {
-            const { data: userData } = await supabase.from("user_profiles").select("team_name").eq("user_id", payload.new.user_id).single();
-            renderMessage({ ...payload.new, user_profiles: userData });
+    const filter = chatMode === 'private' ? `league_id=eq.${activeLeagueId}` : `league_id=is.null`;
+    chatSubscription = supabase.channel(`live-chat-${chatMode}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'game_chat', filter: filter }, 
+        async (payload) => {
+            const { data } = await supabase.from("user_profiles").select("team_name").eq("user_id", payload.new.user_id).single();
+            renderMessage({ ...payload.new, user_profiles: data });
         }).subscribe();
 }
 
-// --- EMOJI BAR ---
+// Emoji logic remains the same
 const emojiBar = document.getElementById("emojiBar");
-emojiBar.querySelectorAll("span").forEach(emojiBtn => {
-    emojiBtn.onclick = () => {
-        chatInput.value += emojiBtn.textContent;
-        chatInput.focus();
-    };
+emojiBar.querySelectorAll("span").forEach(btn => {
+    btn.onclick = () => { chatInput.value += btn.textContent; chatInput.focus(); };
 });
 
 /* =========================
-   SUPPORTING FUNCTIONS
+   SUPPORTING FETCHES (+1/-1 Logic)
 ========================= */
 
-async function fetchExpertsList() {
-    const { data: experts } = await supabase.from("user_profiles").select("user_id, team_name").limit(50);
-    userPredictSelect.innerHTML = `<option value="">Select an Expert...</option>`;
-    experts?.forEach(e => {
-        const opt = document.createElement("option");
-        opt.value = e.user_id;
-        opt.textContent = (e.user_id === currentUserId) ? `${e.team_name} (Me)` : e.team_name;
-        userPredictSelect.appendChild(opt);
-    });
-}
-
 async function fetchMiniLeaderboard() {
-    const { data: topTeams } = await supabase.from("prediction_leaderboard").select("*");
+    const { data } = await supabase.from("prediction_leaderboard").select("team_name, total_points").limit(3);
     const tbody = document.getElementById("miniLeaderboardBody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    topTeams?.forEach(team => {
-        const row = `<tr><td>${team.team_name}</td><td>${team.total_points}</td></tr>`;
-        tbody.insertAdjacentHTML('beforeend', row);
-    });
+    if (!tbody || !data) return;
+    tbody.innerHTML = data.map(row => `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding:10px 0; color:#fff; font-weight:600;">${row.team_name}</td>
+            <td style="text-align:right; color:#9AE000; font-weight:800;">${row.total_points}</td>
+        </tr>
+    `).join('');
 }
 
 async function fetchUserPredictionPoints() {
@@ -431,42 +342,37 @@ async function fetchUserPredictionPoints() {
     userPredictionScore.textContent = total;
 }
 
+async function fetchExpertsList() {
+    const { data } = await supabase.from("user_profiles").select("user_id, team_name").limit(50);
+    userPredictSelect.innerHTML = `<option value="">Select an Expert...</option>` + 
+        data?.map(e => `<option value="${e.user_id}">${e.user_id === currentUserId ? e.team_name + ' (Me)' : e.team_name}</option>`).join('');
+}
+
 submitBtn.onclick = async () => {
     const mvpId = mvpSelect.value;
     const topUserId = userPredictSelect.value;
-    if (!selectedWinnerId || !mvpId || !topUserId) return alert("Please complete your guesses!");
-
+    if (!selectedWinnerId || !mvpId || !topUserId) return alert("Complete your guesses!");
     submitBtn.disabled = true;
     submitBtn.textContent = "LOCKING...";
-
     const { error } = await supabase.from("user_predictions").upsert({
-        user_id: currentUserId,
-        match_id: currentMatchId,
-        predicted_winner_id: selectedWinnerId,
-        predicted_mvp_id: mvpId,
-        predicted_top_user_id: topUserId
+        user_id: currentUserId, match_id: currentMatchId,
+        predicted_winner_id: selectedWinnerId, predicted_mvp_id: mvpId, predicted_top_user_id: topUserId
     }, { onConflict: 'user_id, match_id' });
 
-    if (!error) {
-        submitBtn.textContent = "LOCKED ✅";
-        disableAllInputs();
-    } else {
-        alert("Action failed.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "LOCK PREDICTIONS";
-    }
+    if (!error) { submitBtn.textContent = "LOCKED ✅"; disableAllInputs(); }
+    else { alert("Action failed."); submitBtn.disabled = false; submitBtn.textContent = "LOCK PREDICTIONS"; }
 };
 
 async function checkExistingPrediction() {
     if (!currentMatchId) return;
     const { data } = await supabase.from("user_predictions").select("*").eq("user_id", currentUserId).eq("match_id", currentMatchId).maybeSingle();
     if (data) {
-        submitBtn.textContent = "LOCKED ✅";
         mvpSelect.value = data.predicted_mvp_id;
         userPredictSelect.value = data.predicted_top_user_id;
         const btn = winnerToggle.querySelector(`[data-id="${data.predicted_winner_id}"]`);
         if (btn) btn.classList.add("selected");
         selectedWinnerId = data.predicted_winner_id;
+        submitBtn.textContent = "LOCKED ✅";
         disableAllInputs();
     }
 }
