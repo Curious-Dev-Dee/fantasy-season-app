@@ -381,3 +381,24 @@ body {
 
 /* --- UTILS --- */
 .hidden { display: none !important; }
+
+.league-btn-group { display: flex; gap: 10px; margin-top: 10px; }
+.theme-btn-secondary {
+    flex: 1; padding: 10px; background: transparent; 
+    border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+    border-radius: 8px; font-weight: 700; cursor: pointer;
+}
+
+/* Chat Tabs */
+.chat-toggle-container {
+    display: flex; background: var(--bg-dark);
+    padding: 4px; border-radius: 10px; border: 1px solid #334155;
+}
+.chat-tab {
+    background: none; border: none; color: var(--text-slate);
+    padding: 6px 15px; font-size: 11px; font-weight: 800; cursor: pointer;
+}
+.chat-tab.active {
+    background: var(--neon-cyan); color: #000; border-radius: 6px;
+}
+.chat-tab:disabled { opacity: 0.3; cursor: not-allowed; }

@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
         return sendPersonalizedNotification(
           profile.onesignal_id,
           "Match Abandoned 🚫",
-          `${match.team_a.short_code} vs ${match.team_b.short_code} cancel ho gaya boss. No points deducted!`
+          `${match.team_a.short_code} vs ${match.team_b.short_code} cancel ho gaya boss. No subs deducted!`
         );
       }));
       await updateMatchNotifyStatus(supabase, match.id, 'abandoned');

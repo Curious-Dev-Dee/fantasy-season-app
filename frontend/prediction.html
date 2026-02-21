@@ -22,6 +22,31 @@
       </div>
     </header>
 
+    <section class="card league-card" id="leagueManagementCard" style="margin-bottom: 20px;">
+      <div class="card-header-fun">PRIVATE LEAGUE</div>
+      
+      <div id="noLeagueView" class="league-setup">
+        <p class="sub-label">Play with your friends in a private group.</p>
+        <div class="league-btn-group" style="display: flex; gap: 10px; margin-top: 12px;">
+          <button id="createLeagueBtn" class="theme-btn-secondary" style="flex:1;">CREATE</button>
+          <button id="joinLeagueBtn" class="theme-btn-secondary" style="flex:1;">JOIN</button>
+        </div>
+      </div>
+
+      <div id="activeLeagueView" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="league-info">
+            <h3 id="displayLeagueName" style="color: #9AE000; margin: 0; font-size: 18px;">--</h3>
+            <p class="sub-label">Code: <span id="displayInviteCode" style="color:#fff; font-weight:bold; letter-spacing: 1px;">--</span></p>
+          </div>
+          <div style="text-align: right;">
+            <p class="sub-label" style="margin:0;">YOUR RANK</p>
+            <span id="leagueRankVal" style="font-size: 20px; font-weight: 800; color: #00f2ff;">#--</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="card predict-card" id="predictorCard">
       <div id="selectionView">
         <div class="card-header-fun"><span class="live-pulse"></span> LOCK YOUR GUESSES</div>
@@ -57,22 +82,25 @@
   </button>
 
   <div id="chatDrawer" class="chat-drawer drawer-hidden">
-      <div class="drawer-header">
-          <span class="drawer-title">Expert Sledge-Box</span>
-          <button id="closeChatBtn" class="close-x">&times;</button>
+      <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
+          <div class="chat-toggle-tabs" style="display: flex; background: #0c1117; padding: 4px; border-radius: 12px; border: 1px solid #334155;">
+              <button id="globalChatTab" class="chat-tab active" style="border:none; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer;">GLOBAL</button>
+              <button id="privateChatTab" class="chat-tab" disabled style="border:none; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; color: #94a3b8; background: none;">PRIVATE</button>
+          </div>
+          <button id="closeChatBtn" class="close-x" style="background: none; border: none; color: #fff; font-size: 24px;">&times;</button>
       </div>
+
       <div id="chatMessages" class="chat-display"></div>
 
       <div class="emoji-bar" id="emojiBar">
-    <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🤫</span>
-    <span>🎯</span><span>🚀</span><span>💯</span><span>🥶</span><span>👑</span>
-</div>
+          <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🤫</span>
+          <span>🎯</span><span>🚀</span><span>💯</span><span>🥶</span><span>👑</span>
+      </div>
 
-<div class="chat-input-area">
-    <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
-    <button id="sendChatBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
-</div>
-
+      <div class="chat-input-area">
+          <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
+          <button id="sendChatBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+      </div>
   </div>
 
   <nav class="bottom-nav">

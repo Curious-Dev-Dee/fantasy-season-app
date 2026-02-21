@@ -17,10 +17,28 @@ const closeChatBtn = document.getElementById("closeChatBtn");
 const newMsgBadge = document.getElementById("newMsgBadge");
 const userPredictionScore = document.getElementById("userPredictionScore");
 
+// --- PRIVATE LEAGUE ELEMENTS ---
+const noLeagueView = document.getElementById("noLeagueView");
+const activeLeagueView = document.getElementById("activeLeagueView");
+const displayLeagueName = document.getElementById("displayLeagueName");
+const displayInviteCode = document.getElementById("displayInviteCode");
+const leagueRankVal = document.getElementById("leagueRankVal");
+const createLeagueBtn = document.getElementById("createLeagueBtn");
+const joinLeagueBtn = document.getElementById("joinLeagueBtn");
+
+// --- CHAT TABS ---
+const globalChatTab = document.getElementById("globalChatTab");
+const privateChatTab = document.getElementById("privateChatTab");
+
 let currentUserId = null;
 let currentMatchId = null;
 let selectedWinnerId = null;
 let currentTournamentId = null;
+
+// --- LEAGUE & CHAT STATE ---
+let activeLeagueId = null; 
+let chatMode = 'global'; // 'global' or 'private'
+let chatSubscription = null;
 
 /* =========================
    INIT LOGIC
@@ -40,15 +58,18 @@ async function init() {
     // Load Parallel Data
     await Promise.all([
         fetchNextMatch(),
-        fetchExpertsList(), // Now includes self
-        loadChatHistory(),
+        fetchExpertsList(),
+        checkUserLeagueStatus(), // Checks if in private group
         fetchUserPredictionPoints(),
-        fetchMiniLeaderboard() // New card data
+        fetchMiniLeaderboard()
     ]);
 
+    // Initial Chat Load depends on league status
+    await loadChatHistory();
+
     setupDrawerListeners();
+    setupLeagueUIListeners();
     subscribeToChat();
-    // Verify if current user already has a saved prediction for the active match
     checkExistingPrediction();
 }
 
@@ -56,7 +77,6 @@ async function init() {
    CORE PREDICTION LOGIC
 ========================= */
 
-// NEW: Strict UI Lockdown
 function disableAllInputs() {
     submitBtn.disabled = true;
     mvpSelect.disabled = true;
@@ -67,12 +87,7 @@ function disableAllInputs() {
     });
 }
 
-/**
- * DUAL-FETCH LOGIC:
- * Handles Match 44 (Top) and Match 43 (Bottom) simultaneously.
- */
 async function fetchNextMatch() {
-    // 1. Get the next game for users to predict
     const { data: upcomingMatch } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
@@ -80,7 +95,6 @@ async function fetchNextMatch() {
         .order("actual_start_time", { ascending: true })
         .limit(1).maybeSingle();
 
-    // 2. Get the last finished game with processed results
     const { data: lastFinishedMatch } = await supabase.from("matches")
         .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
         .eq("tournament_id", currentTournamentId)
@@ -88,12 +102,10 @@ async function fetchNextMatch() {
         .order("actual_start_time", { ascending: false })
         .limit(1).maybeSingle();
 
-    // 3. Populate Selection View (Top)
     if (upcomingMatch) {
         currentMatchId = upcomingMatch.id;
         renderSelectionView(upcomingMatch);
     } else {
-        // Check for locked matches if no upcoming ones exist
         const { data: liveMatch } = await supabase.from("matches")
             .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
             .eq("tournament_id", currentTournamentId)
@@ -113,7 +125,6 @@ async function fetchNextMatch() {
         }
     }
 
-    // 4. Populate Result View (Bottom)
     if (lastFinishedMatch) {
         document.getElementById("recentResultContainer").classList.remove("hidden");
         renderResultView(lastFinishedMatch);
@@ -160,7 +171,6 @@ async function renderSelectionView(match) {
 
 async function renderResultView(match) {
     const resultContainer = document.getElementById("resultView");
-    
     const [statsRes, winnerRes, motmRes] = await Promise.all([
         supabase.from("prediction_stats_view").select("*").eq("match_id", match.id),
         supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single(),
@@ -181,46 +191,194 @@ async function renderResultView(match) {
             <span class="final-badge">LATEST RESULT</span>
             <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
         </div>
-        
         <div class="result-item">
-            <div class="result-row">
-                <label>Match Winner</label>
-                <span class="winner-val">${winnerTeam?.short_code || 'N/A'}</span>
-            </div>
+            <div class="result-row"><label>Winner</label><span class="winner-val">${winnerTeam?.short_code || 'N/A'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.winner_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.winner_pct || 0}% picked correctly (${stats?.winner_votes || 0} votes)</div>
         </div>
-
         <div class="result-item">
-            <div class="result-row">
-                <label>Man of the Match</label>
-                <span class="winner-val">${motmPlayer?.name || 'N/A'}</span>
-            </div>
+            <div class="result-row"><label>Man of the Match</label><span class="winner-val">${motmPlayer?.name || 'N/A'}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.mvp_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.mvp_pct || 0}% picked correctly</div>
-        </div>
-
-        <div class="result-item">
-            <div class="result-row">
-                <label>Top Expert (Rank 1)</label>
-                <span class="winner-val">${topExpert?.team_name || 'N/A'}</span>
-            </div>
-            <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${stats?.top_user_pct || 0}%"></div></div>
-            <div class="pct-label">${stats?.top_user_pct || 0}% predicted correctly</div>
         </div>
     `;
 }
 
-/* --- SUPPORTING FUNCTIONS --- */
+/* =========================
+   PRIVATE LEAGUE LOGIC
+========================= */
+
+async function checkUserLeagueStatus() {
+    const { data, error } = await supabase
+        .from('league_members')
+        .select('league_id, leagues(name, invite_code)')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+    if (data) {
+        activeLeagueId = data.league_id;
+        noLeagueView.classList.add("hidden");
+        activeLeagueView.classList.remove("hidden");
+        displayLeagueName.textContent = data.leagues.name;
+        displayInviteCode.textContent = data.leagues.invite_code;
+        privateChatTab.disabled = false;
+
+        // Fetch rank from the private view
+        const { data: rankData } = await supabase
+            .from('private_league_leaderboard')
+            .select('rank_in_league')
+            .eq('user_id', currentUserId)
+            .eq('league_id', activeLeagueId)
+            .maybeSingle();
+        
+        if (rankData) leagueRankVal.textContent = `#${rankData.rank_in_league}`;
+    }
+}
+
+function setupLeagueUIListeners() {
+    createLeagueBtn.onclick = async () => {
+        const name = prompt("Enter a cool name for your League:");
+        if (!name) return;
+        
+        const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        const { data: league, error } = await supabase.from('leagues').insert([{
+            name: name,
+            invite_code: inviteCode,
+            owner_id: currentUserId
+        }]).select().single();
+
+        if (error) return alert("Error creating league.");
+
+        await supabase.from('league_members').insert([{
+            league_id: league.id,
+            user_id: currentUserId
+        }]);
+
+        alert(`League Created! Invite friends with code: ${inviteCode}`);
+        window.location.reload();
+    };
+
+    joinLeagueBtn.onclick = async () => {
+        const code = prompt("Enter Invite Code:");
+        if (!code) return;
+
+        const { data: league } = await supabase.from('leagues').select('id').eq('invite_code', code.toUpperCase()).single();
+        if (!league) return alert("Invalid Code!");
+
+        const { error } = await supabase.from('league_members').insert([{
+            league_id: league.id,
+            user_id: currentUserId
+        }]);
+
+        if (error) return alert("You're already in this league or it failed.");
+        alert("Joined Successfully!");
+        window.location.reload();
+    };
+}
+
+/* =========================
+   CHAT & UI LOGIC
+========================= */
+
+function setupDrawerListeners() {
+    chatToggleBtn.onclick = () => {
+        chatDrawer.classList.remove("drawer-hidden");
+        newMsgBadge.classList.add("hidden");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+    closeChatBtn.onclick = () => chatDrawer.classList.add("drawer-hidden");
+
+    globalChatTab.onclick = () => switchChatMode('global');
+    privateChatTab.onclick = () => switchChatMode('private');
+}
+
+async function switchChatMode(mode) {
+    if (mode === 'private' && !activeLeagueId) return;
+    chatMode = mode;
+    
+    globalChatTab.classList.toggle('active', mode === 'global');
+    privateChatTab.classList.toggle('active', mode === 'private');
+
+    await loadChatHistory();
+    subscribeToChat(); // Resubscribe with new filter
+}
+
+async function loadChatHistory() {
+    let query = supabase.from("game_chat")
+        .select("*, user_profiles(team_name)")
+        .order("created_at", { ascending: false })
+        .limit(25);
+
+    if (chatMode === 'private') query = query.eq('league_id', activeLeagueId);
+    else query = query.is('league_id', null);
+
+    const { data: messages } = await query;
+    if (messages) {
+        chatMessages.innerHTML = "";
+        messages.reverse().forEach(msg => renderMessage(msg));
+    }
+}
+
+function renderMessage(msg) {
+    const isMine = msg.user_id === currentUserId;
+    const div = document.createElement("div");
+    div.className = `chat-msg ${isMine ? 'mine' : 'other'}`;
+    div.innerHTML = `<span class="msg-user">${msg.user_profiles?.team_name || 'Expert'}</span>${msg.message}`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (chatDrawer.classList.contains("drawer-hidden") && !isMine) newMsgBadge.classList.remove("hidden");
+}
+
+sendChatBtn.onclick = async () => {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    chatInput.value = "";
+    
+    const payload = { 
+        user_id: currentUserId, 
+        message: text,
+        league_id: chatMode === 'private' ? activeLeagueId : null 
+    };
+    await supabase.from("game_chat").insert(payload);
+};
+
+function subscribeToChat() {
+    if (chatSubscription) supabase.removeChannel(chatSubscription);
+
+    const filter = chatMode === 'private' 
+        ? `league_id=eq.${activeLeagueId}` 
+        : `league_id=is.null`;
+
+    chatSubscription = supabase.channel(`chat:${chatMode}`)
+        .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'game_chat',
+            filter: filter 
+        }, async (payload) => {
+            const { data: userData } = await supabase.from("user_profiles").select("team_name").eq("user_id", payload.new.user_id).single();
+            renderMessage({ ...payload.new, user_profiles: userData });
+        }).subscribe();
+}
+
+// --- EMOJI BAR ---
+const emojiBar = document.getElementById("emojiBar");
+emojiBar.querySelectorAll("span").forEach(emojiBtn => {
+    emojiBtn.onclick = () => {
+        chatInput.value += emojiBtn.textContent;
+        chatInput.focus();
+    };
+});
+
+/* =========================
+   SUPPORTING FUNCTIONS
+========================= */
 
 async function fetchExpertsList() {
-    // Shows all teams including own
     const { data: experts } = await supabase.from("user_profiles").select("user_id, team_name").limit(50);
     userPredictSelect.innerHTML = `<option value="">Select an Expert...</option>`;
     experts?.forEach(e => {
         const opt = document.createElement("option");
         opt.value = e.user_id;
-        // Allows user to select their own team as Rank 1
         opt.textContent = (e.user_id === currentUserId) ? `${e.team_name} (Me)` : e.team_name;
         userPredictSelect.appendChild(opt);
     });
@@ -231,17 +389,8 @@ async function fetchMiniLeaderboard() {
     const tbody = document.getElementById("miniLeaderboardBody");
     if (!tbody) return;
     tbody.innerHTML = "";
-
     topTeams?.forEach(team => {
-        const row = `
-            <tr>
-                <td><div class="team-cell"><img src="${team.team_photo_url || 'img/default-team.png'}" class="mini-logo"> ${team.team_name}</div></td>
-                <td class="bold">${team.total_points}</td>
-                <td>${team.total_matches * 3}</td>
-                <td class="txt-green">${team.total_correct}</td>
-                <td class="txt-red">${team.total_incorrect}</td>
-            </tr>
-        `;
+        const row = `<tr><td>${team.team_name}</td><td>${team.total_points}</td></tr>`;
         tbody.insertAdjacentHTML('beforeend', row);
     });
 }
@@ -270,9 +419,9 @@ submitBtn.onclick = async () => {
 
     if (!error) {
         submitBtn.textContent = "LOCKED ✅";
-        disableAllInputs(); // LOCK UI
+        disableAllInputs();
     } else {
-        alert("Action failed. Check match status.");
+        alert("Action failed.");
         submitBtn.disabled = false;
         submitBtn.textContent = "LOCK PREDICTIONS";
     }
@@ -288,65 +437,6 @@ async function checkExistingPrediction() {
         const btn = winnerToggle.querySelector(`[data-id="${data.predicted_winner_id}"]`);
         if (btn) btn.classList.add("selected");
         selectedWinnerId = data.predicted_winner_id;
-        
-        disableAllInputs(); // LOCK UI
+        disableAllInputs();
     }
-}
-
-/* =========================
-   REAL-TIME CHAT & UI
-========================= */
-
-function setupDrawerListeners() {
-    chatToggleBtn.onclick = () => {
-        chatDrawer.classList.remove("drawer-hidden");
-        newMsgBadge.classList.add("hidden");
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    };
-    closeChatBtn.onclick = () => chatDrawer.classList.add("drawer-hidden");
-}
-
-async function loadChatHistory() {
-    const { data: messages } = await supabase.from("game_chat").select("*, user_profiles(team_name)").order("created_at", { ascending: false }).limit(25);
-    if (messages) {
-        chatMessages.innerHTML = "";
-        messages.reverse().forEach(msg => renderMessage(msg));
-    }
-}
-
-// --- EMOJI LOGIC ---
-const emojiBar = document.getElementById("emojiBar");
-
-emojiBar.querySelectorAll("span").forEach(emojiBtn => {
-    emojiBtn.onclick = () => {
-        // Append emoji to the current input value
-        chatInput.value += emojiBtn.textContent;
-        // Keep focus on the input so the user can keep typing
-        chatInput.focus();
-    };
-});
-
-function renderMessage(msg) {
-    const isMine = msg.user_id === currentUserId;
-    const div = document.createElement("div");
-    div.className = `chat-msg ${isMine ? 'mine' : 'other'}`;
-    div.innerHTML = `<span class="msg-user">${msg.user_profiles?.team_name || 'Expert'}</span>${msg.message}`;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    if (chatDrawer.classList.contains("drawer-hidden") && !isMine) newMsgBadge.classList.remove("hidden");
-}
-
-sendChatBtn.onclick = async () => {
-    const text = chatInput.value.trim();
-    if (!text) return;
-    chatInput.value = "";
-    await supabase.from("game_chat").insert({ user_id: currentUserId, message: text });
-};
-
-function subscribeToChat() {
-    supabase.channel('public:game_chat')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'game_chat' }, async (payload) => {
-            const { data: userData } = await supabase.from("user_profiles").select("team_name").eq("user_id", payload.new.user_id).single();
-            renderMessage({ ...payload.new, user_profiles: userData });
-        }).subscribe();
 }
