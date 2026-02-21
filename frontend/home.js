@@ -342,24 +342,34 @@ function startCountdown(startTime) {
    LEADERBOARD PREVIEW
 ========================= */
 async function loadLeaderboardPreview() {
+    // 1. Fetch Top 3 Experts
     const { data: leaderboard } = await supabase
         .from("leaderboard_view")
-        .select("team_name, total_points, rank")
+        .select("team_name, total_points, rank, user_id")
         .order("rank", { ascending: true })
         .limit(3);
 
     if (leaderboard) {
-        leaderboardContainer.innerHTML = ""; 
+        const container = document.getElementById("leaderboardContainer");
+        container.innerHTML = ""; 
+        
         leaderboard.forEach(row => {
             const div = document.createElement("div");
             div.className = "leader-row";
+            // Use the standard scoutUser navigation you have on the Full Leaderboard page
+            div.onclick = () => window.location.href = `team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name)}`;
+            
             div.innerHTML = `
-                <span>#${row.rank} <strong class="team-name-text"></strong></span>
+                <span>#${row.rank} <strong>${row.team_name || 'Anonymous'}</strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
             `;
-            div.querySelector(".team-name-text").textContent = row.team_name || 'Anonymous';
-            leaderboardContainer.appendChild(div);
+            container.appendChild(div);
         });
+
+        // 2. Update the "YOUR RANK" indicator at the top of this card
+        // We get this from the 'userRank' element that is already being set in fetchHomeData
+        const currentRank = document.getElementById("userRank").textContent;
+        document.getElementById("overallUserRank").textContent = currentRank;
     }
 }
 
