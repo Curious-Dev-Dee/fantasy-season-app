@@ -152,32 +152,75 @@ body {
     transform: scale(1.05);
 }
 
-/* --- CHAT TABS --- */
-.chat-toggle-tabs {
-    display: flex;
-    background: var(--bg-dark);
-    padding: 4px;
-    border-radius: 12px;
+/* --- FLOATING CHAT BOX --- */
+.chat-drawer {
+    position: fixed; 
+    bottom: 90px; /* Above the bottom nav */
+    right: 20px; 
+    width: 320px; /* Compact box width */
+    height: 450px; /* Smaller height so it doesn't cover everything */
+    background: var(--bg-dark); 
     border: 1px solid #334155;
+    border-top: 2px solid var(--neon-cyan);
+    z-index: 2000; 
+    display: flex; 
+    flex-direction: column; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
 }
 
-.chat-tab {
-    border: none;
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 800;
-    cursor: pointer;
-    background: none;
-    color: var(--text-slate);
-    transition: all 0.2s ease;
+/* When hidden, move it down and fade it out */
+.drawer-hidden { 
+    transform: translateY(20px); 
+    opacity: 0; 
+    pointer-events: none; 
 }
 
-.chat-tab.active {
+/* --- CHAT BUBBLES (The "Messy" Fix) --- */
+.chat-display { 
+    flex: 1; 
+    padding: 15px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+}
+
+.chat-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 15px;
+    font-size: 13px;
+    line-height: 1.4;
+    position: relative;
+}
+
+.chat-bubble.other {
+    align-self: flex-start;
+    background: var(--card-bg);
+    border: 1px solid #334155;
+    border-bottom-left-radius: 2px;
+}
+
+.chat-bubble.mine {
+    align-self: flex-end;
     background: var(--neon-cyan);
     color: #000;
+    border-bottom-right-radius: 2px;
 }
 
+.msg-user {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.other .msg-user { color: var(--neon-green); }
+.mine .msg-user { color: rgba(0,0,0,0.5); }
 /* --- MINI LEADERBOARD --- */
 .mini-table tr {
     transition: background 0.3s ease;

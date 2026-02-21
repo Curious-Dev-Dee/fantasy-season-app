@@ -285,7 +285,7 @@ async function loadChatHistory() {
 function renderMessage(msg) {
     const isMine = msg.user_id === currentUserId;
     const div = document.createElement("div");
-    // This class will now create a bubble shape
+    // Use 'chat-bubble' instead of 'chat-msg' for better styling
     div.className = `chat-bubble ${isMine ? 'mine' : 'other'}`;
     
     div.innerHTML = `
@@ -296,9 +296,12 @@ function renderMessage(msg) {
     `;
     
     chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Alert the user if the drawer is closed
+    // Smooth scroll to bottom
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 50);
+
     if (chatDrawer.classList.contains("drawer-hidden") && !isMine) {
         newMsgBadge.classList.remove("hidden");
     }
