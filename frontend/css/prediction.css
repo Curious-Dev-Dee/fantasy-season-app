@@ -6,32 +6,34 @@
     --text-slate: #94a3b8;
 }
 
-body { background: var(--bg-dark); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
-.scroll-content { padding: 20px 16px 150px; flex: 1; overflow-y: auto; }
+body { background: var(--bg-dark); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; margin: 0; }
+.scroll-content { padding: 20px 16px 150px; flex: 1; overflow-y: auto; height: 100vh; }
 
-/* --- CARD DESIGN --- */
-.card { background: var(--card-bg); border-radius: 20px; border: 1px solid #334155; padding: 20px; margin-bottom: 20px; }
+/* --- NEON CARDS --- */
+.card { background: var(--card-bg); border-radius: 20px; border: 1px solid #334155; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
 .card-header-fun { font-size: 10px; font-weight: 800; color: var(--text-slate); letter-spacing: 1px; margin-bottom: 15px; }
 
 /* --- RESULT CARD FIX --- */
-.result-item { margin-bottom: 18px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; }
+.result-item { margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; }
 .result-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.result-row label { font-size: 11px; color: var(--text-slate); font-weight: 700; }
+.result-row label { font-size: 11px; color: var(--text-slate); font-weight: 700; text-transform: uppercase; }
 .winner-val { font-size: 14px; font-weight: 800; color: #fff; }
 .pct-bar-bg { height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden; }
 .pct-bar-fill { height: 100%; background: var(--neon-green); transition: width 1s ease; }
 .pct-label { font-size: 10px; color: var(--neon-green); margin-top: 6px; }
 
 /* --- FLOATING CHAT WIDGET --- */
-.chat-fab { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; background: var(--neon-cyan); border-radius: 50%; z-index: 9999; border: none; box-shadow: 0 4px 20px rgba(0, 242, 255, 0.4); cursor: pointer; }
-.chat-drawer { position: fixed; bottom: 160px; right: 20px; width: 320px; height: 450px; background: var(--bg-dark); border: 1px solid #334155; border-top: 3px solid var(--neon-cyan); border-radius: 20px; z-index: 9998; display: flex; flex-direction: column; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.drawer-hidden { transform: translateY(20px) scale(0.9); opacity: 0; pointer-events: none; }
+.chat-fab { position: fixed; bottom: 95px; right: 20px; width: 60px; height: 60px; background: var(--neon-cyan); border-radius: 50%; z-index: 9999; border: none; box-shadow: 0 4px 25px rgba(0, 242, 255, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.chat-drawer { position: fixed; bottom: 170px; right: 20px; width: 320px; height: 450px; background: var(--bg-dark); border: 1px solid #334155; border-top: 3px solid var(--neon-cyan); border-radius: 20px; z-index: 9998; display: flex; flex-direction: column; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
+.drawer-hidden { transform: translateY(30px) scale(0.8); opacity: 0; pointer-events: none; }
 
-/* --- CHAT BUBBLES --- */
+/* --- BUBBLE STYLING --- */
 .chat-display { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-.chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 15px; position: relative; font-size: 13px; line-height: 1.4; }
+.chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 13px; line-height: 1.4; }
 .chat-bubble.other { align-self: flex-start; background: #2d3748; border-bottom-left-radius: 2px; }
 .chat-bubble.mine { align-self: flex-end; background: var(--neon-cyan); color: #000; border-bottom-right-radius: 2px; }
-.msg-user { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; }
-.other .msg-user { color: var(--neon-green); }
-.mine .msg-user { color: rgba(0,0,0,0.5); }
+.msg-user { display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 3px; color: var(--neon-green); }
+
+/* --- BUTTONS --- */
+.theme-btn-primary { width: 100%; padding: 16px; background: var(--neon-cyan); color: #000; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; }
+.theme-btn-primary:active { transform: scale(0.98); }

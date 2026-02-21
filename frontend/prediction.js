@@ -7,6 +7,7 @@ let chatMode = 'global', chatSubscription = null, selectedWinnerId = null;
 const chatDrawer = document.getElementById("chatDrawer");
 const chatMessages = document.getElementById("chatMessages");
 const newMsgBadge = document.getElementById("newMsgBadge");
+const chatToggleBtn = document.getElementById("chatToggleBtn");
 
 init();
 
@@ -18,9 +19,6 @@ async function init() {
     const { data: activeTourney } = await supabase.from("active_tournament").select("*").maybeSingle();
     if (!activeTourney) return;
     currentTournamentId = activeTourney.id;
-
-    // ⚡ Hard Audit Fix: Daily Streak Logic
-    await handleDailyStreak(currentUserId);
 
     await Promise.all([
         fetchNextMatch(), fetchExpertsList(), checkUserLeagueStatus(), 
@@ -34,21 +32,11 @@ async function init() {
     checkExistingPrediction();
 }
 
-/* --- PREDICTION CORE --- */
-async function fetchNextMatch() {
-    const { data: upcoming } = await supabase.from("matches").select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)").eq("tournament_id", currentTournamentId).eq("status", "upcoming").order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
-    const { data: lastResult } = await supabase.from("matches").select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)").eq("tournament_id", currentTournamentId).eq("points_processed", true).order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
-
-    if (upcoming) { currentMatchId = upcoming.id; renderSelectionView(upcoming); }
-    if (lastResult) { document.getElementById("recentResultContainer").classList.remove("hidden"); renderResultView(lastResult); }
-}
-
 async function renderResultView(match) {
     const container = document.getElementById("resultView");
     const { data: statsArray } = await supabase.from("prediction_stats_view").select("*").eq("match_id", match.id);
     const stats = statsArray?.[0];
 
-    // ⚡ Hard Audit Fix: Defensive wrapper for all 3 results
     const fetchPromises = [
         match.winner_id ? supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single() : Promise.resolve({ data: { short_code: 'TBA' } }),
         match.man_of_the_match_id ? supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single() : Promise.resolve({ data: { name: 'TBA' } }),
@@ -62,9 +50,8 @@ async function renderResultView(match) {
             <span class="final-badge">LATEST RESULT</span>
             <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
         </div>
-        ${renderResultItem("WINNER", wRes.data.short_code, stats?.winner_pct, stats?.winner_votes)}
-        ${renderResultItem("MAN OF THE MATCH", mRes.data.name, stats?.mvp_pct, stats?.mvp_votes)}
-        ${renderResultItem("TOP EXPERT", eRes.data.team_name, stats?.top_user_pct, stats?.top_user_votes)}
+        ${renderResultItem("Winner", wRes.data.short_code, stats?.winner_pct, stats?.winner_votes)}
+        ${renderResultItem("Man of the Match", mRes.data.name, stats?.mvp_pct, stats?.mvp_votes)}
     `;
 }
 
@@ -73,12 +60,20 @@ function renderResultItem(label, val, pct, votes) {
         <div class="result-item">
             <div class="result-row"><label>${label}:</label> <span class="winner-val">${val}</span></div>
             <div class="pct-bar-bg"><div class="pct-bar-fill" style="width: ${pct || 0}%"></div></div>
-            <div class="pct-label">${pct || 0}% picked correctly (${votes || 0} votes)</div>
+            <div class="pct-label">${pct || 0}% correct (${votes || 0} votes)</div>
         </div>
     `;
 }
 
-/* --- CHAT ENGINE --- */
+function setupDrawerListeners() {
+    chatToggleBtn.onclick = (e) => {
+        e.stopPropagation();
+        chatDrawer.classList.remove("drawer-hidden");
+        newMsgBadge.classList.add("hidden");
+    };
+    document.getElementById("closeChatBtn").onclick = () => chatDrawer.classList.add("drawer-hidden");
+}
+
 function renderMessage(msg) {
     const isMine = msg.user_id === currentUserId;
     const div = document.createElement("div");
@@ -86,8 +81,9 @@ function renderMessage(msg) {
     div.innerHTML = `<span class="msg-user">${msg.user_profiles?.team_name || 'Expert'}</span><div class="msg-content">${msg.message}</div>`;
     chatMessages.appendChild(div);
     setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 50);
-    if (chatDrawer.classList.contains("drawer-hidden") && !isMine) newMsgBadge.classList.remove("hidden");
 }
+
+// ... existing helper logic ...
 
 async function handleDailyStreak(userId) {
     const today = new Date().toISOString().split('T')[0];
