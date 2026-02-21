@@ -109,30 +109,40 @@ const { data: lastSnapshot } = await supabase
   );
 
   // 3. ENHANCED SUB LOGIC
+  // 3. ENHANCED SUB LOGIC (Stage-Aware)
   let subsUsed = 0;
   let totalSubsUsed = 0;
 
-  // RESET POINTS: Match 41 (Super 8) and Match 53 (Knockouts)
-  if (match.match_number === 41 || match.match_number === 53) {
+  // Define Stage Boundaries
+  const isSuper8 = match.match_number >= 41 && match.match_number < 53;
+  const isKnockout = match.match_number >= 53;
+
+  // Check if the user has ALREADY locked a team in this stage
+  const { data: stageHistory } = await supabase
+    .from("user_match_teams")
+    .select("id")
+    .eq("user_id", team.user_id)
+    .gte("match_id", isKnockout ? 'YOUR_MATCH_53_UUID' : (isSuper8 ? 'YOUR_MATCH_41_UUID' : 'YOUR_MATCH_1_UUID')) // Use actual IDs if possible, or keep match_number logic
+    .maybeSingle();
+
+  // THE FIX: If it's the start of a stage OR the user has no history in this stage yet
+  const isFirstActiveMatchOfStage = !stageHistory;
+
+  if (isFirstActiveMatchOfStage && (isSuper8 || isKnockout)) {
     subsUsed = 0;      // "Free 11" logic
-    totalSubsUsed = 0; // Fresh start for the new stage
+    totalSubsUsed = 0; // Reset total
   } else if (lastSnapshot) {
     subsUsed = currentPlayers.filter(
       (p: string) => !previousPlayers.includes(p)
     ).length;
 
-    totalSubsUsed = lastSnapshot.total_subs_used + subsUsed;
+    // Special Case: If moving from Group -> Super 8 for the first time
+    if (isSuper8 && lastSnapshot.match_number < 41) {
+        totalSubsUsed = subsUsed; 
+    } else {
+        totalSubsUsed = lastSnapshot.total_subs_used + subsUsed;
+    }
   }
-
-  // Stage-based Hard Caps
-  if (match.match_number >= 53) {
-    if (totalSubsUsed > 5) totalSubsUsed = 5; // Knockout Cap
-  } else if (match.match_number >= 41) {
-    if (totalSubsUsed > 30) totalSubsUsed = 30; // Super 8 Cap
-  } else {
-    if (totalSubsUsed > 80) totalSubsUsed = 80; // Group Stage Cap
-  }
-
   // 4. BOOSTER TRACKING
   // Only allow Booster activation from Match 43 to Match 52
   let boosterToApply = false;
