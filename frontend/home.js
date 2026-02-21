@@ -29,6 +29,13 @@ const saveProfileBtn = document.getElementById("saveProfileBtn");
 const avatarInput = document.getElementById("avatarInput");
 const modalPreview = document.getElementById("modalAvatarPreview");
 
+// Jab user app open kare
+const playerId = await OneSignal.getUserId(); // OneSignal se ID lo
+const { data, error } = await supabase
+  .from('user_profiles')
+  .update({ onesignal_id: playerId })
+  .eq('user_id', currentUser.id); // Sankar ki profile mein save kar do
+
 let countdownInterval;
 let currentUserId = null;
 let existingProfile = null; 
