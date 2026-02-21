@@ -1,4 +1,5 @@
 !function(){"use strict";"undefined"!=typeof PushSubscriptionOptions&&PushSubscriptionOptions.prototype.hasOwnProperty("applicationServerKey")||void 0!==window.safari&&void 0!==window.safari.pushNotification?function(){const n=document.createElement("script");// Change the 'n.src' line inside your file to use your local proxy path
 // FIND THIS LINE AND CHANGE IT TO:
-n.src = "/onesignal-scripts/OneSignalSDK.page.es6.js?v=160510",n.defer=!0,document.head.appendChild(n)}():function(){let n="Incompatible browser.";"Apple Computer, Inc."===navigator.vendor&&navigator.maxTouchPoints>0&&(n+=" Try these steps: https://tinyurl.com/bdh2j9f7"),console.info(n)}()}();
+// Change that line to this:
+n.src="/onesignal-scripts/OneSignalSDK.page.es6.js?v=160510",n.defer=!0,document.head.appendChild(n)}():function(){let n="Incompatible browser.";"Apple Computer, Inc."===navigator.vendor&&navigator.maxTouchPoints>0&&(n+=" Try these steps: https://tinyurl.com/bdh2j9f7"),console.info(n)}()}();
 //# sourceMappingURL=OneSignalSDK.page.js.map
