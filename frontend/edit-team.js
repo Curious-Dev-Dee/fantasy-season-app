@@ -183,13 +183,21 @@ const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber
     renderList("playerPoolList", state.allPlayers, false); 
 
     /* --- DYNAMIC VALIDATION LOGIC --- */
+    /* --- UPDATED DYNAMIC VALIDATION LOGIC --- */
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
-    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles;
+    
+    // THE FIX: Added explicit check for state.captainId AND state.viceCaptainId
+    const isValid = count === 11 && 
+                    state.captainId && 
+                    state.viceCaptainId && 
+                    totalCredits <= 100 && 
+                    !isOverLimit && 
+                    hasRequiredRoles;
 
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
 
-    // Priority-based messaging
+    // Priority-based messaging (The user sees the most important error first)
     if (state.saving) {
         saveBtn.innerText = "SAVING...";
     } else if (isOverLimit) {
@@ -202,8 +210,10 @@ const isOverLimit = (state.currentMatchNumber === 41 || state.currentMatchNumber
         saveBtn.innerText = "REQ: 1 WK, 3 BAT, 1 AR, 3 BOWL";
     } else if (totalCredits > 100) {
         saveBtn.innerText = `EXCEEDED BY ${(totalCredits - 100).toFixed(1)} Cr`;
-    } else if (!state.captainId || !state.viceCaptainId) {
-        saveBtn.innerText = "SELECT CAPTAIN & VC";
+    } else if (!state.captainId) {
+        saveBtn.innerText = "SELECT CAPTAIN (C)";
+    } else if (!state.viceCaptainId) {
+        saveBtn.innerText = "SELECT VICE-CAPTAIN (VC)";
     } else {
         saveBtn.innerText = "SAVE TEAM";
     }
