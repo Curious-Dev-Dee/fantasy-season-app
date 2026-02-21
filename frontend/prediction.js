@@ -232,9 +232,10 @@ async function renderResultView(match) {
     .from("prediction_stats_view")
     .select("*")
     .eq("match_id", match.id);
+
   const stats = statsArray?.[0];
 
-  const [wRes, mRes] = await Promise.all([
+  const fetchPromises = [
     match.winner_id
       ? supabase
           .from("real_teams")
@@ -249,7 +250,16 @@ async function renderResultView(match) {
           .eq("id", match.man_of_the_match_id)
           .single()
       : Promise.resolve({ data: { name: "TBA" } }),
-  ]);
+    stats?.predicted_top_user_id
+      ? supabase
+          .from("user_profiles")
+          .select("team_name")
+          .eq("user_id", stats.predicted_top_user_id)
+          .single()
+      : Promise.resolve({ data: { team_name: "TBA" } }),
+  ];
+
+  const [wRes, mRes, eRes] = await Promise.all(fetchPromises);
 
   container.innerHTML = `
     <div class="result-header" style="text-align:center; margin-bottom:15px;">
@@ -258,10 +268,27 @@ async function renderResultView(match) {
         ${match.team_a.short_code} vs ${match.team_b.short_code}
       </h3>
     </div>
-    ${renderResultItem("Winner", wRes.data?.short_code || "TBA",
-                       stats?.winner_pct, stats?.winner_votes)}
-    ${renderResultItem("Man of the Match", mRes.data?.name || "TBA",
-                       stats?.mvp_pct, stats?.mvp_votes)}
+
+    ${renderResultItem(
+      "Winner",
+      wRes.data?.short_code || "TBA",
+      stats?.winner_pct,
+      stats?.winner_votes
+    )}
+
+    ${renderResultItem(
+      "Man of the Match",
+      mRes.data?.name || "TBA",
+      stats?.mvp_pct,
+      stats?.mvp_votes
+    )}
+
+    ${renderResultItem(
+      "Top Expert",
+      eRes.data?.team_name || "TBA",
+      stats?.top_user_pct,
+      stats?.top_user_votes
+    )}
   `;
 }
 
