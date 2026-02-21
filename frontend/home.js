@@ -37,14 +37,24 @@ let existingProfile = null;
    ONESIGNAL & PUSH LOGIC
 ========================= */
 async function initOneSignal(userId) {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-            appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
-            notifyButton: { enable: false }
+    // 1. Check if the script actually loaded via our proxy
+    if (!window.OneSignalDeferred) {
+        console.warn("OneSignal: SDK blocked by client (AdBlock/Strict Privacy). Push disabled.");
+        return; 
+    }
+
+    try {
+        window.OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+                notifyButton: { enable: false }
+            });
+            await OneSignal.login(userId);
+            console.log("OneSignal: Expert Identity Linked ->", userId);
         });
-        await OneSignal.login(userId); // Link user to notifications
-    });
+    } catch (err) {
+        console.error("OneSignal: Handshake failed", err);
+    }
 }
 
 function showNeonNotificationPrompt() {
