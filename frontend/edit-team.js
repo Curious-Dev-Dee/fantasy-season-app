@@ -37,11 +37,15 @@ async function init(user) {
     if (!user) return;
 
     // 1. Fetch Matches first to identify the "Current" match
-    const { data: matches } = await supabase.from("matches")
-        .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-        .eq("tournament_id", TOURNAMENT_ID)
-        .gt("actual_start_time", new Date().toISOString())
-        .order("actual_start_time", { ascending: true }).limit(5);
+    // 1. Fetch Matches first to identify the "Current" match
+const { data: matches } = await supabase.from("matches")
+    .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+    .eq("tournament_id", TOURNAMENT_ID)
+    .gt("actual_start_time", new Date().toISOString())
+    // FIX: Only look for UPCOMING matches. Ignore Abandoned/Finished/Live.
+    .eq("status", "upcoming") 
+    .order("actual_start_time", { ascending: true })
+    .limit(5);
 
     state.matches = matches || [];
     const currentMatchId = state.matches[0]?.id; // This is the match we are editing for
