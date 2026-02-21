@@ -8,12 +8,18 @@ const statusLog = document.getElementById("statusLog");
 // 1. Load locked or soon-to-start matches
 // 1. Load matches that might need a reset (earliest first)
 async function loadMatches() {
+    // 1. Create a "Yesterday" timestamp to filter out old matches
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayISO = yesterday.toISOString();
+
     const { data: matches, error } = await supabase
         .from("matches")
         .select("id, match_number, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code), status")
-        // FIX 1: Sort by oldest first so Match 41 appears at the top
+        // FIX 1: Only show matches from today onwards
+        .gt("actual_start_time", yesterdayISO) 
+        // FIX 2: Keep sorting by oldest first so today's matches appear first
         .order("actual_start_time", { ascending: true }) 
-        // FIX 2: Only show matches that aren't finished yet
         .in("status", ["upcoming", "locked", "live"]) 
         .limit(20);
 
@@ -22,8 +28,8 @@ async function loadMatches() {
         return;
     }
 
-    if (matches.length === 0) {
-        matchSelect.innerHTML = '<option value="">No active matches found</option>';
+    if (!matches || matches.length === 0) {
+        matchSelect.innerHTML = '<option value="">No active matches found for today</option>';
         return;
     }
 
@@ -33,6 +39,7 @@ async function loadMatches() {
         </option>
     `).join("");
 }
+
 // 2. The Reset Logic
 async function handleAdminMatchReset() {
     const matchId = matchSelect.value;
