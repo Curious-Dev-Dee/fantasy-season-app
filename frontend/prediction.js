@@ -285,11 +285,23 @@ async function loadChatHistory() {
 function renderMessage(msg) {
     const isMine = msg.user_id === currentUserId;
     const div = document.createElement("div");
-    div.className = `chat-msg ${isMine ? 'mine' : 'other'}`;
-    div.innerHTML = `<span class="msg-user">${msg.user_profiles?.team_name || 'Expert'}</span>${msg.message}`;
+    // This class will now create a bubble shape
+    div.className = `chat-bubble ${isMine ? 'mine' : 'other'}`;
+    
+    div.innerHTML = `
+        <div class="msg-header">
+            <span class="msg-user">${msg.user_profiles?.team_name || 'Expert'}</span>
+        </div>
+        <div class="msg-content">${msg.message}</div>
+    `;
+    
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    if (chatDrawer.classList.contains("drawer-hidden") && !isMine) newMsgBadge.classList.remove("hidden");
+    
+    // Alert the user if the drawer is closed
+    if (chatDrawer.classList.contains("drawer-hidden") && !isMine) {
+        newMsgBadge.classList.remove("hidden");
+    }
 }
 
 sendChatBtn.onclick = async () => {
