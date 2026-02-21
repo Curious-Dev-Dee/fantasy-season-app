@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
   const currentHourUTC = now.getUTCHours()
   const currentMinUTC = now.getUTCMinutes()
 
-  // 1. FETCH ALL RELEVANT MATCHES with corrected real_teams columns
+  // 1. FETCH ALL RELEVANT MATCHES
   const { data: matches, error } = await supabase
     .from('matches')
     .select(`
@@ -26,9 +26,7 @@ Deno.serve(async (req) => {
 
   if (error || !matches) return new Response("Error fetching matches", { status: 500 });
 
-  // ---------------------------------------------------------
   // TRIGGER A: DAILY 12:00 PM IST PREVIEW (06:30 AM UTC)
-  // ---------------------------------------------------------
   if (currentHourUTC === 6 && currentMinUTC >= 30 && currentMinUTC < 35) {
     const todayStr = now.toISOString().split('T')[0]
     const todaysMatches = matches.filter(m => 
@@ -40,21 +38,14 @@ Deno.serve(async (req) => {
         const time = new Date(m.actual_start_time).toLocaleTimeString('en-IN', {
           timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
         })
-        // Using short_code (e.g., IND vs AUS)
         return `${m.team_a.short_code} vs ${m.team_b.short_code} @ ${time}`
       }).join(", ")
 
-      await sendNotification(
-        "Today's Lineup! 🏏",
-        `${todaysMatches.length} Matches today: ${matchDetails}. Set your XI now to stay ahead!`,
-        "all"
-      )
+      await sendNotification("Today's Lineup! 🏏", `${todaysMatches.length} Matches today: ${matchDetails}. Set your XI now!`, "all")
     }
   }
 
-  // ---------------------------------------------------------
-  // LOOP THROUGH INDIVIDUAL MATCHES FOR REAL-TIME EVENTS
-  // ---------------------------------------------------------
+  // LOOP THROUGH INDIVIDUAL MATCHES
   for (const match of matches) {
     const startTime = new Date(match.actual_start_time)
     const originalTime = new Date(match.original_start_time)
@@ -65,79 +56,54 @@ Deno.serve(async (req) => {
 
     // TRIGGER B: 30-MINUTE URGENCY
     if (match.status === 'upcoming' && diffMins <= 30 && diffMins > 24 && match.last_notification_sent !== 'urgency_30m') {
-      await sendNotification(
-        "30 MINS TO LOCK! 🚨",
-        `Finalize your XI for ${match.team_a.short_code} vs ${match.team_b.short_code}. Match starts at ${istTimeStr}!`,
-        "all"
-      )
+      await sendNotification("30 MINS TO LOCK! 🚨", `Finalize your XI for ${match.team_a.short_code} vs ${match.team_b.short_code}. Starts at ${istTimeStr}!`, "all")
       await updateMatchNotifyStatus(supabase, match.id, 'urgency_30m')
     }
 
-    // TRIGGER C: RAIN DELAY (If actual time > original time)
+    // TRIGGER C: RAIN DELAY
     if (match.status === 'upcoming' && startTime > originalTime && match.last_notification_sent !== 'delayed') {
-      await sendNotification(
-        "Rain Delay Update 🌧️",
-        `Match ${match.team_a.short_code} vs ${match.team_b.short_code} is delayed. New lock time: ${istTimeStr}!`,
-        "all"
-      )
+      await sendNotification("Rain Delay Update 🌧️", `Match ${match.team_a.short_code} vs ${match.team_b.short_code} is delayed. New lock time: ${istTimeStr}!`, "all")
       await updateMatchNotifyStatus(supabase, match.id, 'delayed')
     }
 
     // TRIGGER D: MATCH LOCKED
     if (match.status === 'locked' && match.lock_processed && match.last_notification_sent !== 'locked') {
-      await sendNotification(
-        "Locked & Loaded! 🔒",
-        `Teams for ${match.team_a.short_code} vs ${match.team_b.short_code} are now locked. Good luck!`,
-        "all"
-      )
+      await sendNotification("Locked & Loaded! 🔒", `Teams for ${match.team_a.short_code} vs ${match.team_b.short_code} are now locked.`, "all")
       await updateMatchNotifyStatus(supabase, match.id, 'locked')
     }
 
     // TRIGGER E: ABANDONED
     if (match.status === 'abandoned' && match.last_notification_sent !== 'abandoned') {
-      await sendNotification(
-        "Match Abandoned 🚫",
-        `${match.team_a.short_code} vs ${match.team_b.short_code} abandoned. No points, but no subs deducted!`,
-        "all"
-      )
+      await sendNotification("Match Abandoned 🚫", `${match.team_a.short_code} vs ${match.team_b.short_code} abandoned. No points deducted!`, "all")
       await updateMatchNotifyStatus(supabase, match.id, 'abandoned')
     }
 
     // TRIGGER F: POINTS PROCESSED
     if (match.points_processed && match.last_notification_sent !== 'points_done') {
-      await sendNotification(
-        "Points Are Live! 📊",
-        `Leaderboard updated for ${match.team_a.short_code} vs ${match.team_b.short_code}. Check your rank!`,
-        "all"
-      )
+      await sendNotification("Points Are Live! 📊", `Leaderboard updated for ${match.team_a.short_code} vs ${match.team_b.short_code}.`, "all")
       await updateMatchNotifyStatus(supabase, match.id, 'points_done')
     }
   }
 
-  return new Response(JSON.stringify({ status: "processed" }), {
-    headers: { "Content-Type": "application/json" }
-  })
+  return new Response(JSON.stringify({ status: "processed" }), { headers: { "Content-Type": "application/json" } })
 })
 
 async function updateMatchNotifyStatus(supabase: any, matchId: string, type: string) {
-  await supabase.from('matches').update({ last_notification_sent: type }).eq('id', matchId)
+  await supabase.from('matches').update({ 
+    last_notification_sent: type,
+    last_notification_at: new Date().toISOString() 
+  }).eq('id', matchId)
 }
 
 async function sendNotification(title: string, message: string, target: string) {
-  const res = await fetch("https://onesignal.com/api/v1/notifications", {
+  await fetch("https://onesignal.com/api/v1/notifications", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Authorization": `Basic ${ONESIGNAL_KEY}`
-    },
+    headers: { "Content-Type": "application/json; charset=utf-8", "Authorization": `Basic ${ONESIGNAL_KEY}` },
     body: JSON.stringify({
       app_id: ONESIGNAL_APP_ID,
       included_segments: target === "all" ? ["All"] : undefined,
       headings: { "en": title },
-      contents: { "en": message },
-      android_accent_color: "9AE000",
-      small_icon: "ic_stat_onesignal_default"
+      contents: { "en": message }
     })
   })
-  return res.json()
 }
