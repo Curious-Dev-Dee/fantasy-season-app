@@ -1,5 +1,5 @@
 import { supabase } from "./supabase.js";
-import { initNotificationHub } from "./js/notifications.js";
+import { initNotificationHub } from "./notifications.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
