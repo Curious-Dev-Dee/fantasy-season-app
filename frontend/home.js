@@ -61,6 +61,22 @@ async function startDashboard(userId) {
     // 1. Initialize Alerts
     initNotificationHub(userId);
 
+    // ADD THIS LINE HERE
+    setupHomeLeagueListeners(userId); 
+
+    try {
+        await Promise.all([
+            fetchHomeData(userId),
+            loadLeaderboardPreview(),
+            fetchPrivateLeagueData(userId)
+        ]);
+    } catch (err) {
+        console.error("Dashboard load error:", err);
+    } finally {
+        document.body.classList.remove('loading-state');
+        document.body.classList.add('loaded');
+    }
+
     // 2. Fetch Initial Data (Wait for everything to be ready)
     try {
         await Promise.all([
@@ -235,6 +251,58 @@ function startCountdown(startTime) {
     update(); countdownInterval = setInterval(update, 1000);
 }
 
+/* =========================
+   HOME LEAGUE ACTIONS
+========================= */
+function setupHomeLeagueListeners(userId) {
+    const createBtn = document.getElementById("homeCreateLeagueBtn");
+    const joinBtn = document.getElementById("homeJoinLeagueBtn");
+
+    if (!createBtn || !joinBtn) return;
+
+    createBtn.onclick = async () => {
+        const name = prompt("Enter a cool name for your League:");
+        if (!name) return;
+        
+        // Generate unique code
+        const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        const { data: league, error } = await supabase
+            .from("leagues")
+            .insert([{ name, invite_code: inviteCode, owner_id: userId }])
+            .select()
+            .single();
+
+        if (error) return alert("Error creating league: " + error.message);
+
+        await supabase.from("league_members").insert([{ league_id: league.id, user_id: userId }]);
+        
+        // Refresh the dashboard data immediately
+        fetchPrivateLeagueData(userId);
+    };
+
+    joinBtn.onclick = async () => {
+        const code = prompt("Enter Invite Code:");
+        if (!code) return;
+
+        const { data: league } = await supabase
+            .from("leagues")
+            .select("id")
+            .eq("invite_code", code.toUpperCase())
+            .maybeSingle();
+
+        if (!league) return alert("Invalid Code!");
+
+        const { error } = await supabase
+            .from("league_members")
+            .insert([{ league_id: league.id, user_id: userId }]);
+
+        if (error) return alert("You're already in this league or it failed.");
+        
+        // Refresh the dashboard data immediately
+        fetchPrivateLeagueData(userId);
+    };
+}
 /* =========================
    UI EVENTS
 ========================= */

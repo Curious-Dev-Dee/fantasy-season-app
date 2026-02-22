@@ -135,10 +135,14 @@
         </button>
     </div>
 
-    <div id="noLeagueState" class="hidden" style="text-align: center; padding: 10px 0;">
-        <p style="color: #94a3b8; font-size: 13px;">You haven't joined a private league yet.</p>
-        <button class="primary-btn" style="margin-top: 10px; width: 100%;" onclick="window.location.href='more.html'">Join / Create League</button>
+<div id="noLeagueState" class="hidden" style="text-align: center; padding: 10px 0;">
+    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">You haven't joined a private league yet.</p>
+    <div style="display: flex; gap: 10px;">
+        <button id="homeCreateLeagueBtn" class="primary-btn" style="flex:1; font-size: 12px; padding: 10px;">Create</button>
+        <button id="homeJoinLeagueBtn" class="secondary-btn" style="flex:1; font-size: 12px; padding: 10px;">Join</button>
     </div>
+</div>
+
 </section>
 
   <section class="card leaderboard-card">
