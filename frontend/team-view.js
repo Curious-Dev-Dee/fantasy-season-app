@@ -182,6 +182,7 @@ async function loadLastLockedXI() {
 /* =========================
    HELPER: UNIVERSAL RENDERER
 ========================= */
+/* --- IMPROVED RENDERER --- */
 function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container) {
     container.innerHTML = "";
     const roleOrder = ["WK", "BAT", "AR", "BOWL"];
@@ -193,6 +194,7 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         const section = document.createElement("div");
         section.className = "role-section";
         section.innerHTML = `<div class="role-title">${role}</div>`;
+        
         const row = document.createElement("div");
         row.className = "player-row";
 
@@ -202,33 +204,36 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
             
             if (pts !== null) {
                 if (p.id === captainId) pts *= 2;
-                if (p.id === viceCaptainId) pts *= 1.5;
+                else if (p.id === viceCaptainId) pts *= 1.5;
                 displayPts = `<div class="player-pts">${pts} pts</div>`;
             }
 
+            // Using the cached realTeamsMap for the small labels
+            const teamCode = realTeamsMap[p.real_team_id] || 'TBA';
+            
             const photoUrl = p.photo_url 
                 ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
                 : 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
 
-            const circle = document.createElement("div");
-            circle.className = `player-circle ${p.id === captainId ? 'captain' : ''} ${p.id === viceCaptainId ? 'vice-captain' : ''}`;
-            
-            circle.innerHTML = `
-                ${p.id === captainId ? '<div class="badge captain-badge">C</div>' : ''}
-                ${p.id === viceCaptainId ? '<div class="badge vice-badge">VC</div>' : ''}
-                <div class="avatar" style="background-image: url('${photoUrl}'); background-size: cover; background-position: center;">
-                    <div class="team-init-label">${realTeamsMap[p.real_team_id] || 'TBA'}</div>
+            const isC = p.id === captainId;
+            const isVC = p.id === viceCaptainId;
+
+            row.innerHTML += `
+                <div class="player-circle ${isC ? 'captain' : ''} ${isVC ? 'vice-captain' : ''}">
+                    ${isC ? '<div class="badge captain-badge">C</div>' : ''}
+                    ${isVC ? '<div class="badge vice-badge">VC</div>' : ''}
+                    <div class="avatar" style="background-image: url('${photoUrl}'); background-size: cover;">
+                        <div class="team-init-label">${teamCode}</div>
+                    </div>
+                    <div class="player-name">${p.name.split(' ').pop()}</div>
+                    ${displayPts}
                 </div>
-                <div class="player-name">${p.name}</div>
-                ${displayPts}
             `;
-            row.appendChild(circle);
         });
         section.appendChild(row);
         container.appendChild(section);
     });
 }
-
 /* =========================
    HISTORY FEATURE LOGIC
 ========================= */
