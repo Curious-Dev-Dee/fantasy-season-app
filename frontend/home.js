@@ -58,12 +58,11 @@ window.addEventListener('auth-verified', async (e) => {
 });
 
 async function startDashboard(userId) {
-    // 1. Initialize Alerts
+    // 1. Initialize Alerts & League Listeners
     initNotificationHub(userId);
-
-    // ADD THIS LINE HERE
     setupHomeLeagueListeners(userId); 
 
+    // 2. Fetch Initial Data once
     try {
         await Promise.all([
             fetchHomeData(userId),
@@ -73,27 +72,12 @@ async function startDashboard(userId) {
     } catch (err) {
         console.error("Dashboard load error:", err);
     } finally {
+        // 3. Reveal the App
         document.body.classList.remove('loading-state');
         document.body.classList.add('loaded');
     }
 
-    // 2. Fetch Initial Data (Wait for everything to be ready)
-    try {
-        await Promise.all([
-            fetchHomeData(userId),
-            loadLeaderboardPreview(),
-            fetchPrivateLeagueData(userId)
-        ]);
-    } catch (err) {
-        console.error("Dashboard load error:", err);
-    } finally {
-        // 3. REVEAL THE APP (Professional Transition)
-        // We remove the old state and add the 'loaded' state
-        document.body.classList.remove('loading-state');
-        document.body.classList.add('loaded');
-    }
-
-    // 4. Refresh logic (Optimized)
+    // 4. Background Refresh logic every 30s
     setInterval(async () => {
         await Promise.all([
             fetchHomeData(userId),
@@ -102,7 +86,6 @@ async function startDashboard(userId) {
         ]);
     }, 30000); 
 }
-
 /* =========================
    CORE LOGIC
 ========================= */
