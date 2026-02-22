@@ -1,5 +1,5 @@
 import { supabase } from "./supabase.js";
-import { initNotificationHub } from "./notifications.js";
+import { initNotificationHub } from "./notifications.js"; // Root import for Vercel
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
@@ -19,10 +19,8 @@ const tournamentNameElement = document.getElementById("tournamentName");
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
 const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
-
 const boosterStatusEl = document.getElementById("boosterStatus");
 const boosterIconEl = document.getElementById("boosterIcon");
-
 const profileModal = document.getElementById("profileModal");
 const modalFullName = document.getElementById("modalFullName");
 const modalTeamName = document.getElementById("modalTeamName");
@@ -35,15 +33,12 @@ let currentUserId = null;
 let existingProfile = null; 
 
 /* =========================
-   ONESIGNAL & PUSH LOGIC
+   ONESIGNAL & PUSH
 ========================= */
 async function initOneSignal(userId) {
     if (!window.OneSignalDeferred) return;
     window.OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-            appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
-            notifyButton: { enable: false }
-        });
+        await OneSignal.init({ appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4", notifyButton: { enable: false } });
         await OneSignal.login(userId);
         const onesignalId = OneSignal.User.PushSubscription.id;
         if (onesignalId) {
@@ -53,7 +48,7 @@ async function initOneSignal(userId) {
 }
 
 /* =========================
-   INIT (Auth Guard Protected)
+   INIT & DASHBOARD START
 ========================= */
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
@@ -65,17 +60,17 @@ window.addEventListener('auth-verified', async (e) => {
 async function startDashboard(userId) {
     document.body.classList.remove('loading-state');
     
-    // 1. Initialize the separate Notification logic
+    // 1. Initialize Alerts
     initNotificationHub(userId);
 
-    // 2. Initial Data Fetch
+    // 2. Fetch Initial Data
     await Promise.all([
         fetchHomeData(userId),
         loadLeaderboardPreview(),
         fetchPrivateLeagueData(userId)
     ]);
 
-    // 3. Background refresh every 30s
+    // 3. Refresh every 30s
     setInterval(() => {
         fetchHomeData(userId);
         loadLeaderboardPreview();
@@ -84,30 +79,8 @@ async function startDashboard(userId) {
 }
 
 /* =========================
-   DASHBOARD DATA FETCHING
+   CORE LOGIC
 ========================= */
-async function fetchPrivateLeagueData(userId) {
-    const { data: membership } = await supabase.from('league_members').select('league_id, leagues(name, invite_code)').eq('user_id', userId).maybeSingle();
-    const card = document.getElementById('privateLeagueCard');
-    const container = document.getElementById('privateLeaderboardContainer');
-
-    if (!membership) { card?.classList.add('hidden'); return; }
-    card.classList.remove('hidden');
-    document.getElementById('privateLeagueName').textContent = membership.leagues.name;
-    document.getElementById('privateInviteCode').textContent = membership.leagues.invite_code;
-
-    const { data: members } = await supabase.from('private_league_leaderboard').select('team_name, total_points, rank_in_league, user_id').eq('league_id', membership.league_id).order('total_points', { ascending: false }).limit(3);
-    if (members) {
-        container.innerHTML = members.map(row => `
-            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
-                <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
-                <span class="pts-pill">${row.total_points} pts</span>
-            </div>`).join('');
-        const me = members.find(m => m.user_id === userId);
-        if (me) document.getElementById('privateLeagueRank').textContent = `#${me.rank_in_league}`;
-    }
-}
-
 async function fetchHomeData(userId) {
     const { data, error } = await supabase.from('home_dashboard_view').select('*').eq('user_id', userId).maybeSingle();
     if (error || !data) return;
@@ -136,6 +109,22 @@ async function fetchHomeData(userId) {
         const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
         matchTeamsElement.innerHTML = `${match.team_a_code} vs ${match.team_b_code}${isDelayed ? ' <span class="delay-badge">Delayed</span>' : ''}`;
 
+        // --- RESTORED LOGO UPDATER (The fix for missing flags) ---
+        const updateTeamLogo = (path, elementId) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (path) {
+                const { data: logoData } = supabase.storage.from('team-logos').getPublicUrl(path);
+                el.style.backgroundImage = `url(${logoData.publicUrl})`;
+                el.style.display = "block"; // This turns them ON
+            } else {
+                el.style.display = "none";
+            }
+        };
+
+        updateTeamLogo(match.team_a_logo, "teamALogo");
+        updateTeamLogo(match.team_b_logo, "teamBLogo");
+
         const startTime = new Date(match.actual_start_time).getTime();
         if (match.status === 'locked' || startTime <= Date.now()) {
             if (countdownInterval) clearInterval(countdownInterval);
@@ -145,6 +134,35 @@ async function fetchHomeData(userId) {
             startCountdown(match.actual_start_time);
             editButton.disabled = false; editButton.style.background = "#9AE000";
         }
+    }
+}
+
+async function loadLeaderboardPreview() {
+    const { data: lb } = await supabase.from("leaderboard_view").select("team_name, total_points, rank, user_id").order("rank", { ascending: true }).limit(3);
+    if (lb) {
+        leaderboardContainer.innerHTML = lb.map(row => `
+            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
+                <span>#${row.rank} <strong>${row.team_name || 'Expert'}</strong></span>
+                <span class="pts-pill">${row.total_points} pts</span>
+            </div>`).join('');
+        document.getElementById("overallUserRank").textContent = rankElement.textContent;
+    }
+}
+
+async function fetchPrivateLeagueData(userId) {
+    const { data: m } = await supabase.from('league_members').select('league_id, leagues(name, invite_code)').eq('user_id', userId).maybeSingle();
+    const card = document.getElementById('privateLeagueCard');
+    if (!m) { card?.classList.add('hidden'); return; }
+    card.classList.remove('hidden');
+    document.getElementById('privateLeagueName').textContent = m.leagues.name;
+    document.getElementById('privateInviteCode').textContent = m.leagues.invite_code;
+    const { data: lb } = await supabase.from('private_league_leaderboard').select('team_name, total_points, rank_in_league, user_id').eq('league_id', m.league_id).order('total_points', { ascending: false }).limit(3);
+    if (lb) {
+        document.getElementById('privateLeaderboardContainer').innerHTML = lb.map(row => `
+            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
+                <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
+                <span class="pts-pill">${row.total_points} pts</span>
+            </div>`).join('');
     }
 }
 
@@ -160,31 +178,9 @@ function startCountdown(startTime) {
     update(); countdownInterval = setInterval(update, 1000);
 }
 
-async function loadLeaderboardPreview() {
-    const { data: leaderboard } = await supabase.from("leaderboard_view").select("team_name, total_points, rank, user_id").order("rank", { ascending: true }).limit(3);
-    if (leaderboard) {
-        leaderboardContainer.innerHTML = leaderboard.map(row => `
-            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
-                <span>#${row.rank} <strong>${row.team_name || 'Expert'}</strong></span>
-                <span class="pts-pill">${row.total_points} pts</span>
-            </div>`).join('');
-    }
-}
-
 /* =========================
-   UI NAVIGATION & MODALS
+   UI EVENTS
 ========================= */
-saveProfileBtn.onclick = async () => {
-    const newName = modalFullName.value.trim(), newTeam = modalTeamName.value.trim();
-    if (!newName || !newTeam) return alert("Fields required.");
-    saveProfileBtn.disabled = true;
-    try {
-        await supabase.from("user_profiles").upsert({ user_id: currentUserId, profile_completed: true, full_name: newName, team_name: existingProfile?.team_name || newTeam }, { onConflict: 'user_id' });
-        await fetchHomeData(currentUserId);
-        profileModal.classList.add("hidden");
-    } catch (err) { alert(err.message); } finally { saveProfileBtn.disabled = false; }
-};
-
 avatarElement.onclick = () => profileModal.classList.remove("hidden");
 editButton.onclick = () => window.location.href = "team-builder.html";
 viewXiBtn.onclick = () => window.location.href = "team-view.html";
