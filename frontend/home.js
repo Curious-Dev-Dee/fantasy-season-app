@@ -298,6 +298,74 @@ function setupHomeLeagueListeners(userId) {
         fetchPrivateLeagueData(userId);
     };
 }
+
+/* =========================
+   PROFILE SAVE LOGIC
+========================= */
+saveProfileBtn.onclick = async () => {
+    const fullName = modalFullName.value.trim();
+    const teamName = modalTeamName.value.trim();
+    const file = avatarInput.files[0];
+
+    if (!fullName || !teamName) return alert("Please enter both your name and team name!");
+
+    saveProfileBtn.disabled = true;
+    saveProfileBtn.textContent = "SAVING...";
+
+    try {
+        let photoPath = existingProfile?.team_photo_url;
+
+        // 1. Handle Avatar Upload if a new file is selected
+        if (file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUserId}-${Math.random()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+                .from('team-avatars')
+                .upload(fileName, file, { upsert: true });
+
+            if (uploadError) throw uploadError;
+            photoPath = fileName;
+        }
+
+        // 2. Update User Profile in Database
+        const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update({
+                full_name: fullName,
+                team_name: teamName,
+                team_photo_url: photoPath,
+                profile_complete: true
+            })
+            .eq('user_id', currentUserId);
+
+        if (updateError) throw updateError;
+
+        // 3. Success! Refresh and Close
+        alert("Profile updated successfully!");
+        profileModal.classList.add("hidden");
+        window.location.reload(); // Reload to reflect changes across the dashboard
+
+    } catch (err) {
+        console.error("Save error:", err.message);
+        alert("Failed to save profile. Please try again.");
+    } finally {
+        saveProfileBtn.disabled = false;
+        saveProfileBtn.textContent = "Save & Start";
+    }
+};
+
+// Handle Image Preview when a user selects a file
+avatarInput.onchange = () => {
+    const file = avatarInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            modalPreview.style.backgroundImage = `url(${e.target.result})`;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
 /* =========================
     UI EVENTS
 ========================= */
