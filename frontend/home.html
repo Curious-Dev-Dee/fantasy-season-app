@@ -12,10 +12,10 @@
 
   <link rel="manifest" href="/manifest.json" />
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#9AE000">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#9AE000">
 
-  <script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>  
+<script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>  
 
   <script type="module" src="auth-guard.js"></script>
 
@@ -50,26 +50,26 @@
 
 <div class="app-container page-with-nav">
   
-  <header class="app-header">
-    <div class="header-content">
-        <h1 id="tournamentName">Tournament</h1>
-        
-        <div class="notif-trigger" id="notifTrigger">
-            <i class="fas fa-bell"></i>
-            <span id="notifBadge" class="notif-badge hidden">0</span>
-            
-            <div id="notifPanel" class="notif-panel hidden">
-                <div class="notif-header">
-                    <h3>Alerts</h3>
-                    <button class="btn-mark-read" id="markAllRead">Mark all read</button>
-                </div>
-                <div id="notifList" class="notif-list">
-                    <div class="empty-notif">Loading...</div>
-                </div>
-            </div>
+<header class="app-header">
+  <div class="header-content">
+    <h1 id="tournamentName">Tournament</h1>
+
+    <div class="notif-trigger" id="notifTrigger">
+      <i class="fas fa-bell"></i>
+      <span id="notifBadge" class="notif-badge hidden">0</span>
+
+      <div id="notifPanel" class="notif-panel hidden">
+        <div class="notif-header">
+          <h3>Alerts</h3>
+          <button class="btn-mark-read" id="markAllRead">Mark all read</button>
         </div>
+        <div id="notifList" class="notif-list">
+          <div class="empty-notif">Checking for updates...</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </div>
+</header>
 
   <section class="card user-card">
     <div class="user-info">
@@ -112,7 +112,9 @@
   
   <div class="match-vs-header">
       <div id="teamALogo" class="team-logo-dashboard"></div>
+      
       <h3 class="match-teams" id="matchTeams">—</h3>
+      
       <div id="teamBLogo" class="team-logo-dashboard"></div>
   </div>
   
@@ -140,9 +142,11 @@
             <span id="privateLeagueRank" style="font-size: 18px; font-weight: 800; color: #00f2ff;">#--</span>
         </div>
     </div>
+    
     <div id="privateLeaderboardContainer">
         <p style="color: #9ca3af; font-size: 13px;">Fetching league standings...</p>
     </div>
+    
     <button class="view-all-btn" id="viewPrivateLeaderboard">
         League Standings <i class="fas fa-chevron-right"></i>
     </button>
@@ -156,12 +160,13 @@
         </div>
         <div style="text-align: right;">
             <p style="font-size: 10px; color: #94a3b8; margin: 0;">YOUR RANK</p>
-            <span id="overallUserRank" style="font-size: 18px; font-weight: 800; color: #9AE000;">#--</span>        
-        </div>
+<span id="overallUserRank" style="font-size: 18px; font-weight: 800; color: #9AE000;">#--</span>        </div>
     </div>
+    
     <div id="leaderboardContainer">
         <p style="color: #9ca3af; font-size: 13px;">Updating rankings...</p>
     </div>
+    
     <button class="view-all-btn" id="viewFullLeaderboard">
         Full Leaderboard <i class="fas fa-chevron-right"></i>
     </button>

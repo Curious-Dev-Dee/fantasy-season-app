@@ -15,28 +15,22 @@ export async function initNotificationHub(userId) {
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
-            .limit(15);
+            .limit(10);
 
         if (error || !data) return;
 
-        // Update Red Badge
         const unreadCount = data.filter(n => !n.is_read).length;
         badge.innerText = unreadCount;
         badge.classList.toggle("hidden", unreadCount === 0);
 
-        // Render List
-        if (data.length === 0) {
-            list.innerHTML = `<div class="empty-notif">No new updates</div>`;
-            return;
-        }
-
-        list.innerHTML = data.map(n => `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}">
-                <span class="title">${getIcon(n.type)} ${n.title}</span>
-                <div class="msg">${n.message}</div>
-                <span class="time">${new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-            </div>
-        `).join('');
+        list.innerHTML = data.length === 0 
+            ? `<div class="empty-notif">No new updates</div>`
+            : data.map(n => `
+                <div class="notif-item ${n.is_read ? '' : 'unread'}">
+                    <span class="title">${getIcon(n.type)} ${n.title}</span>
+                    <div class="msg">${n.message}</div>
+                    <span class="time">${new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>`).join('');
     };
 
     function getIcon(type) {
@@ -44,12 +38,7 @@ export async function initNotificationHub(userId) {
         return icons[type] || '🔔';
     }
 
-    // UI Events
-    trigger.onclick = (e) => {
-        e.stopPropagation();
-        panel.classList.toggle("hidden");
-    };
-
+    trigger.onclick = (e) => { e.stopPropagation(); panel.classList.toggle("hidden"); };
     markReadBtn.onclick = async (e) => {
         e.stopPropagation();
         await supabase.from('notifications').update({ is_read: true }).eq('user_id', userId);
@@ -59,11 +48,6 @@ export async function initNotificationHub(userId) {
     document.addEventListener('click', () => panel.classList.add("hidden"));
     panel.onclick = (e) => e.stopPropagation();
 
-    // Realtime Listener
-    supabase.channel('user-notifs')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, 
-        () => refreshNotifs())
-        .subscribe();
-
+    supabase.channel('user-notifs').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, () => refreshNotifs()).subscribe();
     refreshNotifs();
 }

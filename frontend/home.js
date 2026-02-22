@@ -19,8 +19,10 @@ const tournamentNameElement = document.getElementById("tournamentName");
 const editButton = document.getElementById("editXiBtn");
 const viewXiBtn = document.getElementById("viewXiBtn");
 const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
+
 const boosterStatusEl = document.getElementById("boosterStatus");
 const boosterIconEl = document.getElementById("boosterIcon");
+
 const profileModal = document.getElementById("profileModal");
 const modalFullName = document.getElementById("modalFullName");
 const modalTeamName = document.getElementById("modalTeamName");
@@ -37,16 +39,17 @@ let existingProfile = null;
 ========================= */
 async function initOneSignal(userId) {
     if (!window.OneSignalDeferred) return;
-    try {
-        window.OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({ appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4", notifyButton: { enable: false } });
-            await OneSignal.login(userId);
-            const onesignalId = OneSignal.User.PushSubscription.id;
-            if (onesignalId) {
-                await supabase.from('user_profiles').update({ onesignal_id: onesignalId }).eq('user_id', userId);
-            }
+    window.OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+            appId: "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+            notifyButton: { enable: false }
         });
-    } catch (err) { console.error(err); }
+        await OneSignal.login(userId);
+        const onesignalId = OneSignal.User.PushSubscription.id;
+        if (onesignalId) {
+            await supabase.from('user_profiles').update({ onesignal_id: onesignalId }).eq('user_id', userId);
+        }
+    });
 }
 
 /* =========================
@@ -62,15 +65,17 @@ window.addEventListener('auth-verified', async (e) => {
 async function startDashboard(userId) {
     document.body.classList.remove('loading-state');
     
-    // NEW: Notification Hub
+    // 1. Initialize the separate Notification logic
     initNotificationHub(userId);
 
+    // 2. Initial Data Fetch
     await Promise.all([
         fetchHomeData(userId),
         loadLeaderboardPreview(),
         fetchPrivateLeagueData(userId)
     ]);
 
+    // 3. Background refresh every 30s
     setInterval(() => {
         fetchHomeData(userId);
         loadLeaderboardPreview();
@@ -79,14 +84,14 @@ async function startDashboard(userId) {
 }
 
 /* =========================
-   CORE DASHBOARD LOGIC
+   DASHBOARD DATA FETCHING
 ========================= */
 async function fetchPrivateLeagueData(userId) {
     const { data: membership } = await supabase.from('league_members').select('league_id, leagues(name, invite_code)').eq('user_id', userId).maybeSingle();
     const card = document.getElementById('privateLeagueCard');
     const container = document.getElementById('privateLeaderboardContainer');
-    if (!membership) { card?.classList.add('hidden'); return; }
 
+    if (!membership) { card?.classList.add('hidden'); return; }
     card.classList.remove('hidden');
     document.getElementById('privateLeagueName').textContent = membership.leagues.name;
     document.getElementById('privateInviteCode').textContent = membership.leagues.invite_code;
@@ -101,29 +106,26 @@ async function fetchPrivateLeagueData(userId) {
         const me = members.find(m => m.user_id === userId);
         if (me) document.getElementById('privateLeagueRank').textContent = `#${me.rank_in_league}`;
     }
-    document.getElementById('viewPrivateLeaderboard').onclick = () => window.location.href = `leaderboard.html?league_id=${membership.league_id}`;
-    document.getElementById('privateInviteCode').onclick = () => { navigator.clipboard.writeText(membership.leagues.invite_code); alert("Code Copied!"); };
 }
 
 async function fetchHomeData(userId) {
     const { data, error } = await supabase.from('home_dashboard_view').select('*').eq('user_id', userId).maybeSingle();
     if (error || !data) return;
+
     existingProfile = data;
     tournamentNameElement.textContent = data.tournament_name || "Tournament";
-    welcomeText.textContent = `Welcome back, ${data.full_name?.trim().split(" ")[0] || "Expert"}`;
+    welcomeText.textContent = `Welcome back, ${data.full_name?.split(" ")[0] || "Expert"}`;
     teamNameElement.textContent = data.team_name || "Set your team name";
-    modalFullName.value = data.full_name || "";
-    modalTeamName.value = data.team_name || "";
-    if (data.team_name) { modalTeamName.disabled = true; modalTeamName.style.opacity = "0.6"; }
+
     if (data.team_photo_url) {
         const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(data.team_photo_url);
-        const avatarUrl = `${imgData.publicUrl}?t=${new Date().getTime()}`;
-        avatarElement.style.backgroundImage = `url(${avatarUrl})`;
-        modalPreview.style.backgroundImage = `url(${avatarUrl})`;
+        avatarElement.style.backgroundImage = `url(${imgData.publicUrl}?t=${Date.now()})`;
     }
+
     scoreElement.textContent = data.total_points || 0;
     rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
     subsElement.textContent = data.subs_remaining;
+
     if (boosterStatusEl) {
         boosterStatusEl.textContent = data.s8_booster_used ? "0" : "1";
         boosterStatusEl.style.color = data.s8_booster_used ? "#64748b" : "#9AE000";
@@ -133,83 +135,57 @@ async function fetchHomeData(userId) {
     if (match) {
         const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
         matchTeamsElement.innerHTML = `${match.team_a_code} vs ${match.team_b_code}${isDelayed ? ' <span class="delay-badge">Delayed</span>' : ''}`;
-        const updateTeamLogo = (path, elId) => {
-            const el = document.getElementById(elId);
-            if (path && el) { const { data: d } = supabase.storage.from('team-logos').getPublicUrl(path); el.style.backgroundImage = `url(${d.publicUrl})`; el.style.display = "block"; }
-            else if (el) el.style.display = "none";
-        };
-        updateTeamLogo(match.team_a_logo, "teamALogo");
-        updateTeamLogo(match.team_b_logo, "teamBLogo");
+
         const startTime = new Date(match.actual_start_time).getTime();
-        const now = new Date().getTime();
-        if (match.is_locked || match.status === 'locked' || startTime <= now) {
+        if (match.status === 'locked' || startTime <= Date.now()) {
             if (countdownInterval) clearInterval(countdownInterval);
             matchTimeElement.innerHTML = `<span style="color: #94a3b8;"><i class="fas fa-lock"></i> Match Started</span>`;
-            editButton.disabled = true; editButton.textContent = "Locked"; editButton.style.background = "#1e293b";
+            editButton.disabled = true; editButton.style.background = "#1e293b";
         } else {
             startCountdown(match.actual_start_time);
-            editButton.disabled = false; editButton.textContent = "Change"; editButton.style.background = "#9AE000";
+            editButton.disabled = false; editButton.style.background = "#9AE000";
         }
-    } else {
-        matchTeamsElement.textContent = "No upcoming match";
-        editButton.disabled = true;
     }
 }
 
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     const matchTime = new Date(startTime).getTime();
-    const updateCountdown = () => {
-        const now = new Date().getTime();
-        const dist = matchTime - now;
+    const update = () => {
+        const dist = matchTime - Date.now();
         if (dist <= 0) { clearInterval(countdownInterval); matchTimeElement.textContent = "Match Live"; return; }
-        const mins = dist / (1000 * 60);
-        matchTimeElement.className = mins <= 10 ? "match-time neon-red" : (mins <= 30 ? "match-time neon-orange" : "match-time neon-green");
-        const h = Math.floor(dist / (1000 * 60 * 60)), m = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)), s = Math.floor((dist % (1000 * 60)) / 1000);
+        const h = Math.floor(dist / 3600000), m = Math.floor((dist % 3600000) / 60000), s = Math.floor((dist % 60000) / 1000);
         matchTimeElement.innerHTML = `<i class="far fa-clock"></i> Starts in ${h}h ${m}m ${s}s`;
     };
-    updateCountdown(); countdownInterval = setInterval(updateCountdown, 1000);
+    update(); countdownInterval = setInterval(update, 1000);
 }
 
 async function loadLeaderboardPreview() {
     const { data: leaderboard } = await supabase.from("leaderboard_view").select("team_name, total_points, rank, user_id").order("rank", { ascending: true }).limit(3);
     if (leaderboard) {
         leaderboardContainer.innerHTML = leaderboard.map(row => `
-            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name)}'">
-                <span>#${row.rank} <strong>${row.team_name || 'Anonymous'}</strong></span>
+            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
+                <span>#${row.rank} <strong>${row.team_name || 'Expert'}</strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
             </div>`).join('');
-        document.getElementById("overallUserRank").textContent = rankElement.textContent;
     }
 }
 
 /* =========================
-   UI NAVIGATION & EVENTS
+   UI NAVIGATION & MODALS
 ========================= */
 saveProfileBtn.onclick = async () => {
-    const newName = modalFullName.value.trim(), newTeam = modalTeamName.value.trim(), file = avatarInput.files[0];
-    if (!newName || !newTeam) return alert("All fields required.");
+    const newName = modalFullName.value.trim(), newTeam = modalTeamName.value.trim();
+    if (!newName || !newTeam) return alert("Fields required.");
     saveProfileBtn.disabled = true;
     try {
-        let photoPath = existingProfile?.team_photo_url;
-        if (file) {
-            const fileName = `${currentUserId}/${Date.now()}.png`;
-            await supabase.storage.from('team-avatars').upload(fileName, file, { upsert: true });
-            photoPath = fileName;
-        }
-        await supabase.from("user_profiles").upsert({ user_id: currentUserId, profile_completed: true, full_name: newName, team_name: existingProfile?.team_name || newTeam, team_photo_url: photoPath }, { onConflict: 'user_id' });
+        await supabase.from("user_profiles").upsert({ user_id: currentUserId, profile_completed: true, full_name: newName, team_name: existingProfile?.team_name || newTeam }, { onConflict: 'user_id' });
         await fetchHomeData(currentUserId);
         profileModal.classList.add("hidden");
-    } catch (err) { alert("Update failed: " + err.message); } finally { saveProfileBtn.disabled = false; }
-};
-
-avatarInput.onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) { const reader = new FileReader(); reader.onload = (ev) => { modalPreview.style.backgroundImage = `url(${ev.target.result})`; }; reader.readAsDataURL(file); }
+    } catch (err) { alert(err.message); } finally { saveProfileBtn.disabled = false; }
 };
 
 avatarElement.onclick = () => profileModal.classList.remove("hidden");
-profileModal.onclick = (e) => { if (e.target === profileModal) profileModal.classList.add("hidden"); };
 editButton.onclick = () => window.location.href = "team-builder.html";
 viewXiBtn.onclick = () => window.location.href = "team-view.html";
 viewFullLeaderboardBtn.onclick = () => window.location.href = "leaderboard.html";
