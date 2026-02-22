@@ -403,13 +403,11 @@ if (closeBtn) {
 }
 
 /* =========================
-    UI EVENTS
+    REFINED UI EVENTS
 ========================= */
 
-// 1. Open Profile Modal
-// When clicking the avatar, it opens the modal to change name/team/photo
+// 1. Profile Modal Control
 avatarElement.onclick = () => {
-    // Optional: Pre-fill modal with current data if available
     if (existingProfile) {
         modalFullName.value = existingProfile.full_name || "";
         modalTeamName.value = existingProfile.team_name || "";
@@ -417,23 +415,18 @@ avatarElement.onclick = () => {
     profileModal.classList.remove("hidden");
 };
 
-// Close modal when clicking outside the content area
-window.onclick = (event) => {
-    if (event.target === profileModal) {
-        profileModal.classList.add("hidden");
-    }
-};
+// Close Button
+if (closeBtn) {
+    closeBtn.onclick = () => profileModal.classList.add("hidden");
+}
 
-// 2. Go to Team Builder
-// Redirects to the selection page to pick players
+// 2. Navigation Actions
 editButton.onclick = () => {
     window.location.href = "team-builder.html";
 };
 
-// 3. View Your Playing XI
-// Redirects to the team-view page for the logged-in user
 viewXiBtn.onclick = () => {
-    if (!existingProfile?.team_name) {
+    if (!existingProfile?.team_name || existingProfile.team_name === "Set your team name") {
         alert("Please set your team name in your profile first!");
         profileModal.classList.remove("hidden");
     } else {
@@ -441,12 +434,13 @@ viewXiBtn.onclick = () => {
     }
 };
 
-// 4. View Overall Leaderboard
-// Redirects to the full standings page
 viewFullLeaderboardBtn.onclick = () => {
     window.location.href = "leaderboard.html";
 };
 
-// Note: The 'View League Standings' button for private leagues 
-// is wired up dynamically inside fetchPrivateLeagueData(userId) 
-// to ensure it uses the correct league_id.
+// 3. Global Click Handler (Close modal on outside click)
+window.addEventListener('click', (event) => {
+    if (event.target === profileModal) {
+        profileModal.classList.add("hidden");
+    }
+});
