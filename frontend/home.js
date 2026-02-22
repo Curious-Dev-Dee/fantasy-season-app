@@ -171,19 +171,51 @@ async function loadLeaderboardPreview() {
 }
 
 async function fetchPrivateLeagueData(userId) {
-    const { data: m } = await supabase.from('league_members').select('league_id, leagues(name, invite_code)').eq('user_id', userId).maybeSingle();
     const card = document.getElementById('privateLeagueCard');
-    if (!m) { card?.classList.add('hidden'); return; }
+    const content = document.getElementById('privateLeagueContent');
+    const emptyState = document.getElementById('noLeagueState');
+
+    const { data: m, error } = await supabase
+        .from('league_members')
+        .select('league_id, leagues(name, invite_code)')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (error || !m) {
+        // Option A: Keep it hidden (current behavior)
+        // card?.classList.add('hidden'); 
+        
+        // Option B: Show "Join League" (Professional Choice)
+        card.classList.remove('hidden');
+        content.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        document.getElementById('privateLeagueName').textContent = "Private League";
+        return;
+    }
+
+    // If league exists, show the data
     card.classList.remove('hidden');
+    content.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    
     document.getElementById('privateLeagueName').textContent = m.leagues.name;
     document.getElementById('privateInviteCode').textContent = m.leagues.invite_code;
-    const { data: lb } = await supabase.from('private_league_leaderboard').select('team_name, total_points, rank_in_league, user_id').eq('league_id', m.league_id).order('total_points', { ascending: false }).limit(3);
-    if (lb) {
+
+    const { data: lb } = await supabase
+        .from('private_league_leaderboard')
+        .select('team_name, total_points, rank_in_league, user_id')
+        .eq('league_id', m.league_id)
+        .order('total_points', { ascending: false })
+        .limit(3);
+
+    if (lb && lb.length > 0) {
         document.getElementById('privateLeaderboardContainer').innerHTML = lb.map(row => `
             <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
                 <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
             </div>`).join('');
+    } else {
+        document.getElementById('privateLeaderboardContainer').innerHTML = `<p style="color: #94a3b8; font-size: 12px;">No rankings available yet.</p>`;
     }
 }
 
