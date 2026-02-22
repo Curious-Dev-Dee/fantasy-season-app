@@ -176,8 +176,9 @@ async function fetchPrivateLeagueData(userId) {
     const contentEl = document.getElementById('privateLeagueContent');
     const emptyStateEl = document.getElementById('noLeagueState');
     const containerEl = document.getElementById('privateLeaderboardContainer');
+    const viewBtn = document.getElementById("viewPrivateLeaderboard");
 
-    if (!card) return; // Exit if the card isn't on this page
+    if (!card) return; 
 
     const { data: m, error } = await supabase
         .from('league_members')
@@ -185,6 +186,7 @@ async function fetchPrivateLeagueData(userId) {
         .eq('user_id', userId)
         .maybeSingle();
 
+    // --- NO LEAGUE STATE ---
     if (error || !m) {
         card.classList.remove('hidden');
         if (contentEl) contentEl.classList.add('hidden');
@@ -193,7 +195,7 @@ async function fetchPrivateLeagueData(userId) {
         return;
     }
 
-    // Success State
+    // --- SUCCESS STATE ---
     card.classList.remove('hidden');
     if (contentEl) contentEl.classList.remove('hidden');
     if (emptyStateEl) emptyStateEl.classList.add('hidden');
@@ -201,6 +203,14 @@ async function fetchPrivateLeagueData(userId) {
     if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
     if (inviteCodeEl) inviteCodeEl.textContent = m.leagues.invite_code;
 
+    // Fix the "View Full Leaderboard" button to use the actual League ID
+    if (viewBtn) {
+        viewBtn.onclick = () => {
+            window.location.href = `leaderboard.html?league_id=${m.league_id}`;
+        };
+    }
+
+    // Fetch the top 3 members for the home page preview
     const { data: lb } = await supabase
         .from('private_league_leaderboard')
         .select('team_name, total_points, rank_in_league, user_id')
@@ -215,10 +225,12 @@ async function fetchPrivateLeagueData(userId) {
                 <span class="pts-pill">${row.total_points} pts</span>
             </div>`).join('');
             
-        // Update user's specific rank in the header if it exists
+        // Update user's specific rank in the card header
         const userRow = lb.find(r => r.user_id === userId);
         const rankSpan = document.getElementById('privateLeagueRank');
-        if (rankSpan && userRow) rankSpan.textContent = `#${userRow.rank_in_league}`;
+        if (rankSpan && userRow) {
+            rankSpan.textContent = `#${userRow.rank_in_league}`;
+        }
     }
 }
 
@@ -287,14 +299,15 @@ function setupHomeLeagueListeners(userId) {
     };
 }
 /* =========================
-   UI EVENTS
+    UI EVENTS
 ========================= */
+// Profile & Team Actions
 avatarElement.onclick = () => profileModal.classList.remove("hidden");
 editButton.onclick = () => window.location.href = "team-builder.html";
 viewXiBtn.onclick = () => window.location.href = "team-view.html";
-viewFullLeaderboardBtn.onclick = () => window.location.href = "leaderboard.html"
-// ADD THIS LINE BELOW
-const viewPrivateLbtn = document.getElementById("viewPrivateLeaderboard");
-if (viewPrivateLbtn) {
-    viewPrivateLbtn.onclick = () => window.location.href = "leaderboard.html?type=private";
-}
+
+// Overall Leaderboard Action
+viewFullLeaderboardBtn.onclick = () => window.location.href = "leaderboard.html";
+
+// Note: Private League button logic is now handled dynamically 
+// inside the fetchPrivateLeagueData function above.
