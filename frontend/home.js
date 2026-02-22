@@ -139,12 +139,24 @@ async function fetchHomeData(userId) {
 
 async function loadLeaderboardPreview() {
     const { data: lb } = await supabase.from("leaderboard_view").select("team_name, total_points, rank, user_id").order("rank", { ascending: true }).limit(3);
+    
     if (lb) {
-        leaderboardContainer.innerHTML = lb.map(row => `
-            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
-                <span>#${row.rank} <strong>${row.team_name || 'Expert'}</strong></span>
+        leaderboardContainer.innerHTML = ''; // Clear existing
+        lb.forEach(row => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'leader-row';
+            rowDiv.onclick = () => window.location.href = `team-view.html?uid=${row.user_id}`;
+            
+            // This is the secure part:
+            // We use textContent for the team_name so HTML tags aren't rendered.
+            rowDiv.innerHTML = `
+                <span>#${row.rank} <strong class="team-name-text"></strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
-            </div>`).join('');
+            `;
+            rowDiv.querySelector('.team-name-text').textContent = row.team_name || 'Expert';
+            
+            leaderboardContainer.appendChild(rowDiv);
+        });
         document.getElementById("overallUserRank").textContent = rankElement.textContent;
     }
 }
