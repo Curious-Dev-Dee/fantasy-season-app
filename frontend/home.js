@@ -334,7 +334,7 @@ saveProfileBtn.onclick = async () => {
                 full_name: fullName,
                 team_name: teamName,
                 team_photo_url: photoPath,
-                profile_complete: true
+                profile_completed: true
             })
             .eq('user_id', currentUserId);
 
