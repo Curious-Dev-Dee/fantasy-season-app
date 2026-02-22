@@ -1,4 +1,4 @@
-import { supabase } from "../supabase.js"; // Adjust path if your supabase.js is in root
+import { supabase } from "../supabase.js";
 
 export async function initNotificationHub(userId) {
     const trigger = document.getElementById("notifTrigger");
@@ -7,24 +7,26 @@ export async function initNotificationHub(userId) {
     const list = document.getElementById("notifList");
     const markReadBtn = document.getElementById("markAllRead");
 
+    if (!trigger || !panel || !badge || !list) return;
+
     const refreshNotifs = async () => {
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
-            .limit(10);
+            .limit(15);
 
         if (error || !data) return;
 
-        // Update the red badge
+        // Update Red Badge
         const unreadCount = data.filter(n => !n.is_read).length;
         badge.innerText = unreadCount;
         badge.classList.toggle("hidden", unreadCount === 0);
 
-        // Render the list
+        // Render List
         if (data.length === 0) {
-            list.innerHTML = `<div class="empty-notif">No alerts yet.</div>`;
+            list.innerHTML = `<div class="empty-notif">No new updates</div>`;
             return;
         }
 
@@ -42,13 +44,14 @@ export async function initNotificationHub(userId) {
         return icons[type] || '🔔';
     }
 
-    // Toggle logic
+    // UI Events
     trigger.onclick = (e) => {
         e.stopPropagation();
         panel.classList.toggle("hidden");
     };
 
-    markReadBtn.onclick = async () => {
+    markReadBtn.onclick = async (e) => {
+        e.stopPropagation();
         await supabase.from('notifications').update({ is_read: true }).eq('user_id', userId);
         refreshNotifs();
     };
@@ -56,14 +59,10 @@ export async function initNotificationHub(userId) {
     document.addEventListener('click', () => panel.classList.add("hidden"));
     panel.onclick = (e) => e.stopPropagation();
 
-    // Listen for new notifications in real-time
-    supabase.channel('custom-notif-channel')
-        .on('postgres_changes', { 
-            event: 'INSERT', 
-            schema: 'public', 
-            table: 'notifications', 
-            filter: `user_id=eq.${userId}` 
-        }, () => refreshNotifs())
+    // Realtime Listener
+    supabase.channel('user-notifs')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, 
+        () => refreshNotifs())
         .subscribe();
 
     refreshNotifs();
