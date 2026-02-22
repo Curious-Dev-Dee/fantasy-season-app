@@ -397,6 +397,11 @@ avatarInput.onchange = () => {
     }
 };
 
+const closeBtn = document.getElementById("closeProfileModal");
+if (closeBtn) {
+    closeBtn.onclick = () => profileModal.classList.add("hidden");
+}
+
 /* =========================
     UI EVENTS
 ========================= */
@@ -410,6 +415,13 @@ avatarElement.onclick = () => {
         modalTeamName.value = existingProfile.team_name || "";
     }
     profileModal.classList.remove("hidden");
+};
+
+// Close modal when clicking outside the content area
+window.onclick = (event) => {
+    if (event.target === profileModal) {
+        profileModal.classList.add("hidden");
+    }
 };
 
 // 2. Go to Team Builder

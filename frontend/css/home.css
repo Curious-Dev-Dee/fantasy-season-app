@@ -265,6 +265,7 @@ body {
 }
 
 .modal-content {
+    position: relative;
     background: #1e293b;
     width: 85%;
     max-width: 380px;
@@ -272,6 +273,23 @@ body {
     padding: 30px;
     border: 1px solid #334155;
 }
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    color: #fff;
+}
+
+
 
 .upload-preview-container {
     position: relative;
