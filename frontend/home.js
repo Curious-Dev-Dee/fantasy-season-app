@@ -309,4 +309,9 @@ function setupHomeLeagueListeners(userId) {
 avatarElement.onclick = () => profileModal.classList.remove("hidden");
 editButton.onclick = () => window.location.href = "team-builder.html";
 viewXiBtn.onclick = () => window.location.href = "team-view.html";
-viewFullLeaderboardBtn.onclick = () => window.location.href = "leaderboard.html";
+viewFullLeaderboardBtn.onclick = () => window.location.href = "leaderboard.html"
+// ADD THIS LINE BELOW
+const viewPrivateLbtn = document.getElementById("viewPrivateLeaderboard");
+if (viewPrivateLbtn) {
+    viewPrivateLbtn.onclick = () => window.location.href = "leaderboard.html?type=private";
+}
