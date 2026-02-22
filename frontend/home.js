@@ -95,7 +95,11 @@ async function fetchHomeData(userId) {
 
     existingProfile = data;
     tournamentNameElement.textContent = data.tournament_name || "Tournament";
-    welcomeText.textContent = `Welcome back, ${data.full_name?.split(" ")[0] || "Expert"}`;
+    
+    // --- UPDATED WELCOME TEXT LOGIC ---
+    const firstName = data.full_name ? data.full_name.split(" ")[0] : "Expert";
+    welcomeText.textContent = `Welcome back, ${firstName}!`;
+    
     teamNameElement.textContent = data.team_name || "Set your team name";
 
     if (data.team_photo_url) {
@@ -117,14 +121,13 @@ async function fetchHomeData(userId) {
         const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
         matchTeamsElement.innerHTML = `${match.team_a_code} vs ${match.team_b_code}${isDelayed ? ' <span class="delay-badge">Delayed</span>' : ''}`;
 
-        // --- RESTORED LOGO UPDATER (The fix for missing flags) ---
         const updateTeamLogo = (path, elementId) => {
             const el = document.getElementById(elementId);
             if (!el) return;
             if (path) {
                 const { data: logoData } = supabase.storage.from('team-logos').getPublicUrl(path);
                 el.style.backgroundImage = `url(${logoData.publicUrl})`;
-                el.style.display = "block"; // This turns them ON
+                el.style.display = "block";
             } else {
                 el.style.display = "none";
             }
