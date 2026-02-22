@@ -86,84 +86,74 @@ function renderTeamFilters() {
 }
 
 function renderMatches() {
-  matchesContainer.innerHTML = "";
-  
-  const filtered = allMatches.filter(m => {
-    const sMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
-    const tMatch = selectedTeams.size === 0 || selectedTeams.has(m.team_a_id) || selectedTeams.has(m.team_b_id);
-    return sMatch && tMatch;
-  });
-
-  matchCountSummaryText.innerText = `Showing ${filtered.length} matches`;
-
-  if (!filtered.length) {
-    matchesContainer.innerHTML = `<div class="loading-state"><p>No matches found.</p></div>`;
-    return;
-  }
-
-  const lastLocked = allMatches
-    .filter(m => m.status === 'locked')
-    .sort((a, b) => new Date(b.actual_start_time) - new Date(a.actual_start_time))[0];
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (lastLocked && a.id === lastLocked.id) return -1;
-    if (lastLocked && b.id === lastLocked.id) return 1;
-    if (a.status === 'upcoming' && b.status !== 'upcoming') return -1;
-    if (b.status === 'upcoming' && a.status !== 'upcoming') return 1;
-    if (a.status === 'upcoming' && b.status === 'upcoming') {
-        return new Date(a.actual_start_time) - new Date(b.actual_start_time);
-    }
-    return new Date(b.actual_start_time) - new Date(a.actual_start_time);
-  });
-
-  sorted.forEach(match => {
-    const tA = allTeams.find(t => t.id === match.team_a_id);
-    const tB = allTeams.find(t => t.id === match.team_b_id);
+    matchesContainer.innerHTML = "";
     
-    // --- DYNAMIC LOGO LOGIC ---
-    const getLogoStyle = (team) => {
-      if (team && team.photo_name) {
-        const { data } = supabase.storage.from('team-logos').getPublicUrl(team.photo_name);
-        return `style="background-image: url('${data.publicUrl}'); background-size: contain; background-repeat: no-repeat; background-position: center;"`;
-      }
-      return '';
-    };
-
-    const logoA = getLogoStyle(tA);
-    const logoB = getLogoStyle(tB);
-
-    const date = new Date(match.actual_start_time).toLocaleString('en-IN', { 
-        day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
+    const filtered = allMatches.filter(m => {
+        const sMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
+        const tMatch = selectedTeams.size === 0 || selectedTeams.has(m.team_a_id) || selectedTeams.has(m.team_b_id);
+        return sMatch && tMatch;
     });
 
-    const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
+    matchCountSummaryText.innerText = `Showing ${filtered.length} matches`;
 
-    const delayLabel = isDelayed ? `<span class="delay-badge">DELAYED</span>` : '';
+    if (!filtered.length) {
+        matchesContainer.innerHTML = `<div class="loading-state"><p>No matches matches this filter.</p></div>`;
+        return;
+    }
 
-    const card = document.createElement("div");
-    card.className = `match-card status-${match.status}`;
-    
-    const isLatestHighlight = lastLocked && match.id === lastLocked.id;
-    const highlightLabel = isLatestHighlight ? `<span style="font-size: 10px; color: #f59e0b; margin-left: 10px;">• RECENTLY LOCKED</span>` : '';
+    // Sort: Upcoming first (soonest to latest), then Locked, then Completed (latest to oldest)
+    const sorted = [...filtered].sort((a, b) => {
+        const order = { 'upcoming': 1, 'locked': 2, 'completed': 3, 'abandoned': 4 };
+        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+        
+        // If same status, upcoming sorts ascending (next match first)
+        if (a.status === 'upcoming') return new Date(a.actual_start_time) - new Date(b.actual_start_time);
+        // Others sort descending (most recent results first)
+        return new Date(b.actual_start_time) - new Date(a.actual_start_time);
+    });
 
-    card.innerHTML = `
-      <div class="card-header">
-        <span>${date} ${highlightLabel}</span>
-        <i class="fas fa-info-circle"></i>
-      </div>
-      <div class="team-display">
-        <div class="team-slot">
-            <div class="team-logo" ${logoA}>${!logoA ? (tA?.short_code || '?') : ''}</div>
-            <b>${tA?.short_code || 'TBA'}</b>
-        </div>
-        <div class="vs-badge">VS</div>
-        <div class="team-slot">
-            <div class="team-logo" ${logoB}>${!logoB ? (tB?.short_code || '?') : ''}</div>
-            <b>${tB?.short_code || 'TBA'}</b>
-        </div>
-      </div>
-      <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
-    `;
-    matchesContainer.appendChild(card);
-  });
+    sorted.forEach(match => {
+        const tA = allTeams.find(t => t.id === match.team_a_id);
+        const tB = allTeams.find(t => t.id === match.team_b_id);
+        
+        const getLogoUrl = (team) => {
+            if (team?.photo_name) {
+                return supabase.storage.from('team-logos').getPublicUrl(team.photo_name).data.publicUrl;
+            }
+            return null;
+        };
+
+        const logoA = getLogoUrl(tA);
+        const logoB = getLogoUrl(tB);
+
+        const dateStr = new Date(match.actual_start_time).toLocaleString('en-IN', { 
+            day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
+        });
+
+        const card = document.createElement("div");
+        card.className = `match-card status-${match.status}`;
+        card.innerHTML = `
+            <div class="card-header">
+                <span>${dateStr}</span>
+                <span class="status-indicator"></span>
+            </div>
+            <div class="team-display">
+                <div class="team-slot">
+                    <div class="team-logo" style="${logoA ? `background-image:url(${logoA})` : ''}">
+                        ${!logoA ? (tA?.short_code || '?') : ''}
+                    </div>
+                    <b>${tA?.short_code || 'TBA'}</b>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="team-slot">
+                    <div class="team-logo" style="${logoB ? `background-image:url(${logoB})` : ''}">
+                        ${!logoB ? (tB?.short_code || '?') : ''}
+                    </div>
+                    <b>${tB?.short_code || 'TBA'}</b>
+                </div>
+            </div>
+            <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
+        `;
+        matchesContainer.appendChild(card);
+    });
 }

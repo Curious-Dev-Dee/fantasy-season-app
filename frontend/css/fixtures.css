@@ -37,10 +37,13 @@ body {
 
 /* FILTERS (Z-INDEX FIX) */
 .filters-section {
-  position: sticky;
-  top: 10px;
-  z-index: 1000; /* Ensure this is higher than cards */
-  margin-bottom: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #0b0f19; /* Match body background */
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
 }
 
 .filter-bar { display: flex; gap: 10px; }
@@ -105,6 +108,10 @@ body {
   border-left: 4px solid var(--accent, #334155);
 }
 
+.match-card:active {
+    transform: scale(0.98);
+}
+
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -131,20 +138,9 @@ body {
 
 /* UPDATED FOR LOGO SUPPORT */
 .team-logo {
-    width: 48px; /* Slightly larger for better visibility */
-    height: 48px;
-    background: #0f172a;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 12px; /* For fallback text */
-    border: 2px solid #334155;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    overflow: hidden; /* Keeps images within the circle */
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    border: 1px solid #334155;
+    transition: transform 0.2s;
 }
 
 .vs-badge {
