@@ -149,26 +149,43 @@ async function fetchHomeData(userId) {
 }
 
 async function loadLeaderboardPreview() {
-    const { data: lb } = await supabase.from("leaderboard_view").select("team_name, total_points, rank, user_id").order("rank", { ascending: true }).limit(3);
+    // 1. Fetch top 3 users from the overall leaderboard view
+    const { data: lb } = await supabase
+        .from("leaderboard_view")
+        .select("team_name, total_points, rank, user_id")
+        .order("rank", { ascending: true })
+        .limit(3);
     
     if (lb) {
-        leaderboardContainer.innerHTML = ''; // Clear existing
+        leaderboardContainer.innerHTML = ''; // Clear "Updating..." text
+        
         lb.forEach(row => {
             const rowDiv = document.createElement('div');
             rowDiv.className = 'leader-row';
-            rowDiv.onclick = () => window.location.href = `team-view.html?uid=${row.user_id}`;
             
-            // This is the secure part:
-            // We use textContent for the team_name so HTML tags aren't rendered.
+            // Navigate to scouting view with both ID and Name
+            rowDiv.onclick = () => {
+                const scoutName = encodeURIComponent(row.team_name || 'Expert');
+                window.location.href = `team-view.html?uid=${row.user_id}&name=${scoutName}`;
+            };
+            
+            // Security: Use an empty <strong> then fill it with textContent to prevent XSS
             rowDiv.innerHTML = `
                 <span>#${row.rank} <strong class="team-name-text"></strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
             `;
+            
+            // Fill the team name securely
             rowDiv.querySelector('.team-name-text').textContent = row.team_name || 'Expert';
             
             leaderboardContainer.appendChild(rowDiv);
         });
-        document.getElementById("overallUserRank").textContent = rankElement.textContent;
+
+        // 2. Update the "YOUR RANK" badge in the section header
+        const rankHeader = document.getElementById("overallUserRank");
+        if (rankHeader) {
+            rankHeader.textContent = rankElement.textContent;
+        }
     }
 }
 
@@ -383,13 +400,41 @@ avatarInput.onchange = () => {
 /* =========================
     UI EVENTS
 ========================= */
-// Profile & Team Actions
-avatarElement.onclick = () => profileModal.classList.remove("hidden");
-editButton.onclick = () => window.location.href = "team-builder.html";
-viewXiBtn.onclick = () => window.location.href = "team-view.html";
 
-// Overall Leaderboard Action
-viewFullLeaderboardBtn.onclick = () => window.location.href = "leaderboard.html";
+// 1. Open Profile Modal
+// When clicking the avatar, it opens the modal to change name/team/photo
+avatarElement.onclick = () => {
+    // Optional: Pre-fill modal with current data if available
+    if (existingProfile) {
+        modalFullName.value = existingProfile.full_name || "";
+        modalTeamName.value = existingProfile.team_name || "";
+    }
+    profileModal.classList.remove("hidden");
+};
 
-// Note: Private League button logic is now handled dynamically 
-// inside the fetchPrivateLeagueData function above.
+// 2. Go to Team Builder
+// Redirects to the selection page to pick players
+editButton.onclick = () => {
+    window.location.href = "team-builder.html";
+};
+
+// 3. View Your Playing XI
+// Redirects to the team-view page for the logged-in user
+viewXiBtn.onclick = () => {
+    if (!existingProfile?.team_name) {
+        alert("Please set your team name in your profile first!");
+        profileModal.classList.remove("hidden");
+    } else {
+        window.location.href = `team-view.html?uid=${currentUserId}`;
+    }
+};
+
+// 4. View Overall Leaderboard
+// Redirects to the full standings page
+viewFullLeaderboardBtn.onclick = () => {
+    window.location.href = "leaderboard.html";
+};
+
+// Note: The 'View League Standings' button for private leagues 
+// is wired up dynamically inside fetchPrivateLeagueData(userId) 
+// to ensure it uses the correct league_id.
