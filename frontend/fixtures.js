@@ -130,30 +130,32 @@ function renderMatches() {
             day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
         });
 
-        const card = document.createElement("div");
-        card.className = `match-card status-${match.status}`;
-        card.innerHTML = `
-            <div class="card-header">
-                <span>${dateStr}</span>
-                <span class="status-indicator"></span>
+        // ... inside sorted.forEach ...
+
+const card = document.createElement("div");
+card.className = `match-card status-${match.status}`;
+card.innerHTML = `
+    <div class="card-header">
+        <span>${dateStr}</span>
+        <span class="status-indicator"></span>
+    </div>
+    <div class="team-display">
+        <div class="team-slot">
+            <div class="team-logo" style="${logoA ? `background-image:url('${logoA}')` : ''}">
+                ${!logoA ? (tA?.short_code || '?') : ''}
             </div>
-            <div class="team-display">
-                <div class="team-slot">
-                    <div class="team-logo" style="${logoA ? `background-image:url(${logoA})` : ''}">
-                        ${!logoA ? (tA?.short_code || '?') : ''}
-                    </div>
-                    <b>${tA?.short_code || 'TBA'}</b>
-                </div>
-                <div class="vs-badge">VS</div>
-                <div class="team-slot">
-                    <div class="team-logo" style="${logoB ? `background-image:url(${logoB})` : ''}">
-                        ${!logoB ? (tB?.short_code || '?') : ''}
-                    </div>
-                    <b>${tB?.short_code || 'TBA'}</b>
-                </div>
+            <b>${tA?.short_code || 'TBA'}</b>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="team-slot">
+            <div class="team-logo" style="${logoB ? `background-image:url('${logoB}')` : ''}">
+                ${!logoB ? (tB?.short_code || '?') : ''}
             </div>
-            <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
-        `;
-        matchesContainer.appendChild(card);
+            <b>${tB?.short_code || 'TBA'}</b>
+        </div>
+    </div>
+    <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
+`;
+matchesContainer.appendChild(card);
     });
 }
