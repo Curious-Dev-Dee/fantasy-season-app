@@ -113,15 +113,31 @@
 </section>
 
 <section class="card leaderboard-card hidden" id="privateLeagueCard">
+    <div class="section-header">
+        <div style="display: flex; flex-direction: column;">
+            <h3 id="privateLeagueName" style="color: #9AE000;">My League</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0;">
+                Code: <span id="privateInviteCode" style="color: #fff; font-weight: 700;">--</span>
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 10px; color: #94a3b8; margin: 0;">RANK</p>
+            <span id="privateLeagueRank" style="font-size: 18px; font-weight: 800; color: #00f2ff;">#--</span>
+        </div>
+    </div>
+
     <div id="privateLeagueContent">
         <div id="privateLeaderboardContainer">
-            <p style="color: #9ca3af; font-size: 13px;">Fetching league standings...</p>
+            <p style="color: #9ca3af; font-size: 13px;">Fetching standings...</p>
         </div>
+        <button class="view-all-btn" id="viewPrivateLeaderboard">
+            League Standings <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 
     <div id="noLeagueState" class="hidden" style="text-align: center; padding: 10px 0;">
         <p style="color: #94a3b8; font-size: 13px;">You haven't joined a private league yet.</p>
-        <button class="primary-btn" style="margin-top: 10px; padding: 10px;" onclick="window.location.href='more.html'">Join / Create League</button>
+        <button class="primary-btn" style="margin-top: 10px; width: 100%;" onclick="window.location.href='more.html'">Join / Create League</button>
     </div>
 </section>
 

@@ -172,8 +172,13 @@ async function loadLeaderboardPreview() {
 
 async function fetchPrivateLeagueData(userId) {
     const card = document.getElementById('privateLeagueCard');
-    const content = document.getElementById('privateLeagueContent');
-    const emptyState = document.getElementById('noLeagueState');
+    const leagueNameEl = document.getElementById('privateLeagueName');
+    const inviteCodeEl = document.getElementById('privateInviteCode');
+    const contentEl = document.getElementById('privateLeagueContent');
+    const emptyStateEl = document.getElementById('noLeagueState');
+    const containerEl = document.getElementById('privateLeaderboardContainer');
+
+    if (!card) return; // Exit if the card isn't on this page
 
     const { data: m, error } = await supabase
         .from('league_members')
@@ -182,24 +187,20 @@ async function fetchPrivateLeagueData(userId) {
         .maybeSingle();
 
     if (error || !m) {
-        // Option A: Keep it hidden (current behavior)
-        // card?.classList.add('hidden'); 
-        
-        // Option B: Show "Join League" (Professional Choice)
         card.classList.remove('hidden');
-        content.classList.add('hidden');
-        emptyState.classList.remove('hidden');
-        document.getElementById('privateLeagueName').textContent = "Private League";
+        if (contentEl) contentEl.classList.add('hidden');
+        if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+        if (leagueNameEl) leagueNameEl.textContent = "Private League";
         return;
     }
 
-    // If league exists, show the data
+    // Success State
     card.classList.remove('hidden');
-    content.classList.remove('hidden');
-    emptyState.classList.add('hidden');
+    if (contentEl) contentEl.classList.remove('hidden');
+    if (emptyStateEl) emptyStateEl.classList.add('hidden');
     
-    document.getElementById('privateLeagueName').textContent = m.leagues.name;
-    document.getElementById('privateInviteCode').textContent = m.leagues.invite_code;
+    if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
+    if (inviteCodeEl) inviteCodeEl.textContent = m.leagues.invite_code;
 
     const { data: lb } = await supabase
         .from('private_league_leaderboard')
@@ -208,14 +209,17 @@ async function fetchPrivateLeagueData(userId) {
         .order('total_points', { ascending: false })
         .limit(3);
 
-    if (lb && lb.length > 0) {
-        document.getElementById('privateLeaderboardContainer').innerHTML = lb.map(row => `
+    if (lb && containerEl) {
+        containerEl.innerHTML = lb.map(row => `
             <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
                 <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
             </div>`).join('');
-    } else {
-        document.getElementById('privateLeaderboardContainer').innerHTML = `<p style="color: #94a3b8; font-size: 12px;">No rankings available yet.</p>`;
+            
+        // Update user's specific rank in the header if it exists
+        const userRow = lb.find(r => r.user_id === userId);
+        const rankSpan = document.getElementById('privateLeagueRank');
+        if (rankSpan && userRow) rankSpan.textContent = `#${userRow.rank_in_league}`;
     }
 }
 
