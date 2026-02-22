@@ -7,6 +7,7 @@
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/home.css" />
+  <link rel="stylesheet" href="css/notifications.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
 
   <link rel="manifest" href="/manifest.json" />
@@ -49,11 +50,26 @@
 
 <div class="app-container page-with-nav">
   
-  <header class="app-header">
-    <div class="header-content">
-        <h1 id="tournamentName">Tournament</h1>
+<header class="app-header">
+  <div class="header-content">
+    <h1 id="tournamentName">Tournament</h1>
+
+    <div class="notif-trigger" id="notifTrigger">
+      <i class="fas fa-bell"></i>
+      <span id="notifBadge" class="notif-badge hidden">0</span>
+
+      <div id="notifPanel" class="notif-panel hidden">
+        <div class="notif-header">
+          <h3>Alerts</h3>
+          <button class="btn-mark-read" id="markAllRead">Mark all read</button>
         </div>
-  </header>
+        <div id="notifList" class="notif-list">
+          <div class="empty-notif">Checking for updates...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
   <section class="card user-card">
     <div class="user-info">
