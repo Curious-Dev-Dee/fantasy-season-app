@@ -417,3 +417,8 @@ body.loaded #loadingOverlay {
     visibility: hidden;
     pointer-events: none; /* Allows users to click things 'through' the hidden overlay */
 }
+
+#privateInviteCode:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}

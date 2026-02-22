@@ -189,7 +189,6 @@ async function fetchPrivateLeagueData(userId) {
         .eq('user_id', userId)
         .maybeSingle();
 
-    // --- NO LEAGUE STATE ---
     if (error || !m) {
         card.classList.remove('hidden');
         if (contentEl) contentEl.classList.add('hidden');
@@ -198,22 +197,37 @@ async function fetchPrivateLeagueData(userId) {
         return;
     }
 
-    // --- SUCCESS STATE ---
     card.classList.remove('hidden');
     if (contentEl) contentEl.classList.remove('hidden');
     if (emptyStateEl) emptyStateEl.classList.add('hidden');
     
     if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
-    if (inviteCodeEl) inviteCodeEl.textContent = m.leagues.invite_code;
+    
+    // --- COPY TO CLIPBOARD LOGIC ---
+    if (inviteCodeEl) {
+        inviteCodeEl.textContent = m.leagues.invite_code;
+        inviteCodeEl.style.cursor = "pointer";
+        inviteCodeEl.title = "Click to copy";
+        
+        inviteCodeEl.onclick = () => {
+            navigator.clipboard.writeText(m.leagues.invite_code);
+            const originalText = inviteCodeEl.textContent;
+            inviteCodeEl.textContent = "COPIED!";
+            inviteCodeEl.style.color = "#9AE000";
+            
+            setTimeout(() => {
+                inviteCodeEl.textContent = originalText;
+                inviteCodeEl.style.color = "#fff";
+            }, 2000);
+        };
+    }
 
-    // Fix the "View Full Leaderboard" button to use the actual League ID
     if (viewBtn) {
         viewBtn.onclick = () => {
             window.location.href = `leaderboard.html?league_id=${m.league_id}`;
         };
     }
 
-    // Fetch the top 3 members for the home page preview
     const { data: lb } = await supabase
         .from('private_league_leaderboard')
         .select('team_name, total_points, rank_in_league, user_id')
@@ -228,12 +242,9 @@ async function fetchPrivateLeagueData(userId) {
                 <span class="pts-pill">${row.total_points} pts</span>
             </div>`).join('');
             
-        // Update user's specific rank in the card header
         const userRow = lb.find(r => r.user_id === userId);
         const rankSpan = document.getElementById('privateLeagueRank');
-        if (rankSpan && userRow) {
-            rankSpan.textContent = `#${userRow.rank_in_league}`;
-        }
+        if (rankSpan && userRow) rankSpan.textContent = `#${userRow.rank_in_league}`;
     }
 }
 
