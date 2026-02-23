@@ -467,7 +467,6 @@ function setupListeners() {
             const targetView = document.getElementById(`${btn.dataset.mode}-view`);
             if (targetView) targetView.classList.add("active");
 
-            // Hide search/filters when in 'My XI'
             const filterWrap = document.querySelector(".search-filter-wrapper");
             if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
@@ -483,62 +482,38 @@ function setupListeners() {
         };
     });
 
-    // 3. Premium Filter Popup Logic
-    const backdrop = document.getElementById("filterBackdrop");
+    // 3. Premium Filter Popup Logic (FIXED BACKDROP SCOPE)
+    const backdrop = document.getElementById("filterBackdrop"); // Ensure this ID exists in HTML
+    
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
         const menu = document.getElementById(`${type}Menu`);
         
-        if(btn) {
+        if(btn && menu) {
             btn.onclick = (e) => { 
                 e.stopPropagation(); 
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
                 menu.classList.add('show');
-                backdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Stop background scrolling
+                if (backdrop) backdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; 
             };
         }
     });
 
-    // Close on backdrop click
-    backdrop.onclick = () => {
-        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-        backdrop.classList.add('hidden');
-        document.body.style.overflow = '';
-    };
-
-    // 4. Existing Save Logic...
-    document.getElementById("saveTeamBtn").onclick = async () => {
-        // (Keep your existing Save Team code here exactly as is)
-    };
-
-    // 5. Booster confirmation Logic...
-    const boosterToggle = document.getElementById("boosterToggle");
-    if (boosterToggle) {
-        boosterToggle.addEventListener('change', (e) => {
-            if (state.s8BoosterUsed) { e.preventDefault(); return; }
-            const willEnable = boosterToggle.checked;
-            if (confirm(willEnable ? "🚀 Use 2X Booster for this match?" : "Remove Booster?")) {
-                state.boosterActiveInDraft = willEnable;
-                render();
-            } else {
-                boosterToggle.checked = !willEnable;
-            }
-        });
+    // Handle backdrop click to close menus
+    if (backdrop) {
+        backdrop.onclick = () => {
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            backdrop.classList.add('hidden');
+            document.body.style.overflow = '';
+        };
     }
-}
 
-// Close menu when clicking the blurred area
-backdrop.onclick = () => {
-    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-    backdrop.classList.add('hidden');
-    document.body.style.overflow = '';
-};
+    // 4. Search logic
+    const searchInput = document.getElementById("playerSearch");
+    if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
-// Also close when selecting filters if needed, 
-// but usually bottom sheets stay open until user clicks 'Done' or 'Backdrop'
-
-    // Save Team Logic
+    // 5. Save Team Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
@@ -566,27 +541,19 @@ backdrop.onclick = () => {
             }
             showSuccessModal();
         } else {
-            alert("Error saving team.");
-            console.error(error);
+            console.error("Save error:", error);
         }
         state.saving = false;
         render();
     };
 
-    // Booster Logic
+    // 6. Booster Confirmation Logic
     const boosterToggle = document.getElementById("boosterToggle");
     if (boosterToggle) {
         boosterToggle.addEventListener('change', (e) => {
-            if (state.s8BoosterUsed) {
-                e.preventDefault();
-                return;
-            }
+            if (state.s8BoosterUsed) { e.preventDefault(); return; }
             const willEnable = boosterToggle.checked;
-            const confirmMsg = willEnable 
-                ? "🚀 Use your 2X Booster for this match? This cannot be undone!" 
-                : "Remove booster?";
-
-            if (confirm(confirmMsg)) {
+            if (confirm(willEnable ? "🚀 Use 2X Booster for this match?" : "Remove Booster?")) {
                 state.boosterActiveInDraft = willEnable;
                 render();
             } else {
@@ -594,7 +561,7 @@ backdrop.onclick = () => {
             }
         });
     }
-}
+}}
 
 function showSuccessModal() {
     const modal = document.createElement("div");
