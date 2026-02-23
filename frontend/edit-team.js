@@ -419,23 +419,42 @@ window.selectAllFilters = (key, menuId) => {
 };
 
 function setupListeners() {
-    
+    // FIX: View Toggle (MY XI vs CHANGE)
+    document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.onclick = () => {
+            // Remove active from all buttons and views
+            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
+            
+            // Add active to clicked button and its corresponding view
+            btn.classList.add("active");
+            const targetView = document.getElementById(`${btn.dataset.mode}-view`);
+            if (targetView) targetView.classList.add("active");
 
+            // Hide search/filters when looking at 'My XI'
+            const filterWrap = document.querySelector(".search-filter-wrapper");
+            if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
+        };
+    });
+
+    // Role Filter Toggling
     document.querySelectorAll(".role-tab").forEach(tab => {
-    tab.onclick = () => {
-        // Move the active class
-        document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        
-        // Update filter and re-render
-        state.filters.role = tab.dataset.role;
-        render();
-    };
-});
+        tab.onclick = () => {
+            // Remove active from all tabs
+            document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
+            // Add to the clicked one
+            tab.classList.add("active");
+            
+            state.filters.role = tab.dataset.role;
+            render();
+        };
+    });
 
+    // Search logic
     const searchInput = document.getElementById("playerSearch");
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
+    // Dropdown filters (Match, Team, Credit)
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
         if(btn) btn.onclick = (e) => { 
@@ -451,6 +470,7 @@ function setupListeners() {
         document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
     });
 
+    // Save Team Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
@@ -485,31 +505,27 @@ function setupListeners() {
         render();
     };
 
-    // Inside setupListeners()...
-const boosterToggle = document.getElementById("boosterToggle");
-if (boosterToggle) {
-    boosterToggle.addEventListener('change', (e) => {
-        // If already used in DB, do nothing
-        if (state.s8BoosterUsed) {
-            e.preventDefault();
-            return;
-        }
+    // Booster Logic
+    const boosterToggle = document.getElementById("boosterToggle");
+    if (boosterToggle) {
+        boosterToggle.addEventListener('change', (e) => {
+            if (state.s8BoosterUsed) {
+                e.preventDefault();
+                return;
+            }
+            const willEnable = boosterToggle.checked;
+            const confirmMsg = willEnable 
+                ? "🚀 Use your 2X Booster for this match? This cannot be undone!" 
+                : "Remove booster?";
 
-        const willEnable = boosterToggle.checked;
-        const confirmMsg = willEnable 
-            ? "🚀 Use your 2X Booster for this match? This cannot be undone once the match locks!" 
-            : "Remove booster for this match?";
-
-        if (confirm(confirmMsg)) {
-            state.boosterActiveInDraft = willEnable;
-            render(); // Refresh UI to show state
-        } else {
-            // Revert the checkbox if they click 'Cancel'
-            boosterToggle.checked = !willEnable;
-        }
-    });
-}
-
+            if (confirm(confirmMsg)) {
+                state.boosterActiveInDraft = willEnable;
+                render();
+            } else {
+                boosterToggle.checked = !willEnable;
+            }
+        });
+    }
 }
 
 function showSuccessModal() {

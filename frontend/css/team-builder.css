@@ -214,7 +214,6 @@ body {
     font-weight: 900;
 }
 
-/* THE NEON SLIDER */
 .role-slider-bg {
     position: absolute;
     top: 4px;
@@ -228,13 +227,13 @@ body {
     box-shadow: 0 0 15px rgba(154, 224, 0, 0.3);
 }
 
-/* Logic to move the slider based on which tab has the .active class */
-/* We use the sibling selector to move the slider-bg */
+/* Slide logic: Move the background based on active tab */
 .role-tab[data-role="ALL"].active ~ .role-slider-bg { transform: translateX(0); }
 .role-tab[data-role="WK"].active ~ .role-slider-bg { transform: translateX(100%); }
 .role-tab[data-role="BAT"].active ~ .role-slider-bg { transform: translateX(200%); }
 .role-tab[data-role="AR"].active ~ .role-slider-bg { transform: translateX(300%); }
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
+
 /* --- Dropdown Filters --- */
 .dropdown-filters { display: flex; gap: 8px; margin-top: 10px; position: relative; }
 .dropdown { position: relative; flex: 1; }
