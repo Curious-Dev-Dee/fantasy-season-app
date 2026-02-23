@@ -419,21 +419,23 @@ window.selectAllFilters = (key, menuId) => {
 };
 
 function setupListeners() {
-    // 1. View Toggle Logic (My XI vs Change)
+    // 1. View Toggle Logic (Fixes "MY XI" button)
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
             document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
+            
             btn.classList.add("active");
             const targetView = document.getElementById(`${btn.dataset.mode}-view`);
             if (targetView) targetView.classList.add("active");
 
+            // Hide search filters when in 'My XI'
             const filterWrap = document.querySelector(".search-filter-wrapper");
             if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
 
-    // 2. Role Filter Logic (Slider)
+    // 2. Role Filter Slider (The Neon Slide)
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -443,7 +445,7 @@ function setupListeners() {
         };
     });
 
-    // 3. Premium Filter Popup Logic (FIXED SCOPE)
+    // 3. Match, Team, Point Filter Logic (FIXED SCOPE)
     const backdrop = document.getElementById("filterBackdrop");
     
     ['match', 'team', 'credit'].forEach(type => {
@@ -453,12 +455,10 @@ function setupListeners() {
         if(btn && menu) {
             btn.onclick = (e) => { 
                 e.stopPropagation(); 
-                // Close any open menus first
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-                // Open selected menu
                 menu.classList.add('show');
                 if (backdrop) backdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; 
+                document.body.style.overflow = 'hidden'; // Lock scrolling
             };
         }
     });
@@ -467,14 +467,11 @@ function setupListeners() {
         backdrop.onclick = () => {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
             backdrop.classList.add('hidden');
-            document.body.style.overflow = '';
+            document.body.style.overflow = ''; // Unlock scrolling
         };
     }
 
-    // 4. Search logic
-    const searchInput = document.getElementById("playerSearch");
-    if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
-
+ 
     // 5. Save Team Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;

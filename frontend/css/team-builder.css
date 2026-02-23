@@ -243,8 +243,8 @@ body {
 /* --- Horizontal Pill Buttons --- */
 .dropdown-filters {
     display: flex;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 8px;
+    margin-top: 12px;
     padding: 0 16px;
 }
 
@@ -288,9 +288,8 @@ body {
 }
 
 .dropdown-menu.bottom-sheet {
-    z-index: 9999; /* Absolute top layer */
-    background: #0f172a !important; /* Solid color prevents blur-through */
-    pointer-events: auto; /* Ensures you can click the items */
+    z-index: 2500; /* Must be higher than backdrop (1500) */
+    background: #0f172a !important; /* Solid color stops blur bleed */
 }
 
 
