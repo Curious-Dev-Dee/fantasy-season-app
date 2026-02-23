@@ -236,92 +236,104 @@ body {
 
 /* --- Dropdown Filters --- */
 /* The dark background overlay */
+/* --- Horizontal Filter Buttons --- */
+.dropdown-filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px; /* Tight alignment below Roles */
+    padding: 0;
+}
+
+.dropdown {
+    flex: 1; /* Ensures all 3 buttons are equal width in the same line */
+}
+
+.dropdown-toggle {
+    width: 100%;
+    background: #111827; /* Match role slider track */
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    padding: 10px 5px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: var(--transition);
+}
+
+.dropdown-toggle i {
+    font-size: 8px;
+    color: var(--primary-green);
+}
+
+.dropdown-toggle:active {
+    border-color: var(--primary-green);
+    background: rgba(154, 224, 0, 0.05);
+}
+
+/* --- The Bottom Sheet (Fixing Visibility) --- */
 .filter-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(4px);
-    z-index: 1500;
+    background: rgba(2, 6, 23, 0.7); /* Darker, less transparent */
+    backdrop-filter: blur(8px); /* Blur the background only */
+    z-index: 1500; /* Behind the menu */
     transition: opacity 0.3s ease;
 }
 
-/* The Bottom Sheet Modal */
 .dropdown-menu {
     position: fixed;
-    bottom: -100%; /* Start off-screen */
+    bottom: -100%; 
     left: 0;
     width: 100%;
-    max-height: 70vh; /* Don't cover the whole screen */
+    max-height: 75vh;
     background: #0f172a;
-    border-radius: 24px 24px 0 0;
-    display: flex; /* Always flex, visibility handled by bottom */
+    border-radius: 30px 30px 0 0; /* Premium rounded top */
+    display: flex;
     flex-direction: column;
-    z-index: 2000;
-    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border-color);
-    border-bottom: none;
+    z-index: 2000; /* ABOVE the blur backdrop */
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* When the menu is active */
 .dropdown-menu.show {
-    bottom: 0;
+    bottom: 0; /* Slide up */
 }
 
-/* Header inside the popup */
+/* Handle indicator for the bottom sheet */
 .dropdown-menu::before {
     content: '';
-    width: 40px;
+    width: 35px;
     height: 4px;
     background: #334155;
-    border-radius: 2px;
+    border-radius: 10px;
     margin: 12px auto;
-    flex-shrink: 0;
 }
 
-/* Content Area within the sheet */
-.dropdown-content {
-    overflow-y: auto;
-    flex: 1;
-    padding: 0 16px 20px;
-}
-
+/* Checkbox Item Styling */
 .filter-item {
     background: #1e293b;
-    margin-bottom: 8px;
-    padding: 14px 16px;
-    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 16px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-size: 14px;
-    font-weight: 600;
+    color: #fff;
+    border: 1px solid transparent;
+    transition: 0.2s;
 }
 
-/* Custom Checkbox Styling */
-.filter-item input[type="checkbox"] {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid #334155;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s;
-}
-
-.filter-item input[type="checkbox"]:checked {
-    background: var(--primary-green);
+/* Highlight the item if the checkbox inside is checked */
+.filter-item:has(input:checked) {
     border-color: var(--primary-green);
-}
-
-.filter-item input[type="checkbox"]:checked::after {
-    content: '✓';
-    position: absolute;
-    color: #000;
-    font-weight: 900;
-    left: 4px;
-    top: -1px;
+    background: rgba(154, 224, 0, 0.05);
 }
 
 /* --- Player List & Cards --- */

@@ -455,29 +455,42 @@ function setupListeners() {
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
     // Dropdown filters (Match, Team, Credit)
-    const backdrop = document.getElementById("filterBackdrop");
+    // --- UPDATED FILTER LISTENERS ---
+const backdrop = document.getElementById("filterBackdrop");
 
 ['match', 'team', 'credit'].forEach(type => {
     const btn = document.getElementById(`${type}Toggle`);
-    if(btn) btn.onclick = (e) => { 
-        e.stopPropagation(); 
-        const menu = document.getElementById(`${type}Menu`);
-        
-        // Close any other open menus first
-        document.querySelectorAll('.dropdown-menu').forEach(m => {
-            if(m !== menu) m.classList.remove('show');
-        });
+    const menu = document.getElementById(`${type}Menu`);
+    
+    if(btn) {
+        btn.onclick = (e) => { 
+            e.stopPropagation(); 
+            
+            // Close others first
+            document.querySelectorAll('.dropdown-menu').forEach(m => {
+                if(m !== menu) m.classList.remove('show');
+            });
 
-        // Show this menu and the backdrop
-        menu.classList.add('show');
-        backdrop.classList.remove('hidden');
-    };
+            // Toggle active menu
+            const isOpening = !menu.classList.contains('show');
+            if (isOpening) {
+                menu.classList.add('show');
+                backdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Lock background scroll
+            } else {
+                menu.classList.remove('show');
+                backdrop.classList.add('hidden');
+                document.body.style.overflow = ''; 
+            }
+        };
+    }
 });
 
-// Close when clicking outside (on backdrop)
+// Close menu when clicking the blurred area
 backdrop.onclick = () => {
     document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
     backdrop.classList.add('hidden');
+    document.body.style.overflow = '';
 };
 
 // Also close when selecting filters if needed, 
