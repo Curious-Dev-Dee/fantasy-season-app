@@ -171,59 +171,65 @@ body {
 
 .role-navigation-wrapper {
     padding: 0 16px;
-    margin-top: 8px;
+    margin-bottom: 15px;
 }
 
 .role-tabs-container {
     position: relative;
     display: flex;
-    background: #111827; /* Darker background for the track */
+    background: #111827; /* Deep dark track */
     border-radius: 12px;
     padding: 4px;
     border: 1px solid var(--border-color);
     overflow: hidden;
+    height: 48px;
+    align-items: center;
 }
 
 .role-tab {
     position: relative;
     z-index: 2; /* Sits above the slider */
     flex: 1;
-    padding: 12px 0;
-    font-size: 12px;
+    text-align: center;
+    font-size: 11px;
     font-weight: 800;
     color: var(--text-dim);
-    text-align: center;
     cursor: pointer;
     transition: color 0.3s ease;
-    background: transparent !important;
+    background: transparent !important; /* Force transparent */
     border: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
 }
 
-/* When active, text turns black to contrast against neon green */
+/* When active, text turns black to contrast with neon green */
 .role-tab.active {
     color: #000 !important;
 }
 
 .role-count {
     font-size: 10px;
-    margin-left: 2px;
+    font-weight: 900;
 }
 
-/* The Sliding Neon Background */
+/* THE NEON SLIDER */
 .role-slider-bg {
     position: absolute;
     top: 4px;
     left: 4px;
     height: calc(100% - 8px);
-    width: calc(20% - 1.6px); /* 5 tabs = 20% width minus padding */
+    width: calc(20% - 1.6px); /* 100% / 5 tabs */
     background: var(--primary-green);
     border-radius: 8px;
     z-index: 1;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 10px rgba(155, 225, 93, 0.3);
+    box-shadow: 0 0 15px rgba(154, 224, 0, 0.3);
 }
 
-/* Slide Logic: Move the background based on active tab */
+/* Logic to move the slider based on which tab has the .active class */
+/* We use the sibling selector to move the slider-bg */
 .role-tab[data-role="ALL"].active ~ .role-slider-bg { transform: translateX(0); }
 .role-tab[data-role="WK"].active ~ .role-slider-bg { transform: translateX(100%); }
 .role-tab[data-role="BAT"].active ~ .role-slider-bg { transform: translateX(200%); }

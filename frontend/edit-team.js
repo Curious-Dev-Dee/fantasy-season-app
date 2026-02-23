@@ -430,13 +430,16 @@ function setupListeners() {
     });
 
     document.querySelectorAll(".role-tab").forEach(tab => {
-        tab.onclick = () => {
-            document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-            state.filters.role = tab.dataset.role;
-            render();
-        };
-    });
+    tab.onclick = () => {
+        // Move the active class
+        document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        
+        // Update filter and re-render
+        state.filters.role = tab.dataset.role;
+        render();
+    };
+});
 
     const searchInput = document.getElementById("playerSearch");
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
