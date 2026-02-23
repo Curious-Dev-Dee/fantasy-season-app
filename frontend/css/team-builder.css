@@ -235,74 +235,94 @@ body {
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 
 /* --- Dropdown Filters --- */
-.dropdown-filters { display: flex; gap: 8px; margin-top: 10px; position: relative; }
-.dropdown { position: relative; flex: 1; }
-
-.dropdown-toggle { 
-    width: 100%; background: #1e293b; border: 1px solid var(--border-color); 
-    color: var(--text-dim); padding: 10px; border-radius: 10px; font-size: 11px; 
-    font-weight: 700; cursor: pointer; text-align: center;
+/* The dark background overlay */
+.filter-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1500;
+    transition: opacity 0.3s ease;
 }
 
-.dropdown-menu { 
-    position: absolute; 
-    top: 45px; 
-    left: 0; 
-    width: 240px; 
-    max-height: 350px; 
-    background: #111827; 
-    border: 1px solid #1e293b; 
-    display: none; 
-    flex-direction: column; 
-    z-index: 1000; 
-    border-radius: 14px; 
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); 
-    overflow: hidden; 
+/* The Bottom Sheet Modal */
+.dropdown-menu {
+    position: fixed;
+    bottom: -100%; /* Start off-screen */
+    left: 0;
+    width: 100%;
+    max-height: 70vh; /* Don't cover the whole screen */
+    background: #0f172a;
+    border-radius: 24px 24px 0 0;
+    display: flex; /* Always flex, visibility handled by bottom */
+    flex-direction: column;
+    z-index: 2000;
+    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
 }
 
-.dropdown-menu.show { display: flex; }
+/* When the menu is active */
+.dropdown-menu.show {
+    bottom: 0;
+}
 
+/* Header inside the popup */
+.dropdown-menu::before {
+    content: '';
+    width: 40px;
+    height: 4px;
+    background: #334155;
+    border-radius: 2px;
+    margin: 12px auto;
+    flex-shrink: 0;
+}
+
+/* Content Area within the sheet */
 .dropdown-content {
     overflow-y: auto;
     flex: 1;
-    padding: 6px;
+    padding: 0 16px 20px;
 }
 
-.dropdown-actions {
+.filter-item {
+    background: #1e293b;
+    margin-bottom: 8px;
+    padding: 14px 16px;
+    border-radius: 12px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    padding: 10px;
-    background: #0f172a;
-    border-top: 1px solid #1e293b;
-    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
 }
 
-.filter-action-btn {
-    flex: 1;
-    padding: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 8px;
+/* Custom Checkbox Styling */
+.filter-item input[type="checkbox"] {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #334155;
+    border-radius: 6px;
     cursor: pointer;
-    border: none;
-    text-transform: uppercase;
+    position: relative;
+    transition: all 0.2s;
 }
 
-.filter-action-btn.clear { background: #1e293b; color: #94a3b8; }
-.filter-action-btn.all { background: var(--primary-green); color: #000; }
-
-.filter-item { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    padding: 10px; 
-    font-size: 13px; 
-    color: #f1f5f9; 
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+.filter-item input[type="checkbox"]:checked {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
 }
 
-.filter-item:last-child { border-bottom: none; }
+.filter-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: #000;
+    font-weight: 900;
+    left: 4px;
+    top: -1px;
+}
 
 /* --- Player List & Cards --- */
 .player-list { padding: 15px 16px 140px; display: flex; flex-direction: column; gap: 12px; }

@@ -455,20 +455,33 @@ function setupListeners() {
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
     // Dropdown filters (Match, Team, Credit)
-    ['match', 'team', 'credit'].forEach(type => {
-        const btn = document.getElementById(`${type}Toggle`);
-        if(btn) btn.onclick = (e) => { 
-            e.stopPropagation(); 
-            const menu = document.getElementById(`${type}Menu`);
-            const isShowing = menu.classList.contains('show');
-            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-            if(!isShowing) menu.classList.add('show');
-        };
-    });
-    
-    document.addEventListener('click', () => { 
-        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-    });
+    const backdrop = document.getElementById("filterBackdrop");
+
+['match', 'team', 'credit'].forEach(type => {
+    const btn = document.getElementById(`${type}Toggle`);
+    if(btn) btn.onclick = (e) => { 
+        e.stopPropagation(); 
+        const menu = document.getElementById(`${type}Menu`);
+        
+        // Close any other open menus first
+        document.querySelectorAll('.dropdown-menu').forEach(m => {
+            if(m !== menu) m.classList.remove('show');
+        });
+
+        // Show this menu and the backdrop
+        menu.classList.add('show');
+        backdrop.classList.remove('hidden');
+    };
+});
+
+// Close when clicking outside (on backdrop)
+backdrop.onclick = () => {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+    backdrop.classList.add('hidden');
+};
+
+// Also close when selecting filters if needed, 
+// but usually bottom sheets stay open until user clicks 'Done' or 'Backdrop'
 
     // Save Team Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
