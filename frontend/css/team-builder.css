@@ -238,73 +238,56 @@ body {
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 
 /* --- Dropdown Filters --- */
-/* Update Layer 1: The Blur Effect */
+/* --- Corrected Layering & Visibility --- */
 
-/* --- Horizontal Pill Buttons --- */
-.dropdown-filters {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 0 16px;
+/* 1. The Backdrop (Blurred layer) */
+.filter-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.7); 
+    backdrop-filter: blur(10px);
+    z-index: 1500; /* Lower than the menu */
+    transition: opacity 0.3s ease;
 }
 
+/* 2. The Bottom Sheet Menu (Selection items) */
+.dropdown-menu.bottom-sheet {
+    position: fixed;
+    bottom: -100%; 
+    left: 0;
+    width: 100%;
+    max-height: 70vh;
+    background: #0f172a !important; /* Solid color stops blur bleed */
+    border-radius: 24px 24px 0 0;
+    z-index: 2000; /* HIGHER than backdrop ensures it is sharp and clickable */
+    display: flex;
+    flex-direction: column;
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.dropdown-menu.show { 
+    bottom: 0; 
+}
+
+/* 3. Filter Buttons (Pills) */
 .pill-filter {
-    flex: 1; /* Ensures equal width across the line */
-    background: #111827; /* Matches role track background */
+    flex: 1;
+    background: #111827;
     border: 1px solid var(--border-color);
     color: var(--text-dim);
-    padding: 12px;
-    border-radius: 25px; /* Perfect pill shape */
+    padding: 10px;
+    border-radius: 20px;
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: var(--transition);
-}
-
-.pill-filter span {
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.pill-filter i {
-    font-size: 10px;
-    color: var(--primary-green);
-}
-
-/* Glowing active state for filter buttons */
-.pill-filter:active {
-    border-color: var(--primary-green);
-    background: rgba(154, 224, 0, 0.1);
-}
-
-.filter-backdrop {
-    z-index: 9998; /* Just below the menu */
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-}
-
-.dropdown-menu.bottom-sheet {
-    z-index: 2500; /* Must be higher than backdrop (1500) */
-    background: #0f172a !important; /* Solid color stops blur bleed */
-}
-
-
-.dropdown-menu.show {
-    bottom: 0;
-}
-
-/* 3. Ensure filter items have high contrast */
-/* Ensure the items inside are sharp */
-.filter-item {
-    background: #1e293b;
-    z-index: 10000;
-    color: #ffffff;
-    opacity: 1 !important;
-    filter: none !important;
+    gap: 6px;
+    position: relative;
+    z-index: 501; /* Must be higher than header (500) but lower than backdrop */
 }
 
 /* --- Player List & Cards --- */
