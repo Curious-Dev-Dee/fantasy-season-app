@@ -238,16 +238,17 @@ body {
 /* The dark background overlay */
 /* --- Horizontal Filter Buttons --- */
 /* --- Horizontal Pill Buttons --- */
+/* --- Horizontal Pill Buttons --- */
 .dropdown-filters {
     display: flex;
     gap: 8px;
     margin-top: 12px;
-    padding: 0;
+    padding: 0 16px;
 }
 
 .pill-filter {
-    flex: 1;
-    background: #111827; /* Matching Role Track */
+    flex: 1; /* Makes all buttons equal width in one line */
+    background: #111827;
     border: 1px solid var(--border-color);
     color: var(--text-dim);
     padding: 10px;
@@ -262,22 +263,14 @@ body {
     transition: var(--transition);
 }
 
-.pill-filter i {
-    font-size: 8px;
-    color: var(--primary-green);
-}
+.pill-filter i { font-size: 8px; color: var(--primary-green); }
 
-.pill-filter:active {
-    border-color: var(--primary-green);
-    background: rgba(154, 224, 0, 0.05);
-}
-
-/* --- Fixing the Blur & Menu Visibility --- */
+/* --- Visibility Fix: Bottom Sheet & Blur --- */
 .filter-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(2, 6, 23, 0.7); 
-    backdrop-filter: blur(8px); /* Blur is applied to the background */
+    backdrop-filter: blur(8px); /* Blur applied to everything BEHIND the backdrop */
     z-index: 1500;
     transition: opacity 0.3s ease;
 }
@@ -290,7 +283,7 @@ body {
     max-height: 70vh;
     background: #0f172a;
     border-radius: 24px 24px 0 0;
-    z-index: 2000; /* Higher than backdrop = NO BLUR on items */
+    z-index: 2000; /* CRITICAL: Must be higher than backdrop (1500) to be visible */
     display: flex;
     flex-direction: column;
     transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -300,25 +293,19 @@ body {
 
 .dropdown-menu.show { bottom: 0; }
 
-/* Filter Items - Premium Look */
+/* Selection Item Styling */
 .filter-item {
     background: #1e293b;
     margin-bottom: 8px;
-    padding: 14px 16px;
+    padding: 16px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-size: 14px;
-    color: #fff;
-    border: 1px solid transparent;
+    color: #fff; /* High contrast white text */
 }
 
-/* Glowing selection when checked */
-.filter-item:has(input:checked) {
-    border-color: var(--primary-green);
-    background: rgba(154, 224, 0, 0.05);
-}
 
 /* --- Player List & Cards --- */
 .player-list { padding: 15px 16px 140px; display: flex; flex-direction: column; gap: 12px; }

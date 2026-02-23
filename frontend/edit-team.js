@@ -457,12 +457,11 @@ function setupListeners() {
     // Dropdown filters (Match, Team, Credit)
     // --- UPDATED FILTER LISTENERS ---
 function setupListeners() {
-    // 1. View Toggle Logic (Fixes "My XI" not opening)
+    // 1. View Toggle Logic
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
             document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
-            
             btn.classList.add("active");
             const targetView = document.getElementById(`${btn.dataset.mode}-view`);
             if (targetView) targetView.classList.add("active");
@@ -472,7 +471,7 @@ function setupListeners() {
         };
     });
 
-    // 2. Role Filter Slider Logic
+    // 2. Role Filter Logic
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -482,8 +481,8 @@ function setupListeners() {
         };
     });
 
-    // 3. Premium Filter Popup Logic (FIXED BACKDROP SCOPE)
-    const backdrop = document.getElementById("filterBackdrop"); // Ensure this ID exists in HTML
+    // 3. Premium Filter Popup Logic (FIXED SCOPE)
+    const backdrop = document.getElementById("filterBackdrop");
     
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
@@ -492,7 +491,9 @@ function setupListeners() {
         if(btn && menu) {
             btn.onclick = (e) => { 
                 e.stopPropagation(); 
+                // Close others
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+                // Open this one
                 menu.classList.add('show');
                 if (backdrop) backdrop.classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; 
@@ -500,7 +501,6 @@ function setupListeners() {
         }
     });
 
-    // Handle backdrop click to close menus
     if (backdrop) {
         backdrop.onclick = () => {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
@@ -508,6 +508,9 @@ function setupListeners() {
             document.body.style.overflow = '';
         };
     }
+
+    // 4. Save & Booster logic (Keep your existing code here)
+    // ...
 
     // 4. Search logic
     const searchInput = document.getElementById("playerSearch");
