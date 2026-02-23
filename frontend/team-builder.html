@@ -13,21 +13,21 @@
         
         /* State 1: LOADING (Body has 'loading-state') */
         body.loading-state .app-container {
-          display: none; /* Hide the app while checking auth */
+          display: none; 
         }
         
         body.loading-state #loadingOverlay {
-          display: flex; /* Show the spinner */
+          display: flex; 
         }
     
         /* State 2: LOADED (Body does NOT have 'loading-state') */
         body .app-container {
-          display: flex; /* Flex is needed for this specific layout */
+          display: flex; 
           animation: fadeIn 0.4s ease-out;
         }
     
         body #loadingOverlay {
-          display: none; /* Hide spinner when done */
+          display: none; 
         }
     
         /* Standard Spinner Styles */
@@ -76,8 +76,6 @@
             <div id="headerCountdown" class="match-timer">00h 00m 00s</div>
         </div>
     </header>
-    
-    <div id="filterBackdrop" class="filter-backdrop hidden"></div>
 
     <div class="sticky-controls">
         <div class="premium-progress">
@@ -106,28 +104,30 @@
             <input type="text" id="playerSearch" placeholder="Search player name...">
             
             <div class="role-navigation-wrapper">
-    <div class="role-tabs-container">
-        <div class="role-tab active" data-role="ALL">ALL</div>
-        <div class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></div>
-        <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
-        <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
-        <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
+                <div class="role-tabs-container">
+                    <div class="role-tab active" data-role="ALL">ALL</div>
+                    <div class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></div>
+                    <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
+                    <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
+                    <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
 
-        <div class="role-slider-bg"></div>
-    </div>
-</div>
+                    <div class="role-slider-bg"></div>
+                </div>
+            </div>
 
             <div class="dropdown-filters">
-    <button id="matchToggle" class="pill-filter">
-        <span>Match</span> <i class="fas fa-chevron-down"></i>
-    </button>
-    <button id="teamToggle" class="pill-filter">
-        <span>Team</span> <i class="fas fa-chevron-down"></i>
-    </button>
-    <button id="creditToggle" class="pill-filter">
-        <span>Credit</span> <i class="fas fa-chevron-down"></i>
-    </button>
-</div>
+                <button id="matchToggle" class="pill-filter">
+                    <span>Match</span> <i class="fas fa-chevron-down"></i>
+                </button>
+                <button id="teamToggle" class="pill-filter">
+                    <span>Team</span> <i class="fas fa-chevron-down"></i>
+                </button>
+                <button id="creditToggle" class="pill-filter">
+                    <span>Credit</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <main class="content-area">
         <div id="myxi-view" class="view-mode">
@@ -149,34 +149,12 @@
     <div class="save-bar">
         <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
     </div>
-
-    <main class="content-area">
-    <div id="myxi-view" class="view-mode">
-        
-        <div id="boosterContainer" class="booster-wrapper hidden">
-            <label class="booster-label">
-                <input type="checkbox" id="boosterToggle">
-                <span class="booster-text">🚀 USE 2X MATCH BOOSTER</span>
-            </label>
-            <div class="booster-hint">Double your total points for this match!</div>
-        </div>
-
-        <div id="myXIList" class="player-list"></div>
-    </div>
-
-    <div id="playerPool-view" class="view-mode active">
-        <div id="playerPoolList" class="player-list"></div>
-    </div>
-</main>
-    <div class="save-bar">
-    <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
 </div>
 
 <div id="filterBackdrop" class="filter-backdrop hidden"></div>
-    <div id="matchMenu" class="dropdown-menu bottom-sheet"></div>
-    <div id="teamMenu" class="dropdown-menu bottom-sheet"></div>
-    <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
-
+<div id="matchMenu" class="dropdown-menu bottom-sheet"></div>
+<div id="teamMenu" class="dropdown-menu bottom-sheet"></div>
+<div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
 
 <script type="module" src="edit-team.js"></script>
 </body>
