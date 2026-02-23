@@ -419,45 +419,7 @@ window.selectAllFilters = (key, menuId) => {
 };
 
 function setupListeners() {
-    // FIX: View Toggle (MY XI vs CHANGE)
-    document.querySelectorAll(".toggle-btn").forEach(btn => {
-        btn.onclick = () => {
-            // Remove active from all buttons and views
-            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
-            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
-            
-            // Add active to clicked button and its corresponding view
-            btn.classList.add("active");
-            const targetView = document.getElementById(`${btn.dataset.mode}-view`);
-            if (targetView) targetView.classList.add("active");
-
-            // Hide search/filters when looking at 'My XI'
-            const filterWrap = document.querySelector(".search-filter-wrapper");
-            if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
-        };
-    });
-
-    // Role Filter Toggling
-    document.querySelectorAll(".role-tab").forEach(tab => {
-        tab.onclick = () => {
-            // Remove active from all tabs
-            document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
-            // Add to the clicked one
-            tab.classList.add("active");
-            
-            state.filters.role = tab.dataset.role;
-            render();
-        };
-    });
-
-    // Search logic
-    const searchInput = document.getElementById("playerSearch");
-    if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
-
-    // Dropdown filters (Match, Team, Credit)
-    // --- UPDATED FILTER LISTENERS ---
-function setupListeners() {
-    // 1. View Toggle Logic
+    // 1. View Toggle Logic (My XI vs Change)
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
@@ -471,7 +433,7 @@ function setupListeners() {
         };
     });
 
-    // 2. Role Filter Logic
+    // 2. Role Filter Logic (Slider)
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -491,9 +453,9 @@ function setupListeners() {
         if(btn && menu) {
             btn.onclick = (e) => { 
                 e.stopPropagation(); 
-                // Close others
+                // Close any open menus first
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-                // Open this one
+                // Open selected menu
                 menu.classList.add('show');
                 if (backdrop) backdrop.classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; 
@@ -508,9 +470,6 @@ function setupListeners() {
             document.body.style.overflow = '';
         };
     }
-
-    // 4. Save & Booster logic (Keep your existing code here)
-    // ...
 
     // 4. Search logic
     const searchInput = document.getElementById("playerSearch");
@@ -564,7 +523,7 @@ function setupListeners() {
             }
         });
     }
-}}
+}
 
 function showSuccessModal() {
     const modal = document.createElement("div");
