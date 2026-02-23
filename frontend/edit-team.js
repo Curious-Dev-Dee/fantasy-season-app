@@ -419,15 +419,7 @@ window.selectAllFilters = (key, menuId) => {
 };
 
 function setupListeners() {
-    document.querySelectorAll(".toggle-btn").forEach(btn => {
-        btn.onclick = () => {
-            document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
-            btn.classList.add("active");
-            document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
-            const filterWrap = document.querySelector(".search-filter-wrapper");
-            if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
-        };
-    });
+    
 
     document.querySelectorAll(".role-tab").forEach(tab => {
     tab.onclick = () => {
