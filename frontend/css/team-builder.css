@@ -169,14 +169,48 @@ body {
     font-size: 14px;
 }
 
-.role-tabs-container { display: flex; gap: 8px; margin-top: 5px; }
-.role-tab { 
-    flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid var(--border-color); 
-    background: var(--card-bg); color: var(--text-dim); font-size: 11px; font-weight: 700; cursor: pointer; 
-    display: flex; flex-direction: column; align-items: center; gap: 2px; transition: var(--transition); 
+.role-tabs-container {
+    position: relative;
+    background: #111827;
+    border-radius: 12px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
 }
-.role-tab.active { background: var(--primary-green); color: #000; border-color: var(--primary-green); }
-.role-count { font-size: 10px; font-weight: 800; }
+
+.role-tab {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    background: transparent !important; /* Remove old background */
+    border: none !important;
+    color: var(--text-dim);
+    transition: color 0.3s ease;
+}
+
+.role-tab.active {
+    color: #000 !important;
+}
+
+.role-slider-bg {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    width: calc(20% - 6px); /* 5 tabs = 20% each */
+    background: var(--primary-green);
+    border-radius: 8px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+/* Slide logic based on which child is active */
+.role-tab[data-role="ALL"].active ~ .role-slider-bg { transform: translateX(0); }
+.role-tab[data-role="WK"].active ~ .role-slider-bg { transform: translateX(100%); }
+.role-tab[data-role="BAT"].active ~ .role-slider-bg { transform: translateX(200%); }
+.role-tab[data-role="AR"].active ~ .role-slider-bg { transform: translateX(300%); }
+.role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }.role-count { font-size: 10px; font-weight: 800; }
 
 /* --- Dropdown Filters --- */
 .dropdown-filters { display: flex; gap: 8px; margin-top: 10px; position: relative; }

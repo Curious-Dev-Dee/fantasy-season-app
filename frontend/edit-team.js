@@ -120,11 +120,25 @@ function updateHeaderMatch(match) {
     const startTimer = () => {
         const now = new Date().getTime();
         const diff = targetDate - now;
+        
         if (diff <= 0) {
             timerEl.innerText = "MATCH LIVE";
+            timerEl.style.color = "var(--danger-red)";
             clearInterval(countdownInterval);
             return;
         }
+
+        // --- NEW COLOR LOGIC ---
+        const totalMinutes = Math.floor(diff / (1000 * 60));
+        
+        if (totalMinutes < 10) {
+            timerEl.style.color = "#ef4444"; // Red
+        } else if (totalMinutes < 30) {
+            timerEl.style.color = "#f97316"; // Orange
+        } else {
+            timerEl.style.color = "var(--primary-green)"; // Green
+        }
+
         const h = Math.floor(diff / (1000 * 60 * 60));
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
@@ -133,7 +147,6 @@ function updateHeaderMatch(match) {
     startTimer();
     countdownInterval = setInterval(startTimer, 1000);
 }
-
 /* =========================
    RENDER LOGIC
 ========================= */
@@ -191,17 +204,37 @@ function render() {
         }
     }
 
-    // 4. BOOSTER WINDOW
-    const boosterContainer = document.getElementById("boosterContainer");
-    const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
-    if (boosterContainer) {
-        if (isBoosterWindow && !state.s8BoosterUsed) {
-            boosterContainer.classList.remove("hidden");
-            document.getElementById("boosterToggle").checked = state.boosterActiveInDraft;
+    // Inside render() function...
+const boosterContainer = document.getElementById("boosterContainer");
+const boosterToggle = document.getElementById("boosterToggle");
+const boosterText = document.querySelector(".booster-text");
+
+// Match window is 43-52 (Super 8s)
+const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
+
+if (boosterContainer) {
+    if (isBoosterWindow) {
+        boosterContainer.classList.remove("hidden");
+        
+        if (state.s8BoosterUsed) {
+            // If used in a PREVIOUS match
+            boosterToggle.checked = true;
+            boosterToggle.disabled = true;
+            boosterText.innerText = "🚀 BOOSTER USED";
+            boosterContainer.style.opacity = "0.6";
+            boosterContainer.style.filter = "grayscale(1)";
         } else {
-            boosterContainer.classList.add("hidden");
+            // Available to use in this match
+            boosterToggle.checked = state.boosterActiveInDraft;
+            boosterToggle.disabled = false;
+            boosterText.innerText = state.boosterActiveInDraft ? "🚀 BOOSTER APPLIED" : "🚀 USE 2X MATCH BOOSTER";
+            boosterContainer.style.opacity = "1";
+            boosterContainer.style.filter = "none";
         }
+    } else {
+        boosterContainer.classList.add("hidden");
     }
+}
 
     // 5. ROLE COUNTS
     const roles = {
@@ -456,6 +489,32 @@ function setupListeners() {
         state.saving = false;
         render();
     };
+
+    // Inside setupListeners()...
+const boosterToggle = document.getElementById("boosterToggle");
+if (boosterToggle) {
+    boosterToggle.addEventListener('change', (e) => {
+        // If already used in DB, do nothing
+        if (state.s8BoosterUsed) {
+            e.preventDefault();
+            return;
+        }
+
+        const willEnable = boosterToggle.checked;
+        const confirmMsg = willEnable 
+            ? "🚀 Use your 2X Booster for this match? This cannot be undone once the match locks!" 
+            : "Remove booster for this match?";
+
+        if (confirm(confirmMsg)) {
+            state.boosterActiveInDraft = willEnable;
+            render(); // Refresh UI to show state
+        } else {
+            // Revert the checkbox if they click 'Cancel'
+            boosterToggle.checked = !willEnable;
+        }
+    });
+}
+
 }
 
 function showSuccessModal() {
