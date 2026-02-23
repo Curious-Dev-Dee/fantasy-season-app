@@ -237,29 +237,61 @@ body {
 .role-tab[data-role="AR"].active ~ .role-slider-bg { transform: translateX(300%); }
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 
-/* --- Dropdown Filters --- */
-/* --- Corrected Layering & Visibility --- */
+/* --- Dropdown Filters Section --- */
 
-/* 1. The Backdrop (Blurred layer) */
+/* 1. Parent Wrapper: Forces buttons into one horizontal line */
+.dropdown-filters {
+    display: flex;            /* Enables horizontal layout */
+    gap: 8px;                 /* Space between the pills */
+    margin: 15px 16px 10px;   /* Alignment with search bar/roles */
+    padding: 0;
+    position: relative;
+    z-index: 501;             /* Keeps buttons clickable above header */
+}
+
+/* 2. Filter Buttons (Pills): Equal width and premium styling */
+.pill-filter {
+    flex: 1;                  /* Forces all 3 buttons to be equal width */
+    background: #111827;      /* Match role slider track */
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    padding: 10px 5px;
+    border-radius: 20px;      /* Pill shape */
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: var(--transition);
+}
+
+.pill-filter i {
+    font-size: 8px;
+    color: var(--primary-green);
+}
+
+/* 3. The Backdrop: Blurs only the content BEHIND it */
 .filter-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(2, 6, 23, 0.7); 
     backdrop-filter: blur(10px);
-    z-index: 1500; /* Lower than the menu */
+    z-index: 1500;            /* Lower than the menu */
     transition: opacity 0.3s ease;
 }
 
-/* 2. The Bottom Sheet Menu (Selection items) */
+/* 4. The Bottom Sheet Menu: Highest layer for crystal clarity */
 .dropdown-menu.bottom-sheet {
     position: fixed;
-    bottom: -100%; 
+    bottom: -100%;            /* Hidden state */
     left: 0;
     width: 100%;
     max-height: 70vh;
     background: #0f172a !important; /* Solid color stops blur bleed */
     border-radius: 24px 24px 0 0;
-    z-index: 2000; /* HIGHER than backdrop ensures it is sharp and clickable */
+    z-index: 2000;            /* HIGHER than backdrop ensures items are visible */
     display: flex;
     flex-direction: column;
     transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -268,28 +300,8 @@ body {
 }
 
 .dropdown-menu.show { 
-    bottom: 0; 
+    bottom: 0;                /* Visible state */
 }
-
-/* 3. Filter Buttons (Pills) */
-.pill-filter {
-    flex: 1;
-    background: #111827;
-    border: 1px solid var(--border-color);
-    color: var(--text-dim);
-    padding: 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    position: relative;
-    z-index: 501; /* Must be higher than header (500) but lower than backdrop */
-}
-
 /* --- Player List & Cards --- */
 .player-list { padding: 15px 16px 140px; display: flex; flex-direction: column; gap: 12px; }
 
