@@ -107,41 +107,52 @@ async function startDashboard(userId) {
    CORE LOGIC UPDATES
 ========================= */
 async function fetchHomeData(userId) {
-    // Safety 4: Ensure we don't crash if the view is empty for a new user
-    const { data, error } = await supabase.from('home_dashboard_view').select('*').eq('user_id', userId).maybeSingle();
+    // 1. Fetch Profile first (The Source of Truth for Name/Avatar)
+    const { data: profile, error: pError } = await supabase
+        .from('user_profiles')
+        .select('full_name, team_name, team_photo_url')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (profile) {
+        existingProfile = profile; // Store for modal use
+        const firstName = profile.full_name ? profile.full_name.split(" ")[0] : "Expert";
+        welcomeText.textContent = `Welcome back, ${firstName}!`;
+        teamNameElement.textContent = profile.team_name || "Set your team name";
+
+        if (profile.team_photo_url) {
+            const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url);
+            avatarElement.style.backgroundImage = `url(${imgData.publicUrl}?t=${Date.now()})`;
+        }
+    }
+
+    // 2. Fetch Dashboard Stats (Score, Rank, Match)
+    const { data: dash, error: dError } = await supabase
+        .from('home_dashboard_view')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
     
-    if (error) {
-        console.error("Home Data Error:", error);
-        return;
-    }
-    
-    if (!data) {
-        // If user exists but view is empty, show a default state instead of crashing
-        welcomeText.textContent = "Welcome, Expert!";
-        teamNameElement.textContent = "Set your team name";
-        return;
+    if (dError || !dash) {
+        console.warn("Dashboard stats not ready yet.");
+        return; 
     }
 
-    existingProfile = data;
-    // ... rest of your existing logic ...
-
-    if (data.team_photo_url) {
-        const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(data.team_photo_url);
-        avatarElement.style.backgroundImage = `url(${imgData.publicUrl}?t=${Date.now()})`;
-    }
-
-    scoreElement.textContent = data.total_points || 0;
-    rankElement.textContent = data.user_rank > 0 ? `#${data.user_rank}` : "—";
-    subsElement.textContent = data.subs_remaining;
+    // 3. Fill in the stats from the view
+    scoreElement.textContent = dash.total_points || 0;
+    rankElement.textContent = dash.user_rank > 0 ? `#${dash.user_rank}` : "—";
+    subsElement.textContent = dash.subs_remaining ?? 0;
 
     if (boosterStatusEl) {
-        boosterStatusEl.textContent = data.s8_booster_used ? "0" : "1";
-        boosterStatusEl.style.color = data.s8_booster_used ? "#64748b" : "#9AE000";
+        boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
+        boosterStatusEl.style.color = dash.s8_booster_used ? "#64748b" : "#9AE000";
     }
 
-    const match = data.upcoming_match;
+    // ... Handle the Match logic exactly as you had it before ...
+    const match = dash.upcoming_match;
     if (match) {
-        const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
+        // (Keep your existing match teams/logos/countdown code here)
+            const isDelayed = new Date(match.actual_start_time) > new Date(match.original_start_time);
         matchTeamsElement.innerHTML = `${match.team_a_code} vs ${match.team_b_code}${isDelayed ? ' <span class="delay-badge">Delayed</span>' : ''}`;
 
         const updateTeamLogo = (path, elementId) => {
