@@ -169,49 +169,66 @@ body {
     font-size: 14px;
 }
 
+.role-navigation-wrapper {
+    padding: 0 16px;
+    margin-top: 8px;
+}
+
 .role-tabs-container {
     position: relative;
-    background: #111827;
+    display: flex;
+    background: #111827; /* Darker background for the track */
     border-radius: 12px;
     padding: 4px;
-    display: flex;
-    align-items: center;
     border: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
 .role-tab {
     position: relative;
-    z-index: 2;
+    z-index: 2; /* Sits above the slider */
     flex: 1;
-    background: transparent !important; /* Remove old background */
-    border: none !important;
+    padding: 12px 0;
+    font-size: 12px;
+    font-weight: 800;
     color: var(--text-dim);
+    text-align: center;
+    cursor: pointer;
     transition: color 0.3s ease;
+    background: transparent !important;
+    border: none !important;
 }
 
+/* When active, text turns black to contrast against neon green */
 .role-tab.active {
     color: #000 !important;
 }
 
+.role-count {
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+/* The Sliding Neon Background */
 .role-slider-bg {
     position: absolute;
     top: 4px;
     left: 4px;
     height: calc(100% - 8px);
-    width: calc(20% - 6px); /* 5 tabs = 20% each */
+    width: calc(20% - 1.6px); /* 5 tabs = 20% width minus padding */
     background: var(--primary-green);
     border-radius: 8px;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(155, 225, 93, 0.3);
 }
 
-/* Slide logic based on which child is active */
+/* Slide Logic: Move the background based on active tab */
 .role-tab[data-role="ALL"].active ~ .role-slider-bg { transform: translateX(0); }
 .role-tab[data-role="WK"].active ~ .role-slider-bg { transform: translateX(100%); }
 .role-tab[data-role="BAT"].active ~ .role-slider-bg { transform: translateX(200%); }
 .role-tab[data-role="AR"].active ~ .role-slider-bg { transform: translateX(300%); }
-.role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }.role-count { font-size: 10px; font-weight: 800; }
-
+.role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 /* --- Dropdown Filters --- */
 .dropdown-filters { display: flex; gap: 8px; margin-top: 10px; position: relative; }
 .dropdown { position: relative; flex: 1; }
