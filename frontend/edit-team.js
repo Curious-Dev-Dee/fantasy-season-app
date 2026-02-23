@@ -429,13 +429,13 @@ function setupListeners() {
             const targetView = document.getElementById(`${btn.dataset.mode}-view`);
             if (targetView) targetView.classList.add("active");
 
-            // Hide search filters when in 'My XI'
+            // Hide search/filters when in 'My XI'
             const filterWrap = document.querySelector(".search-filter-wrapper");
             if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
 
-    // 2. Role Filter Slider (The Neon Slide)
+    // 2. Role Filter Logic (Slider)
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -445,7 +445,7 @@ function setupListeners() {
         };
     });
 
-    // 3. Match, Team, Point Filter Logic (FIXED SCOPE)
+    // 3. Premium Filter Popup Logic (Match, Team, Credit)
     const backdrop = document.getElementById("filterBackdrop");
     
     ['match', 'team', 'credit'].forEach(type => {
@@ -455,23 +455,29 @@ function setupListeners() {
         if(btn && menu) {
             btn.onclick = (e) => { 
                 e.stopPropagation(); 
+                // Close any other open menus
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+                // Open selected menu and backdrop
                 menu.classList.add('show');
                 if (backdrop) backdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Lock scrolling
+                document.body.style.overflow = 'hidden'; 
             };
         }
     });
 
+    // Handle backdrop click to close
     if (backdrop) {
         backdrop.onclick = () => {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
             backdrop.classList.add('hidden');
-            document.body.style.overflow = ''; // Unlock scrolling
+            document.body.style.overflow = '';
         };
     }
 
- 
+    // 4. Search logic
+    const searchInput = document.getElementById("playerSearch");
+    if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
+
     // 5. Save Team Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
