@@ -53,7 +53,14 @@ async function initOneSignal(userId) {
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
     currentUserId = user.id;
-    await initOneSignal(currentUserId);
+    
+    // Safety 1: Wrap OneSignal so a block/failure doesn't kill the whole app
+    try {
+        await initOneSignal(currentUserId);
+    } catch (err) {
+        console.warn("OneSignal failed to load, continuing dashboard...", err);
+    }
+    
     startDashboard(currentUserId);
 });
 
@@ -62,45 +69,61 @@ async function startDashboard(userId) {
     initNotificationHub(userId);
     setupHomeLeagueListeners(userId); 
 
-    // 2. Fetch Initial Data once
+    // 2. Fetch Initial Data
     try {
-        await Promise.all([
+        // Safety 2: Promise.allSettled ensures that even if fetchPrivateLeagueData 
+        // fails (common in new accounts), the rest of the dashboard still loads.
+        await Promise.allSettled([
             fetchHomeData(userId),
             loadLeaderboardPreview(),
             fetchPrivateLeagueData(userId)
         ]);
     } catch (err) {
-        console.error("Dashboard load error:", err);
+        console.error("Critical Dashboard load error:", err);
     } finally {
-        // 3. Reveal the App
+        // Safety 3: ALWAYS remove loading state, regardless of data success
+        // This prevents the "Black Screen of Death"
         document.body.classList.remove('loading-state');
         document.body.classList.add('loaded');
+        
+        // Hide overlay explicitly just in case CSS transitions hang
+        const overlay = document.getElementById("loadingOverlay");
+        if (overlay) overlay.style.display = 'none';
     }
 
-    // 4. Background Refresh logic every 30s
+    // 3. Background Refresh logic every 30s
     setInterval(async () => {
-        await Promise.all([
-            fetchHomeData(userId),
-            loadLeaderboardPreview(),
-            fetchPrivateLeagueData(userId)
-        ]);
+        try {
+            await Promise.allSettled([
+                fetchHomeData(userId),
+                loadLeaderboardPreview(),
+                fetchPrivateLeagueData(userId)
+            ]);
+        } catch (e) { /* silent background fail */ }
     }, 30000); 
 }
+
 /* =========================
-   CORE LOGIC
+   CORE LOGIC UPDATES
 ========================= */
 async function fetchHomeData(userId) {
+    // Safety 4: Ensure we don't crash if the view is empty for a new user
     const { data, error } = await supabase.from('home_dashboard_view').select('*').eq('user_id', userId).maybeSingle();
-    if (error || !data) return;
+    
+    if (error) {
+        console.error("Home Data Error:", error);
+        return;
+    }
+    
+    if (!data) {
+        // If user exists but view is empty, show a default state instead of crashing
+        welcomeText.textContent = "Welcome, Expert!";
+        teamNameElement.textContent = "Set your team name";
+        return;
+    }
 
     existingProfile = data;
-    tournamentNameElement.textContent = data.tournament_name || "Tournament";
-    
-    // --- UPDATED WELCOME TEXT LOGIC ---
-    const firstName = data.full_name ? data.full_name.split(" ")[0] : "Expert";
-    welcomeText.textContent = `Welcome back, ${firstName}!`;
-    
-    teamNameElement.textContent = data.team_name || "Set your team name";
+    // ... rest of your existing logic ...
 
     if (data.team_photo_url) {
         const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(data.team_photo_url);
