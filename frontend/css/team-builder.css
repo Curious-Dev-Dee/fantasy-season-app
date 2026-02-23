@@ -302,6 +302,93 @@ body {
 .dropdown-menu.show { 
     bottom: 0;                /* Visible state */
 }
+
+/* 5. Content Area: Handles the vertical list and scrolling */
+.dropdown-content {
+    overflow-y: auto;         /* Allows scrolling for long lists of matches/teams */
+    flex: 1;                  /* Fills the bottom sheet height */
+    padding: 0 16px 20px;     /* Side padding and bottom gutter */
+    display: flex;
+    flex-direction: column;   /* FORCES ITEMS TO STACK VERTICALLY */
+    gap: 10px;                /* Consistent spacing between vertical cards */
+}
+
+/* 6. Filter Items: Premium vertical card layout */
+.filter-item {
+    background: #1e293b;      /* Dark card background */
+    padding: 16px;            /* Generous touch target for mobile */
+    border-radius: 14px;      /* Matches the modern app aesthetic */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Text on left, checkbox on right */
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    width: 100%;              /* Ensures the card fills the width of the sheet */
+}
+
+/* Premium Selection Feedback: The whole card glows neon when checked */
+.filter-item:has(input:checked) {
+    border-color: var(--primary-green);
+    background: rgba(154, 224, 0, 0.08); /* Subtle neon tint */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 7. Custom Premium Checkbox Styling */
+.filter-item input[type="checkbox"] {
+    appearance: none;         /* Hide default browser checkbox */
+    width: 22px;
+    height: 22px;
+    border: 2px solid #334155;
+    border-radius: 6px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.filter-item input[type="checkbox"]:checked {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+/* The checkmark icon inside the custom checkbox */
+.filter-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000;              /* Black check on neon green background */
+    font-size: 14px;
+    font-weight: 900;
+}
+
+/* 8. Dropdown Bottom Actions (Clear/All buttons) */
+.dropdown-actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: #0f172a;
+    border-top: 1px solid var(--border-color);
+}
+
+.filter-action-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+}
+
+.filter-action-btn.clear { background: #1e293b; color: var(--text-dim); }
+.filter-action-btn.all   { background: var(--primary-green); color: #000; }
+
 /* --- Player List & Cards --- */
 .player-list { padding: 15px 16px 140px; display: flex; flex-direction: column; gap: 12px; }
 
