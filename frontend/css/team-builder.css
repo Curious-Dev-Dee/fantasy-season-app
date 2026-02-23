@@ -282,47 +282,30 @@ body {
 }
 
 .filter-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(2, 6, 23, 0.7); 
-    backdrop-filter: blur(10px); /* This blurs everything BEHIND it */
-    z-index: 1500; /* Stays below the menu */
-    transition: opacity 0.3s ease;
+    z-index: 9998; /* Just below the menu */
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
 }
 
-/* Update Layer 2: The Filter Menu */
 .dropdown-menu.bottom-sheet {
-    position: fixed;
-    bottom: -100%; 
-    left: 0;
-    width: 100%;
-    max-height: 75vh; /* Prevents covering the top status bar */
-    background: #0f172a; /* Solid background stops the blur from leaking through */
-    border-radius: 30px 30px 0 0; /* Premium rounded look */
-    z-index: 2500; /* CRITICAL: Higher than backdrop (1500) to remain clear */
-    display: flex;
-    flex-direction: column;
-    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 9999; /* Absolute top layer */
+    background: #0f172a !important; /* Solid color prevents blur-through */
+    pointer-events: auto; /* Ensures you can click the items */
 }
+
 
 .dropdown-menu.show {
     bottom: 0;
 }
 
 /* 3. Ensure filter items have high contrast */
+/* Ensure the items inside are sharp */
 .filter-item {
     background: #1e293b;
-    margin-bottom: 10px;
-    padding: 16px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #ffffff; /* Explicit white text */
-    font-size: 14px;
-    font-weight: 600;
+    z-index: 10000;
+    color: #ffffff;
+    opacity: 1 !important;
+    filter: none !important;
 }
 
 /* --- Player List & Cards --- */
