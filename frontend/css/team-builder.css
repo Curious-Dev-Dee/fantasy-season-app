@@ -235,77 +235,50 @@ body {
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 
 /* --- Dropdown Filters --- */
-/* The dark background overlay */
-/* --- Horizontal Filter Buttons --- */
-/* --- Horizontal Pill Buttons --- */
-/* --- Horizontal Pill Buttons --- */
-.dropdown-filters {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 0 16px;
-}
-
-.pill-filter {
-    flex: 1; /* Makes all buttons equal width in one line */
-    background: #111827;
-    border: 1px solid var(--border-color);
-    color: var(--text-dim);
-    padding: 10px;
-    border-radius: 20px; /* Pill Shape */
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: var(--transition);
-}
-
-.pill-filter i { font-size: 8px; color: var(--primary-green); }
-
-/* --- Visibility Fix: Bottom Sheet & Blur --- */
+/* 1. The Backdrop: Only blurs the content BEHIND it */
 .filter-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(2, 6, 23, 0.7); 
-    backdrop-filter: blur(8px); /* Blur applied to everything BEHIND the backdrop */
-    z-index: 1500;
+    background: rgba(0, 0, 0, 0.7); /* Darker overlay */
+    backdrop-filter: blur(10px); /* The blur effect */
+    z-index: 1500; /* Stays below the menu */
     transition: opacity 0.3s ease;
 }
 
+/* 2. The Bottom Sheet: Must be HIGHER than the backdrop to stay sharp */
 .dropdown-menu.bottom-sheet {
     position: fixed;
     bottom: -100%; 
     left: 0;
     width: 100%;
     max-height: 70vh;
-    background: #0f172a;
+    background: #0f172a; /* Solid background prevents seeing blur through it */
     border-radius: 24px 24px 0 0;
-    z-index: 2000; /* CRITICAL: Must be higher than backdrop (1500) to be visible */
+    z-index: 2500; /* Higher than 1500 ensures it is NOT blurred */
     display: flex;
     flex-direction: column;
-    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.05);
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.dropdown-menu.show { bottom: 0; }
+.dropdown-menu.show {
+    bottom: 0;
+}
 
-/* Selection Item Styling */
+/* 3. Ensure filter items have high contrast */
 .filter-item {
     background: #1e293b;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     padding: 16px;
-    border-radius: 12px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    color: #ffffff; /* Explicit white text */
     font-size: 14px;
-    color: #fff; /* High contrast white text */
+    font-weight: 600;
 }
-
 
 /* --- Player List & Cards --- */
 .player-list { padding: 15px 16px 140px; display: flex; flex-direction: column; gap: 12px; }
