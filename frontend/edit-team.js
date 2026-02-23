@@ -456,35 +456,77 @@ function setupListeners() {
 
     // Dropdown filters (Match, Team, Credit)
     // --- UPDATED FILTER LISTENERS ---
-const backdrop = document.getElementById("filterBackdrop");
-
-['match', 'team', 'credit'].forEach(type => {
-    const btn = document.getElementById(`${type}Toggle`);
-    const menu = document.getElementById(`${type}Menu`);
-    
-    if(btn) {
-        btn.onclick = (e) => { 
-            e.stopPropagation(); 
+function setupListeners() {
+    // 1. View Toggle Logic (Fixes "My XI" not opening)
+    document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
             
-            // Close others first
-            document.querySelectorAll('.dropdown-menu').forEach(m => {
-                if(m !== menu) m.classList.remove('show');
-            });
+            btn.classList.add("active");
+            const targetView = document.getElementById(`${btn.dataset.mode}-view`);
+            if (targetView) targetView.classList.add("active");
 
-            // Toggle active menu
-            const isOpening = !menu.classList.contains('show');
-            if (isOpening) {
+            // Hide search/filters when in 'My XI'
+            const filterWrap = document.querySelector(".search-filter-wrapper");
+            if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
+        };
+    });
+
+    // 2. Role Filter Slider Logic
+    document.querySelectorAll(".role-tab").forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            state.filters.role = tab.dataset.role;
+            render();
+        };
+    });
+
+    // 3. Premium Filter Popup Logic
+    const backdrop = document.getElementById("filterBackdrop");
+    ['match', 'team', 'credit'].forEach(type => {
+        const btn = document.getElementById(`${type}Toggle`);
+        const menu = document.getElementById(`${type}Menu`);
+        
+        if(btn) {
+            btn.onclick = (e) => { 
+                e.stopPropagation(); 
+                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
                 menu.classList.add('show');
                 backdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Lock background scroll
+                document.body.style.overflow = 'hidden'; // Stop background scrolling
+            };
+        }
+    });
+
+    // Close on backdrop click
+    backdrop.onclick = () => {
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+        backdrop.classList.add('hidden');
+        document.body.style.overflow = '';
+    };
+
+    // 4. Existing Save Logic...
+    document.getElementById("saveTeamBtn").onclick = async () => {
+        // (Keep your existing Save Team code here exactly as is)
+    };
+
+    // 5. Booster confirmation Logic...
+    const boosterToggle = document.getElementById("boosterToggle");
+    if (boosterToggle) {
+        boosterToggle.addEventListener('change', (e) => {
+            if (state.s8BoosterUsed) { e.preventDefault(); return; }
+            const willEnable = boosterToggle.checked;
+            if (confirm(willEnable ? "🚀 Use 2X Booster for this match?" : "Remove Booster?")) {
+                state.boosterActiveInDraft = willEnable;
+                render();
             } else {
-                menu.classList.remove('show');
-                backdrop.classList.add('hidden');
-                document.body.style.overflow = ''; 
+                boosterToggle.checked = !willEnable;
             }
-        };
+        });
     }
-});
+}
 
 // Close menu when clicking the blurred area
 backdrop.onclick = () => {

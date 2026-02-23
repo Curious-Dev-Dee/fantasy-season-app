@@ -118,25 +118,47 @@
 </div>
 
             <div class="dropdown-filters">
-    <div class="dropdown">
-        <button id="matchToggle" class="dropdown-toggle">
-            <span>Match</span> <i class="fas fa-chevron-down"></i>
-        </button>
-        <div id="matchMenu" class="dropdown-menu"></div>
+                <button id="matchToggle" class="pill-filter">
+                    <span>Match</span> <i class="fas fa-chevron-down"></i>
+                </button>
+                <button id="teamToggle" class="pill-filter">
+                    <span>Team</span> <i class="fas fa-chevron-down"></i>
+                </button>
+                <button id="creditToggle" class="pill-filter">
+                    <span>Credit</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="dropdown">
-        <button id="teamToggle" class="dropdown-toggle">
-            <span>Team</span> <i class="fas fa-chevron-down"></i>
-        </button>
-        <div id="teamMenu" class="dropdown-menu"></div>
+
+    <main class="content-area">
+        <div id="myxi-view" class="view-mode">
+            <div id="boosterContainer" class="booster-wrapper hidden">
+                <label class="booster-label">
+                    <input type="checkbox" id="boosterToggle">
+                    <span class="booster-text">🚀 USE 2X MATCH BOOSTER</span>
+                </label>
+                <div class="booster-hint">Double your total points for this match!</div>
+            </div>
+            <div id="myXIList" class="player-list"></div>
+        </div>
+
+        <div id="playerPool-view" class="view-mode active">
+            <div id="playerPoolList" class="player-list"></div>
+        </div>
+    </main>
+
+    <div class="save-bar">
+        <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
     </div>
-    <div class="dropdown">
-        <button id="creditToggle" class="dropdown-toggle">
-            <span>Credit</span> <i class="fas fa-chevron-down"></i>
-        </button>
-        <div id="creditMenu" class="dropdown-menu"></div>
-    </div>
-</div>
+
+    <div id="filterBackdrop" class="filter-backdrop hidden"></div>
+    <div id="matchMenu" class="dropdown-menu bottom-sheet"></div>
+    <div id="teamMenu" class="dropdown-menu bottom-sheet"></div>
+    <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
+
+    <script type="module" src="edit-team.js"></script>
+</body>
 
     <main class="content-area">
     <div id="myxi-view" class="view-mode">
