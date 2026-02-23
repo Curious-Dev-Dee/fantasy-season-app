@@ -39,13 +39,43 @@ async function init() {
     const scoutUid = urlParams.get('uid');
     const scoutNameFromUrl = urlParams.get('name');
 
-    if (scoutUid && scoutUid !== session.user.id) {
-        userId = scoutUid;
-        isScoutMode = true;
-        viewTitle.textContent = scoutNameFromUrl ? decodeURIComponent(scoutNameFromUrl) : "User Team";
-        tabUpcoming.style.display = 'none';
-        tabLocked.classList.add("active");
+    /* --- MODIFY THIS SECTION IN team-view.js --- */
+
+// 2. Determine View Mode (Self vs Scout)
+if (scoutUid && scoutUid !== session.user.id) {
+    userId = scoutUid;
+    isScoutMode = true;
+
+    if (scoutNameFromUrl && scoutNameFromUrl !== 'undefined' && scoutNameFromUrl !== 'null') {
+        viewTitle.textContent = decodeURIComponent(scoutNameFromUrl);
     } else {
+        // Fallback: If name isn't in URL, fetch from the most reliable source (user_profiles)
+        const { data: profileData } = await supabase
+            .from("user_profiles")
+            .select("team_name")
+            .eq("user_id", scoutUid)
+            .maybeSingle();
+        
+        if (profileData?.team_name) {
+            viewTitle.textContent = profileData.team_name;
+        } else {
+            // Last ditch effort: check the view you provided
+            const { data: lbData } = await supabase
+                .from("leaderboard_view")
+                .select("team_name")
+                .eq("user_id", scoutUid)
+                .maybeSingle();
+            
+            viewTitle.textContent = lbData?.team_name || "User Team";
+        }
+    }
+
+    tabUpcoming.style.display = 'none'; 
+    tabLocked.classList.add("active");
+    tabUpcoming.classList.remove("active");
+} else {
+    // ... rest of your 'My XI' logic
+    //  else {
         userId = session.user.id;
         isScoutMode = false;
         const { data: myData } = await supabase.from("leaderboard_view").select("team_name").eq("user_id", userId).maybeSingle();
