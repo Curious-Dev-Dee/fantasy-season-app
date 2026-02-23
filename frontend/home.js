@@ -277,8 +277,7 @@ async function fetchPrivateLeagueData(userId) {
 
     if (lb && containerEl) {
         containerEl.innerHTML = lb.map(row => `
-            <div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}'">
-                <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
+<div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name || 'Expert')}'">                <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
             </div>`).join('');
             
