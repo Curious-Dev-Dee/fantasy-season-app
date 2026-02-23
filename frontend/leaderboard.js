@@ -45,30 +45,35 @@ async function init() {
     const avatarMap = new Map(profiles.map(p => [p.user_id, p.team_photo_url]));
     renderLeaderboard(normalizedData, userId, avatarMap);
 }
+
 function renderLeaderboard(leaderboard, userId, avatarMap) {
   // 1. Split Data
   const top3 = leaderboard.slice(0, 3);
   const remaining = leaderboard.slice(3);
 
   // 2. Render Podium [2nd, 1st, 3rd layout]
+  // We ensure the fallback objects use the normalized 'rank' key
   const p2 = top3[1] || { team_name: 'TBA', total_points: 0, rank: 2, user_id: null };
   const p1 = top3[0] || { team_name: 'TBA', total_points: 0, rank: 1, user_id: null };
   const p3 = top3[2] || { team_name: 'TBA', total_points: 0, rank: 3, user_id: null };
 
   podiumContainer.innerHTML = [p2, p1, p3].map(user => {
-    // Generate Avatar URL
     let avatarStyle = '';
-    const photoPath = avatarMap.get(user.user_id);
-    if (photoPath) {
-      const { data } = supabase.storage.from('team-avatars').getPublicUrl(photoPath);
-      // Add timestamp to bypass browser caching
-      const avatarUrl = `${data.publicUrl}?t=${new Date().getTime()}`;
-      avatarStyle = `style="background-image: url('${avatarUrl}');"`;
+    if (user.user_id) {
+      const photoPath = avatarMap.get(user.user_id);
+      if (photoPath) {
+        const { data } = supabase.storage.from('team-avatars').getPublicUrl(photoPath);
+        const avatarUrl = `${data.publicUrl}?t=${new Date().getTime()}`;
+        avatarStyle = `style="background-image: url('${avatarUrl}');"`;
+      }
     }
+
+    // Clean up the name for the onclick function to prevent "undefined" strings
+    const safeName = (user.team_name || 'Anonymous').replace(/'/g, "\\'");
 
     return `
     <div class="podium-card ${user.rank === 1 ? 'first' : ''}" 
-         onclick="scoutUser('${user.user_id}', '${user.team_name}')">
+         onclick="scoutUser('${user.user_id}', '${safeName}')">
         <div class="rank-badge">${user.rank}</div>
         <div class="podium-avatar" id="avatar-${user.rank}" ${avatarStyle}></div>
         <div class="podium-name">${user.team_name || 'Anonymous'}</div>
@@ -87,15 +92,17 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
   }
 
   // 4. Render Remaining List (4th onwards)
-  leaderboardContainer.innerHTML = remaining.map(row => `
+  leaderboardContainer.innerHTML = remaining.map(row => {
+    const safeName = (row.team_name || 'Anonymous').replace(/'/g, "\\'");
+    return `
     <div class="leader-row ${row.user_id === userId ? 'you' : ''}" 
-         onclick="scoutUser('${row.user_id}', '${row.team_name}')">
+         onclick="scoutUser('${row.user_id}', '${safeName}')">
       <div class="l-rank">#${row.rank}</div>
       <div class="l-team">${row.team_name}</div>
       <div class="l-pts">${row.total_points} pts</div>
       <div class="l-arrow"><i class="fas fa-chevron-right"></i></div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // Global function to navigate to team view

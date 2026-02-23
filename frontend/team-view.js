@@ -31,6 +31,7 @@ let realTeamsMap = {};
 init();
 
 async function init() {
+    // 1. Load real teams for labels (Your existing code)
     const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
     realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
@@ -39,16 +40,33 @@ async function init() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const scoutUid = urlParams.get('uid');
-    const scoutName = urlParams.get('name');
+    const scoutNameFromUrl = urlParams.get('name');
 
+    // 2. Determine View Mode (Self vs Scout)
     if (scoutUid && scoutUid !== session.user.id) {
         userId = scoutUid;
         isScoutMode = true;
-        if (viewTitle) viewTitle.textContent = scoutName || "User Team";
+        
+        // --- FIX STARTS HERE ---
+        if (scoutNameFromUrl) {
+            viewTitle.textContent = scoutNameFromUrl;
+        } else {
+            // Fallback: If name isn't in URL (like from Private Leagues), fetch it
+            const { data: scoutData } = await supabase
+                .from("leaderboard_view")
+                .select("team_name")
+                .eq("user_id", scoutUid)
+                .maybeSingle();
+            
+            viewTitle.textContent = scoutData?.team_name || "User Team";
+        }
+        // --- FIX ENDS HERE ---
+
         tabUpcoming.style.display = 'none'; 
         tabLocked.classList.add("active");
         tabUpcoming.classList.remove("active");
     } else {
+        // ... (Your existing 'My XI' logic)
         userId = session.user.id;
         isScoutMode = false;
         const { data: myData } = await supabase
@@ -56,8 +74,11 @@ async function init() {
             .select("team_name")
             .eq("user_id", userId)
             .maybeSingle();
-        if (viewTitle) viewTitle.textContent = myData?.team_name || "My XI";
+        viewTitle.textContent = myData?.team_name || "My XI";
     }
+
+    // ... (rest of your init code)
+
 
     const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
     if (!activeTournament) return;
