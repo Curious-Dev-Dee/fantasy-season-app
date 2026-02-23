@@ -206,7 +206,8 @@ body {
 
 /* When active, text turns black to contrast with neon green */
 .role-tab.active {
-    color: #000 !important;
+    color: #000000 !important;
+    font-weight: 900;
 }
 
 .role-count {
@@ -219,13 +220,15 @@ body {
     top: 4px;
     left: 4px;
     height: calc(100% - 8px);
-    width: calc(20% - 1.6px); /* 100% / 5 tabs */
+    width: calc(20% - 1.6px);
     background: var(--primary-green);
-    border-radius: 8px;
+    border-radius: 10px;
     z-index: 1;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 15px rgba(154, 224, 0, 0.3);
+    box-shadow: 0 0 15px rgba(154, 224, 0, 0.4);
 }
+
+
 
 /* Slide logic: Move the background based on active tab */
 .role-tab[data-role="ALL"].active ~ .role-slider-bg { transform: translateX(0); }
@@ -235,30 +238,72 @@ body {
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 
 /* --- Dropdown Filters --- */
-/* 1. The Backdrop: Only blurs the content BEHIND it */
+/* Update Layer 1: The Blur Effect */
+
+/* --- Horizontal Pill Buttons --- */
+.dropdown-filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 0 16px;
+}
+
+.pill-filter {
+    flex: 1; /* Ensures equal width across the line */
+    background: #111827; /* Matches role track background */
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    padding: 12px;
+    border-radius: 25px; /* Perfect pill shape */
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.pill-filter span {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pill-filter i {
+    font-size: 10px;
+    color: var(--primary-green);
+}
+
+/* Glowing active state for filter buttons */
+.pill-filter:active {
+    border-color: var(--primary-green);
+    background: rgba(154, 224, 0, 0.1);
+}
+
 .filter-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7); /* Darker overlay */
-    backdrop-filter: blur(10px); /* The blur effect */
+    background: rgba(2, 6, 23, 0.7); 
+    backdrop-filter: blur(10px); /* This blurs everything BEHIND it */
     z-index: 1500; /* Stays below the menu */
     transition: opacity 0.3s ease;
 }
 
-/* 2. The Bottom Sheet: Must be HIGHER than the backdrop to stay sharp */
+/* Update Layer 2: The Filter Menu */
 .dropdown-menu.bottom-sheet {
     position: fixed;
     bottom: -100%; 
     left: 0;
     width: 100%;
-    max-height: 70vh;
-    background: #0f172a; /* Solid background prevents seeing blur through it */
-    border-radius: 24px 24px 0 0;
-    z-index: 2500; /* Higher than 1500 ensures it is NOT blurred */
+    max-height: 75vh; /* Prevents covering the top status bar */
+    background: #0f172a; /* Solid background stops the blur from leaking through */
+    border-radius: 30px 30px 0 0; /* Premium rounded look */
+    z-index: 2500; /* CRITICAL: Higher than backdrop (1500) to remain clear */
     display: flex;
     flex-direction: column;
     transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
