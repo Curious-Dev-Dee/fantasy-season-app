@@ -1,5 +1,10 @@
 import { supabase } from "./supabase.js";
 
+// Fantasy Point Rules Mapping
+const POINT_SYSTEM = {
+    run: 1, fours: 1, sixes: 2, wicket: 25, maiden: 8, catch: 8, stumping: 12, direct_ro: 12, assisted_ro: 6, potm: 25
+};
+
 const searchInput = document.getElementById("playerSearch");
 const teamFilter = document.getElementById("teamFilter");
 const matchFilter = document.getElementById("matchFilter");
@@ -7,13 +12,13 @@ const statsContainer = document.getElementById("statsContainer");
 const loader = document.getElementById("loadingOverlay");
 
 async function initStats() {
-    // 1. Load Teams
+    // 1. Load Teams for filter
     const { data: teams } = await supabase.from('real_teams').select('short_code');
     if (teams) {
         teamFilter.innerHTML += teams.map(t => `<option value="${t.short_code}">${t.short_code}</option>`).join('');
     }
 
-    // 2. Load Matches for Filter
+    // 2. Load Matches for filter
     const { data: matches } = await supabase
         .from('matches')
         .select('id, match_number, team_a_id, team_b_id')
@@ -37,6 +42,7 @@ async function loadPlayerStats() {
     const team = teamFilter.value;
     const matchId = matchFilter.value;
 
+    // Querying the performance audit view
     let query = supabase.from('player_performance_audit').select('*');
 
     if (team) query = query.eq('team_code', team);
@@ -57,6 +63,7 @@ function renderStats(data) {
         return;
     }
 
+    // Grouping by player
     const grouped = data.reduce((acc, curr) => {
         if (!acc[curr.player_id]) {
             acc[curr.player_id] = { name: curr.player_name, team: curr.team_code, matches: [] };
@@ -67,6 +74,7 @@ function renderStats(data) {
 
     statsContainer.innerHTML = Object.values(grouped).map(player => {
         const totalPoints = player.matches.reduce((sum, m) => sum + m.match_total_points, 0);
+        
         return `
         <div class="player-card">
             <div class="player-header" onclick="this.parentElement.classList.toggle('active')">
@@ -76,26 +84,48 @@ function renderStats(data) {
                 </div>
                 <div class="p-score">
                     <strong>${totalPoints}</strong> <small>pts</small>
+                    <span class="dropdown-arrow">▼</span>
                 </div>
             </div>
             <div class="match-history">
-                ${player.matches.map(m => `
-                    <div class="history-item">
-                        <div class="h-top">
-                            <span>Match ${m.match_number}</span>
-                            <span class="h-pts">+${m.match_total_points}</span>
-                        </div>
-                        <div class="h-stats">
-                            ${m.runs > 0 ? `<span>🏏 ${m.runs}(${m.balls})</span>` : ''}
-                            ${m.wickets > 0 ? `<span>☝️ ${m.wickets} Wkts</span>` : ''}
-                            ${m.catches > 0 ? `<span>🤲 ${m.catches} C</span>` : ''}
-                            ${m.maidens > 0 ? `<span>🎯 ${m.maidens} M</span>` : ''}
-                        </div>
-                    </div>
-                `).join('')}
+                ${player.matches.map(m => renderDetailedHistoryItem(m)).join('')}
             </div>
         </div>`;
     }).join('');
+}
+
+function renderDetailedHistoryItem(m) {
+    // Generate Point Log Breakdown
+    const log = [];
+    if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs * POINT_SYSTEM.run})`);
+    if (m.fours > 0) log.push(`${m.fours} Fours (+${m.fours * POINT_SYSTEM.fours})`);
+    if (m.sixes > 0) log.push(`${m.sixes} Sixes (+${m.sixes * POINT_SYSTEM.sixes})`);
+    if (m.wickets > 0) log.push(`${m.wickets} Wkts (+${m.wickets * POINT_SYSTEM.wicket})`);
+    if (m.maidens > 0) log.push(`${m.maidens} Maidens (+${m.maidens * POINT_SYSTEM.maiden})`);
+    if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * POINT_SYSTEM.catch})`);
+    if (m.is_player_of_match) log.push(`POTM Bonus (+${POINT_SYSTEM.potm})`);
+
+    return `
+        <div class="history-item">
+            <div class="h-top">
+                <span>Match ${m.match_number}</span>
+                <span class="h-pts">+${m.match_total_points}</span>
+            </div>
+            
+            <div class="h-stats-grid">
+                <div class="stat-pill">🏏 ${m.runs || 0}(${m.balls || 0})</div>
+                <div class="stat-pill">☝️ ${m.wickets || 0} Wkts</div>
+                <div class="stat-pill">🤲 ${m.catches || 0} Catch</div>
+            </div>
+
+            <div class="points-breakdown">
+                <label>POINT LOG</label>
+                <div class="log-items">
+                    ${log.length > 0 ? log.map(item => `<span>${item}</span>`).join('') : '<span>No scoring actions</span>'}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 searchInput.addEventListener("input", loadPlayerStats);

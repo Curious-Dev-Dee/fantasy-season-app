@@ -15,36 +15,47 @@ body {
 
 .stats-wrapper { max-width: 420px; margin: 0 auto; padding-top: 20px; }
 
-/* HEADER */
+/* Header and Navigation */
 .premium-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
 .icon-btn { background: var(--card); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; }
 .header-text h1 { font-size: 22px; margin: 0; }
 .header-text p { font-size: 13px; color: #8b949e; margin: 2px 0 0; }
 
-/* SEARCH & FILTERS */
+/* Filters and Search */
 .search-section { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
 .search-bar { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
 .search-bar input { background: transparent; border: none; color: white; width: 100%; outline: none; }
 .filter-row { display: flex; gap: 10px; }
-.premium-select { flex: 1; background: var(--card); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 12px; font-size: 13px; outline: none; appearance: none; }
+.premium-select { flex: 1; background: var(--card); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 12px; font-size: 13px; appearance: none; }
 
-/* PLAYER CARDS */
-.player-card { background: linear-gradient(145deg, #1c2128, #161b22); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 12px; transition: 0.3s; }
+/* Player Cards and Accordion */
+.player-card { background: linear-gradient(145deg, #1c2128, #161b22); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 12px; overflow: hidden; }
 .player-header { padding: 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .team-badge { background: var(--accent); color: #000; font-weight: 800; font-size: 10px; padding: 3px 8px; border-radius: 6px; margin-right: 10px; }
 .p-name { font-weight: 600; font-size: 16px; }
 .p-score strong { font-size: 20px; color: var(--accent); }
+.dropdown-arrow { font-size: 10px; color: #8b949e; margin-left: 8px; transition: transform 0.3s; }
+.player-card.active .dropdown-arrow { transform: rotate(180deg); }
 
-/* HISTORY DROPDOWN */
+/* Detailed Stats Breakdown */
 .match-history { display: none; padding: 0 18px 18px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
 .player-card.active .match-history { display: block; }
-.history-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
-.history-item:last-child { border-bottom: none; }
-.h-top { display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.history-item { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.h-top { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; margin-bottom: 10px; }
 .h-pts { color: var(--accent); }
-.h-stats { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #8b949e; }
 
-/* LOADER */
+/* Stats Grid for mobile */
+.h-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.stat-pill { background: rgba(255, 255, 255, 0.05); padding: 8px 4px; border-radius: 8px; font-size: 11px; text-align: center; border: 1px solid var(--border); }
+
+/* Point Log */
+.points-breakdown { background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 12px; margin-top: 10px; }
+.points-breakdown label { display: block; font-size: 9px; font-weight: 800; color: var(--accent); letter-spacing: 1px; margin-bottom: 8px; }
+.log-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.log-items span { font-size: 11px; color: #8b949e; }
+.log-items span::before { content: "•"; color: var(--accent); margin-right: 5px; }
+
+/* Loader */
 .premium-loader { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 40px; }
 .spinner { width: 30px; height: 30px; border: 3px solid rgba(154, 224, 0, 0.1); border-left-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
