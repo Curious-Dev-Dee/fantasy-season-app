@@ -50,20 +50,27 @@ async function initOneSignal(userId) {
 /* =========================
    INIT & DASHBOARD START
 ========================= */
-window.addEventListener('auth-verified', async (e) => {
-    const user = e.detail.user;
-    currentUserId = user.id;
-    
-    // Safety 1: Wrap OneSignal so a block/failure doesn't kill the whole app
-    try {
-        await initOneSignal(currentUserId);
-    } catch (err) {
-        console.warn("OneSignal failed to load, continuing dashboard...", err);
-    }
-    
-    startDashboard(currentUserId);
-});
 
+// 1. Create a function to handle initialization logic
+async function initializeHome() {
+    try {
+        // Direct check for session to bypass the "LockManager" hang
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+            currentUserId = session.user.id;
+            console.log("✅ Session found directly. Starting dashboard...");
+            startDashboard(currentUserId);
+        } else {
+            console.log("⌛ No session found, waiting for auth-verified event...");
+        }
+    } catch (err) {
+        console.error("Auth check failed:", err);
+    }
+}
+
+// 2. Run the direct check immediately
+initializeHome();
 async function startDashboard(userId) {
     // 1. Initialize Alerts & League Listeners
     initNotificationHub(userId);
