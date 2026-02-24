@@ -153,7 +153,7 @@ function renderPodium(data, containerId, isPlayer) {
         
         let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
         if (isPlayer && item.players.photo_url) {
-            photoUrl = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
+            photoUrl = supabase.storage.from('team_photo_url').getPublicUrl(item.players.photo_url).data.publicUrl;
         }
 
         return `
