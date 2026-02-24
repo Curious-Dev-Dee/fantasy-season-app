@@ -138,7 +138,6 @@ async function handleDailyStreak(userId) {
 
 async function fetchPodiumData() {
     try {
-        // 1. Get the last match that has been processed
         const { data: lastMatch } = await supabase
             .from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
@@ -151,10 +150,12 @@ async function fetchPodiumData() {
 
         document.getElementById("podiumSection").classList.remove("hidden");
         const matchTitle = `MATCH ${lastMatch.match_number}: ${lastMatch.team_a.short_code} VS ${lastMatch.team_b.short_code}`;
-        document.getElementById("playerPodiumMatchInfo").textContent = matchTitle;
-        document.getElementById("teamPodiumMatchInfo").textContent = matchTitle;
+        
+        const headers = document.querySelectorAll(".podium-card .card-header-fun");
+        if(headers[0]) headers[0].textContent = "TOP PLAYERS - " + matchTitle;
+        if(headers[1]) headers[1].textContent = "TOP USER TEAMS - " + matchTitle;
 
-        // 2. Fetch Top 3 Players
+        // 1. Fetch Top 3 Players
         const { data: players } = await supabase
             .from("player_match_stats")
             .select("fantasy_points, players(name, photo_url)")
@@ -164,27 +165,33 @@ async function fetchPodiumData() {
 
         renderPodium(players, "playerPodium", true);
 
-        // 3. Fetch Top 3 User Teams (Experts)
-        // We fetch from user_match_teams which contains the snapshot points
-        const { data: teams } = await supabase
-            .from("user_match_teams")
-            .select("match_points, user_profiles(team_name)")
+        // 2. Fetch Top 3 User Teams from the CORRECT table
+        const { data: teams, error: teamError } = await supabase
+            .from("user_match_points")
+            .select("total_points, user_profiles(team_name)")
             .eq("match_id", lastMatch.id)
-            .order("match_points", { ascending: false })
+            .order("total_points", { ascending: false })
             .limit(3);
 
-        renderPodium(teams, "teamPodium", false);
+        if (teamError) {
+            console.error("Team Podium Error:", teamError.message);
+        } else {
+            renderPodium(teams, "teamPodium", false);
+        }
 
     } catch (err) {
-        console.error("Podium Load Error:", err);
+        console.error("Podium System Error:", err);
     }
 }
 
 function renderPodium(data, containerId, isPlayer) {
     const container = document.getElementById(containerId);
-    if (!data || data.length < 1) return;
+    if (!data || data.length < 1) {
+        container.innerHTML = `<p class="sub-label" style="text-align:center; width:100%;">Awaiting results...</p>`;
+        return;
+    }
 
-    // Sort as Rank 2, Rank 1, Rank 3 for the visual podium layout
+    // Sort visually: Rank 2 (Left), Rank 1 (Center/Top), Rank 3 (Right)
     const podiumOrder = [];
     if (data[1]) podiumOrder.push({ ...data[1], rank: 2 });
     if (data[0]) podiumOrder.push({ ...data[0], rank: 1 });
@@ -192,7 +199,8 @@ function renderPodium(data, containerId, isPlayer) {
 
     container.innerHTML = podiumOrder.map(item => {
         const name = isPlayer ? item.players.name.split(' ').pop() : item.user_profiles.team_name;
-        const pts = isPlayer ? item.fantasy_points : item.match_points;
+        // Accessing the total_points column for user teams
+        const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0);
         
         let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
         if (isPlayer && item.players.photo_url) {
@@ -206,7 +214,7 @@ function renderPodium(data, containerId, isPlayer) {
                     <img src="${photoUrl}" class="podium-img">
                     <div class="rank-badge">${item.rank}</div>
                 </div>
-                <div class="podium-pts">${pts} <small>PTS</small></div>
+                <div class="podium-pts">${pts}</div>
             </div>
         `;
     }).join('');
@@ -261,14 +269,23 @@ async function fetchNextMatch() {
 }
 
 async function renderResultView(match) {
-  const container = document.getElementById("resultView");
+    const container = document.getElementById("resultView");
 
-  // Fetch Actual Winner Name
-  const { data: winnerTeam } = await supabase.from("real_teams").select("short_code").eq("id", match.winner_id).maybeSingle();
-  
-  // Fetch Actual Man of the Match Name
-  const { data: motmPlayer } = await supabase.from("players").select("name").eq("id", match.man_of_the_match_id).maybeSingle();
+    // Fix: Only fetch if IDs are not null
+    let winnerName = "TBA";
+    let motmName = "TBA";
 
+    if (match.winner_id) {
+        const { data: wt } = await supabase.from("real_teams").select("short_code").eq("id", match.winner_id).maybeSingle();
+        if (wt) winnerName = wt.short_code;
+    }
+
+    if (match.man_of_the_match_id) {
+        const { data: mp } = await supabase.from("players").select("name").eq("id", match.man_of_the_match_id).maybeSingle();
+        if (mp) motmName = mp.name;
+    }
+
+    // ... (rest of your renderResultView logic remains the same)
   // FIX: Top Expert is the user at Rank 1 in the overall leaderboard
   const { data: rank1User } = await supabase
     .from("prediction_leaderboard")
