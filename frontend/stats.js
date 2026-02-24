@@ -95,15 +95,48 @@ function renderStats(data) {
 }
 
 function renderDetailedHistoryItem(m) {
-    // Generate Point Log Breakdown
     const log = [];
-    if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs * POINT_SYSTEM.run})`);
-    if (m.fours > 0) log.push(`${m.fours} Fours (+${m.fours * POINT_SYSTEM.fours})`);
-    if (m.sixes > 0) log.push(`${m.sixes} Sixes (+${m.sixes * POINT_SYSTEM.sixes})`);
-    if (m.wickets > 0) log.push(`${m.wickets} Wkts (+${m.wickets * POINT_SYSTEM.wicket})`);
-    if (m.maidens > 0) log.push(`${m.maidens} Maidens (+${m.maidens * POINT_SYSTEM.maiden})`);
-    if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * POINT_SYSTEM.catch})`);
-    if (m.is_player_of_match) log.push(`POTM Bonus (+${POINT_SYSTEM.potm})`);
+    
+    // 1. Batting Points Breakdown
+    if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs})`);
+    
+    // Stored point values from the Edge Function
+    if (m.boundary_points > 0) log.push(`Boundaries (+${m.boundary_points})`);
+    if (m.milestone_points > 0) log.push(`Milestone (+${m.milestone_points})`);
+    
+    // Strike Rate can be positive or negative
+    if (m.sr_points !== 0) {
+        const sign = m.sr_points > 0 ? '+' : '';
+        log.push(`Strike Rate (${sign}${m.sr_points})`);
+    }
+
+    // 2. Bowling Points Breakdown
+    if (m.wickets > 0) {
+        // Calculation: 1st Wicket 20, others 25. 
+        // We show the total stored in Edge Function logic
+        const wicketPts = 20 + (Math.max(0, m.wickets - 1) * 25);
+        log.push(`${m.wickets} Wkts (+${wicketPts})`);
+    }
+    if (m.maidens > 0) log.push(`${m.maidens} Maidens (+${m.maidens * 8})`);
+    
+    // Economy Rate can be positive or negative
+    if (m.er_points !== 0) {
+        const sign = m.er_points > 0 ? '+' : '';
+        log.push(`Economy (${sign}${m.er_points})`);
+    }
+
+    // 3. Fielding & Others
+    if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * 8})`);
+    if (m.stumpings > 0) log.push(`${m.stumpings} Stump (+${m.stumpings * 12})`);
+    
+    // Combined Runouts (Direct + Assisted)
+    const roTotal = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
+    if (roTotal > 0) log.push(`${roTotal} Runout (+${roTotal * 8})`);
+
+    // 4. Bonuses & Penalties
+    if (m.involvement_points > 0) log.push(`Match Active (+${m.involvement_points})`);
+    if (m.is_player_of_match) log.push(`POTM Bonus (+20)`);
+    if (m.duck_penalty < 0) log.push(`Duck Penalty (${m.duck_penalty})`);
 
     return `
         <div class="history-item">
@@ -115,7 +148,9 @@ function renderDetailedHistoryItem(m) {
             <div class="h-stats-grid">
                 <div class="stat-pill">🏏 ${m.runs || 0}(${m.balls || 0})</div>
                 <div class="stat-pill">☝️ ${m.wickets || 0} Wkts</div>
-                <div class="stat-pill">🤲 ${m.catches || 0} Catch</div>
+                <div class="stat-pill ${m.is_player_of_match ? 'gold' : ''}">
+                    ${m.is_player_of_match ? '🏆 POTM' : `🤲 ${m.catches || 0} Catch`}
+                </div>
             </div>
 
             <div class="points-breakdown">
