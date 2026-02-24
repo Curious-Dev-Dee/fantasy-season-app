@@ -84,56 +84,88 @@ async function handleDailyStreak(userId) {
   } catch (err) { loginStreakSpan.textContent = "1"; }
 }
 
-/* PODIUM DATA (Top 3 Players and Teams) */
 async function fetchPodiumData() {
     try {
-        const { data: lastMatch } = await supabase.from("matches")
+        // 1. Get the last match that was actually processed
+        const { data: lastMatch } = await supabase
+            .from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-            .eq("points_processed", true).order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
+            .eq("points_processed", true)
+            .order("actual_start_time", { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
         if (!lastMatch) return;
 
         document.getElementById("podiumSection").classList.remove("hidden");
         const matchTitle = `MATCH ${lastMatch.match_number}: ${lastMatch.team_a.short_code} VS ${lastMatch.team_b.short_code}`;
+        
         const headers = document.querySelectorAll(".podium-card .card-header-fun");
         if(headers[0]) headers[0].textContent = "TOP PLAYERS - " + matchTitle;
         if(headers[1]) headers[1].textContent = "TOP USER TEAMS - " + matchTitle;
 
-        // 1. Top 3 Players
-        const { data: players } = await supabase.from("player_match_stats").select("fantasy_points, players(name, photo_url)")
-            .eq("match_id", lastMatch.id).order("fantasy_points", { ascending: false }).limit(3);
+        // 2. Fetch Top 3 Players
+        const { data: players } = await supabase
+            .from("player_match_stats")
+            .select("fantasy_points, players(name, photo_url)")
+            .eq("match_id", lastMatch.id)
+            .order("fantasy_points", { ascending: false })
+            .limit(3);
+
         renderPodium(players, "playerPodium", true);
 
-        // 2. Top 3 Teams (Correct Table: user_match_points)
-        const { data: teams } = await supabase.from("user_match_points").select("total_points, user_profiles(team_name)")
-            .eq("match_id", lastMatch.id).order("total_points", { ascending: false }).limit(3);
-        renderPodium(teams, "teamPodium", false);
-    } catch (err) { console.error("Podium Error:", err); }
+        // 3. Fetch Top 3 Teams from user_match_points
+        const { data: teams, error: teamError } = await supabase
+            .from("user_match_points")
+            .select("total_points, user_profiles(team_name)") // Targeting total_points
+            .eq("match_id", lastMatch.id) // Ensure it matches the same match
+            .order("total_points", { ascending: false })
+            .limit(3);
+
+        if (teamError) {
+            console.error("Team Podium Error:", teamError.message);
+        } else {
+            renderPodium(teams, "teamPodium", false);
+        }
+
+    } catch (err) {
+        console.error("Podium Load Error:", err);
+    }
 }
 
 function renderPodium(data, containerId, isPlayer) {
     const container = document.getElementById(containerId);
-    if (!data || data.length < 1) { container.innerHTML = `<p class="sub-label">Awaiting results...</p>`; return; }
+    if (!data || data.length < 1) {
+        container.innerHTML = `<p class="sub-label" style="text-align:center; width:100%;">Calculating results...</p>`;
+        return;
+    }
 
+    // Sort visually: Rank 2 (Left), Rank 1 (Center/Top), Rank 3 (Right)
     const podiumOrder = [];
     if (data[1]) podiumOrder.push({ ...data[1], rank: 2 });
     if (data[0]) podiumOrder.push({ ...data[0], rank: 1 });
     if (data[2]) podiumOrder.push({ ...data[2], rank: 3 });
 
     container.innerHTML = podiumOrder.map(item => {
+        // Use full team name for users, last name for players
         const name = isPlayer ? item.players.name.split(' ').pop() : item.user_profiles.team_name;
-        const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0);
-        let photo = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
-        if (isPlayer && item.players.photo_url) photo = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
+        const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0); //
+        
+        let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
+        if (isPlayer && item.players.photo_url) {
+            photoUrl = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
+        }
 
         return `
             <div class="podium-item rank-${item.rank}">
                 <div class="podium-name">${name}</div>
                 <div class="podium-avatar-wrapper">
-                    <img src="${photo}" class="podium-img"><div class="rank-badge">${item.rank}</div>
+                    <img src="${photoUrl}" class="podium-img">
+                    <div class="rank-badge">${item.rank}</div>
                 </div>
                 <div class="podium-pts">${pts}</div>
-            </div>`;
+            </div>
+        `;
     }).join('');
 }
 
