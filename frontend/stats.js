@@ -43,7 +43,13 @@ async function loadPlayerStats() {
     const matchId = matchFilter.value;
 
     // Querying the performance audit view
-    let query = supabase.from('player_performance_audit').select('*');
+// Querying the table directly to get all breakdown columns
+let query = supabase.from('player_match_stats').select(`
+    *,
+    player_name:players(name),
+    team_code:real_teams!match_id(short_code),
+    match_number:matches(match_number)
+`);
 
     if (team) query = query.eq('team_code', team);
     if (matchId) query = query.eq('match_id', matchId);
@@ -97,32 +103,32 @@ function renderStats(data) {
 function renderDetailedHistoryItem(m) {
     const log = [];
     
-    // --- BATTING BREAKDOWN ---
+    // --- BATTING SECTION ---
     if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs})`);
+    
+    // Stored point values from Edge Function
     if (m.boundary_points > 0) log.push(`Boundaries (+${m.boundary_points})`);
     if (m.milestone_points > 0) log.push(`Milestone (+${m.milestone_points})`);
     
-    // Strike Rate can be positive or negative
     if (m.sr_points !== 0) {
         const srSign = m.sr_points > 0 ? '+' : '';
         log.push(`Strike Rate (${srSign}${m.sr_points})`);
     }
 
-    // --- BOWLING BREAKDOWN ---
+    // --- BOWLING SECTION ---
     if (m.wickets > 0) {
-        // Calculation: 1st Wicket 20, others 25.
+        // Calculation: 1st Wicket 20, others 25 as per Edge Function
         const wicketPts = 20 + (Math.max(0, m.wickets - 1) * 25);
         log.push(`${m.wickets} Wkts (+${wicketPts})`);
     }
     if (m.maidens > 0) log.push(`${m.maidens} Maidens (+${m.maidens * 10})`);
     
-    // Economy Rate can be positive or negative
     if (m.er_points !== 0) {
         const erSign = m.er_points > 0 ? '+' : '';
         log.push(`Economy (${erSign}${m.er_points})`);
     }
 
-    // --- FIELDING BREAKDOWN ---
+    // --- FIELDING SECTION ---
     if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * 8})`);
     if (m.stumpings > 0) log.push(`${m.stumpings} Stump (+${m.stumpings * 8})`);
     
@@ -130,15 +136,15 @@ function renderDetailedHistoryItem(m) {
     if (totalRunouts > 0) log.push(`${totalRunouts} Runout (+${totalRunouts * 8})`);
 
     // --- BONUSES & PENALTIES ---
-    if (m.involvement_points > 0) log.push(`Active (+${m.involvement_points})`);
+    if (m.involvement_points > 0) log.push(`Involvement (+${m.involvement_points})`);
     if (m.is_player_of_match) log.push(`POM (+20)`);
-    if (m.duck_penalty < 0) log.push(`Duck Penalty (${m.duck_penalty})`);
+    if (m.duck_penalty !== 0) log.push(`Duck Penalty (${m.duck_penalty})`);
 
     return `
         <div class="history-item">
             <div class="h-top">
-                <span>Match ${m.match_number}</span>
-                <span class="h-pts">+${m.match_total_points}</span>
+                <span>Match ${m.match_number?.match_number || m.match_number}</span>
+                <span class="h-pts">+${m.fantasy_points} pts</span>
             </div>
             
             <div class="h-stats-grid">
