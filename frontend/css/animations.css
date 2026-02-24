@@ -1,0 +1,43 @@
+/* --- AVATAR FRAMES --- */
+.avatar-wrapper { position: relative; display: inline-block; }
+
+/* 1. Gold Elite Frame */
+.frame-gold-glow {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7), inset 0 0 10px rgba(255, 215, 0, 0.5);
+    padding: 2px;
+}
+
+/* 2. Neon Cyber Frame */
+.frame-neon-cyber {
+    border: 2px solid var(--neon-cyan) !important;
+    box-shadow: 0 0 12px var(--neon-cyan);
+    animation: cyberFlicker 3s infinite;
+}
+
+/* --- TEAM NAME FLEX ANIMATIONS --- */
+/* 1. Neon Pulse (Cyan) */
+.flex-neon-pulse {
+    font-weight: 900 !important;
+    animation: neonPulse 1.5s infinite alternate;
+}
+
+/* 2. Fire Spark (Orange/Red) */
+.flex-fire-spark {
+    font-weight: 900 !important;
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+}
+
+@keyframes neonPulse {
+    from { color: #fff; text-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
+    to { color: #00f2ff; text-shadow: 0 0 2px #fff, 0 0 5px #9AE000; }
+}
+
+@keyframes cyberFlicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+    52% { opacity: 1; }
+}
