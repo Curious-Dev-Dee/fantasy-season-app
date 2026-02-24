@@ -59,7 +59,8 @@ async function init() {
     
   if (!activeTourney) return;
   currentTournamentId = activeTourney.id;
-
+// Inside your init() function, add:
+await fetchPodiumData();
   // Parallel loading for speed
   await Promise.all([
     fetchNextMatch(),
@@ -134,6 +135,83 @@ async function handleDailyStreak(userId) {
     loginStreakSpan.textContent = "1"; 
   }
 }
+
+async function fetchPodiumData() {
+    try {
+        // 1. Get the last match that has been processed
+        const { data: lastMatch } = await supabase
+            .from("matches")
+            .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+            .eq("points_processed", true)
+            .order("actual_start_time", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!lastMatch) return;
+
+        document.getElementById("podiumSection").classList.remove("hidden");
+        const matchTitle = `MATCH ${lastMatch.match_number}: ${lastMatch.team_a.short_code} VS ${lastMatch.team_b.short_code}`;
+        document.getElementById("playerPodiumMatchInfo").textContent = matchTitle;
+        document.getElementById("teamPodiumMatchInfo").textContent = matchTitle;
+
+        // 2. Fetch Top 3 Players
+        const { data: players } = await supabase
+            .from("player_match_stats")
+            .select("fantasy_points, players(name, photo_url)")
+            .eq("match_id", lastMatch.id)
+            .order("fantasy_points", { ascending: false })
+            .limit(3);
+
+        renderPodium(players, "playerPodium", true);
+
+        // 3. Fetch Top 3 User Teams (Experts)
+        // We fetch from user_match_teams which contains the snapshot points
+        const { data: teams } = await supabase
+            .from("user_match_teams")
+            .select("match_points, user_profiles(team_name)")
+            .eq("match_id", lastMatch.id)
+            .order("match_points", { ascending: false })
+            .limit(3);
+
+        renderPodium(teams, "teamPodium", false);
+
+    } catch (err) {
+        console.error("Podium Load Error:", err);
+    }
+}
+
+function renderPodium(data, containerId, isPlayer) {
+    const container = document.getElementById(containerId);
+    if (!data || data.length < 1) return;
+
+    // Sort as Rank 2, Rank 1, Rank 3 for the visual podium layout
+    const podiumOrder = [];
+    if (data[1]) podiumOrder.push({ ...data[1], rank: 2 });
+    if (data[0]) podiumOrder.push({ ...data[0], rank: 1 });
+    if (data[2]) podiumOrder.push({ ...data[2], rank: 3 });
+
+    container.innerHTML = podiumOrder.map(item => {
+        const name = isPlayer ? item.players.name.split(' ').pop() : item.user_profiles.team_name;
+        const pts = isPlayer ? item.fantasy_points : item.match_points;
+        
+        let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
+        if (isPlayer && item.players.photo_url) {
+            photoUrl = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
+        }
+
+        return `
+            <div class="podium-item rank-${item.rank}">
+                <div class="podium-name">${name}</div>
+                <div class="podium-avatar-wrapper">
+                    <img src="${photoUrl}" class="podium-img">
+                    <div class="rank-badge">${item.rank}</div>
+                </div>
+                <div class="podium-pts">${pts} <small>PTS</small></div>
+            </div>
+        `;
+    }).join('');
+}
+
 /* MATCH & PREDICTION LOGIC - FIXED */
 async function fetchNextMatch() {
   // 1. Get the current match for predicting
