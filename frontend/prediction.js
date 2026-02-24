@@ -136,31 +136,34 @@ async function fetchPodiumData() {
 function renderPodium(data, containerId, isPlayer) {
     const container = document.getElementById(containerId);
     if (!data || data.length < 1) {
-        container.innerHTML = `<p class="sub-label" style="text-align:center; width:100%;">Calculating results...</p>`;
+        container.innerHTML = `<p class="sub-label">Awaiting results...</p>`;
         return;
     }
 
-    // Sort visually: Rank 2 (Left), Rank 1 (Center/Top), Rank 3 (Right)
     const podiumOrder = [];
     if (data[1]) podiumOrder.push({ ...data[1], rank: 2 });
     if (data[0]) podiumOrder.push({ ...data[0], rank: 1 });
     if (data[2]) podiumOrder.push({ ...data[2], rank: 3 });
 
     container.innerHTML = podiumOrder.map(item => {
-        // Use full team name for users, last name for players
         const name = isPlayer ? item.players.name.split(' ').pop() : item.user_profiles.team_name;
-        const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0); //
+        const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0);
         
         let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
+        
         if (isPlayer && item.players.photo_url) {
-            photoUrl = supabase.storage.from('team_photo_url').getPublicUrl(item.players.photo_url).data.publicUrl;
+            // FIXED: Standard bucket name for player photos is usually 'player-photos'
+            photoUrl = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
+        } else if (!isPlayer && item.user_profiles.team_photo_url) {
+            // FIXED: Standard bucket for user teams is usually 'team-photos'
+            photoUrl = supabase.storage.from('team-photos').getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl;
         }
 
         return `
             <div class="podium-item rank-${item.rank}">
                 <div class="podium-name">${name}</div>
                 <div class="podium-avatar-wrapper">
-                    <img src="${photoUrl}" class="podium-img">
+                    <img src="${photoUrl}" class="podium-img" onerror="this.src='https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png'">
                     <div class="rank-badge">${item.rank}</div>
                 </div>
                 <div class="podium-pts">${pts}</div>
