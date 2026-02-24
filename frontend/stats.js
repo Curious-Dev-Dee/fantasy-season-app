@@ -115,66 +115,37 @@ function renderStats(data) {
 function renderDetailedHistoryItem(m) {
     const log = [];
     
-    // --- BATTING SECTION ---
+    // Use the logic we built in the previous turn...
+    // Batting
     if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs})`);
-    
-    // Stored point values from Edge Function
     if (m.boundary_points > 0) log.push(`Boundaries (+${m.boundary_points})`);
     if (m.milestone_points > 0) log.push(`Milestone (+${m.milestone_points})`);
-    
-    if (m.sr_points !== 0) {
-        const srSign = m.sr_points > 0 ? '+' : '';
-        log.push(`Strike Rate (${srSign}${m.sr_points})`);
-    }
+    if (m.sr_points !== 0) log.push(`SR (${m.sr_points > 0 ? '+' : ''}${m.sr_points})`);
 
-    // --- BOWLING SECTION ---
+    // Bowling
     if (m.wickets > 0) {
-        // Calculation: 1st Wicket 20, others 25 as per Edge Function
         const wicketPts = 20 + (Math.max(0, m.wickets - 1) * 25);
         log.push(`${m.wickets} Wkts (+${wicketPts})`);
     }
-    if (m.maidens > 0) log.push(`${m.maidens} Maidens (+${m.maidens * 10})`);
-    
-    if (m.er_points !== 0) {
-        const erSign = m.er_points > 0 ? '+' : '';
-        log.push(`Economy (${erSign}${m.er_points})`);
-    }
+    if (m.er_points !== 0) log.push(`Econ (${m.er_points > 0 ? '+' : ''}${m.er_points})`);
 
-    // --- FIELDING SECTION ---
-    if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * 8})`);
-    if (m.stumpings > 0) log.push(`${m.stumpings} Stump (+${m.stumpings * 8})`);
-    
-    const totalRunouts = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
-    if (totalRunouts > 0) log.push(`${totalRunouts} Runout (+${totalRunouts * 8})`);
-
-    // --- BONUSES & PENALTIES ---
-    if (m.involvement_points > 0) log.push(`Involvement (+${m.involvement_points})`);
+    // Fielding & Bonuses
+    if (m.involvement_points > 0) log.push(`Active (+${m.involvement_points})`);
     if (m.is_player_of_match) log.push(`POM (+20)`);
-    if (m.duck_penalty !== 0) log.push(`Duck Penalty (${m.duck_penalty})`);
 
     return `
         <div class="history-item">
             <div class="h-top">
-                <span>Match ${m.match_number?.match_number || m.match_number}</span>
+                <span>Match ${m.match_info?.match_number || 'N/A'}</span>
                 <span class="h-pts">+${m.fantasy_points} pts</span>
             </div>
-            
-            <div class="h-stats-grid">
-                <div class="stat-pill">🏏 ${m.runs || 0}(${m.balls || 0})</div>
-                <div class="stat-pill">☝️ ${m.wickets || 0} Wkts</div>
-                <div class="stat-pill ${m.is_player_of_match ? 'gold' : ''}">
-                    ${m.is_player_of_match ? '🏆 POM' : `🤲 ${m.catches || 0} Catch`}
-                </div>
-            </div>
-
             <div class="points-breakdown">
                 <label>POINT LOG</label>
                 <div class="log-items">
-                    ${log.length > 0 ? log.map(item => `<span>${item}</span>`).join('') : '<span>No scoring actions</span>'}
+                    ${log.map(item => `<span>${item}</span>`).join('')}
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
 searchInput.addEventListener("input", loadPlayerStats);
