@@ -15,6 +15,14 @@ const matchTimeElement = document.getElementById("matchTime");
 const leaderboardContainer = document.getElementById("leaderboardContainer");
 const editButton = document.getElementById("editXiBtn");
 const boosterStatusEl = document.getElementById("boosterStatus");
+const profileModal = document.getElementById("profileModal");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const modalFullName = document.getElementById("modalFullName");
+const modalTeamName = document.getElementById("modalTeamName");
+const avatarInput = document.getElementById("avatarInput");
+const modalPreview = document.getElementById("modalAvatarPreview");
+const viewXiBtn = document.getElementById("viewXiBtn");
+const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
 
 let countdownInterval;
 let currentUserId = null;
@@ -116,7 +124,7 @@ async function fetchHomeData(userId) {
     
     if (dash) {
         scoreElement.textContent = dash.total_points || 0;
-        rankElement.textContent = dash.user_rank > 0 ? `#${dash.user_rank}` : "—";
+        rankElement.textContent = dash.user_rank > 0 ? `#${dash.user_rank}` : "--";
         subsElement.textContent = dash.subs_remaining ?? 0;
         if (boosterStatusEl) boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
 
@@ -234,11 +242,23 @@ async function fetchPrivateLeagueData(userId) {
         .limit(3);
 
     if (lb && containerEl) {
-        containerEl.innerHTML = lb.map(row => `
-<div class="leader-row" onclick="window.location.href='team-view.html?uid=${row.user_id}&name=${encodeURIComponent(row.team_name || 'Expert')}'">                <span>#${row.rank_in_league} <strong>${row.team_name || 'Expert'}</strong></span>
+        containerEl.innerHTML = '';
+        lb.forEach((row) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'leader-row';
+            rowDiv.onclick = () => {
+                const scoutName = encodeURIComponent(row.team_name || 'Expert');
+                window.location.href = `team-view.html?uid=${row.user_id}&name=${scoutName}`;
+            };
+
+            rowDiv.innerHTML = `
+                <span>#${row.rank_in_league} <strong class="team-name-text"></strong></span>
                 <span class="pts-pill">${row.total_points} pts</span>
-            </div>`).join('');
-            
+            `;
+            rowDiv.querySelector('.team-name-text').textContent = row.team_name || 'Expert';
+            containerEl.appendChild(rowDiv);
+        });
+
         const userRow = lb.find(r => r.user_id === userId);
         const rankSpan = document.getElementById('privateLeagueRank');
         if (rankSpan && userRow) rankSpan.textContent = `#${userRow.rank_in_league}`;
@@ -313,73 +333,79 @@ function setupHomeLeagueListeners(userId) {
 /* =========================
    PROFILE SAVE LOGIC
 ========================= */
-saveProfileBtn.onclick = async () => {
-    const fullName = modalFullName.value.trim();
-    const teamName = modalTeamName.value.trim();
-    const file = avatarInput.files[0];
+if (saveProfileBtn) {
+    saveProfileBtn.onclick = async () => {
+        if (!modalFullName || !modalTeamName || !avatarInput || !profileModal) return;
 
-    if (!fullName || !teamName) return alert("Please enter both your name and team name!");
+        const fullName = modalFullName.value.trim();
+        const teamName = modalTeamName.value.trim();
+        const file = avatarInput.files[0];
 
-    saveProfileBtn.disabled = true;
-    saveProfileBtn.textContent = "SAVING...";
+        if (!fullName || !teamName) return alert("Please enter both your name and team name!");
 
-    try {
-        let photoPath = existingProfile?.team_photo_url;
+        saveProfileBtn.disabled = true;
+        saveProfileBtn.textContent = "SAVING...";
 
-        // 1. Handle Avatar Upload if a new file is selected
-        if (file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${currentUserId}-${Math.random()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage
-                .from('team-avatars')
-                .upload(fileName, file, { upsert: true });
+        try {
+            let photoPath = existingProfile?.team_photo_url;
 
-            if (uploadError) throw uploadError;
-            photoPath = fileName;
+            // 1. Handle Avatar Upload if a new file is selected
+            if (file) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${currentUserId}-${Math.random()}.${fileExt}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('team-avatars')
+                    .upload(fileName, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+                photoPath = fileName;
+            }
+
+            // 2. Update User Profile in Database
+            const { error: updateError } = await supabase
+                .from('user_profiles')
+                .update({
+                    full_name: fullName,
+                    team_name: teamName,
+                    team_photo_url: photoPath,
+                    profile_completed: true
+                })
+                .eq('user_id', currentUserId);
+
+            if (updateError) throw updateError;
+
+            // 3. Success! Refresh and Close
+            alert("Profile updated successfully!");
+            profileModal.classList.add("hidden");
+            window.location.reload(); // Reload to reflect changes across the dashboard
+
+        } catch (err) {
+            console.error("Save error:", err.message);
+            alert("Failed to save profile. Please try again.");
+        } finally {
+            saveProfileBtn.disabled = false;
+            saveProfileBtn.textContent = "Save & Start";
         }
-
-        // 2. Update User Profile in Database
-        const { error: updateError } = await supabase
-            .from('user_profiles')
-            .update({
-                full_name: fullName,
-                team_name: teamName,
-                team_photo_url: photoPath,
-                profile_completed: true
-            })
-            .eq('user_id', currentUserId);
-
-        if (updateError) throw updateError;
-
-        // 3. Success! Refresh and Close
-        alert("Profile updated successfully!");
-        profileModal.classList.add("hidden");
-        window.location.reload(); // Reload to reflect changes across the dashboard
-
-    } catch (err) {
-        console.error("Save error:", err.message);
-        alert("Failed to save profile. Please try again.");
-    } finally {
-        saveProfileBtn.disabled = false;
-        saveProfileBtn.textContent = "Save & Start";
-    }
-};
+    };
+}
 
 // Handle Image Preview when a user selects a file
-avatarInput.onchange = () => {
-    const file = avatarInput.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            modalPreview.style.backgroundImage = `url(${e.target.result})`;
-        };
-        reader.readAsDataURL(file);
-    }
-};
+if (avatarInput) {
+    avatarInput.onchange = () => {
+        const file = avatarInput.files[0];
+        if (file && modalPreview) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                modalPreview.style.backgroundImage = `url(${e.target.result})`;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+}
 
 const closeBtn = document.getElementById("closeProfileModal");
 if (closeBtn) {
-    closeBtn.onclick = () => profileModal.classList.add("hidden");
+    closeBtn.onclick = () => profileModal?.classList.add("hidden");
 }
 
 /* =========================
@@ -387,40 +413,49 @@ if (closeBtn) {
 ========================= */
 
 // 1. Profile Modal Control
-avatarElement.onclick = () => {
-    if (existingProfile) {
-        modalFullName.value = existingProfile.full_name || "";
-        modalTeamName.value = existingProfile.team_name || "";
-    }
-    profileModal.classList.remove("hidden");
-};
+if (avatarElement) {
+    avatarElement.onclick = () => {
+        if (!profileModal || !modalFullName || !modalTeamName) return;
+        if (existingProfile) {
+            modalFullName.value = existingProfile.full_name || "";
+            modalTeamName.value = existingProfile.team_name || "";
+        }
+        profileModal.classList.remove("hidden");
+    };
+}
 
 // Close Button
 if (closeBtn) {
-    closeBtn.onclick = () => profileModal.classList.add("hidden");
+    closeBtn.onclick = () => profileModal?.classList.add("hidden");
 }
 
 // 2. Navigation Actions
-editButton.onclick = () => {
-    window.location.href = "team-builder.html";
-};
+if (editButton) {
+    editButton.onclick = () => {
+        window.location.href = "team-builder.html";
+    };
+}
 
-viewXiBtn.onclick = () => {
-    if (!existingProfile?.team_name || existingProfile.team_name === "Set your team name") {
-        alert("Please set your team name in your profile first!");
-        profileModal.classList.remove("hidden");
-    } else {
-        window.location.href = `team-view.html?uid=${currentUserId}`;
-    }
-};
+if (viewXiBtn) {
+    viewXiBtn.onclick = () => {
+        if (!existingProfile?.team_name || existingProfile.team_name === "Set your team name") {
+            alert("Please set your team name in your profile first!");
+            profileModal?.classList.remove("hidden");
+        } else {
+            window.location.href = `team-view.html?uid=${currentUserId}`;
+        }
+    };
+}
 
-viewFullLeaderboardBtn.onclick = () => {
-    window.location.href = "leaderboard.html";
-};
+if (viewFullLeaderboardBtn) {
+    viewFullLeaderboardBtn.onclick = () => {
+        window.location.href = "leaderboard.html";
+    };
+}
 
 // 3. Global Click Handler (Close modal on outside click)
 window.addEventListener('click', (event) => {
-    if (event.target === profileModal) {
+    if (profileModal && event.target === profileModal) {
         profileModal.classList.add("hidden");
     }
 });

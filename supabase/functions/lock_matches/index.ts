@@ -60,6 +60,7 @@ async function lockSingleMatch(supabase: any, match: any) {
       captain_id,
       vice_captain_id,
       total_credits,
+      use_booster,
       user_fantasy_team_players(player_id)
     `)
     .eq("tournament_id", match.tournament_id);
@@ -90,12 +91,16 @@ async function lockUserTeamForMatch(
   if (existing) return;
 
   // 2. Fetch the most recent snapshot for sub-comparison
-  // ... (inside lockUserTeamForMatch)
-const { data: lastSnapshot } = await supabase
+  const { data: lastSnapshot } = await supabase
     .from("user_match_teams")
-    .select("id, total_subs_used")
+    .select(`
+      id,
+      match_id,
+      total_subs_used,
+      matches!inner(match_number)
+    `)
     .eq("user_id", team.user_id)
-    .neq("match_id", match.id) // <--- ADD THIS LINE
+    .neq("match_id", match.id)
     .order("locked_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -104,50 +109,43 @@ const { data: lastSnapshot } = await supabase
     ? await getSnapshotPlayers(supabase, lastSnapshot.id)
     : [];
 
-  const currentPlayers = team.user_fantasy_team_players.map(
+  const currentPlayers = (team.user_fantasy_team_players ?? []).map(
     (p: any) => p.player_id
   );
 
-  // 3. ENHANCED SUB LOGIC
-  // 3. ENHANCED SUB LOGIC (Stage-Aware)
+  // 3. Stage-aware sub logic
   let subsUsed = 0;
   let totalSubsUsed = 0;
 
-  // Define Stage Boundaries
-  const isSuper8 = match.match_number >= 41 && match.match_number < 53;
+  // Define stage boundaries
+  const isSuper8 = match.match_number >= 41 && match.match_number <= 52;
   const isKnockout = match.match_number >= 53;
+  const lastMatchNumber = lastSnapshot?.matches?.match_number ?? 0;
 
-  // Check if the user has ALREADY locked a team in this stage
-  const { data: stageHistory } = await supabase
-    .from("user_match_teams")
-    .select("id")
-    .eq("user_id", team.user_id)
-    .gte("match_id", isKnockout ? 'YOUR_MATCH_53_UUID' : (isSuper8 ? 'YOUR_MATCH_41_UUID' : 'YOUR_MATCH_1_UUID')) // Use actual IDs if possible, or keep match_number logic
-    .maybeSingle();
+  // Reset at Group->Super8 and Super8->Knockout transitions
+  const isResetMatch = (isSuper8 && lastMatchNumber < 41) || (isKnockout && lastMatchNumber < 53);
 
-  // THE FIX: If it's the start of a stage OR the user has no history in this stage yet
-  const isFirstActiveMatchOfStage = !stageHistory;
-
-  if (isFirstActiveMatchOfStage && (isSuper8 || isKnockout)) {
-    subsUsed = 0;      // "Free 11" logic
-    totalSubsUsed = 0; // Reset total
+  if (isResetMatch) {
+    subsUsed = 0;
+    totalSubsUsed = 0;
   } else if (lastSnapshot) {
     subsUsed = currentPlayers.filter(
       (p: string) => !previousPlayers.includes(p)
     ).length;
-
-    // Special Case: If moving from Group -> Super 8 for the first time
-    if (isSuper8 && lastSnapshot.match_number < 41) {
-        totalSubsUsed = subsUsed; 
-    } else {
-        totalSubsUsed = lastSnapshot.total_subs_used + subsUsed;
-    }
+    totalSubsUsed = (lastSnapshot.total_subs_used ?? 0) + subsUsed;
   }
-  // 4. BOOSTER TRACKING
-  // Only allow Booster activation from Match 43 to Match 52
+
+  // 4. Booster tracking
   let boosterToApply = false;
   if (match.match_number >= 43 && match.match_number <= 52) {
-    boosterToApply = team.use_booster || false;
+    const { data: boosterState } = await supabase
+      .from("user_tournament_points")
+      .select("s8_booster_used")
+      .eq("user_id", team.user_id)
+      .eq("tournament_id", match.tournament_id)
+      .maybeSingle();
+    const alreadyUsed = boosterState?.s8_booster_used ?? false;
+    boosterToApply = !!team.use_booster && !alreadyUsed;
   }
 
   // 5. Create the Snapshot

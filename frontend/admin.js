@@ -35,7 +35,7 @@ async function init() {
         return;
     }
 
-    console.log("✅ Admin verified. Loading matches...");
+    console.log("Admin verified. Loading matches...");
     loadMatches();
 }
 
@@ -163,13 +163,13 @@ processBtn.addEventListener("click", async () => {
             document.getElementById("successWrapper").style.display = "none";
             document.getElementById("missingList").innerHTML = missing.map(n => `<li>${n}</li>`).join('');
             finalConfirmBtn.style.display = "none";
-            updateStatus("⚠️ Fix typos in JSON names and click Analyze again.", "error");
+            updateStatus("Fix typos in JSON names and click Analyze again.", "error");
         } else {
             document.getElementById("missingWrapper").style.display = "none";
             document.getElementById("successWrapper").style.display = "block";
             finalConfirmBtn.style.display = "block";
 
-            updateStatus("✨ Data verified. Select Winner and POM.", "success");  
+            updateStatus("Data verified. Select Winner and POM.", "success");  
             
             // NEW: Populate Winner Dropdown (Team A and Team B)
         const { data: mData } = await supabase.from('matches').select('team_a:real_teams!team_a_id(id, short_code), team_b:real_teams!team_b_id(id, short_code)').eq('id', matchSelect.value).single();
@@ -199,9 +199,10 @@ async function executeUpdate(scoreboard) {
     const pomId = pomSelect.value;
     const winnerId = winnerSelect.value; // NEW
 
-    if (!pomId || !winnerId) return alert("Please select both Match Winner and POM!");
+    if (!winnerId) return alert("Please select Match Winner/Result first.");
+    if (winnerId !== "abandoned" && !pomId) return alert("Please select POM for a completed match.");
 
-    updateStatus("🚀 Processing points and updating predictions...", "loading");
+    updateStatus("Processing points and updating predictions...", "loading");
     finalConfirmBtn.disabled = true;
 
     try {
@@ -210,7 +211,7 @@ async function executeUpdate(scoreboard) {
                 match_id: matchSelect.value, 
                 tournament_id: TOURNAMENT_ID, 
                 scoreboard: scoreboard,
-                pom_id: pomId,
+                pom_id: winnerId === "abandoned" ? null : pomId,
                 winner_id: winnerId // NEW: Send this to Edge Function
             }
         });
@@ -218,7 +219,7 @@ async function executeUpdate(scoreboard) {
 
         if (error) throw error;
 
-        updateStatus("✅ Success! Match points, Leaderboard updated and Prediction updated.", "success");
+        updateStatus("Success! Match points, leaderboard updated and prediction updated.", "success");
         scoreboardInput.value = "";
         reportContainer.style.display = "none";
         

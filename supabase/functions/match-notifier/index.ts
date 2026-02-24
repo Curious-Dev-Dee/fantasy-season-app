@@ -3,6 +3,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID')
 const ONESIGNAL_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY')
 
+function getFirstName(fullName: string | null): string {
+  const safe = (fullName ?? "").trim()
+  return safe ? safe.split(/\s+/)[0] : "Expert"
+}
+
 Deno.serve(async (req) => {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -30,8 +35,8 @@ Deno.serve(async (req) => {
 
   if (matchesRes.error || profilesRes.error) return new Response("Error fetching data", { status: 500 });
   
-  const matches = matchesRes.data;
-  const profiles = profilesRes.data;
+  const matches = matchesRes.data ?? [];
+  const profiles = profilesRes.data ?? [];
 
   // TRIGGER A: DAILY 12:00 PM IST PREVIEW (06:30 AM UTC)
   if (currentHourUTC === 6 && currentMinUTC >= 30 && currentMinUTC < 35) {
@@ -41,14 +46,16 @@ Deno.serve(async (req) => {
     )
 
     if (todaysMatches.length > 0) {
-      const matchText = todaysMatches.map(m => `${m.team_a.short_code} vs ${m.team_b.short_code}`).join(", ")
+      const matchText = todaysMatches
+        .map(m => `${m.team_a?.short_code || "TBA"} vs ${m.team_b?.short_code || "TBA"}`)
+        .join(", ")
       
       await Promise.all(profiles.map(profile => {
-        const firstName = profile.full_name.split(' ')[0];
+        const firstName = getFirstName(profile.full_name);
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          `Good Afternoon, ${firstName}! 🏏`,
-          `Aaj ${matchText} ki pitch ready hai. Rank 1 waali team banaoge ya wahi puraani 'safe' strategy? 😉 Set your XI!`
+          `Good Afternoon, ${firstName}!`,
+          `Aaj ${matchText} ki pitch ready hai. Rank 1 waali team banaoge ya wahi puraani 'safe' strategy? Set your XI!`
         );
       }));
     }
@@ -59,6 +66,8 @@ Deno.serve(async (req) => {
     const startTime = new Date(match.actual_start_time)
     const originalTime = new Date(match.original_start_time)
     const diffMins = (startTime.getTime() - now.getTime()) / 60000
+    const teamALabel = match.team_a?.short_code || "TBA"
+    const teamBLabel = match.team_b?.short_code || "TBA"
     const istTimeStr = startTime.toLocaleTimeString('en-IN', {
       timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
     })
@@ -66,11 +75,11 @@ Deno.serve(async (req) => {
     // --- TRIGGER 1: POINTS PROCESSED (Highest Priority) ---
     if (match.points_processed && match.last_notification_sent !== 'points_done') {
       await Promise.all(profiles.map(profile => {
-        const firstName = profile.full_name.split(' ')[0];
+        const firstName = getFirstName(profile.full_name);
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          `Zilzal Aagaya, ${firstName}! 📊`,
-          `Results out hain! Leaderboard pe aag laga di ya fir kal ke liye nets practice shuru? 😉 Check rank now!`
+          `Zilzal Aagaya, ${firstName}!`,
+          `Results out hain! Leaderboard pe aag laga di ya fir kal ke liye nets practice shuru? Check rank now!`
         );
       }));
       await updateMatchNotifyStatus(supabase, match.id, 'points_done');
@@ -82,8 +91,8 @@ Deno.serve(async (req) => {
       await Promise.all(profiles.map(profile => {
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          "Match Abandoned 🚫",
-          `${match.team_a.short_code} vs ${match.team_b.short_code} cancel ho gaya boss. No subs deducted!`
+          "Match Abandoned",
+          `${teamALabel} vs ${teamBLabel} cancel ho gaya boss. No subs deducted!`
         );
       }));
       await updateMatchNotifyStatus(supabase, match.id, 'abandoned');
@@ -93,10 +102,10 @@ Deno.serve(async (req) => {
     // --- TRIGGER 3: MATCH LOCKED ---
     if (match.status === 'locked' && match.lock_processed && !['locked', 'points_done', 'abandoned'].includes(match.last_notification_sent)) {
       await Promise.all(profiles.map(profile => {
-        const firstName = profile.full_name.split(' ')[0];
+        const firstName = getFirstName(profile.full_name);
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          `Game On, ${firstName}! 🔒`,
+          `Game On, ${firstName}!`,
           `Sabki kismat lock ho chuki hai. Dekhte hain kiske pass 'Expert' dimaag hai aur kiske pass sirf luck! Best of luck!`
         );
       }));
@@ -109,7 +118,7 @@ Deno.serve(async (req) => {
       await Promise.all(profiles.map(profile => {
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          "Baarish Update! 🌧️",
+          "Baarish Update!",
           `Match delay ho gaya hai. New lock time: ${istTimeStr}. Ek baar XI check kar lo!`
         );
       }));
@@ -120,10 +129,10 @@ Deno.serve(async (req) => {
     // --- TRIGGER 5: 30-MINUTE URGENCY ---
     if (match.status === 'upcoming' && diffMins <= 30 && diffMins > 0 && match.last_notification_sent === null) {
       await Promise.all(profiles.map(profile => {
-        const firstName = profile.full_name.split(' ')[0];
+        const firstName = getFirstName(profile.full_name);
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          `Aakhri Over, ${firstName}! 🚨`,
+          `Aakhri Over, ${firstName}!`,
           `30 mins bache hain. Kahin koi star player bench pe toh nahi reh gaya? Lock hone se pehle dekh lo!`
         );
       }));
@@ -144,8 +153,8 @@ async function updateMatchNotifyStatus(supabase: any, matchId: string, type: str
     })
     .eq('id', matchId);
 
-  if (error) console.error(`❌ DB Update Failed:`, error.message);
-  else console.log(`✅ DB Synced: ${type} for ${matchId}`);
+  if (error) console.error(`DB update failed:`, error.message);
+  else console.log(`DB synced: ${type} for ${matchId}`);
 }
 
 // HELPER: Send Individual Personalized Notification
@@ -162,3 +171,4 @@ async function sendPersonalizedNotification(onesignalId: string, title: string, 
   });
   return res.json();
 }
+

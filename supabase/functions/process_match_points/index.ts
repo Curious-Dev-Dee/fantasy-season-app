@@ -25,6 +25,16 @@ serve(async (req) => {
     } = body;
 
     if (!match_id) throw new Error("match_id is missing");
+    const isAbandoned = winner_id === "abandoned";
+    const normalizedWinnerId = isAbandoned ? null : winner_id;
+    const normalizedPomId = isAbandoned ? null : pom_id;
+
+    if (!isAbandoned && !normalizedWinnerId) {
+      throw new Error("winner_id is missing");
+    }
+    if (!isAbandoned && !normalizedPomId) {
+      throw new Error("pom_id is missing for completed match");
+    }
 
     const getTrueOvers = (overs: number) => {
       const wholeOvers = Math.floor(overs);
@@ -113,7 +123,7 @@ serve(async (req) => {
           pts += involve_pts;
       }
 
-      const isPOM = (playerId === pom_id);
+      const isPOM = (playerId === normalizedPomId);
       if (isPOM) pts += 20;
 
       return {
@@ -144,25 +154,27 @@ serve(async (req) => {
       };
     }).filter(Boolean);
 
-    const { error: upsertError } = await supabase
-      .from('player_match_stats')
-      .upsert(statsToUpsert, { onConflict: 'match_id, player_id' });
+    if (!isAbandoned && statsToUpsert.length > 0) {
+      const { error: upsertError } = await supabase
+        .from('player_match_stats')
+        .upsert(statsToUpsert, { onConflict: 'match_id, player_id' });
 
-    if (upsertError) throw upsertError;
+      if (upsertError) throw upsertError;
+    }
 
     const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', { 
       target_match_id: match_id,
-      p_winner_id: winner_id,
-      p_pom_id: pom_id
+      p_winner_id: normalizedWinnerId,
+      p_pom_id: normalizedPomId
     });
 
     if (rpcError) throw rpcError;
 
     await supabase.from('matches').update({ 
-        points_processed: true,
-        winner_id: winner_id,
-        man_of_the_match_id: pom_id,
-        status: 'completed'
+        points_processed: !isAbandoned,
+        winner_id: normalizedWinnerId,
+        man_of_the_match_id: normalizedPomId,
+        status: isAbandoned ? 'abandoned' : 'completed'
     }).eq('id', match_id);
 
     return new Response(JSON.stringify({ success: true }), {
