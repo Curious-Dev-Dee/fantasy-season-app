@@ -86,7 +86,6 @@ async function handleDailyStreak(userId) {
 
 async function fetchPodiumData() {
     try {
-        // 1. Get the last match that was actually processed
         const { data: lastMatch } = await supabase
             .from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
@@ -104,7 +103,7 @@ async function fetchPodiumData() {
         if(headers[0]) headers[0].textContent = "TOP PLAYERS - " + matchTitle;
         if(headers[1]) headers[1].textContent = "TOP USER TEAMS - " + matchTitle;
 
-        // 2. Fetch Top 3 Players
+        // 1. Fetch Top 3 Players
         const { data: players } = await supabase
             .from("player_match_stats")
             .select("fantasy_points, players(name, photo_url)")
@@ -114,12 +113,11 @@ async function fetchPodiumData() {
 
         renderPodium(players, "playerPodium", true);
 
-        // 3. Fetch Top 3 Teams from user_match_points
+        // 2. Fetch Top 3 Teams (Explicitly selecting team_photo_url)
         const { data: teams, error: teamError } = await supabase
             .from("user_match_points")
-// FIXED: Added team_photo_url to the joined select
-.select("total_points, user_profiles(team_name, team_photo_url)")
-            .eq("match_id", lastMatch.id) // Ensure it matches the same match
+            .select("total_points, user_profiles(team_name, team_photo_url)")
+            .eq("match_id", lastMatch.id)
             .order("total_points", { ascending: false })
             .limit(3);
 
@@ -137,7 +135,7 @@ async function fetchPodiumData() {
 function renderPodium(data, containerId, isPlayer) {
     const container = document.getElementById(containerId);
     if (!data || data.length < 1) {
-        container.innerHTML = `<p class="sub-label">Awaiting results...</p>`;
+        container.innerHTML = `<p class="sub-label" style="text-align:center; width:100%;">Calculating...</p>`;
         return;
     }
 
@@ -150,14 +148,15 @@ function renderPodium(data, containerId, isPlayer) {
         const name = isPlayer ? item.players.name.split(' ').pop() : item.user_profiles.team_name;
         const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0);
         
+        // Default Avatar
         let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
         
-        if (isPlayer && item.players.photo_url) {
-            // FIXED: Standard bucket name for player photos is usually 'player-photos'
+        if (isPlayer && item.players?.photo_url) {
+            // FIXED: Using standard 'player-photos' bucket
             photoUrl = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
-        } else if (!isPlayer && item.user_profiles.team_photo_url) {
-            // FIXED: Standard bucket for user teams is usually 'team-photos'
-            photoUrl = supabase.storage.from('team-photos').getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl;
+        } else if (!isPlayer && item.user_profiles?.team_photo_url) {
+            // FIXED: Using standard 'team-avatars' bucket for users
+            photoUrl = supabase.storage.from('team-avatars').getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl;
         }
 
         return `
@@ -172,7 +171,6 @@ function renderPodium(data, containerId, isPlayer) {
         `;
     }).join('');
 }
-
 /* MATCH & RESULT LOGIC */
 async function fetchNextMatch() {
   const { data: upcoming } = await supabase.from("matches").select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
