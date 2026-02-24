@@ -34,14 +34,11 @@ async function signInWithGoogle() {
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        /* CRITICAL: This sends the user to https://your-app.vercel.app/home
-           Supabase MUST have this URL whitelisted in the dashboard.
-        */
-        redirectTo: `${window.location.origin}/home`,
-      },
-    });
+  provider: "google",
+  options: {
+    redirectTo: `${window.location.origin}/home.html`,  // ← Match your actual file!
+  },
+});
 
     if (error) throw error;
 
