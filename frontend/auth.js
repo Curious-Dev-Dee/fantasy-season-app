@@ -1,46 +1,35 @@
 import { supabase } from "./supabase.js";
 
-const authContainer = document.getElementById("authContainer");
-const googleBtn = document.getElementById("googleLoginBtn");
-const btnText = googleBtn?.querySelector(".btn-text");
-const errorEl = document.getElementById("authError");
-
-if (authContainer) authContainer.classList.remove("hidden");
-
-async function checkSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    window.location.replace("/home"); // Clean URL redirect 
-  }
-}
-checkSession();
-
 async function signInWithGoogle() {
+  const googleBtn = document.getElementById("googleLoginBtn");
+  const btnText = googleBtn?.querySelector(".btn-text");
+
   try {
     if (googleBtn) {
         googleBtn.disabled = true;
-        if (btnText) btnText.textContent = "Connecting...";
+        if (btnText) btnText.textContent = "Connecting to Google...";
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/home`, // Clean URL for production 
+        // MUST be a clean URL matching your Vercel settings
+        redirectTo: `${window.location.origin}/home`, 
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
 
     if (error) throw error;
+
   } catch (err) {
-    console.error("Auth Error:", err);
+    console.error("Connection Error:", err.message);
+    alert("Check your internet connection or try again in a moment.");
     if (googleBtn) {
         googleBtn.disabled = false;
         if (btnText) btnText.textContent = "Continue with Google";
     }
-    if (errorEl) {
-      errorEl.textContent = "Login failed. Please try again.";
-      errorEl.style.display = "block";
-    }
   }
 }
-
-googleBtn?.addEventListener("click", signInWithGoogle);
