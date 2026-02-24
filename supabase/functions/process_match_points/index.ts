@@ -16,10 +16,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // ... (keep the serve and client setup at the top)
+    // 1. EXTRACT DATA SAFELY (Added winner_id and defaults)
+    const body = await req.json();
+    const { 
+        match_id, 
+        tournament_id, 
+        scoreboard = [], 
+        pom_id = null, 
+        winner_id = null // Now captured from Admin JS
+    } = body;
 
-    const { match_id, tournament_id, scoreboard, pom_id } = await req.json();
-    console.log(`[START] Processing Match: ${match_id}`);
+    console.log(`[START] Processing Match: ${match_id} | Winner: ${winner_id}`);
 
     // Helper to convert cricket overs (3.2) to mathematical overs (3.33)
 const getTrueOvers = (overs: number) => {
@@ -59,23 +66,35 @@ const getTrueOvers = (overs: number) => {
       const isOut = String(p.is_out) === "true";
 
       // --- NEW FANTASY SCORING LOGIC ---
+      // --- NEW FANTASY SCORING LOGIC ---
       let pts = 0;
+      let sr_pts = 0;        // To store Runs - Balls
+      let er_pts = 0;        // To store Economy Bonus/Penalty
+      let milestone_pts = 0; // To store 30/50/100 bonuses
+      let boundary_pts = 0;  // To store Fours/Sixes bonuses
+      let duck_pts = 0;      // To store the -2 penalty
+      let involve_pts = 0;   // To store the +4 involvement
 
       // A. Batting
-      pts += runs; // +1 per run
-      pts += (fours * 1); // +1 bonus
-      pts += (sixes * 2); // +2 bonus
+      // A. Batting
+      pts += runs; 
+      boundary_pts = (fours * 1) + (sixes * 2); // Capture boundary points
+      pts += boundary_pts;
       
-      if (runs >= 100) pts += 20;
-      else if (runs >= 75) pts += 15;
-      else if (runs >= 50) pts += 10;
-      else if (runs >= 30) pts += 5;
+      if (runs >= 100) milestone_pts = 20;
+      else if (runs >= 75) milestone_pts = 15;
+      else if (runs >= 50) milestone_pts = 10;
+      else if (runs >= 30) milestone_pts = 5;
+      pts += milestone_pts;
 
-      if (runs === 0 && isOut) pts -= 2;
+      if (runs === 0 && isOut) {
+          duck_pts = -2; // Capture penalty
+          pts += duck_pts;
+      }
 
-      // Strike Rate Bonus (Runs - Balls)
-      pts += (runs - balls);
-
+      sr_pts = (runs - balls); // Capture Strike Rate points
+      pts += sr_pts;
+      
       // B. Bowling
       if (wickets > 0) {
         pts += 20 + ((wickets - 1) * 25); // 1st: 20, 2nd+: 25
@@ -88,11 +107,13 @@ if (rawOvers >= 2) {
   const trueOvers = getTrueOvers(rawOvers); // Use the helper here
   const rpo = Number(p.runs_conceded || 0) / trueOvers; // Precise RPO
   
-  if (rpo < 5) pts += 8;
-  else if (rpo < 6) pts += 6;
-  else if (rpo <= 7) pts += 4;
-  else if (rpo > 12) pts -= 6;
-  else if (rpo > 11) pts -= 4;
+  if (rpo < 5) er_pts = 8;
+      else if (rpo < 6) er_pts = 6;
+      else if (rpo <= 7) er_pts = 4;
+      else if (rpo > 12) er_pts = -6;
+      else if (rpo > 11) er_pts = -4;
+      
+      pts += er_pts; // Add the captured value to total
 }
 
       // C. Fielding
@@ -101,8 +122,10 @@ if (rawOvers >= 2) {
       pts += (runouts * 8); // Flat 8 as requested
 
       // D. Involvement Bonus (+4)
-      // If the player did anything (positive or negative), they get +4
-      if (pts !== 0) pts += 4;
+      if (pts !== 0) {
+          involve_pts = 4;
+          pts += involve_pts;
+      }
 
       // E. Player of the Match (+20)
       const isPOM = (playerId === pom_id);
@@ -117,12 +140,20 @@ if (rawOvers >= 2) {
         sixes,
         wickets,
         overs: rawOvers,
+        runs_conceded: Number(p.runs_conceded || 0),
         maidens,
         catches,
         stumpings,
-        runouts_direct: Number(p.runouts_direct || 0),
-        runouts_assisted: Number(p.runouts_assisted || 0),
-        is_player_of_match: isPOM, // Saved to DB
+        runouts_direct: runouts_dir,
+        runouts_assisted: runouts_asst,
+        is_player_of_match: isPOM,
+        is_out: isOut,
+        sr_points: sr_pts,
+        er_points: er_pts,
+        milestone_points: milestone_pts,
+        boundary_points: boundary_pts,
+        duck_penalty: duck_pts,
+        involvement_points: involve_pts,
         fantasy_points: Math.round(pts)
       };
     }).filter(Boolean);
