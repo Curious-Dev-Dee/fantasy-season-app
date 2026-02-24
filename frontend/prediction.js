@@ -134,8 +134,9 @@ async function handleDailyStreak(userId) {
     loginStreakSpan.textContent = "1"; 
   }
 }
-/* MATCH & PREDICTION */
+/* MATCH & PREDICTION LOGIC - FIXED */
 async function fetchNextMatch() {
+  // 1. Get the current match for predicting
   const { data: upcomingMatch } = await supabase
     .from("matches")
     .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
@@ -145,11 +146,12 @@ async function fetchNextMatch() {
     .limit(1)
     .maybeSingle();
 
+  // 2. Get the last finished match where points are processed to show results
   const { data: lastFinishedMatch } = await supabase
     .from("matches")
     .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
     .eq("tournament_id", currentTournamentId)
-    .eq("points_processed", true)
+    .eq("points_processed", true) // Must be processed to show real winner
     .order("actual_start_time", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -158,23 +160,19 @@ async function fetchNextMatch() {
     currentMatchId = upcomingMatch.id;
     renderSelectionView(upcomingMatch);
   } else {
+    // Check if match is currently 'locked' (live)
     const { data: liveMatch } = await supabase
       .from("matches")
       .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
       .eq("tournament_id", currentTournamentId)
       .eq("status", "locked")
-      .order("actual_start_time", { ascending: true })
       .limit(1)
       .maybeSingle();
+
     if (liveMatch) {
       currentMatchId = liveMatch.id;
       renderSelectionView(liveMatch);
       lockUIForLiveMatch();
-    } else {
-      document.getElementById("selectionView").innerHTML = `
-        <div style="text-align:center; padding: 20px;">
-          <p style="color: var(--text-slate); font-size: 13px;">No new matches to predict.</p>
-        </div>`;
     }
   }
 
@@ -186,38 +184,49 @@ async function fetchNextMatch() {
 
 async function renderResultView(match) {
   const container = document.getElementById("resultView");
-  const { data: statsArray } = await supabase
+
+  // Fetch Actual Winner Name
+  const { data: winnerTeam } = await supabase.from("real_teams").select("short_code").eq("id", match.winner_id).maybeSingle();
+  
+  // Fetch Actual Man of the Match Name
+  const { data: motmPlayer } = await supabase.from("players").select("name").eq("id", match.man_of_the_match_id).maybeSingle();
+
+  // FIX: Top Expert is the user at Rank 1 in the overall leaderboard
+  const { data: rank1User } = await supabase
+    .from("prediction_leaderboard")
+    .select("team_name")
+    .order("total_points", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Fetch stats for the progress bars
+  const { data: stats } = await supabase
     .from("prediction_stats_view")
     .select("*")
-    .eq("match_id", match.id);
-
-  const stats = statsArray?.[0];
-
-  const fetchPromises = [
-    match.winner_id ? supabase.from("real_teams").select("short_code").eq("id", match.winner_id).single() : Promise.resolve({ data: { short_code: "TBA" } }),
-    match.man_of_the_match_id ? supabase.from("players").select("name").eq("id", match.man_of_the_match_id).single() : Promise.resolve({ data: { name: "TBA" } }),
-    stats?.predicted_top_user_id ? supabase.from("user_profiles").select("team_name").eq("user_id", stats.predicted_top_user_id).single() : Promise.resolve({ data: { team_name: "TBA" } }),
-  ];
-
-  const [wRes, mRes, eRes] = await Promise.all(fetchPromises);
+    .eq("match_id", match.id)
+    .maybeSingle();
 
   container.innerHTML = `
     <div class="result-header" style="text-align:center; margin-bottom:15px;">
       <span class="final-badge">LATEST RESULT</span>
       <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
     </div>
-    ${renderResultItem("Winner", wRes.data?.short_code || "TBA", stats?.winner_pct, stats?.winner_votes)}
-    ${renderResultItem("Man of the Match", mRes.data?.name || "TBA", stats?.mvp_pct, stats?.mvp_votes)}
-    ${renderResultItem("Top Expert", eRes.data?.team_name || "TBA", stats?.top_user_pct, stats?.top_user_votes)}
+    ${renderResultItem("Match Winner", winnerTeam?.short_code || "TBA", stats?.winner_pct)}
+    ${renderResultItem("Man of the Match", motmPlayer?.name || "TBA", stats?.mvp_pct)}
+    ${renderResultItem("Current Rank 1 Expert", rank1User?.team_name || "TBA", stats?.top_user_pct)}
+    
+    <div class="scoring-note" style="font-size: 10px; color: var(--text-slate); margin-top: 10px; text-align: center;">
+      Scoring: +1 for Correct, -1 for Incorrect
+    </div>
   `;
 }
 
-function renderResultItem(label, val, pct, votes) {
+function renderResultItem(label, val, pct) {
   return `
     <div class="result-item">
       <div class="result-row"><label>${label}</label><span class="winner-val">${val}</span></div>
       <div class="pct-bar-bg"><div class="pct-bar-fill" style="width:${pct || 0}%"></div></div>
-      <div class="pct-label">${pct || 0}% correct (${votes || 0} votes)</div>
+      <div class="pct-label">${pct || 0}% of users predicted this correctly</div>
     </div>`;
 }
 
@@ -406,19 +415,34 @@ function subscribeToChat() {
 
 /* DATA FETCHERS */
 async function fetchMiniLeaderboard() {
-  const { data } = await supabase.from("prediction_leaderboard").select("team_name, total_points").limit(3);
+  const { data } = await supabase
+    .from("prediction_leaderboard")
+    .select("team_name, total_points")
+    .order("total_points", { ascending: false }) // FIX: Highest points first
+    .limit(3);
+
   const tbody = document.getElementById("miniLeaderboardBody");
   if (!tbody || !data) return;
-  tbody.innerHTML = data.map((row) => `
+
+  tbody.innerHTML = data.map((row, index) => `
       <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <td style="padding:10px 0; color:#fff; font-weight:600;">${row.team_name}</td>
-        <td style="text-align:right; color:#9AE000; font-weight:800;">${row.total_points}</td>
+        <td style="padding:10px 0; color:#fff; font-weight:600;">
+          <span style="color: var(--neon-cyan); margin-right: 8px;">#${index + 1}</span>${row.team_name}
+        </td>
+        <td style="text-align:right; color:var(--neon-green); font-weight:800;">${row.total_points}</td>
       </tr>`).join("");
 }
 
 async function fetchUserPredictionPoints() {
-  const { data } = await supabase.from("user_predictions").select("points_earned").eq("user_id", currentUserId);
+  const { data, error } = await supabase
+    .from("user_predictions")
+    .select("points_earned")
+    .eq("user_id", currentUserId);
+
+  // Sum up all points (+1s and -1s)
   const total = data?.reduce((acc, curr) => acc + (curr.points_earned || 0), 0) || 0;
+  
+  // Update the UI score pill
   userPredictionScore.textContent = total;
 }
 
