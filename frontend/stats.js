@@ -42,23 +42,30 @@ async function loadPlayerStats() {
     const team = teamFilter.value;
     const matchId = matchFilter.value;
 
-    // Querying the performance audit view
-// Querying the table directly to get all breakdown columns
-let query = supabase.from('player_match_stats').select(`
-    *,
-    player_name:players(name),
-    team_code:real_teams!match_id(short_code),
-    match_number:matches(match_number)
-`);
+    // 1. Querying the table directly with correct column names and joins
+    let query = supabase
+        .from('player_match_stats')
+        .select(`
+            *,
+            player_info:players(name),
+            team_info:real_teams!match_id(short_code),
+            match_info:matches(match_number)
+        `)
+        .order('fantasy_points', { ascending: false }); // FIXED: Use fantasy_points, not match_total_points
 
-    if (team) query = query.eq('team_code', team);
+    if (team) query = query.eq('team_info.short_code', team);
     if (matchId) query = query.eq('match_id', matchId);
     
-    const { data: stats, error } = await query.order('match_total_points', { ascending: false });
+    const { data: stats, error } = await query;
 
-    if (!error) {
-        const filtered = stats.filter(s => s.player_name.toLowerCase().includes(searchTerm));
+    if (!error && stats) {
+        // 2. Filter by player name from the joined 'players' table
+        const filtered = stats.filter(s => 
+            s.player_info?.name.toLowerCase().includes(searchTerm)
+        );
         renderStats(filtered);
+    } else {
+        console.error("Stats fetch error:", error);
     }
     loader.style.display = "none";
 }
@@ -69,17 +76,22 @@ function renderStats(data) {
         return;
     }
 
-    // Grouping by player
+    // 3. Grouping by player with updated data mapping
     const grouped = data.reduce((acc, curr) => {
         if (!acc[curr.player_id]) {
-            acc[curr.player_id] = { name: curr.player_name, team: curr.team_code, matches: [] };
+            acc[curr.player_id] = { 
+                name: curr.player_info?.name, 
+                team: curr.team_info?.short_code || 'TBA', 
+                matches: [] 
+            };
         }
         acc[curr.player_id].matches.push(curr);
         return acc;
     }, {});
 
     statsContainer.innerHTML = Object.values(grouped).map(player => {
-        const totalPoints = player.matches.reduce((sum, m) => sum + m.match_total_points, 0);
+        // FIXED: Summing 'fantasy_points' instead of 'match_total_points'
+        const totalPoints = player.matches.reduce((sum, m) => sum + (m.fantasy_points || 0), 0);
         
         return `
         <div class="player-card">
