@@ -42,30 +42,34 @@ async function loadPlayerStats() {
     const team = teamFilter.value;
     const matchId = matchFilter.value;
 
-    // 1. Querying the table directly with correct column names and joins
+    // 1. Corrected Query: Join through players to reach real_teams
     let query = supabase
         .from('player_match_stats')
         .select(`
             *,
-            player_info:players(name),
-            team_info:real_teams!match_id(short_code),
+            player_info:players(
+                name,
+                team_info:real_teams(short_code)
+            ),
             match_info:matches(match_number)
         `)
-        .order('fantasy_points', { ascending: false }); // FIXED: Use fantasy_points, not match_total_points
+        .order('fantasy_points', { ascending: false });
 
-    if (team) query = query.eq('team_info.short_code', team);
+    // 2. Apply filters
+    if (team) query = query.eq('players.real_teams.short_code', team);
     if (matchId) query = query.eq('match_id', matchId);
     
     const { data: stats, error } = await query;
 
     if (!error && stats) {
-        // 2. Filter by player name from the joined 'players' table
+        // 3. Filter by player name
         const filtered = stats.filter(s => 
             s.player_info?.name.toLowerCase().includes(searchTerm)
         );
         renderStats(filtered);
     } else {
         console.error("Stats fetch error:", error);
+        statsContainer.innerHTML = `<div class="empty-state">Error loading stats. Check console.</div>`;
     }
     loader.style.display = "none";
 }
@@ -76,21 +80,21 @@ function renderStats(data) {
         return;
     }
 
-    // 3. Grouping by player with updated data mapping
+    // 4. Group by player and handle nested data structure
     const grouped = data.reduce((acc, curr) => {
-        if (!acc[curr.player_id]) {
-            acc[curr.player_id] = { 
-                name: curr.player_info?.name, 
-                team: curr.team_info?.short_code || 'TBA', 
+        const playerId = curr.player_id;
+        if (!acc[playerId]) {
+            acc[playerId] = { 
+                name: curr.player_info?.name || 'Unknown Player', 
+                team: curr.player_info?.team_info?.short_code || 'TBA', 
                 matches: [] 
             };
         }
-        acc[curr.player_id].matches.push(curr);
+        acc[playerId].matches.push(curr);
         return acc;
     }, {});
 
     statsContainer.innerHTML = Object.values(grouped).map(player => {
-        // FIXED: Summing 'fantasy_points' instead of 'match_total_points'
         const totalPoints = player.matches.reduce((sum, m) => sum + (m.fantasy_points || 0), 0);
         
         return `
@@ -115,23 +119,31 @@ function renderStats(data) {
 function renderDetailedHistoryItem(m) {
     const log = [];
     
-    // Use the logic we built in the previous turn...
-    // Batting
+    // Batting Breakdown
     if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs})`);
     if (m.boundary_points > 0) log.push(`Boundaries (+${m.boundary_points})`);
     if (m.milestone_points > 0) log.push(`Milestone (+${m.milestone_points})`);
     if (m.sr_points !== 0) log.push(`SR (${m.sr_points > 0 ? '+' : ''}${m.sr_points})`);
 
-    // Bowling
+    // Bowling Breakdown
     if (m.wickets > 0) {
+        // Points already calculated by Edge function, we display specific labels
         const wicketPts = 20 + (Math.max(0, m.wickets - 1) * 25);
         log.push(`${m.wickets} Wkts (+${wicketPts})`);
     }
+    if (m.maidens > 0) log.push(`${m.maidens} Maidens (+${m.maidens * 10})`);
     if (m.er_points !== 0) log.push(`Econ (${m.er_points > 0 ? '+' : ''}${m.er_points})`);
 
     // Fielding & Bonuses
+    if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * 8})`);
+    if (m.stumpings > 0) log.push(`${m.stumpings} Stump (+${m.stumpings * 8})`);
+    
+    const totalRO = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
+    if (totalRO > 0) log.push(`${totalRO} Runout (+${totalRO * 8})`);
+
     if (m.involvement_points > 0) log.push(`Active (+${m.involvement_points})`);
     if (m.is_player_of_match) log.push(`POM (+20)`);
+    if (m.duck_penalty !== 0) log.push(`Duck Penalty (${m.duck_penalty})`);
 
     return `
         <div class="history-item">
@@ -139,13 +151,23 @@ function renderDetailedHistoryItem(m) {
                 <span>Match ${m.match_info?.match_number || 'N/A'}</span>
                 <span class="h-pts">+${m.fantasy_points} pts</span>
             </div>
+            
+            <div class="h-stats-grid">
+                <div class="stat-pill">🏏 ${m.runs || 0}(${m.balls || 0})</div>
+                <div class="stat-pill">☝️ ${m.wickets || 0} Wkts</div>
+                <div class="stat-pill ${m.is_player_of_match ? 'gold' : ''}">
+                    ${m.is_player_of_match ? '🏆 POM' : `🤲 ${m.catches || 0} Catch`}
+                </div>
+            </div>
+
             <div class="points-breakdown">
                 <label>POINT LOG</label>
                 <div class="log-items">
-                    ${log.map(item => `<span>${item}</span>`).join('')}
+                    ${log.length > 0 ? log.map(item => `<span>${item}</span>`).join('') : '<span>No scoring actions</span>'}
                 </div>
             </div>
-        </div>`;
+        </div>
+    `;
 }
 
 searchInput.addEventListener("input", loadPlayerStats);
