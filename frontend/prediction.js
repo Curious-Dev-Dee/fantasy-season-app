@@ -117,7 +117,8 @@ async function fetchPodiumData() {
         // 3. Fetch Top 3 Teams from user_match_points
         const { data: teams, error: teamError } = await supabase
             .from("user_match_points")
-            .select("total_points, user_profiles(team_name)") // Targeting total_points
+// FIXED: Added team_photo_url to the joined select
+.select("total_points, user_profiles(team_name, team_photo_url)")
             .eq("match_id", lastMatch.id) // Ensure it matches the same match
             .order("total_points", { ascending: false })
             .limit(3);
