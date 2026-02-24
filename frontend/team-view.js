@@ -94,6 +94,26 @@ async function setupMatchTabs() {
     });
 }
 
+// RESTORED: Missing startCountdown function
+function startCountdown(startTime) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownContainer.classList.remove("hidden");
+    const update = () => {
+        const diff = new Date(startTime) - new Date();
+        if (diff <= 0) { 
+            timerDisplay.textContent = "Live"; 
+            clearInterval(countdownInterval); 
+            return; 
+        }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        timerDisplay.textContent = `${h}h ${m}m ${s}s`;
+    };
+    update();
+    countdownInterval = setInterval(update, 1000);
+}
+
 async function loadCurrentXI() {
     if (isScoutMode) return;
     clearInterval(countdownInterval);
@@ -107,21 +127,28 @@ async function loadCurrentXI() {
         return;
     }
 
+    userTeam.use_booster ? boosterIndicator.classList.remove("hidden") : boosterIndicator.classList.add("hidden");
+
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     renderTeamLayout(players, userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);
+    teamStatus.textContent = "Strategy for Next Match";
 }
 
 async function loadLastLockedXI() {
     clearInterval(countdownInterval);
+    countdownContainer.classList.add("hidden");
+
     const { data: snapshot } = await supabase.from("user_match_teams").select("*")
         .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (!snapshot) {
-        teamContainer.innerHTML = "<p class='empty-msg'>No snapshots available.</p>";
+        teamContainer.innerHTML = "<p class='empty-msg'>No match snapshots available.</p>";
         return;
     }
+
+    snapshot.use_booster ? boosterIndicator.classList.remove("hidden") : boosterIndicator.classList.add("hidden");
 
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
@@ -129,6 +156,17 @@ async function loadLastLockedXI() {
     const statsMap = Object.fromEntries(stats.map(s => [s.player_id, s.fantasy_points]));
 
     renderTeamLayout(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer, snapshot.match_id);
+
+    let calculatedTotal = 0;
+    players.forEach(p => {
+        let pPts = statsMap[p.id] || 0;
+        if (p.id === snapshot.captain_id) pPts *= 2;
+        else if (p.id === snapshot.vice_captain_id) pPts *= 1.5;
+        calculatedTotal += pPts;
+    });
+
+    const finalTotal = snapshot.use_booster ? calculatedTotal * 2 : calculatedTotal;
+    teamStatus.textContent = `Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
 }
 
 /* =========================
@@ -183,38 +221,74 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
 }
 
 /* =========================
-    MATCH HISTORY LOGIC
+    HISTORY FEATURE LOGIC
 ========================= */
 function setupHistoryListeners() {
     historyBtn.onclick = async () => {
         historyOverlay.classList.remove("hidden");
+        historyList.innerHTML = `<div class="spinner-small"></div>`;
         const { data: history } = await supabase.from('user_match_teams')
             .select('*, matches(match_number, team_a_id, team_b_id), user_match_team_players(player_id)')
             .eq('user_id', userId).order('locked_at', { ascending: false });
 
-        historyList.innerHTML = history.map(h => `
-            <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
-                <div>
-                    <span class="h-m-num">MATCH ${h.matches.match_number}</span>
-                    <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
-                </div>
-                <div class="h-stats"><span class="h-pts">${h.subs_used_for_match} SUBS</span></div>
-            </div>`).join('');
+        if (!history || history.length === 0) {
+            historyList.innerHTML = "<p class='empty-msg'>No season history found.</p>";
+            return;
+        }
+
+        const matchIds = history.map(h => h.match_id);
+        const { data: allStats } = await supabase.from("player_match_stats").select("*").in("match_id", matchIds);
+
+        historyList.innerHTML = history.map(h => {
+            let rowTotal = 0;
+            const matchStats = allStats.filter(s => s.match_id === h.match_id);
+            const statsMap = Object.fromEntries(matchStats.map(s => [s.player_id, s.fantasy_points]));
+
+            h.user_match_team_players.forEach(p => {
+                let pPts = statsMap[p.player_id] || 0;
+                if (p.player_id === h.captain_id) pPts *= 2;
+                else if (p.player_id === h.vice_captain_id) pPts *= 1.5;
+                rowTotal += pPts;
+            });
+
+            return `
+                <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
+                    <div>
+                        <span class="h-m-num">MATCH ${h.matches.match_number} ${h.use_booster ? '🚀' : ''}</span>
+                        <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
+                    </div>
+                    <div class="h-stats">
+                        <span class="h-pts">${h.use_booster ? rowTotal * 2 : rowTotal} PTS</span>
+                        <span class="h-subs">${h.subs_used_for_match} SUBS</span>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#475569; margin-left:10px;"></i>
+                </div>`;
+        }).join('');
     };
+
     document.getElementById("closeHistory").onclick = () => historyOverlay.classList.add("hidden");
     document.getElementById("closePPL").onclick = () => document.getElementById("playerPointLogOverlay").classList.add("hidden");
+    document.getElementById("backToHistory").onclick = () => document.getElementById("breakdownOverlay").classList.add("hidden");
 }
 
 /* =========================
-    BREAKDOWN LOGIC
+    OVERLAY HANDLERS
 ========================= */
 window.viewMatchBreakdown = async (snapshotId) => {
     const bContainer = document.getElementById("breakdownTeamContainer");
+    const bFooter = document.getElementById("breakdownFooter");
+    const bTitle = document.getElementById("breakdownTitle");
+    const bBooster = document.getElementById("breakdownBooster");
+
     document.getElementById("breakdownOverlay").classList.remove("hidden");
+    bContainer.innerHTML = `<div class="spinner-small"></div>`;
 
     const { data: snap } = await supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single();
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId);
     
+    bTitle.innerText = `Match ${snap.matches.match_number} Details`;
+    snap.use_booster ? bBooster.classList.remove("hidden") : bBooster.classList.add("hidden");
+
     const [playersRes, statsRes] = await Promise.all([
         supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id)),
         supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snap.match_id)
@@ -222,6 +296,15 @@ window.viewMatchBreakdown = async (snapshotId) => {
 
     const statsMap = Object.fromEntries(statsRes.data.map(s => [s.player_id, s.fantasy_points]));
     renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer, snap.match_id);
+
+    let total = 0;
+    playersRes.data.forEach(p => {
+        let pPts = statsMap[p.id] || 0;
+        if (p.id === snap.captain_id) pPts *= 2;
+        else if (p.id === snap.vice_captain_id) pPts *= 1.5;
+        total += pPts;
+    });
+    bFooter.innerHTML = `MATCH TOTAL: ${snap.use_booster ? total * 2 : total} PTS | SUBS: ${snap.subs_used_for_match}`;
 };
 
 window.openPlayerPointLog = async (playerId, matchId) => {
@@ -240,10 +323,14 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     if (m.sr_points !== 0) log.push(`SR (${m.sr_points > 0 ? '+' : ''}${m.sr_points})`);
     if (m.wickets > 0) log.push(`${m.wickets} Wkts (+${20 + (Math.max(0, m.wickets - 1) * 25)})`);
     if (m.er_points !== 0) log.push(`Econ (${m.er_points > 0 ? '+' : ''}${m.er_points})`);
+    if (m.catches > 0) log.push(`${m.catches} Catch (+${m.catches * 8})`);
+    if (m.involvement_points > 0) log.push(`Active (+${m.involvement_points})`);
+    if (m.is_player_of_match) log.push(`POM (+20)`);
+    if (m.duck_penalty < 0) log.push(`Duck Penalty (${m.duck_penalty})`);
 
     content.innerHTML = `
         <div class="log-items" style="display:flex; flex-direction:column; gap:8px;">
             ${log.map(item => `<div class="log-entry"><span>${item}</span></div>`).join('')}
-            <div style="margin-top:15px; font-weight:800; color:var(--accent);">BASE TOTAL: ${m.fantasy_points} PTS</div>
+            <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; font-weight:800; color:var(--accent);">BASE TOTAL: ${m.fantasy_points} PTS</div>
         </div>`;
 };
