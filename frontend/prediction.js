@@ -5,18 +5,15 @@ const winnerToggle = document.getElementById("winnerToggle");
 const mvpSelect = document.getElementById("mvpSelect");
 const userPredictSelect = document.getElementById("userPredictSelect");
 const submitBtn = document.getElementById("submitPredictionBtn");
-
 const chatDrawer = document.getElementById("chatDrawer");
 const chatMessages = document.getElementById("chatMessages");
 const chatToggleBtn = document.getElementById("chatToggleBtn");
 const closeChatBtn = document.getElementById("closeChatBtn");
 const newMsgBadge = document.getElementById("newMsgBadge");
-
 const globalChatTab = document.getElementById("globalChatTab");
 const privateChatTab = document.getElementById("privateChatTab");
 const chatInput = document.getElementById("chatInput");
 const sendChatBtn = document.getElementById("sendChatBtn");
-
 const noLeagueView = document.getElementById("noLeagueView");
 const activeLeagueView = document.getElementById("activeLeagueView");
 const displayLeagueName = document.getElementById("displayLeagueName");
@@ -24,7 +21,6 @@ const displayInviteCode = document.getElementById("displayInviteCode");
 const leagueRankVal = document.getElementById("leagueRankVal");
 const createLeagueBtn = document.getElementById("createLeagueBtn");
 const joinLeagueBtn = document.getElementById("joinLeagueBtn");
-
 const userPredictionScore = document.getElementById("userPredictionScore");
 const loginStreakSpan = document.getElementById("loginStreak");
 
@@ -33,7 +29,6 @@ let currentUserId = null;
 let currentMatchId = null;
 let currentTournamentId = null;
 let selectedWinnerId = null;
-
 let activeLeagueId = null;
 let chatMode = "global";
 let chatSubscription = null;
@@ -43,26 +38,18 @@ init();
 
 async function init() {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = "login.html";
-    return;
-  }
+  if (!session) { window.location.href = "login.html"; return; }
   currentUserId = session.user.id;
 
-  // Handle Streak on login
   await handleDailyStreak(currentUserId);
 
-  const { data: activeTourney } = await supabase
-    .from("active_tournament")
-    .select("*")
-    .maybeSingle();
-    
+  const { data: activeTourney } = await supabase.from("active_tournament").select("*").maybeSingle();
   if (!activeTourney) return;
   currentTournamentId = activeTourney.id;
-// Inside your init() function, add:
-await fetchPodiumData();
-  // Parallel loading for speed
+
+  // Load everything in parallel
   await Promise.all([
+    fetchPodiumData(), // Top 3 Heroes
     fetchNextMatch(),
     fetchExpertsList(),
     checkUserLeagueStatus(),
@@ -78,120 +65,56 @@ await fetchPodiumData();
   checkExistingPrediction();
 }
 
-/* STREAK LOGIC - AUDITED & FIXED */
+/* STREAK LOGIC */
 async function handleDailyStreak(userId) {
   try {
     const today = new Date().toISOString().split("T")[0];
+    const { data: profile } = await supabase.from("user_profiles").select("last_login, streak_count").eq("user_id", userId).maybeSingle();
 
-    // 1. Try to fetch the user profile
-    const { data: profile, error: fetchError } = await supabase
-      .from("user_profiles")
-      .select("last_login, streak_count")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-
-    let newStreak = profile?.streak_count || 0;
+    let newStreak = profile?.streak_count || 1;
     const lastLogin = profile?.last_login;
 
-    if (!lastLogin) {
-      // Brand new user: Start at 1
-      newStreak = 1;
-    } else if (lastLogin === today) {
-      // Already logged in today: Stay the same
-      loginStreakSpan.textContent = newStreak;
-      return;
-    } else {
-      // Calculate difference between dates
-      const lastDate = new Date(lastLogin);
-      const todayDate = new Date(today);
-      const diffTime = Math.abs(todayDate - lastDate);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 1) {
-        newStreak += 1; // Consecutive day
-      } else {
-        newStreak = 1; // Missed a day, reset to 1
-      }
+    if (lastLogin && lastLogin !== today) {
+      const diff = Math.ceil(Math.abs(new Date(today) - new Date(lastLogin)) / (1000 * 60 * 60 * 24));
+      newStreak = (diff === 1) ? newStreak + 1 : 1;
     }
 
-    // 2. Use UPSERT to either update or create the row
-    const { error: upsertError } = await supabase
-      .from("user_profiles")
-      .upsert({ 
-        user_id: userId, 
-        last_login: today, 
-        streak_count: newStreak 
-      }, { onConflict: 'user_id' });
-
-    if (upsertError) throw upsertError;
-
+    await supabase.from("user_profiles").upsert({ user_id: userId, last_login: today, streak_count: newStreak }, { onConflict: 'user_id' });
     loginStreakSpan.textContent = newStreak;
-
-  } catch (err) {
-    console.error("Streak System Error:", err.message);
-    // Fallback so the app doesn't look broken
-    loginStreakSpan.textContent = "1"; 
-  }
+  } catch (err) { loginStreakSpan.textContent = "1"; }
 }
 
+/* PODIUM DATA (Top 3 Players and Teams) */
 async function fetchPodiumData() {
     try {
-        const { data: lastMatch } = await supabase
-            .from("matches")
+        const { data: lastMatch } = await supabase.from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-            .eq("points_processed", true)
-            .order("actual_start_time", { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .eq("points_processed", true).order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
 
         if (!lastMatch) return;
 
         document.getElementById("podiumSection").classList.remove("hidden");
         const matchTitle = `MATCH ${lastMatch.match_number}: ${lastMatch.team_a.short_code} VS ${lastMatch.team_b.short_code}`;
-        
         const headers = document.querySelectorAll(".podium-card .card-header-fun");
         if(headers[0]) headers[0].textContent = "TOP PLAYERS - " + matchTitle;
         if(headers[1]) headers[1].textContent = "TOP USER TEAMS - " + matchTitle;
 
-        // 1. Fetch Top 3 Players
-        const { data: players } = await supabase
-            .from("player_match_stats")
-            .select("fantasy_points, players(name, photo_url)")
-            .eq("match_id", lastMatch.id)
-            .order("fantasy_points", { ascending: false })
-            .limit(3);
-
+        // 1. Top 3 Players
+        const { data: players } = await supabase.from("player_match_stats").select("fantasy_points, players(name, photo_url)")
+            .eq("match_id", lastMatch.id).order("fantasy_points", { ascending: false }).limit(3);
         renderPodium(players, "playerPodium", true);
 
-        // 2. Fetch Top 3 User Teams from the CORRECT table
-        const { data: teams, error: teamError } = await supabase
-            .from("user_match_points")
-            .select("total_points, user_profiles(team_name)")
-            .eq("match_id", lastMatch.id)
-            .order("total_points", { ascending: false })
-            .limit(3);
-
-        if (teamError) {
-            console.error("Team Podium Error:", teamError.message);
-        } else {
-            renderPodium(teams, "teamPodium", false);
-        }
-
-    } catch (err) {
-        console.error("Podium System Error:", err);
-    }
+        // 2. Top 3 Teams (Correct Table: user_match_points)
+        const { data: teams } = await supabase.from("user_match_points").select("total_points, user_profiles(team_name)")
+            .eq("match_id", lastMatch.id).order("total_points", { ascending: false }).limit(3);
+        renderPodium(teams, "teamPodium", false);
+    } catch (err) { console.error("Podium Error:", err); }
 }
 
 function renderPodium(data, containerId, isPlayer) {
     const container = document.getElementById(containerId);
-    if (!data || data.length < 1) {
-        container.innerHTML = `<p class="sub-label" style="text-align:center; width:100%;">Awaiting results...</p>`;
-        return;
-    }
+    if (!data || data.length < 1) { container.innerHTML = `<p class="sub-label">Awaiting results...</p>`; return; }
 
-    // Sort visually: Rank 2 (Left), Rank 1 (Center/Top), Rank 3 (Right)
     const podiumOrder = [];
     if (data[1]) podiumOrder.push({ ...data[1], rank: 2 });
     if (data[0]) podiumOrder.push({ ...data[0], rank: 1 });
@@ -199,121 +122,59 @@ function renderPodium(data, containerId, isPlayer) {
 
     container.innerHTML = podiumOrder.map(item => {
         const name = isPlayer ? item.players.name.split(' ').pop() : item.user_profiles.team_name;
-        // Accessing the total_points column for user teams
         const pts = isPlayer ? (item.fantasy_points || 0) : (item.total_points || 0);
-        
-        let photoUrl = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
-        if (isPlayer && item.players.photo_url) {
-            photoUrl = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
-        }
+        let photo = 'https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png';
+        if (isPlayer && item.players.photo_url) photo = supabase.storage.from('player-photos').getPublicUrl(item.players.photo_url).data.publicUrl;
 
         return `
             <div class="podium-item rank-${item.rank}">
                 <div class="podium-name">${name}</div>
                 <div class="podium-avatar-wrapper">
-                    <img src="${photoUrl}" class="podium-img">
-                    <div class="rank-badge">${item.rank}</div>
+                    <img src="${photo}" class="podium-img"><div class="rank-badge">${item.rank}</div>
                 </div>
                 <div class="podium-pts">${pts}</div>
-            </div>
-        `;
+            </div>`;
     }).join('');
 }
 
-/* MATCH & PREDICTION LOGIC - FIXED */
+/* MATCH & RESULT LOGIC */
 async function fetchNextMatch() {
-  // 1. Get the current match for predicting
-  const { data: upcomingMatch } = await supabase
-    .from("matches")
-    .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
-    .eq("tournament_id", currentTournamentId)
-    .eq("status", "upcoming")
-    .order("actual_start_time", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data: upcoming } = await supabase.from("matches").select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
+    .eq("tournament_id", currentTournamentId).eq("status", "upcoming").order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
 
-  // 2. Get the last finished match where points are processed to show results
-  const { data: lastFinishedMatch } = await supabase
-    .from("matches")
-    .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
-    .eq("tournament_id", currentTournamentId)
-    .eq("points_processed", true) // Must be processed to show real winner
-    .order("actual_start_time", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data: lastFinished } = await supabase.from("matches").select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
+    .eq("tournament_id", currentTournamentId).eq("points_processed", true).order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
 
-  if (upcomingMatch) {
-    currentMatchId = upcomingMatch.id;
-    renderSelectionView(upcomingMatch);
-  } else {
-    // Check if match is currently 'locked' (live)
-    const { data: liveMatch } = await supabase
-      .from("matches")
-      .select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
-      .eq("tournament_id", currentTournamentId)
-      .eq("status", "locked")
-      .limit(1)
-      .maybeSingle();
-
-    if (liveMatch) {
-      currentMatchId = liveMatch.id;
-      renderSelectionView(liveMatch);
-      lockUIForLiveMatch();
-    }
-  }
-
-  if (lastFinishedMatch) {
-    document.getElementById("recentResultContainer").classList.remove("hidden");
-    renderResultView(lastFinishedMatch);
-  }
+  if (upcoming) { currentMatchId = upcoming.id; renderSelectionView(upcoming); }
+  if (lastFinished) { document.getElementById("recentResultContainer").classList.remove("hidden"); renderResultView(lastFinished); }
 }
 
 async function renderResultView(match) {
     const container = document.getElementById("resultView");
+    let winnerName = "TBA", motmName = "TBA";
 
-    // Fix: Only fetch if IDs are not null
-    let winnerName = "TBA";
-    let motmName = "TBA";
-
+    // Safe fetches to prevent id=eq.null errors
     if (match.winner_id) {
         const { data: wt } = await supabase.from("real_teams").select("short_code").eq("id", match.winner_id).maybeSingle();
         if (wt) winnerName = wt.short_code;
     }
-
     if (match.man_of_the_match_id) {
         const { data: mp } = await supabase.from("players").select("name").eq("id", match.man_of_the_match_id).maybeSingle();
         if (mp) motmName = mp.name;
     }
 
-    // ... (rest of your renderResultView logic remains the same)
-  // FIX: Top Expert is the user at Rank 1 in the overall leaderboard
-  const { data: rank1User } = await supabase
-    .from("prediction_leaderboard")
-    .select("team_name")
-    .order("total_points", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    const { data: rank1User } = await supabase.from("prediction_leaderboard").select("team_name").order("total_points", { ascending: false }).limit(1).maybeSingle();
+    const { data: stats } = await supabase.from("prediction_stats_view").select("*").eq("match_id", match.id).maybeSingle();
 
-  // Fetch stats for the progress bars
-  const { data: stats } = await supabase
-    .from("prediction_stats_view")
-    .select("*")
-    .eq("match_id", match.id)
-    .maybeSingle();
-
-  container.innerHTML = `
-    <div class="result-header" style="text-align:center; margin-bottom:15px;">
-      <span class="final-badge">LATEST RESULT</span>
-      <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
-    </div>
-    ${renderResultItem("Match Winner", winnerTeam?.short_code || "TBA", stats?.winner_pct)}
-    ${renderResultItem("Man of the Match", motmPlayer?.name || "TBA", stats?.mvp_pct)}
-    ${renderResultItem("Current Rank 1 Expert", rank1User?.team_name || "TBA", stats?.top_user_pct)}
-    
-    <div class="scoring-note" style="font-size: 10px; color: var(--text-slate); margin-top: 10px; text-align: center;">
-      Scoring: +1 for Correct, -1 for Incorrect
-    </div>
-  `;
+    container.innerHTML = `
+      <div class="result-header" style="text-align:center; margin-bottom:15px;">
+        <span class="final-badge">LATEST RESULT</span>
+        <h3 class="theme-neon-text">${match.team_a.short_code} vs ${match.team_b.short_code}</h3>
+      </div>
+      ${renderResultItem("Winner", winnerName, stats?.winner_pct)}
+      ${renderResultItem("Man of the Match", motmName, stats?.mvp_pct)}
+      ${renderResultItem("Current #1 Expert", rank1User?.team_name || "TBA", stats?.top_user_pct)}
+    `;
 }
 
 function renderResultItem(label, val, pct) {
@@ -321,9 +182,11 @@ function renderResultItem(label, val, pct) {
     <div class="result-item">
       <div class="result-row"><label>${label}</label><span class="winner-val">${val}</span></div>
       <div class="pct-bar-bg"><div class="pct-bar-fill" style="width:${pct || 0}%"></div></div>
-      <div class="pct-label">${pct || 0}% of users predicted this correctly</div>
+      <div class="pct-label">${pct || 0}% Correct</div>
     </div>`;
 }
+
+// ... (Rest of your Selection, League, and Chat logic remains the same)
 
 /* UI & BUTTONS */
 function lockUIForLiveMatch() {
