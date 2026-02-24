@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -16,18 +15,23 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 1. EXTRACT DATA SAFELY (Added winner_id and defaults)
+    // Capture the JSON payload safely
     const body = await req.json();
+    
+    // De-structure with defaults to prevent null crashes
     const { 
         match_id, 
         tournament_id, 
         scoreboard = [], 
         pom_id = null, 
-        winner_id = null // Now captured from Admin JS
+        winner_id = null 
     } = body;
 
-    console.log(`[START] Processing Match: ${match_id} | Winner: ${winner_id}`);
+    console.log(`[START] Match: ${match_id} | Winner: ${winner_id}`);
 
+    // If match_id is missing, throw a specific error we can see in the log
+    if (!match_id) throw new Error("match_id is missing from request body");
+    
     // Helper to convert cricket overs (3.2) to mathematical overs (3.33)
 const getTrueOvers = (overs: number) => {
   const wholeOvers = Math.floor(overs);
