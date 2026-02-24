@@ -499,9 +499,9 @@ body {
 }
 
 /* Rank-Specific Sizing */
-.rank-1 { order: 2; transform: translateY(-15px); }
+.rank-1 { order: 2; transform: translateY(-1px); }
 .rank-2 { order: 1; transform: translateY(0); }
-.rank-3 { order: 3; transform: translateY(-15px); }
+.rank-3 { order: 3; transform: translateY(-1px); }
 
 .podium-name {
     font-size: 10px;
