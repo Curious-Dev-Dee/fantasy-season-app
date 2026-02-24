@@ -101,7 +101,7 @@ async function fetchPodiumData() {
         
         const headers = document.querySelectorAll(".podium-card .card-header-fun");
         if(headers[0]) headers[0].textContent = "TOP PLAYERS - " + matchTitle;
-        if(headers[1]) headers[1].textContent = "TOP USER TEAMS - " + matchTitle;
+        if(headers[1]) headers[1].textContent = "TOP TEAMS - " + matchTitle;
 
         // 1. Fetch Top 3 Players
         const { data: players } = await supabase
