@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 /* =========================
-   ELEMENTS & STATE
+    ELEMENTS & STATE
 ========================= */
 const teamContainer = document.getElementById("teamContainer");
 const teamStatus = document.getElementById("teamStatus");
@@ -11,20 +11,16 @@ const countdownContainer = document.getElementById("countdownContainer");
 const timerDisplay = document.getElementById("timer");
 const tabs = document.querySelectorAll(".xi-tab");
 const viewTitle = document.getElementById("viewTitle");
-
-// History & Overlay Elements
 const historyBtn = document.getElementById("viewHistoryBtn");
 const historyOverlay = document.getElementById("historyOverlay");
 const historyList = document.getElementById("historyList");
-
-// Booster Element
 const boosterIndicator = document.getElementById("boosterIndicator");
 
 let userId, tournamentId, countdownInterval, isScoutMode = false;
 let realTeamsMap = {};
 
 /* =========================
-   INIT LOGIC
+    INIT LOGIC
 ========================= */
 init();
 
@@ -39,45 +35,19 @@ async function init() {
     const scoutUid = urlParams.get('uid');
     const scoutNameFromUrl = urlParams.get('name');
 
-    /* --- MODIFY THIS SECTION IN team-view.js --- */
-
-// 2. Determine View Mode (Self vs Scout)
-if (scoutUid && scoutUid !== session.user.id) {
-    userId = scoutUid;
-    isScoutMode = true;
-
-    if (scoutNameFromUrl && scoutNameFromUrl !== 'undefined' && scoutNameFromUrl !== 'null') {
-        viewTitle.textContent = decodeURIComponent(scoutNameFromUrl);
-    } else {
-        // Fallback: If name isn't in URL, fetch from the most reliable source (user_profiles)
-        const { data: profileData } = await supabase
-            .from("user_profiles")
-            .select("team_name")
-            .eq("user_id", scoutUid)
-            .maybeSingle();
-        
-        if (profileData?.team_name) {
-            viewTitle.textContent = profileData.team_name;
+    if (scoutUid && scoutUid !== session.user.id) {
+        userId = scoutUid;
+        isScoutMode = true;
+        if (scoutNameFromUrl && scoutNameFromUrl !== 'undefined') {
+            viewTitle.textContent = decodeURIComponent(scoutNameFromUrl);
         } else {
-            // Last ditch effort: check the view you provided
-            const { data: lbData } = await supabase
-                .from("leaderboard_view")
-                .select("team_name")
-                .eq("user_id", scoutUid)
-                .maybeSingle();
-            
-            viewTitle.textContent = lbData?.team_name || "User Team";
+            const { data: profileData } = await supabase.from("user_profiles").select("team_name").eq("user_id", scoutUid).maybeSingle();
+            viewTitle.textContent = profileData?.team_name || "User Team";
         }
-    }
-
-    tabUpcoming.style.display = 'none'; 
-    tabLocked.classList.add("active");
-    tabUpcoming.classList.remove("active");
-} else {
-    // ... rest of your 'My XI' logic
-    //  else {
+        tabUpcoming.style.display = 'none'; 
+        tabLocked.classList.add("active");
+    } else {
         userId = session.user.id;
-        isScoutMode = false;
         const { data: myData } = await supabase.from("leaderboard_view").select("team_name").eq("user_id", userId).maybeSingle();
         viewTitle.textContent = myData?.team_name || "My XI";
     }
@@ -92,7 +62,7 @@ if (scoutUid && scoutUid !== session.user.id) {
 }
 
 /* =========================
-   CORE VIEW LOGIC
+    CORE VIEW LOGIC
 ========================= */
 async function setupMatchTabs() {
     if (!isScoutMode) {
@@ -124,21 +94,6 @@ async function setupMatchTabs() {
     });
 }
 
-function startCountdown(startTime) {
-    if (countdownInterval) clearInterval(countdownInterval);
-    countdownContainer.classList.remove("hidden");
-    const update = () => {
-        const diff = new Date(startTime) - new Date();
-        if (diff <= 0) { timerDisplay.textContent = "Live"; clearInterval(countdownInterval); return; }
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        timerDisplay.textContent = `${h}h ${m}m ${s}s`;
-    };
-    update();
-    countdownInterval = setInterval(update, 1000);
-}
-
 async function loadCurrentXI() {
     if (isScoutMode) return;
     clearInterval(countdownInterval);
@@ -149,58 +104,37 @@ async function loadCurrentXI() {
 
     if (!userTeam) {
         teamContainer.innerHTML = "<p class='empty-msg'>Team not created yet.</p>";
-        boosterIndicator.classList.add("hidden");
         return;
     }
-
-    userTeam.use_booster ? boosterIndicator.classList.remove("hidden") : boosterIndicator.classList.add("hidden");
 
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
     renderTeamLayout(players, userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);
-    teamStatus.textContent = "Strategy for Next Match";
 }
 
 async function loadLastLockedXI() {
     clearInterval(countdownInterval);
-    countdownContainer.classList.add("hidden");
-
     const { data: snapshot } = await supabase.from("user_match_teams").select("*")
         .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (!snapshot) {
-        teamContainer.innerHTML = "<p class='empty-msg'>No match snapshots available.</p>";
-        boosterIndicator.classList.add("hidden");
+        teamContainer.innerHTML = "<p class='empty-msg'>No snapshots available.</p>";
         return;
     }
 
-    snapshot.use_booster ? boosterIndicator.classList.remove("hidden") : boosterIndicator.classList.add("hidden");
-
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
-
     const { data: stats } = await supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id);
     const statsMap = Object.fromEntries(stats.map(s => [s.player_id, s.fantasy_points]));
 
-    renderTeamLayout(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer);
-
-    let calculatedTotal = 0;
-    players.forEach(p => {
-        let pPts = statsMap[p.id] || 0;
-        if (p.id === snapshot.captain_id) pPts *= 2;
-        else if (p.id === snapshot.vice_captain_id) pPts *= 1.5;
-        calculatedTotal += pPts;
-    });
-
-    const finalTotal = snapshot.use_booster ? calculatedTotal * 2 : calculatedTotal;
-    teamStatus.textContent = `Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
+    renderTeamLayout(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer, snapshot.match_id);
 }
 
 /* =========================
-   HELPER: UNIVERSAL RENDERER
+    UNIVERSAL RENDERER
 ========================= */
-function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container) {
+function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null) {
     container.innerHTML = "";
     const roleOrder = ["WK", "BAT", "AR", "BOWL"];
 
@@ -211,14 +145,12 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         const section = document.createElement("div");
         section.className = "role-section";
         section.innerHTML = `<div class="role-title">${role}</div>`;
-
         const row = document.createElement("div");
         row.className = "player-row";
 
         rolePlayers.forEach(p => {
             let pts = statsMap ? (statsMap[p.id] || 0) : null;
             let displayPts = "";
-
             if (pts !== null) {
                 if (p.id === captainId) pts *= 2;
                 else if (p.id === viceCaptainId) pts *= 1.5;
@@ -232,9 +164,10 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
 
             const isC = p.id === captainId;
             const isVC = p.id === viceCaptainId;
+            const clickAction = matchId ? `onclick="openPlayerPointLog('${p.id}', '${matchId}')"` : '';
 
             row.innerHTML += `
-                <div class="player-circle ${isC ? 'captain' : ''} ${isVC ? 'vice-captain' : ''}">
+                <div class="player-circle ${isC ? 'captain' : ''} ${isVC ? 'vice-captain' : ''}" ${clickAction} style="${matchId ? 'cursor:pointer' : ''}">
                     ${isC ? '<div class="badge captain-badge">C</div>' : ''}
                     ${isVC ? '<div class="badge vice-badge">VC</div>' : ''}
                     <div class="avatar" style="background-image: url('${photoUrl}'); background-size: cover;">
@@ -242,8 +175,7 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
                     </div>
                     <div class="player-name">${p.name.split(' ').pop()}</div>
                     ${displayPts}
-                </div>
-            `;
+                </div>`;
         });
         section.appendChild(row);
         container.appendChild(section);
@@ -251,107 +183,67 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
 }
 
 /* =========================
-   HISTORY FEATURE LOGIC
+    MATCH HISTORY LOGIC
 ========================= */
 function setupHistoryListeners() {
     historyBtn.onclick = async () => {
         historyOverlay.classList.remove("hidden");
-        historyList.innerHTML = `<div class="spinner-small"></div>`;
-
-        const { data: history } = await supabase
-            .from('user_match_teams')
+        const { data: history } = await supabase.from('user_match_teams')
             .select('*, matches(match_number, team_a_id, team_b_id), user_match_team_players(player_id)')
-            .eq('user_id', userId)
-            .order('locked_at', { ascending: false });
+            .eq('user_id', userId).order('locked_at', { ascending: false });
 
-        if (!history || history.length === 0) {
-            historyList.innerHTML = "<p class='empty-msg'>No season history found.</p>";
-            return;
-        }
-
-        const matchIds = history.map(h => h.match_id);
-        const { data: allStats } = await supabase.from("player_match_stats").select("*").in("match_id", matchIds);
-
-        historyList.innerHTML = history.map(h => {
-            let rowTotal = 0;
-            const matchStats = allStats.filter(s => s.match_id === h.match_id);
-            const statsMap = Object.fromEntries(matchStats.map(s => [s.player_id, s.fantasy_points]));
-
-            h.user_match_team_players.forEach(p => {
-                let pPts = statsMap[p.player_id] || 0;
-                if (p.player_id === h.captain_id) pPts *= 2;
-                else if (p.player_id === h.vice_captain_id) pPts *= 1.5;
-                rowTotal += pPts;
-            });
-
-            const finalRowTotal = h.use_booster ? rowTotal * 2 : rowTotal;
-
-            return `
-                <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
-                    <div>
-                        <span class="h-m-num">MATCH ${h.matches.match_number} ${h.use_booster ? '🚀' : ''}</span>
-                        <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
-                    </div>
-                    <div class="h-stats">
-                        <span class="h-pts">${finalRowTotal} PTS</span>
-                        <span class="h-subs">${h.subs_used_for_match} SUBS</span>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color:#475569; margin-left:10px;"></i>
+        historyList.innerHTML = history.map(h => `
+            <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
+                <div>
+                    <span class="h-m-num">MATCH ${h.matches.match_number}</span>
+                    <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
                 </div>
-            `;
-        }).join('');
+                <div class="h-stats"><span class="h-pts">${h.subs_used_for_match} SUBS</span></div>
+            </div>`).join('');
     };
-
     document.getElementById("closeHistory").onclick = () => historyOverlay.classList.add("hidden");
-    document.getElementById("backToHistory").onclick = () => {
-        document.getElementById("breakdownOverlay").classList.add("hidden");
-    };
+    document.getElementById("closePPL").onclick = () => document.getElementById("playerPointLogOverlay").classList.add("hidden");
 }
 
 /* =========================
-   GLOBAL OVERLAY HANDLERS
+    BREAKDOWN LOGIC
 ========================= */
 window.viewMatchBreakdown = async (snapshotId) => {
-    // 1. Reference elements inside the global function
-    const breakdownOverlay = document.getElementById("breakdownOverlay");
     const bContainer = document.getElementById("breakdownTeamContainer");
-    const bFooter = document.getElementById("breakdownFooter");
-    const bTitle = document.getElementById("breakdownTitle");
-    const bBooster = document.getElementById("breakdownBooster");
+    document.getElementById("breakdownOverlay").classList.remove("hidden");
 
-    // 2. Show overlay and spinner
-    breakdownOverlay.classList.remove("hidden");
-    bContainer.innerHTML = `<div class="spinner-small"></div>`;
-
-    // 3. Fetch Snapshot Data
     const { data: snap } = await supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single();
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId);
     
-    bTitle.innerText = `Match ${snap.matches.match_number} Details`;
-
-    // 4. Handle Booster Indicator
-    snap.use_booster ? bBooster.classList.remove("hidden") : bBooster.classList.add("hidden");
-
-    // 5. Fetch Players and Stats
     const [playersRes, statsRes] = await Promise.all([
         supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id)),
         supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snap.match_id)
     ]);
 
     const statsMap = Object.fromEntries(statsRes.data.map(s => [s.player_id, s.fantasy_points]));
-    
-    // 6. Calculate Points
-    let baseTotal = 0;
-    playersRes.data.forEach(p => {
-        let pPts = statsMap[p.id] || 0;
-        if (p.id === snap.captain_id) pPts *= 2;
-        else if (p.id === snap.vice_captain_id) pPts *= 1.5;
-        baseTotal += pPts;
-    });
+    renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer, snap.match_id);
+};
 
-    const finalCalcTotal = snap.use_booster ? baseTotal * 2 : baseTotal;
+window.openPlayerPointLog = async (playerId, matchId) => {
+    const content = document.getElementById("pplContent");
+    document.getElementById("playerPointLogOverlay").classList.remove("hidden");
+    content.innerHTML = `<div class="spinner-small"></div>`;
 
-    // 7. Final Render
-    renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer);
-    bFooter.innerHTML = `MATCH TOTAL: ${finalCalcTotal} PTS | SUBS USED: ${snap.subs_used_for_match}`;
+    const { data: m } = await supabase.from("player_match_stats").select("*, players(name)").eq("match_id", matchId).eq("player_id", playerId).single();
+    if (!m) return content.innerHTML = "<p>Data unavailable.</p>";
+
+    document.getElementById("pplPlayerName").innerText = m.players.name;
+    const log = [];
+    if (m.runs > 0) log.push(`${m.runs} Runs (+${m.runs})`);
+    if (m.boundary_points > 0) log.push(`Boundaries (+${m.boundary_points})`);
+    if (m.milestone_points > 0) log.push(`Milestone (+${m.milestone_points})`);
+    if (m.sr_points !== 0) log.push(`SR (${m.sr_points > 0 ? '+' : ''}${m.sr_points})`);
+    if (m.wickets > 0) log.push(`${m.wickets} Wkts (+${20 + (Math.max(0, m.wickets - 1) * 25)})`);
+    if (m.er_points !== 0) log.push(`Econ (${m.er_points > 0 ? '+' : ''}${m.er_points})`);
+
+    content.innerHTML = `
+        <div class="log-items" style="display:flex; flex-direction:column; gap:8px;">
+            ${log.map(item => `<div class="log-entry"><span>${item}</span></div>`).join('')}
+            <div style="margin-top:15px; font-weight:800; color:var(--accent);">BASE TOTAL: ${m.fantasy_points} PTS</div>
+        </div>`;
 };

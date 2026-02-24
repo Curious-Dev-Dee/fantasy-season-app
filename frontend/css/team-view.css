@@ -3,7 +3,6 @@
     --field-center: #1b5e20;
     --field-edge: #061f17;
     --card-bg: #1e293b;
-    --bg-dark: #0f172a;
 }
 
 body, html {
@@ -293,21 +292,32 @@ body, html {
     font-size: 10px;
 }
 
-/* Ensure the field in the breakdown doesn't feel cramped */
-.smaller-field {
-    transform: scale(0.95);
-    transform-origin: top center;
+/* NEW: Player Breakdown Specific Styles */
+.player-breakdown-popup {
+    height: auto !important;
+    max-height: 65vh;
+    border-radius: 24px 24px 0 0;
 }
 
-/* Premium gradient for the booster indicator */
+.log-entry {
+    width: 100%; padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center;
+}
+
+.log-entry span { font-size: 14px; color: #e2e8f0; }
+.log-entry span::before {
+    content: "•"; color: var(--accent); margin-right: 12px; font-weight: 900;
+}
+
+.player-circle:active { transform: scale(0.95); transition: 0.1s; }
+
+.smaller-field { transform: scale(0.95); transform-origin: top center; }
+
 .booster-indicator-view {
     background: linear-gradient(90deg, #f59e0b, #9AE000);
-    color: #000;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 900;
-    text-align: center;
+    color: #000; padding: 4px 12px; border-radius: 20px;
+    font-size: 10px; font-weight: 900; text-align: center;
     box-shadow: 0 4px 15px rgba(154, 224, 0, 0.3);
 }
 
