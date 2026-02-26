@@ -1,7 +1,7 @@
 {
   "name": "FantasyCric26 Expert",
   "short_name": "CricExpert",
-  "description": "The ultimate fantasy cricket audit tool and leaderboard.",
+  "description": "The og season long ICC and IPL fantasy league.",
   "start_url": "/index.html",
   "display": "standalone",
   "orientation": "portrait",

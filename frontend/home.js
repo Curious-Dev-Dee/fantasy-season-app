@@ -1,11 +1,11 @@
-import { supabase } from "./supabase.js";
+﻿import { supabase } from "./supabase.js";
 import { initNotificationHub } from "./notifications.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
 /* ELEMENTS */
 const avatarElement = document.getElementById("teamAvatar");
-const welcomeText = document.getElementById("welcomeText");
+const welcomeText   = document.getElementById("welcomeText");
 const teamNameElement = document.getElementById("userTeamName");
 const scoreElement = document.getElementById("userScore");
 const rankElement = document.getElementById("userRank");

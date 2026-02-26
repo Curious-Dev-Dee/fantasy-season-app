@@ -1,29 +1,29 @@
-import { supabase } from "./supabase.js";
+// authguard.js
+import { pb } from "./pb.js";
 
 async function protectPage() {
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    // Not logged in? Go to login page
+  // Check if the authStore has a valid token
+  if (!pb.authStore.isValid) {
     window.location.replace("/login");
     return;
   }
 
-  // Verification successful: Reveal the page
+  // Reveal the page
   document.body.classList.remove("loading-state");
   document.body.classList.add("loaded");
   
   // Signal home.js that user is ready
-  const event = new CustomEvent('auth-verified', { detail: { user: session.user } });
+  const event = new CustomEvent('auth-verified', { 
+      detail: { user: pb.authStore.model } 
+  });
   window.dispatchEvent(event);
 }
 
-// Run immediately on page load
 protectPage();
 
-// Monitor logout from other tabs
-supabase.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT") {
+// Monitor logout (clearing the store)
+pb.authStore.onChange(() => {
+  if (!pb.authStore.isValid) {
     window.location.replace("/login");
   }
 });

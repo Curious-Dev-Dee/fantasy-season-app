@@ -1,4 +1,5 @@
-import { supabase } from "./supabase.js";
+// auth.js
+import { pb } from "./pb.js";
 
 async function signInWithGoogle() {
   const googleBtn = document.getElementById("googleLoginBtn");
@@ -6,30 +7,29 @@ async function signInWithGoogle() {
 
   try {
     if (googleBtn) {
-        googleBtn.disabled = true;
-        if (btnText) btnText.textContent = "Connecting to Google...";
+      googleBtn.disabled = true;
+      if (btnText) btnText.textContent = "Connecting to Google...";
     }
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        // MUST be a clean URL matching your Vercel settings
-        redirectTo: `${window.location.origin}/home`, 
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
+    // PocketBase handles the OAuth popup and redirect in one go
+    const authData = await pb.collection('users').authWithOAuth2({ 
+        provider: 'google' 
     });
 
-    if (error) throw error;
+    if (pb.authStore.isValid) {
+        // Success! Go to home
+        window.location.replace("/home");
+    }
 
   } catch (err) {
     console.error("Connection Error:", err.message);
-    alert("Check your internet connection or try again in a moment.");
+    alert("Login failed. Check your internet or laptop server.");
     if (googleBtn) {
-        googleBtn.disabled = false;
-        if (btnText) btnText.textContent = "Continue with Google";
+      googleBtn.disabled = false;
+      if (btnText) btnText.textContent = "Continue with Google";
     }
   }
 }
+
+// Make sure your HTML button calls this function
+window.signInWithGoogle = signInWithGoogle;
