@@ -16,15 +16,14 @@ async function signInWithGoogle() {
     try {
         if (googleBtn) {
             googleBtn.disabled = true;
-            if (btnText) btnText.textContent = "Connecting to Google...";
+            if (btnText) btnText.textContent = "Connecting...";
         }
 
-        /* STABILITY FIX: We are using a Redirect instead of a Popup.
-           This bypasses the 'Realtime' timeout errors caused by the tunnel.
-        */
+        // STABILITY FIX: We use a redirect so we don't need a "Live" connection
+        // This stops the 'EventSource connect took too long' error
         await pb.collection('users').authWithOAuth2({ 
             provider: 'google',
-            // This tells Google to send the user directly to your home page
+            // This ensures the login happens in the SAME window, not a popup
             url: window.location.origin + '/home' 
         });
 
@@ -32,8 +31,8 @@ async function signInWithGoogle() {
         console.error("Login Error:", err);
         
         // Handle the specific 'ClientResponseError 0' timeout
-        if (err.isAbort || err.status === 0) {
-            alert("Connection timed out. Satya's laptop might be busy. Please try again!");
+        if (err.status === 0) {
+            alert("Connection timed out. Satya's laptop might be busy or the tunnel is slow.");
         } else {
             alert("Login failed. Check your internet connection.");
         }
@@ -45,5 +44,5 @@ async function signInWithGoogle() {
     }
 }
 
-// 3. Make the function globally available for the HTML button
+// 3. Make the function globally available
 window.signInWithGoogle = signInWithGoogle;
