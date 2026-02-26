@@ -1,14 +1,10 @@
 import { pb } from "./pb.js";
 
-// 1. Reveal the UI as soon as the script loads
 document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("authContainer");
-    if (container) {
-        container.classList.remove("hidden");
-    }
+    if (container) container.classList.remove("hidden");
 });
 
-// 2. The Login Function
 async function signInWithGoogle() {
     const googleBtn = document.getElementById("googleLoginBtn");
     const btnText = googleBtn?.querySelector(".btn-text");
@@ -16,27 +12,26 @@ async function signInWithGoogle() {
     try {
         if (googleBtn) {
             googleBtn.disabled = true;
-            if (btnText) btnText.textContent = "Connecting...";
+            if (btnText) btnText.textContent = "Redirecting...";
         }
 
-        // STABILITY FIX: We use a redirect so we don't need a "Live" connection
-        // This stops the 'EventSource connect took too long' error
-        await pb.collection('users').authWithOAuth2({ 
-            provider: 'google',
-            // This ensures the login happens in the SAME window, not a popup
-            url: window.location.origin + '/home' 
-        });
+        // 1. Manually fetch the auth methods (this is a simple GET request)
+        const authMethods = await pb.collection('users').listAuthMethods();
+        const googleProvider = authMethods.authProviders.find(p => p.name === 'google');
+
+        if (!googleProvider) throw new Error("Google provider not enabled in PB Admin!");
+
+        // 2. Save the provider data for later (PocketBase needs this to verify the return)
+        localStorage.setItem('provider', JSON.stringify(googleProvider));
+
+        // 3. FORCE a hard redirect to the provider's URL
+        // This completely avoids the 'EventSource' / Realtime timeout
+        const redirectUrl = window.location.origin + '/home';
+        window.location.href = googleProvider.authUrl + redirectUrl;
 
     } catch (err) {
-        console.error("Login Error:", err);
-        
-        // Handle the specific 'ClientResponseError 0' timeout
-        if (err.status === 0) {
-            alert("Connection timed out. Satya's laptop might be busy or the tunnel is slow.");
-        } else {
-            alert("Login failed. Check your internet connection.");
-        }
-        
+        console.error("Manual Auth Error:", err);
+        alert("Satya's laptop is taking too long to respond. Refresh and try once more.");
         if (googleBtn) {
             googleBtn.disabled = false;
             if (btnText) btnText.textContent = "Continue with Google";
@@ -44,5 +39,4 @@ async function signInWithGoogle() {
     }
 }
 
-// 3. Make the function globally available
 window.signInWithGoogle = signInWithGoogle;
