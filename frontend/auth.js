@@ -19,19 +19,24 @@ async function signInWithGoogle() {
             if (btnText) btnText.textContent = "Connecting to Google...";
         }
 
-        // PocketBase handles the popup
-        const authData = await pb.collection('users').authWithOAuth2({ 
-            provider: 'google' 
+        /* STABILITY FIX: We are using a Redirect instead of a Popup.
+           This bypasses the 'Realtime' timeout errors caused by the tunnel.
+        */
+        await pb.collection('users').authWithOAuth2({ 
+            provider: 'google',
+            // This tells Google to send the user directly to your home page
+            url: window.location.origin + '/home' 
         });
-
-        if (pb.authStore.isValid) {
-            // Successful login!
-            window.location.replace("/home");
-        }
 
     } catch (err) {
         console.error("Login Error:", err);
-        alert("Login failed. Check if Satya's laptop is online!");
+        
+        // Handle the specific 'ClientResponseError 0' timeout
+        if (err.isAbort || err.status === 0) {
+            alert("Connection timed out. Satya's laptop might be busy. Please try again!");
+        } else {
+            alert("Login failed. Check your internet connection.");
+        }
         
         if (googleBtn) {
             googleBtn.disabled = false;
@@ -40,5 +45,5 @@ async function signInWithGoogle() {
     }
 }
 
-// 3. CRITICAL: Make the function globally available for the HTML button
+// 3. Make the function globally available for the HTML button
 window.signInWithGoogle = signInWithGoogle;
