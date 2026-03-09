@@ -1,9 +1,11 @@
 ﻿import { supabase } from "./supabase.js";
 import { initNotificationHub } from "./notifications.js";
 
-const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
+// REMOVED: Hardcoded TOURNAMENT_ID. We will fetch this dynamically.
+let activeTournamentId = null;
 
 /* ELEMENTS */
+const tournamentTitle = document.getElementById("tournamentName");
 const avatarElement = document.getElementById("teamAvatar");
 const welcomeText = document.getElementById("welcomeText");
 const teamNameElement = document.getElementById("userTeamName");
@@ -35,7 +37,7 @@ let existingProfile = null;
 // SAFETY: Remove black screen after 6 seconds even if Supabase fails
 setTimeout(() => {
     if (document.body.classList.contains('loading-state')) {
-        console.warn("Forcing screen reveal due to connection delay...");
+        console.warn("Forcing screen reveal...");
         document.body.classList.remove('loading-state');
         document.body.classList.add('loaded');
         const overlay = document.getElementById("loadingOverlay");
@@ -43,20 +45,8 @@ setTimeout(() => {
     }
 }, 6000);
 
-async function initializeHome() {
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            currentUserId = session.user.id;
-            startDashboard(currentUserId);
-        }
-    } catch (err) { console.error("Auth check failed:", err); }
-}
-
-initializeHome();
-
 window.addEventListener('auth-verified', (e) => {
-    if (currentUserId) return; // Prevent double-start
+    if (currentUserId) return; 
     currentUserId = e.detail.user.id;
     startDashboard(currentUserId);
 });
@@ -66,7 +56,15 @@ async function startDashboard(userId) {
     setupHomeLeagueListeners(userId); 
 
     try {
-        // We load what we can. If one fails, the others still try.
+        // 1. FIRST, find out which tournament is active (IPL 2026)
+        const { data: activeT } = await supabase.from('active_tournament').select('*').maybeSingle();
+        
+        if (activeT) {
+            activeTournamentId = activeT.id;
+            if (tournamentTitle) tournamentTitle.textContent = activeT.name;
+        }
+
+        // 2. LOAD DATA
         await Promise.allSettled([
             fetchHomeData(userId),
             loadLeaderboardPreview(),
@@ -75,7 +73,6 @@ async function startDashboard(userId) {
     } catch (err) {
         console.error("Dashboard data load error:", err);
     } finally {
-        // REMOVE BLACK SCREEN
         document.body.classList.remove('loading-state');
         document.body.classList.add('loaded');
         const overlay = document.getElementById("loadingOverlay");
@@ -84,26 +81,22 @@ async function startDashboard(userId) {
 }
 
 /* =========================
-   CORE LOGIC (Updated for Vanity)
+   CORE LOGIC
 ========================= */
 async function fetchHomeData(userId) {
-    // 1. Fetch Profile with Vanity Columns + completion status
+    // 1. Profile Logic
     const { data: profile } = await supabase
         .from('user_profiles')
-        .select('full_name, team_name, team_photo_url, prediction_coins, equipped_frame, equipped_flex, profile_completed')
+        .select('*')
         .eq('user_id', userId)
         .maybeSingle();
 
     if (profile) {
         existingProfile = profile;
-
-        // SENIOR FIX: Force Profile Completion
         if (!profile.profile_completed) {
             if (profileModal) {
                 profileModal.classList.remove("hidden");
                 const closeBtn = document.getElementById("closeProfileModal");
-                
-                // Hide 'X' and mark as forced so they can't click outside to close
                 if (closeBtn) closeBtn.style.display = "none"; 
                 profileModal.setAttribute('data-forced', 'true');
             }
@@ -111,48 +104,51 @@ async function fetchHomeData(userId) {
 
         const firstName = profile.full_name ? profile.full_name.split(" ")[0] : "Expert";
         welcomeText.textContent = `Welcome back, ${firstName}!`;
-        
-        // Apply Team Name & Vanity Flex
         teamNameElement.textContent = profile.team_name || "Set your team name";
-        if (profile.equipped_flex && profile.equipped_flex !== 'none') {
-            teamNameElement.className = `team-subtitle ${profile.equipped_flex}`;
-        }
-
-        // Apply Avatar and Frame
+        
         if (profile.team_photo_url) {
             const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url);
             avatarElement.style.backgroundImage = `url(${imgData.publicUrl})`;
-            if (profile.equipped_frame && profile.equipped_frame !== 'none') {
-                avatarElement.className = `team-avatar ${profile.equipped_frame}`;
-            }
         }
-        
-        const coinPill = document.getElementById("userCoins");
-        if (coinPill) coinPill.textContent = profile.prediction_coins || 0;
     }
 
-    // 2. Fetch Stats from View
-    const { data: dash } = await supabase.from('home_dashboard_view').select('*').eq('user_id', userId).maybeSingle();
+    // 2. IPL Dashboard Stats
+    // We query the view, but we must ensure it targets our active tournament
+    const { data: dash } = await supabase
+        .from('home_dashboard_view')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
     
     if (dash) {
-        // SENIOR FIX: Dynamic Tournament Title (No more hardcoding 'Tournament')
-        const tournamentTitle = document.getElementById("tournamentName");
-        if (tournamentTitle && dash.tournament_name) {
-            tournamentTitle.textContent = dash.tournament_name;
-        }
-
         scoreElement.textContent = dash.total_points || 0;
         rankElement.textContent = dash.user_rank > 0 ? `#${dash.user_rank}` : "--";
-        subsElement.textContent = dash.subs_remaining ?? 0;
-        if (boosterStatusEl) boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
-
+        
+        // IPL MATCH 1 RESET LOGIC: 
+        // If it's the first match of the tournament, show "FREE"
         const match = dash.upcoming_match;
         if (match) {
+            if (match.match_number === 1) {
+                subsElement.textContent = "FREE";
+            } else {
+                subsElement.textContent = dash.subs_remaining ?? 150;
+            }
+            
             matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+            
+            // Set Logos based on our new real_teams table
+            document.getElementById("teamALogo").style.backgroundImage = `url('images/teams/${match.team_a_code.toLowerCase()}.webp')`;
+            document.getElementById("teamBLogo").style.backgroundImage = `url('images/teams/${match.team_b_code.toLowerCase()}.webp')`;
+            
             startCountdown(match.actual_start_time);
         }
+        
+        if (boosterStatusEl) boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
     }
 }
+
+// ... Keep your existing loadLeaderboardPreview, fetchPrivateLeagueData, startCountdown, etc. ...
+
 // ... (KEEP your loadLeaderboardPreview, fetchPrivateLeagueData, and other functions exactly as they were)
 async function loadLeaderboardPreview() {
     // 1. Fetch top 3 users from the overall leaderboard view
