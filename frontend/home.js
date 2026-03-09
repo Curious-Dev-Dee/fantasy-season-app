@@ -139,37 +139,49 @@ async function fetchHomeData(userId) {
             subsElement.style.color = ""; // Reset to default CSS color
         }
 
-        // 3. Next Match Card Logic
-        if (match) {
-            // Update Team Names
-            matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+// 3. Next Match Card Logic
+if (dash && dash.upcoming_match) {
+    const match = dash.upcoming_match;
+    
+    // Update Team Names
+    matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
 
-            // Update Logos (Ensure your images are in images/teams/ and use .avif)
-            const teamALogo = document.getElementById("teamALogo");
-            const teamBLogo = document.getElementById("teamBLogo");
+    // Get Storage Bucket Instance
+    const bucket = supabase.storage.from("team-logos");
 
-            if (teamALogo && teamBLogo) {
-                teamALogo.style.backgroundImage = `url('images/teams/${match.team_a_code.toLowerCase()}.avif')`;
-                teamBLogo.style.backgroundImage = `url('images/teams/${match.team_b_code.toLowerCase()}.avif')`;
-                
-                // Ensure they are visible (since we fixed the CSS display: block)
-                teamALogo.style.display = "block";
-                teamBLogo.style.display = "block";
-            }
+    // Build Public URLs for logos
+    const logoAUrl = match.team_a_logo 
+        ? bucket.getPublicUrl(match.team_a_logo).data.publicUrl 
+        : 'images/default-team.png'; // Fallback icon
 
-            // Start the Countdown Timer
-            startCountdown(match.actual_start_time);
-        } else {
-            matchTeamsElement.textContent = "No Upcoming Matches";
-            matchTimeElement.textContent = "Check back soon!";
-        }
+    const logoBUrl = match.team_b_logo 
+        ? bucket.getPublicUrl(match.team_b_logo).data.publicUrl 
+        : 'images/default-team.png';
 
-        // 4. Booster Status (0 used / 1 available)
-        if (boosterStatusEl) {
-            boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
-        }
+    const teamALogo = document.getElementById("teamALogo");
+    const teamBLogo = document.getElementById("teamBLogo");
+
+    if (teamALogo && teamBLogo) {
+        teamALogo.style.backgroundImage = `url('${logoAUrl}')`;
+        teamBLogo.style.backgroundImage = `url('${logoBUrl}')`;
+        
+        // Show them (overriding the display:none from CSS if still there)
+        teamALogo.style.display = "block";
+        teamBLogo.style.display = "block";
+    }
+
+    // Start the Countdown Timer
+    startCountdown(match.actual_start_time);
+} else {
+    matchTeamsElement.textContent = "No Upcoming Matches";
+    if (matchTimeElement) matchTimeElement.textContent = "Check back soon!";
+}
+
+// 4. Booster Status
+if (boosterStatusEl) {
+    boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
+}
     }}
-
 // ... Keep your existing loadLeaderboardPreview, fetchPrivateLeagueData, startCountdown, etc. ...
 
 // ... (KEEP your loadLeaderboardPreview, fetchPrivateLeagueData, and other functions exactly as they were)
