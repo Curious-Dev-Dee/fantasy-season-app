@@ -137,8 +137,8 @@ async function fetchHomeData(userId) {
             matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
             
             // Set Logos based on our new real_teams table
-            document.getElementById("teamALogo").style.backgroundImage = `url('images/teams/${match.team_a_code.toLowerCase()}.webp')`;
-            document.getElementById("teamBLogo").style.backgroundImage = `url('images/teams/${match.team_b_code.toLowerCase()}.webp')`;
+            document.getElementById("teamALogo").style.backgroundImage = `url('images/teams/${match.team_a_code.toLowerCase()}.avif')`;
+            document.getElementById("teamBLogo").style.backgroundImage = `url('images/teams/${match.team_b_code.toLowerCase()}.avif')`;
             
             startCountdown(match.actual_start_time);
         }
