@@ -10,16 +10,19 @@
   <link rel="stylesheet" href="css/notifications.css" />
   <link rel="stylesheet" href="css/bottom-nav.css" />
 
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon.png">
+
+<link rel="manifest" href="manifest.json">
 
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#9AE000">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#9AE000">
 
-  <script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>  
+<script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>  
 
   <script type="module" src="auth-guard.js"></script>
+
+
 </head>
 
 <body class="loading-state">
@@ -30,26 +33,26 @@
 
 <div class="app-container page-with-nav">
   
-  <header class="app-header">
-    <div class="header-content">
-      <h1 id="tournamentName">Tournament</h1>
+<header class="app-header">
+  <div class="header-content">
+    <h1 id="tournamentName">Tournament</h1>
 
-      <div class="notif-trigger" id="notifTrigger">
-        <i class="fas fa-bell"></i>
-        <span id="notifBadge" class="notif-badge hidden">0</span>
+    <div class="notif-trigger" id="notifTrigger">
+      <i class="fas fa-bell"></i>
+      <span id="notifBadge" class="notif-badge hidden">0</span>
 
-        <div id="notifPanel" class="notif-panel hidden">
-          <div class="notif-header">
-            <h3>Alerts</h3>
-            <button class="btn-mark-read" id="markAllRead">Mark all read</button>
-          </div>
-          <div id="notifList" class="notif-list">
-            <div class="empty-notif">Checking for updates...</div>
-          </div>
+      <div id="notifPanel" class="notif-panel hidden">
+        <div class="notif-header">
+          <h3>Alerts</h3>
+          <button class="btn-mark-read" id="markAllRead">Mark all read</button>
+        </div>
+        <div id="notifList" class="notif-list">
+          <div class="empty-notif">Checking for updates...</div>
         </div>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
   <section class="card user-card">
     <div class="user-info">
@@ -85,59 +88,62 @@
       <span class="stat-label">Boost</span>
       <span class="stat-value" id="boosterStatus">1</span>
     </div>
-  </section>
+</section>
 
-  <section class="card next-match-card">
-    <div class="match-badge-small">NEXT MATCH</div>
-    
-    <div class="match-vs-header">
-        <div id="teamALogo" class="team-logo-dashboard"></div>
-        <h3 class="match-teams" id="matchTeams">--</h3>
-        <div id="teamBLogo" class="team-logo-dashboard"></div>
+<section class="card next-match-card">
+  <div class="match-badge-small">NEXT MATCH</div>
+  
+  <div class="match-vs-header">
+      <div id="teamALogo" class="team-logo-dashboard"></div>
+      
+      <h3 class="match-teams" id="matchTeams">--</h3>
+      
+      <div id="teamBLogo" class="team-logo-dashboard"></div>
+  </div>
+  
+  <p class="match-time neon-green" id="matchTime">
+      <i class="far fa-clock"></i> Loading...
+  </p>
+
+  <div class="match-actions">
+    <button class="secondary-btn" id="viewXiBtn">View Team</button>
+    <button class="primary-btn" id="editXiBtn">Change</button>
+  </div>
+  <div class="btn-hint">Locks at match start time</div>
+</section>
+
+<section class="card leaderboard-card hidden" id="privateLeagueCard">
+    <div class="section-header">
+        <div style="display: flex; flex-direction: column;">
+            <h3 id="privateLeagueName" style="color: #9AE000;">My League</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0;">
+                Code: <span id="privateInviteCode" style="color: #fff; font-weight: 700;">--</span>
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 10px; color: #94a3b8; margin: 0;">RANK</p>
+            <span id="privateLeagueRank" style="font-size: 18px; font-weight: 800; color: #00f2ff;">#--</span>
+        </div>
     </div>
-    
-    <p class="match-time neon-green" id="matchTime">
-        <i class="far fa-clock"></i> Loading...
-    </p>
 
-    <div class="match-actions">
-      <button class="secondary-btn" id="viewXiBtn">View Team</button>
-      <button class="primary-btn" id="editXiBtn">Change</button>
+    <div id="privateLeagueContent">
+        <div id="privateLeaderboardContainer">
+            <p style="color: #9ca3af; font-size: 13px;">Fetching standings...</p>
+        </div>
+        <button class="view-all-btn" id="viewPrivateLeaderboard">
+            League Standings <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
-    <div class="btn-hint">Locks at match start time</div>
-  </section>
 
-  <section class="card leaderboard-card hidden" id="privateLeagueCard">
-      <div class="section-header">
-          <div style="display: flex; flex-direction: column;">
-              <h3 id="privateLeagueName" style="color: #9AE000;">My League</h3>
-              <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0;">
-                  Code: <span id="privateInviteCode" style="color: #fff; font-weight: 700;">--</span>
-              </p>
-          </div>
-          <div style="text-align: right;">
-              <p style="font-size: 10px; color: #94a3b8; margin: 0;">RANK</p>
-              <span id="privateLeagueRank" style="font-size: 18px; font-weight: 800; color: #00f2ff;">#--</span>
-          </div>
-      </div>
+<div id="noLeagueState" class="hidden" style="text-align: center; padding: 10px 0;">
+    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">You haven't joined a private league yet.</p>
+    <div style="display: flex; gap: 10px;">
+        <button id="homeCreateLeagueBtn" class="primary-btn" style="flex:1; font-size: 12px; padding: 10px;">Create</button>
+        <button id="homeJoinLeagueBtn" class="secondary-btn" style="flex:1; font-size: 12px; padding: 10px;">Join</button>
+    </div>
+</div>
 
-      <div id="privateLeagueContent">
-          <div id="privateLeaderboardContainer">
-              <p style="color: #9ca3af; font-size: 13px;">Fetching standings...</p>
-          </div>
-          <button class="view-all-btn" id="viewPrivateLeaderboard">
-              League Standings <i class="fas fa-chevron-right"></i>
-          </button>
-      </div>
-
-      <div id="noLeagueState" class="hidden" style="text-align: center; padding: 10px 0;">
-          <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">You haven't joined a private league yet.</p>
-          <div style="display: flex; gap: 10px;">
-              <button id="homeCreateLeagueBtn" class="primary-btn" style="flex:1; font-size: 12px; padding: 10px;">Create</button>
-              <button id="homeJoinLeagueBtn" class="secondary-btn" style="flex:1; font-size: 12px; padding: 10px;">Join</button>
-          </div>
-      </div>
-  </section>
+</section>
 
   <section class="card leaderboard-card">
     <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -147,8 +153,7 @@
         </div>
         <div style="text-align: right;">
             <p style="font-size: 10px; color: #94a3b8; margin: 0;">YOUR RANK</p>
-            <span id="overallUserRank" style="font-size: 18px; font-weight: 800; color: #9AE000;">#--</span>
-        </div>
+<span id="overallUserRank" style="font-size: 18px; font-weight: 800; color: #9AE000;">#--</span>        </div>
     </div>
     
     <div id="leaderboardContainer">
@@ -158,7 +163,7 @@
     <button class="view-all-btn" id="viewFullLeaderboard">
         Full Leaderboard <i class="fas fa-chevron-right"></i>
     </button>
-  </section>
+</section>
 
 </div>
 
@@ -175,11 +180,11 @@
     </div>
     <div class="input-group">
         <label for="modalFullName">Your Name</label>
-        <input type="text" id="modalFullName" placeholder="e.g. Satya Sahoo" />
+        <input type="text" id="modalFullName" placeholder="e.g. Satyaranjan Sahoo" />
     </div>
     <div class="input-group">
         <label for="modalTeamName">Team Name</label>
-        <input type="text" id="modalTeamName" placeholder="e.g. Cuttack Kings" />
+        <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" />
     </div>
     <button id="saveProfileBtn" class="primary-btn full-width">Save & Start</button>
   </div>
@@ -195,6 +200,5 @@
 </nav>
 
 <script type="module" src="home.js"></script>
-
 </body>
 </html>
