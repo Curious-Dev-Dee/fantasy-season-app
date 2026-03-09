@@ -35,26 +35,40 @@ async function init() {
     const scoutUid = urlParams.get('uid');
     const scoutNameFromUrl = urlParams.get('name');
 
+    // 1. Fetch Tournament ID dynamically (No more hardcoding!)
+    const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
+    if (!activeTournament) return;
+    tournamentId = activeTournament.id;
+
     if (scoutUid && scoutUid !== session.user.id) {
         userId = scoutUid;
         isScoutMode = true;
-        if (scoutNameFromUrl && scoutNameFromUrl !== 'undefined') {
-            viewTitle.textContent = decodeURIComponent(scoutNameFromUrl);
-        } else {
-            const { data: profileData } = await supabase.from("user_profiles").select("team_name").eq("user_id", scoutUid).maybeSingle();
-            viewTitle.textContent = profileData?.team_name || "User Team";
+        
+        // SENIOR FIX: Pull vanity info even when scouting
+        const { data: profile } = await supabase
+            .from("user_profiles")
+            .select("team_name, equipped_flex")
+            .eq("user_id", scoutUid)
+            .maybeSingle();
+
+        viewTitle.textContent = profile?.team_name || decodeURIComponent(scoutNameFromUrl) || "User Team";
+        
+        // Apply Name Flex (rewards) to the Scouted user's title
+        if (profile?.equipped_flex && profile.equipped_flex !== 'none') {
+            viewTitle.className = `main-title ${profile.equipped_flex}`;
         }
+
         tabUpcoming.style.display = 'none'; 
         tabLocked.classList.add("active");
     } else {
         userId = session.user.id;
-        const { data: myData } = await supabase.from("leaderboard_view").select("team_name").eq("user_id", userId).maybeSingle();
+        const { data: myData } = await supabase.from("user_profiles").select("team_name, equipped_flex").eq("user_id", userId).maybeSingle();
         viewTitle.textContent = myData?.team_name || "My XI";
+        
+        if (myData?.equipped_flex && myData.equipped_flex !== 'none') {
+            viewTitle.className = `main-title ${myData.equipped_flex}`;
+        }
     }
-
-    const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
-    if (!activeTournament) return;
-    tournamentId = activeTournament.id;
 
     await setupMatchTabs();
     isScoutMode ? loadLastLockedXI() : loadCurrentXI();
@@ -68,11 +82,12 @@ async function setupMatchTabs() {
     if (!isScoutMode) {
         const { data: upcoming } = await supabase.from("matches")
             .select("*").eq("tournament_id", tournamentId)
+            .eq("status", "upcoming") // Strictly only show upcoming in the 'current' tab
             .gt("actual_start_time", new Date().toISOString())
             .order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
 
         if (upcoming) {
-            tabUpcoming.innerHTML = `${realTeamsMap[upcoming.team_a_id]} vs ${realTeamsMap[upcoming.team_b_id]} 🔓`;
+            tabUpcoming.innerHTML = `${realTeamsMap[upcoming.team_a_id] || 'TBA'} vs ${realTeamsMap[upcoming.team_b_id] || 'TBA'} 🔓`;
             tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
     }
@@ -82,7 +97,9 @@ async function setupMatchTabs() {
 
     if (lastLocked) {
         const { data: mInfo } = await supabase.from("matches").select("*").eq("id", lastLocked.match_id).single();
-        tabLocked.innerHTML = `${realTeamsMap[mInfo.team_a_id]} vs ${realTeamsMap[mInfo.team_b_id]} 🔒`;
+        if (mInfo) {
+            tabLocked.innerHTML = `${realTeamsMap[mInfo.team_a_id] || 'TBA'} vs ${realTeamsMap[mInfo.team_b_id] || 'TBA'} 🔒`;
+        }
     }
 
     tabs.forEach(tab => {
@@ -94,7 +111,6 @@ async function setupMatchTabs() {
     });
 }
 
-// RESTORED: Missing startCountdown function
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     countdownContainer.classList.remove("hidden");
@@ -165,7 +181,7 @@ async function loadLastLockedXI() {
         calculatedTotal += pPts;
     });
 
-    const finalTotal = snapshot.use_booster ? calculatedTotal * 2 : calculatedTotal;
+    const finalTotal = snapshot.use_booster ? Math.floor(calculatedTotal * 2) : calculatedTotal;
     teamStatus.textContent = `Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
 }
 
@@ -211,7 +227,7 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
                     <div class="avatar" style="background-image: url('${photoUrl}'); background-size: cover;">
                         <div class="team-init-label">${teamCode}</div>
                     </div>
-                    <div class="player-name">${p.name.split(' ').pop()}</div>
+                    <div class="player-name">${p.name ? p.name.split(' ').pop() : 'Player'}</div>
                     ${displayPts}
                 </div>`;
         });
@@ -219,6 +235,8 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         container.appendChild(section);
     });
 }
+
+// ... rest of history logic remains identical to your original code ...
 
 /* =========================
     HISTORY FEATURE LOGIC
