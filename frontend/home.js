@@ -120,32 +120,55 @@ async function fetchHomeData(userId) {
         .eq('user_id', userId)
         .maybeSingle();
     
+ /* =========================
+       IPL 2026 DASHBOARD RENDER
+    ========================= */
     if (dash) {
+        // 1. Update Scores and Ranks
         scoreElement.textContent = dash.total_points || 0;
-        rankElement.textContent = dash.user_rank > 0 ? `#${dash.user_rank}` : "--";
-        
-        // IPL MATCH 1 RESET LOGIC: 
-        // If it's the first match of the tournament, show "FREE"
+        rankElement.textContent = (dash.user_rank && dash.user_rank > 0) ? `#${dash.user_rank}` : "--";
+
+        // 2. Substitution Logic (Handling the 999 "Magic Number")
         const match = dash.upcoming_match;
-        if (match) {
-            if (match.match_number === 1) {
-                subsElement.textContent = "FREE";
-            } else {
-                subsElement.textContent = dash.subs_remaining ?? 150;
-            }
-            
-            matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
-            
-            // Set Logos based on our new real_teams table
-            document.getElementById("teamALogo").style.backgroundImage = `url('images/teams/${match.team_a_code.toLowerCase()}.avif')`;
-            document.getElementById("teamBLogo").style.backgroundImage = `url('images/teams/${match.team_b_code.toLowerCase()}.avif')`;
-            
-            startCountdown(match.actual_start_time);
-        }
         
-        if (boosterStatusEl) boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
-    }
-}
+        if (dash.subs_remaining === 999 || (match && (match.match_number === 1 || match.match_number === 71))) {
+            subsElement.textContent = "UNLIMITED";
+            subsElement.style.color = "#9AE000"; // Make it glow green
+        } else {
+            subsElement.textContent = dash.subs_remaining ?? 150;
+            subsElement.style.color = ""; // Reset to default CSS color
+        }
+
+        // 3. Next Match Card Logic
+        if (match) {
+            // Update Team Names
+            matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+
+            // Update Logos (Ensure your images are in images/teams/ and use .avif)
+            const teamALogo = document.getElementById("teamALogo");
+            const teamBLogo = document.getElementById("teamBLogo");
+
+            if (teamALogo && teamBLogo) {
+                teamALogo.style.backgroundImage = `url('images/teams/${match.team_a_code.toLowerCase()}.avif')`;
+                teamBLogo.style.backgroundImage = `url('images/teams/${match.team_b_code.toLowerCase()}.avif')`;
+                
+                // Ensure they are visible (since we fixed the CSS display: block)
+                teamALogo.style.display = "block";
+                teamBLogo.style.display = "block";
+            }
+
+            // Start the Countdown Timer
+            startCountdown(match.actual_start_time);
+        } else {
+            matchTeamsElement.textContent = "No Upcoming Matches";
+            matchTimeElement.textContent = "Check back soon!";
+        }
+
+        // 4. Booster Status (0 used / 1 available)
+        if (boosterStatusEl) {
+            boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
+        }
+    }}
 
 // ... Keep your existing loadLeaderboardPreview, fetchPrivateLeagueData, startCountdown, etc. ...
 

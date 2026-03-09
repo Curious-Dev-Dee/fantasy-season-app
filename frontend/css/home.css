@@ -157,8 +157,9 @@ body {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    display: none; /* JS will show this once URL is loaded */
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+    display: block; /* Changed from none to block so logos are visible */
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.15)); /* Increased glow for better visibility */
+    transition: opacity 0.3s ease-in-out; /* Smooth fade-in when images load */
 }
 
 .match-teams {
