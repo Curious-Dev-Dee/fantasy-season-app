@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// --- IPL 2026 CONFIGURATION ---
+const LEAGUE_STAGE_END = 70;
+const PLAYOFF_START = 71;
+const KNOCKOUT_PHASE = 72;   // Match 72 = Start of the 10-sub pool
+const BOOSTER_WINDOW_START = 11; 
+const BOOSTER_WINDOW_END = 70;
+
 serve(async (_req) => {
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -13,7 +20,6 @@ serve(async (_req) => {
     const { data: matches, error: matchError } = await supabase
       .from("matches")
       .select("*")
-      // FIX: Now checks against the Actual Start Time (handles rain delays)
       .lte("actual_start_time", now) 
       .eq("lock_processed", false)
       .eq("status", "upcoming");
@@ -75,12 +81,7 @@ async function lockSingleMatch(supabase: any, match: any) {
   }
 }
 
-async function lockUserTeamForMatch(
-  supabase: any,
-  match: any,
-  team: any
-) {
-  // 1. Prevent double snapshots
+async function lockUserTeamForMatch(supabase: any, match: any, team: any) {
   const { data: existing } = await supabase
     .from("user_match_teams")
     .select("id")
@@ -90,7 +91,6 @@ async function lockUserTeamForMatch(
 
   if (existing) return;
 
-  // 2. Fetch the most recent snapshot for sub-comparison
   const { data: lastSnapshot } = await supabase
     .from("user_match_teams")
     .select(`
@@ -105,50 +105,50 @@ async function lockUserTeamForMatch(
     .limit(1)
     .maybeSingle();
 
-  const previousPlayers = lastSnapshot
-    ? await getSnapshotPlayers(supabase, lastSnapshot.id)
-    : [];
+  const currentPlayers = (team.user_fantasy_team_players ?? []).map((p: any) => p.player_id);
+  const previousPlayers = lastSnapshot ? await getSnapshotPlayers(supabase, lastSnapshot.id) : [];
 
-  const currentPlayers = (team.user_fantasy_team_players ?? []).map(
-    (p: any) => p.player_id
-  );
-
-  // 3. Stage-aware sub logic
+  // 3. Stage-aware sub logic (Updated for IPL Specifics)
   let subsUsed = 0;
   let totalSubsUsed = 0;
 
-  // Define stage boundaries
-  const isSuper8 = match.match_number >= 41 && match.match_number <= 52;
-  const isKnockout = match.match_number >= 53;
-  const lastMatchNumber = lastSnapshot?.matches?.match_number ?? 0;
+  const matchNum = match.match_number;
+  const lastMatchNum = lastSnapshot?.matches?.match_number ?? 0;
 
-  // Reset at Group->Super8 and Super8->Knockout transitions
-  const isResetMatch = (isSuper8 && lastMatchNumber < 41) || (isKnockout && lastMatchNumber < 53);
-
-  if (isResetMatch) {
+  // RULE 1: Match 1 is always free (0 subs used)
+  if (matchNum === 1) {
     subsUsed = 0;
     totalSubsUsed = 0;
-  } else if (lastSnapshot) {
-    subsUsed = currentPlayers.filter(
-      (p: string) => !previousPlayers.includes(p)
-    ).length;
+  } 
+  // RULE 2: Match 71 is a Full Reset (Unlimited transfers for Playoffs)
+  else if (matchNum === PLAYOFF_START) {
+    subsUsed = 0;
+    totalSubsUsed = 0;
+  } 
+  // RULE 3: Match 72 starts the 10-sub limit phase
+  else if (matchNum === KNOCKOUT_PHASE) {
+    subsUsed = currentPlayers.filter((p: string) => !previousPlayers.includes(p)).length;
+    totalSubsUsed = subsUsed; // Start fresh count from this match
+  } 
+  // RULE 4: Standard accumulation for League (M2-M70) or Knockouts (M73-74)
+  else if (lastSnapshot) {
+    subsUsed = currentPlayers.filter((p: string) => !previousPlayers.includes(p)).length;
     totalSubsUsed = (lastSnapshot.total_subs_used ?? 0) + subsUsed;
   }
-
-  // 4. Booster tracking
+  
   let boosterToApply = false;
-  if (match.match_number >= 43 && match.match_number <= 52) {
+  if (matchNum >= BOOSTER_WINDOW_START && matchNum <= BOOSTER_WINDOW_END) {
     const { data: boosterState } = await supabase
       .from("user_tournament_points")
-      .select("s8_booster_used")
+      .select("s8_booster_used") 
       .eq("user_id", team.user_id)
       .eq("tournament_id", match.tournament_id)
       .maybeSingle();
+    
     const alreadyUsed = boosterState?.s8_booster_used ?? false;
     boosterToApply = !!team.use_booster && !alreadyUsed;
   }
 
-  // 5. Create the Snapshot
   const { data: snapshot, error } = await supabase
     .from("user_match_teams")
     .insert({
@@ -160,7 +160,7 @@ async function lockUserTeamForMatch(
       total_credits: team.total_credits,
       subs_used_for_match: subsUsed,
       total_subs_used: totalSubsUsed,
-      use_booster: boosterToApply, // NEW: Locks the booster choice
+      use_booster: boosterToApply,
       locked_at: match.actual_start_time,
     })
     .select()
@@ -171,7 +171,6 @@ async function lockUserTeamForMatch(
     return;
   }
 
-  // 6. If Booster was used, mark it permanently in the user's tournament record
   if (boosterToApply) {
     await supabase
       .from("user_tournament_points")

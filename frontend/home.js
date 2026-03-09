@@ -87,7 +87,7 @@ async function startDashboard(userId) {
    CORE LOGIC (Updated for Vanity)
 ========================= */
 async function fetchHomeData(userId) {
-    // 1. Fetch Profile with NEW Vanity Columns + completion status
+    // 1. Fetch Profile with Vanity Columns + completion status
     const { data: profile } = await supabase
         .from('user_profiles')
         .select('full_name, team_name, team_photo_url, prediction_coins, equipped_frame, equipped_flex, profile_completed')
@@ -98,19 +98,21 @@ async function fetchHomeData(userId) {
         existingProfile = profile;
 
         // SENIOR FIX: Force Profile Completion
-        // If profile isn't completed, show the modal and hide the 'X' close button
         if (!profile.profile_completed) {
             if (profileModal) {
                 profileModal.classList.remove("hidden");
                 const closeBtn = document.getElementById("closeProfileModal");
-                if (closeBtn) closeBtn.style.display = "none"; // Remove 'X' so they can't skip
+                
+                // Hide 'X' and mark as forced so they can't click outside to close
+                if (closeBtn) closeBtn.style.display = "none"; 
+                profileModal.setAttribute('data-forced', 'true');
             }
         }
 
         const firstName = profile.full_name ? profile.full_name.split(" ")[0] : "Expert";
         welcomeText.textContent = `Welcome back, ${firstName}!`;
         
-        // Apply Name Flex
+        // Apply Team Name & Vanity Flex
         teamNameElement.textContent = profile.team_name || "Set your team name";
         if (profile.equipped_flex && profile.equipped_flex !== 'none') {
             teamNameElement.className = `team-subtitle ${profile.equipped_flex}`;
@@ -125,7 +127,6 @@ async function fetchHomeData(userId) {
             }
         }
         
-        // Update Coin Pill if you added it to HTML
         const coinPill = document.getElementById("userCoins");
         if (coinPill) coinPill.textContent = profile.prediction_coins || 0;
     }
@@ -134,6 +135,12 @@ async function fetchHomeData(userId) {
     const { data: dash } = await supabase.from('home_dashboard_view').select('*').eq('user_id', userId).maybeSingle();
     
     if (dash) {
+        // SENIOR FIX: Dynamic Tournament Title (No more hardcoding 'Tournament')
+        const tournamentTitle = document.getElementById("tournamentName");
+        if (tournamentTitle && dash.tournament_name) {
+            tournamentTitle.textContent = dash.tournament_name;
+        }
+
         scoreElement.textContent = dash.total_points || 0;
         rankElement.textContent = dash.user_rank > 0 ? `#${dash.user_rank}` : "--";
         subsElement.textContent = dash.subs_remaining ?? 0;
@@ -146,7 +153,6 @@ async function fetchHomeData(userId) {
         }
     }
 }
-
 // ... (KEEP your loadLeaderboardPreview, fetchPrivateLeagueData, and other functions exactly as they were)
 async function loadLeaderboardPreview() {
     // 1. Fetch top 3 users from the overall leaderboard view
@@ -279,13 +285,45 @@ async function fetchPrivateLeagueData(userId) {
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     const matchTime = new Date(startTime).getTime();
+    
     const update = () => {
         const dist = matchTime - Date.now();
-        if (dist <= 0) { clearInterval(countdownInterval); matchTimeElement.textContent = "Match Live"; return; }
-        const h = Math.floor(dist / 3600000), m = Math.floor((dist % 3600000) / 60000), s = Math.floor((dist % 60000) / 1000);
+        
+        if (dist <= 0) { 
+            clearInterval(countdownInterval); 
+            matchTimeElement.textContent = "Match Live"; 
+            
+            // SENIOR UI LOCK: Stop user interaction immediately
+            if (editButton) {
+                editButton.disabled = true;
+                editButton.style.opacity = "0.5";
+                editButton.style.pointerEvents = "none"; // Hard lock against clicks
+                editButton.textContent = "LOCKED";
+            }
+
+            // SENIOR SYNC: Wait 5s for the Edge Function to finish 'Locking' the match
+            // so the next 'Upcoming' match is ready when we reload.
+            setTimeout(() => {
+                window.location.reload(); 
+            }, 5000); 
+            return; 
+        }
+        
+        const h = Math.floor(dist / 3600000);
+        const m = Math.floor((dist % 3600000) / 60000);
+        const s = Math.floor((dist % 60000) / 1000);
+        
         matchTimeElement.innerHTML = `<i class="far fa-clock"></i> Starts in ${h}h ${m}m ${s}s`;
+        
+        // Visual Warning: Turn the timer red if less than 15 minutes remain
+        if (dist < 900000) {
+            matchTimeElement.classList.remove('neon-green');
+            matchTimeElement.classList.add('neon-red');
+        }
     };
-    update(); countdownInterval = setInterval(update, 1000);
+    
+    update(); 
+    countdownInterval = setInterval(update, 1000);
 }
 
 /* =========================
@@ -464,9 +502,9 @@ if (viewFullLeaderboardBtn) {
     };
 }
 
-// 3. Global Click Handler (Close modal on outside click)
 window.addEventListener('click', (event) => {
-    if (profileModal && event.target === profileModal) {
+    // Only close if it's NOT a forced profile setup
+    if (profileModal && event.target === profileModal && !profileModal.hasAttribute('data-forced')) {
         profileModal.classList.add("hidden");
     }
 });
