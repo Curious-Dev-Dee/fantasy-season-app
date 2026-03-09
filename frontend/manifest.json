@@ -2,7 +2,7 @@
   "name": "FantasyCric26 Expert",
   "short_name": "CricExpert",
   "description": "The ultimate fantasy cricket audit tool and leaderboard.",
-  "start_url": "/",
+  "start_url": "/home.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#020617",
