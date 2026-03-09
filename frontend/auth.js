@@ -1,42 +1,48 @@
-import { pb } from "./pb.js";
+import { supabase } from "./supabase.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("authContainer");
-    if (container) container.classList.remove("hidden");
+const authContainer = document.getElementById("authContainer");
+const googleBtn = document.getElementById("googleLoginBtn");
+const btnText = googleBtn?.querySelector(".btn-text");
+const spinner = googleBtn?.querySelector(".spinner"); // Target the spinner
+const errorEl = document.getElementById("authError");
+
+// 1. Better Auth Handling
+supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+        // Use consistent path
+        window.location.replace("/home.html");
+    } else {
+        // Only show UI if definitely NOT logged in
+        authContainer?.classList.remove("hidden");
+    }
 });
 
 async function signInWithGoogle() {
-    const googleBtn = document.getElementById("googleLoginBtn");
-    const btnText = googleBtn?.querySelector(".btn-text");
-
     try {
         if (googleBtn) {
             googleBtn.disabled = true;
-            if (btnText) btnText.textContent = "Redirecting...";
+            btnText.textContent = "Connecting...";
+            spinner?.classList.remove("hidden"); // Show the spinner
         }
 
-        // 1. Manually fetch the auth methods (this is a simple GET request)
-        const authMethods = await pb.collection('users').listAuthMethods();
-        const googleProvider = authMethods.authProviders.find(p => p.name === 'google');
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                // Ensure this matches your Supabase Dashboard Allowlist!
+                redirectTo: `${window.location.origin}/home.html`, 
+            },
+        });
 
-        if (!googleProvider) throw new Error("Google provider not enabled in PB Admin!");
-
-        // 2. Save the provider data for later (PocketBase needs this to verify the return)
-        localStorage.setItem('provider', JSON.stringify(googleProvider));
-
-        // 3. FORCE a hard redirect to the provider's URL
-        // This completely avoids the 'EventSource' / Realtime timeout
-        const redirectUrl = window.location.origin + '/home';
-        window.location.href = googleProvider.authUrl + redirectUrl;
-
+        if (error) throw error;
     } catch (err) {
-        console.error("Manual Auth Error:", err);
-        alert("Satya's laptop is taking too long to respond. Refresh and try once more.");
-        if (googleBtn) {
-            googleBtn.disabled = false;
-            if (btnText) btnText.textContent = "Continue with Google";
-        }
+        console.error("Auth Error:", err);
+        googleBtn.disabled = false;
+        btnText.textContent = "Continue with Google";
+        spinner?.classList.add("hidden");
+        
+        errorEl.textContent = "Connection failed. Check your internet.";
+        errorEl.style.display = "block";
     }
 }
 
-window.signInWithGoogle = signInWithGoogle;
+googleBtn?.addEventListener("click", signInWithGoogle);
