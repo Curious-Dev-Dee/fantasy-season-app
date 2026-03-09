@@ -88,7 +88,7 @@ async function init(user) {
     ]);
 
     state.allPlayers = players || [];
-    state.baseSubsRemaining = dashboardData?.subs_remaining ?? 80;
+    state.baseSubsRemaining = dashboardData?.subs_remaining ?? 150;
     state.s8BoosterUsed = dashboardData?.s8_booster_used ?? false;
     state.boosterActiveInDraft = currentTeam?.use_booster ?? false;
 
