@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 
-const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
+const TOURNAMENT_ID = "11111111-1111-1111-1111-111111111111";
 
 // IPL 2026 CONFIG
 const LEAGUE_SUB_LIMIT = 150;
