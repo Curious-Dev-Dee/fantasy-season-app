@@ -2,12 +2,19 @@ import { supabase } from "./supabase.js";
 
 const TOURNAMENT_ID = "e0416509-f082-4c11-8277-ec351bdc046d";
 
+// IPL 2026 CONFIG
+const LEAGUE_SUB_LIMIT = 150;
+const KNOCKOUT_SUB_LIMIT = 10;
+const PLAYOFF_START_MATCH = 71;
+const KNOCKOUT_PHASE_MATCH = 72;
+
 let state = { 
     allPlayers: [], 
     selectedPlayers: [], 
     lockedPlayerIds: [],    
-    baseSubsRemaining: 80,  
-    matches: [], 
+    baseSubsRemaining: 150, // Default for League
+    // ... rest of your state stays the same
+    //     matches: [], 
     captainId: null, 
     viceCaptainId: null, 
     s8BoosterUsed: false, 
@@ -167,13 +174,16 @@ function render() {
         return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesMatch;
     });
 
-    // 2. DYNAMIC STAGE RESET LOGIC (Handles Abandoned Matches)
-    const isSuper8 = state.currentMatchNumber >= 41 && state.currentMatchNumber <= 52;
-    const isKnockout = state.currentMatchNumber >= 53;
+    // 2. DYNAMIC STAGE RESET LOGIC (IPL 2026)
+    const matchNum = state.currentMatchNumber;
+    const lastMatch = state.lastLockedMatchNumber;
 
-    // Reset triggers if we are in Super 8 but our last actual play was Group Stage
-    const isResetMatch = (isSuper8 && state.lastLockedMatchNumber < 41) || 
-                         (isKnockout && state.lastLockedMatchNumber < 53);
+    // RULE: Match 1 and Match 71 are "Unlimited" (Free)
+    const isResetMatch = (matchNum === 1 || matchNum === PLAYOFF_START_MATCH);
+    
+    // RULE: Determine which "Pool" we are in
+    const isKnockoutPhase = matchNum >= KNOCKOUT_PHASE_MATCH;
+    const currentLimit = isKnockoutPhase ? KNOCKOUT_SUB_LIMIT : LEAGUE_SUB_LIMIT;
 
     const count = state.selectedPlayers.length;
     let subsUsedInDraft = 0;
@@ -181,11 +191,14 @@ function render() {
     if (isResetMatch) {
         subsUsedInDraft = 0; 
     } else if (state.lockedPlayerIds.length > 0) {
+        // Compare current selection to the last LOCKED team
         subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
     }
 
-    const liveSubsRemaining = state.baseSubsRemaining - subsUsedInDraft;
-    const isOverLimit = isResetMatch ? false : (liveSubsRemaining < 0);
+    // Math: If it's a reset match, they have 'Unlimited'. 
+    // Otherwise, it's (Limit - Total Used in DB - New Changes in Draft)
+    const liveSubsRemaining = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsedInDraft);
+    const isOverLimit = !isResetMatch && (liveSubsRemaining < 0);
 
     // 3. UI LABELS
     document.getElementById("playerCountLabel").innerText = count;
@@ -194,13 +207,15 @@ function render() {
     
     const subsEl = document.getElementById("subsRemainingLabel");
     if (subsEl) {
-        if (isResetMatch) {
-            subsEl.innerText = "FREE";
-            subsEl.parentElement.style.color = "#9AE000";
+        subsEl.innerText = liveSubsRemaining;
+        subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
+        
+        // Visual polish: if it's "FREE", make it glow
+        if (liveSubsRemaining === "FREE") {
+            subsEl.parentElement.style.borderColor = "var(--primary-green)";
+            subsEl.parentElement.style.boxShadow = "0 0 10px rgba(154, 224, 0, 0.3)";
         } else {
-            subsEl.innerText = liveSubsRemaining;
-            subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
-            subsEl.parentElement.style.color = isOverLimit ? "#ef4444" : "inherit";
+            subsEl.parentElement.style.boxShadow = "none";
         }
     }
 
@@ -209,12 +224,13 @@ const boosterContainer = document.getElementById("boosterContainer");
 const boosterToggle = document.getElementById("boosterToggle");
 const boosterText = document.querySelector(".booster-text");
 
-// Match window is 43-52 (Super 8s)
-const isBoosterWindow = state.currentMatchNumber >= 43 && state.currentMatchNumber <= 52;
+// IPL Rule: Booster is available for all League Matches (1-70)
+const isBoosterWindow = matchNum >= 11 && matchNum <= LEAGUE_STAGE_END;
 
 if (boosterContainer) {
     if (isBoosterWindow) {
         boosterContainer.classList.remove("hidden");
+        // ... (rest of your boosterToggle logic is perfect, leave it!)
         
         if (state.s8BoosterUsed) {
             // If used in a PREVIOUS match
