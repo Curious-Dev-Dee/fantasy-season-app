@@ -547,19 +547,51 @@ function setupListeners() {
 function showSuccessModal() {
     const modal = document.createElement("div");
     modal.className = "success-modal-overlay";
+
+    // SENIOR LOGIC: Determine what feedback to show based on the IPL Stage
+    const matchNum = state.currentMatchNumber;
+    const isResetMatch = (matchNum === 1 || matchNum === 71);
+    
+    // Calculate current draft usage
+    let subsUsedInDraft = 0;
+    if (!isResetMatch && state.lockedPlayerIds.length > 0) {
+        subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
+    }
+
+    const remaining = isResetMatch ? "UNLIMITED" : (state.baseSubsRemaining - subsUsedInDraft);
+
     modal.innerHTML = `
         <div class="success-modal">
             <div class="icon">✅</div>
             <h2>Team Saved!</h2>
-            <p>Your XI is ready for the upcoming match.</p>
+            <p>Your XI is ready for Match #${matchNum}.</p>
+            
+            <div style="margin: 15px 0; padding: 10px; background: rgba(154, 224, 0, 0.1); border-radius: 10px; border: 1px solid rgba(154, 224, 0, 0.2);">
+                <small style="color: #94a3b8; display: block; margin-bottom: 4px; text-transform: uppercase; font-size: 10px; font-weight: 800;">Subs Remaining</small>
+                <strong style="color: #9AE000; font-size: 18px;">${remaining}</strong>
+            </div>
+
             <div class="modal-actions">
-                <button class="modal-btn primary" id="btnGoHome">Go to Home</button>
-                <button class="modal-btn secondary" id="btnChangeAgain">Change Again</button>
+                <button class="modal-btn primary" id="btnGoHome">Go to Dashboard</button>
+                <button class="modal-btn secondary" id="btnChangeAgain">Make More Changes</button>
             </div>
         </div>
     `;
+
     document.body.appendChild(modal);
-    document.getElementById("btnChangeAgain").onclick = () => { clearTimeout(autoRedirect); modal.remove(); };
-    document.getElementById("btnGoHome").onclick = () => { window.location.href = "home.html"; };
-    const autoRedirect = setTimeout(() => { if (document.body.contains(modal)) window.location.href = "home.html"; }, 3000);
+
+    // Auto-redirect timer (4 seconds)
+    const autoRedirect = setTimeout(() => { 
+        if (document.body.contains(modal)) window.location.href = "home.html"; 
+    }, 4000);
+
+    // Button Actions
+    document.getElementById("btnChangeAgain").onclick = () => { 
+        clearTimeout(autoRedirect); 
+        modal.remove(); 
+    };
+
+    document.getElementById("btnGoHome").onclick = () => { 
+        window.location.href = "home.html"; 
+    };
 }
