@@ -39,12 +39,27 @@ let existingProfile = null;
 ========================= */
 
 // Define the reveal function globally so it's easy to use
+
+
+/* =========================
+   PAGE LOAD TRANSITION
+========================= */
+
+// Declare it once at the top
 function revealApp() {
+    if (document.body.classList.contains('loaded')) return; // Prevent double trigger
+    
     document.body.classList.remove('loading-state');
     document.body.classList.add('loaded');
+    
+    // Physically hide the overlay after the CSS fade finishes
+    setTimeout(() => {
+        const overlay = document.getElementById("loadingOverlay");
+        if (overlay) overlay.style.display = 'none';
+    }, 600); 
 }
 
-// SAFETY: Force reveal after 6 seconds even if Supabase/Internet is slow
+// SAFETY: Force reveal after 6 seconds
 setTimeout(() => {
     if (document.body.classList.contains('loading-state')) {
         console.warn("Safety trigger: Revealing app content...");
@@ -64,52 +79,27 @@ window.addEventListener('auth-verified', (e) => {
 ========================= */
 
 async function startDashboard(userId) {
-    // 1. Initialize background services
     initNotificationHub(userId);
     setupHomeLeagueListeners(userId); 
 
     try {
-        // 2. FETCH ACTIVE TOURNAMENT (IPL 2026)
-        // We do this first so other functions know the tournament context
-        const { data: activeT } = await supabase
-            .from('active_tournament')
-            .select('*')
-            .maybeSingle();
-        
+        const { data: activeT } = await supabase.from('active_tournament').select('*').maybeSingle();
         if (activeT) {
             activeTournamentId = activeT.id;
             if (tournamentTitle) tournamentTitle.textContent = activeT.name;
         }
 
-        // 3. PARALLEL DATA LOAD
-        // Fetching profile, standings, and leagues simultaneously for speed
         await Promise.allSettled([
             fetchHomeData(userId),
             loadLeaderboardPreview(),
             fetchPrivateLeagueData(userId)
         ]);
-
     } catch (err) {
         console.error("Dashboard data load error:", err);
     } finally {
-        // 4. THE MASTER REVEAL
-        // This triggers the CSS transitions:
-        // - Fades out the bowling animation
-        // - Fades in and slides up the dashboard cards
+        // Just call the function here! 
         revealApp(); 
-
-        // Cleanup: Physically remove the overlay after the fade transition ends
-        setTimeout(() => {
-            const overlay = document.getElementById("loadingOverlay");
-            if (overlay) overlay.style.display = 'none';
-        }, 600); // Matches the 0.6s transition in your CSS
     }
-}
-
-// Helper function to handle state classes
-function revealApp() {
-    document.body.classList.remove('loading-state');
-    document.body.classList.add('loaded');
 }
 
 /* =========================
