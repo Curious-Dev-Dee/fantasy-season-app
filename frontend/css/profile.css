@@ -161,3 +161,32 @@ body {
 .save-status.hidden {
   display: none;
 }
+
+.save-main-btn {
+    width: 100%;
+    background: #9be15d;
+    color: #0b0f14;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.2s;
+}
+
+.save-main-btn:active {
+    transform: scale(0.98);
+}
+
+.save-main-btn:disabled {
+    background: #334155;
+    color: #94a3b8;
+}
+
+/* Ensure the large avatar is centered and shows the image */
+.team-avatar.large {
+    background-size: cover;
+    background-position: center;
+}
