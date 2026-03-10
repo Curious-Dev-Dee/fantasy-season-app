@@ -1,381 +1,146 @@
 import { supabase } from "./supabase.js";
 
-/* =========================
-   IPL 2026 CONFIG & STATE
-========================= */
+// Your fixed Config
 const TOURNAMENT_ID = "11111111-1111-1111-1111-111111111111";
-const LEAGUE_SUB_LIMIT = 150;
-const PLAYOFF_START_MATCH = 71;
-const KNOCKOUT_PHASE_MATCH = 72;
 
 let state = { 
     allPlayers: [], 
     selectedPlayers: [], 
-    lockedPlayerIds: [],
+    lockedPlayerIds: [], // Used to track who was already in the team (for sub calculation)
     baseSubsRemaining: 150, 
     matches: [],
     captainId: null, 
-    viceCaptainId: null, 
-    s8BoosterUsed: false, 
-    boosterActiveInDraft: false,
-    currentMatchNumber: 0, 
-    lastLockedMatchNumber: 0,
+    viceCaptainId: null,
     filters: { search: "", role: "ALL", teams: [], credits: [], matches: [] },
     saving: false 
 };
 
-let countdownInterval;
-
-/* =========================
-   PAGE LOAD TRANSITION
-========================= */
-function revealApp() {
-    if (document.body.classList.contains('loaded')) return;
-    document.body.classList.remove('loading-state');
-    document.body.classList.add('loaded');
-    
-    setTimeout(() => {
-        const overlay = document.getElementById("loadingOverlay");
-        if (overlay) overlay.style.display = 'none';
-    }, 600);
-}
-
-// Safety timeout: reveal even if internet/Supabase is lagging
-setTimeout(() => {
-    if (document.body.classList.contains('loading-state')) {
-        console.warn("Safety trigger: Revealing team builder...");
-        revealApp();
-    }
-}, 7000);
-
-/* =========================
-   INIT & AUTH
-========================= */
+// 1. APP INITIALIZATION
 window.addEventListener('auth-verified', async (e) => {
     const user = e.detail.user;
-    if (user) init(user);
+    init(user);
 });
 
 async function init(user) {
     try {
-        // 1. Fetch Context
-        const { data: activeT } = await supabase.from('active_tournament').select('*').maybeSingle();
-        const tId = activeT?.id || TOURNAMENT_ID;
-
-        // 2. Load match info for the header
-        const { data: matches } = await supabase.from("matches")
-            .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-            .eq("tournament_id", tId).eq("status", "upcoming") 
-            .gt("actual_start_time", new Date().toISOString())
-            .order("actual_start_time", { ascending: true }).limit(1);
-
-        state.matches = matches || [];
-        if (state.matches.length > 0) {
-            state.currentMatchNumber = state.matches[0].match_number || 0;
-            updateHeaderMatch(state.matches[0]);
-        }
-
-        // 3. PARALLEL DATA FETCH
-        const [players, dash, lastLock, currentTeam] = await Promise.all([
+        // Fetch All Data in Parallel
+        const [players, dash, currentTeam, upcomingMatches] = await Promise.all([
             supabase.from("player_pool_view").select("*").eq("is_active", true),
-            supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used").eq("user_id", user.id).maybeSingle(),
-            supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
-            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", tId).maybeSingle()
+            supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
+            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).maybeSingle(),
+            supabase.from("matches").select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)").eq("status", "upcoming").limit(1)
         ]);
 
         state.allPlayers = players.data || [];
         state.baseSubsRemaining = dash.data?.subs_remaining ?? 150;
-        state.s8BoosterUsed = dash.data?.s8_booster_used ?? false;
-
-        if (lastLock.data?.user_match_team_players) {
-            state.lockedPlayerIds = lastLock.data.user_match_team_players.map(p => p.player_id);
+        
+        if (upcomingMatches.data?.length > 0) {
+            updateHeaderMatch(upcomingMatches.data[0]);
         }
 
         if (currentTeam.data) {
             state.captainId = currentTeam.data.captain_id;
             state.viceCaptainId = currentTeam.data.vice_captain_id;
-            state.boosterActiveInDraft = currentTeam.data.use_booster;
             const savedIds = currentTeam.data.user_fantasy_team_players.map(row => row.player_id);
             state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
+            state.lockedPlayerIds = [...savedIds]; // Mark currently saved players as "Locked"
         }
 
-        // 4. Initial Setup
-        initFilters();
         render();
         setupListeners();
-
+        document.body.classList.add('loaded'); // Reveal the app
     } catch (err) {
         console.error("Init Error:", err);
-    } finally {
-        revealApp();
     }
 }
 
-/* =========================
-   CORE RENDER LOGIC
-========================= */
-const getTeamCode = (p) => p.team_short_code || "UNK";
-
-function updateHeaderMatch(match) {
-    const nameEl = document.getElementById("upcomingMatchName");
-    const timerEl = document.getElementById("headerCountdown");
-    if (!nameEl || !timerEl) return;
-    
-    nameEl.innerText = `${match.team_a?.short_code || "TBA"} vs ${match.team_b?.short_code || "TBA"}`;
-    if (countdownInterval) clearInterval(countdownInterval);
-    
-    const target = new Date(match.actual_start_time).getTime();
-    const update = () => {
-        const diff = target - Date.now();
-        if (diff <= 0) { timerEl.innerText = "MATCH LIVE"; clearInterval(countdownInterval); return; }
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        timerDisplay(h, m, s);
-    };
-    
-    function timerDisplay(h, m, s) {
-        timerEl.innerText = `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
-    }
-    
-    update();
-    countdownInterval = setInterval(update, 1000);
-}
-
+// 2. CORE RENDER LOGIC
 function render() {
-    const filtered = state.allPlayers.filter(p => {
-        const mSearch = p.name.toLowerCase().includes(state.filters.search.toLowerCase());
-        const mRole = state.filters.role === "ALL" || p.role === state.filters.role;
-        const mTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
-        const mCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
-        return mSearch && mRole && mTeam && mCredit;
-    });
+    // Sub Calculation: Any selected player who WAS NOT in the locked list counts as a sub
+    const subsUsed = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
+    const currentSubsLeft = state.baseSubsRemaining - subsUsed;
 
-    const isResetMatch = (state.currentMatchNumber === 1 || state.currentMatchNumber === PLAYOFF_START_MATCH);
-    const count = state.selectedPlayers.length;
-    const subsUsed = isResetMatch ? 0 : state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
-    const liveSubsRemaining = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsed);
-    const isOverLimit = !isResetMatch && (liveSubsRemaining < 0);
+    // Update Progress Bar & Labels
+    document.getElementById("playerCountLabel").innerText = state.selectedPlayers.length;
+    document.getElementById("progressFill").style.width = `${(state.selectedPlayers.length / 11) * 100}%`;
+    document.getElementById("subsRemainingLabel").innerText = currentSubsLeft;
 
-    // Update Progress Labels
-    document.getElementById("playerCountLabel").innerText = count;
-    document.getElementById("creditCount").innerText = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0).toFixed(1);
-    document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
-    document.getElementById("subsRemainingLabel").innerText = liveSubsRemaining;
+    // Render Lists
+    renderList("playerPoolList", state.allPlayers.filter(p => {
+        return p.name.toLowerCase().includes(state.filters.search.toLowerCase()) &&
+               (state.filters.role === "ALL" || p.role === state.filters.role);
+    }));
 
-    // List Renders
-    renderList("myXIList", state.selectedPlayers, true);
-    renderList("playerPoolList", filtered, false);
-
-    // Role Counts logic
-    const roles = { 
-        WK: state.selectedPlayers.filter(p => p.role === "WK").length, 
-        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length, 
-        AR: state.selectedPlayers.filter(p => p.role === "AR").length, 
-        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length 
-    };
-    ["WK", "BAT", "AR", "BOWL"].forEach(r => {
-        const countEl = document.getElementById(`count-${r}`);
-        if(countEl) countEl.innerText = roles[r] || "";
-    });
-    
-    // Save Button Validation
-    const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
-    const currentCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const isValid = count === 11 && state.captainId && state.viceCaptainId && !isOverLimit && hasRequiredRoles && currentCredits <= 100;
-    
+    // Update Save Button Text & State
     const saveBtn = document.getElementById("saveTeamBtn");
+    const isValid = state.selectedPlayers.length === 11 && state.captainId && state.viceCaptainId && currentSubsLeft >= 0;
     saveBtn.disabled = !isValid;
-    
-    if (state.saving) saveBtn.innerText = "SAVING...";
-    else if (isOverLimit) saveBtn.innerText = "OUT OF SUBS";
-    else if (count < 11) saveBtn.innerText = `ADD ${11 - count} MORE`;
-    else if (!hasRequiredRoles) saveBtn.innerText = "REQ: 1WK, 3BAT, 1AR, 3BOWL";
-    else if (currentCredits > 100) saveBtn.innerText = "OVER BUDGET";
-    else if (!state.captainId || !state.viceCaptainId) saveBtn.innerText = "PICK C & VC";
-    else saveBtn.innerText = "SAVE TEAM";
 }
 
-function renderList(containerId, list, isMyXi) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+// 3. SUCCESS MODAL LOGIC
+function showSuccessModal(matchName, subsUsed, subsRemaining) {
+    const modalOverlay = document.createElement("div");
+    modalOverlay.className = "success-modal-overlay";
     
-    container.innerHTML = list.map(p => {
-        const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
-        const photoUrl = p.photo_url ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl : 'images/default-avatar.png';
-        
-        let actions = isMyXi ? `
-            <div class="controls">
-                <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
-                <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
-                <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')"><i class="fas fa-minus"></i></button>
-            </div>` : 
-            `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" onclick="togglePlayer('${p.id}')">
-                <i class="fas ${isSelected ? 'fa-minus' : 'fa-plus'}"></i>
-            </button>`;
-
-        return `
-        <div class="player-card ${isSelected ? 'selected' : ''}">
-            <div class="avatar-container"><img src="${photoUrl}" class="player-avatar"></div>
-            <div class="player-info">
-                <strong>${p.name}</strong>
-                <span>${p.role} • ${getTeamCode(p)} • ${p.credit} Cr</span>
+    modalOverlay.innerHTML = `
+        <div class="success-modal">
+            <h2>Team Saved!</h2>
+            <p>Successfully updated for <strong>${matchName}</strong>.</p>
+            <p>Subs Used: <strong>${subsUsed}</strong><br>Remaining: <strong>${subsRemaining}</strong></p>
+            <div class="modal-btn-group">
+                <button class="m-btn home" onclick="window.location.href='home.html'">GO TO HOME</button>
+                <button class="m-btn edit" id="closeModal">CHANGE AGAIN</button>
             </div>
-            ${actions}
-        </div>`;
-    }).join('');
+        </div>
+    `;
+
+    document.body.appendChild(modalOverlay);
+    document.getElementById("closeModal").onclick = () => modalOverlay.remove();
 }
 
-/* =========================
-   INTERACTIONS & FILTERS
-========================= */
-window.togglePlayer = (id) => {
-    const idx = state.selectedPlayers.findIndex(p => p.id === id);
-    if (idx > -1) {
-        state.selectedPlayers.splice(idx, 1);
-        if (state.captainId === id) state.captainId = null;
-        if (state.viceCaptainId === id) state.viceCaptainId = null;
-    } else if (state.selectedPlayers.length < 11) {
-        const p = state.allPlayers.find(p => p.id === id);
-        if (p) state.selectedPlayers.push(p);
-    }
-    render();
-};
-
-window.setRole = (id, role) => {
-    if (role === 'C') {
-        state.captainId = state.captainId === id ? null : id;
-        if (state.captainId === state.viceCaptainId) state.viceCaptainId = null;
-    } else {
-        state.viceCaptainId = state.viceCaptainId === id ? null : id;
-        if (state.viceCaptainId === state.captainId) state.captainId = null;
-    }
-    render();
-};
-
-function initFilters() {
-    // 1. Teams Menu
-    const teams = [];
-    const seenTeams = new Set();
-    state.allPlayers.forEach(p => {
-        if(!seenTeams.has(p.real_team_id)) {
-            seenTeams.add(p.real_team_id);
-            teams.push({ id: p.real_team_id, code: p.team_short_code });
-        }
-    });
+// 4. SAVE ACTION
+async function handleSave() {
+    state.saving = true; render();
+    const { data: { user } } = await supabase.auth.getUser();
     
-    document.getElementById("teamMenu").innerHTML = `
-        <div class="dropdown-content">
-            ${teams.map(t => `
-                <label class="filter-item">
-                    <span>${t.code}</span>
-                    <input type="checkbox" value="${t.id}" onchange="toggleFilter('teams', '${t.id}', this)">
-                </label>
-            `).join('')}
-        </div>
-    `;
+    // Save to Supabase (Simplified logic)
+    const { data: team } = await supabase.from("user_fantasy_teams").upsert({
+        user_id: user.id, tournament_id: TOURNAMENT_ID,
+        captain_id: state.captainId, vice_captain_id: state.viceCaptainId
+    }).select().single();
 
-    // 2. Credits Menu
-    const credits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => b-a);
-    document.getElementById("creditMenu").innerHTML = `
-        <div class="dropdown-content">
-            ${credits.map(c => `
-                <label class="filter-item">
-                    <span>${c} Cr</span>
-                    <input type="checkbox" value="${c}" onchange="toggleFilter('credits', ${c}, this)">
-                </label>
-            `).join('')}
-        </div>
-    `;
+    if (team) {
+        // Trigger Popup
+        const matchName = document.getElementById("upcomingMatchName").innerText;
+        const subsUsed = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
+        const subsLeft = state.baseSubsRemaining - subsUsed;
+
+        showSuccessModal(matchName, subsUsed, subsLeft);
+    }
+    state.saving = false; render();
 }
 
-window.toggleFilter = (key, val, el) => {
-    if (el.checked) state.filters[key].push(val);
-    else state.filters[key] = state.filters[key].filter(v => v !== val);
-    render();
-};
-
-/* =========================
-   EVENT LISTENERS
-========================= */
+// 5. LISTENERS
 function setupListeners() {
-    // 1. Tab Switcher (FIXED: Hides Filter bar in MY XI)
-    document.querySelectorAll(".toggle-btn").forEach(btn => {
-        btn.onclick = () => {
-            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
-            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
-            
-            btn.classList.add("active");
-            const mode = btn.dataset.mode;
-            document.getElementById(`${mode}-view`).classList.add("active");
-
-            const filterBar = document.querySelector(".search-filter-wrapper");
-            if (filterBar) filterBar.style.display = (mode === 'myxi') ? 'none' : 'flex';
-        };
-    });
-
-    // 2. Filter Button Dropdowns (FIXED: Working Toggle)
-    ['match', 'team', 'credit'].forEach(type => {
-        const btn = document.getElementById(`${type}Toggle`);
-        const menu = document.getElementById(`${type}Menu`);
-        const backdrop = document.getElementById("filterBackdrop");
-
-        if (btn && menu) {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-                menu.classList.add('show');
-                backdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            };
-        }
-    });
-
-    document.getElementById("filterBackdrop").onclick = () => {
-        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-        document.getElementById("filterBackdrop").classList.add('hidden');
-        document.body.style.overflow = '';
-    };
-
-    // 3. Role switcher
+    // Role Switching with Slider
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
+            tab.classList.add("active"); // Moves neon bar via CSS
             state.filters.role = tab.dataset.role;
             render();
         };
     });
 
-    // 4. Search logic
-    document.getElementById("playerSearch").oninput = (e) => {
-        state.filters.search = e.target.value;
-        render();
-    };
+    // View Switching
+    document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
+            document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
+        };
+    });
 
-    // 5. Save Action
-    document.getElementById("saveTeamBtn").onclick = async () => {
-        if (state.saving) return;
-        state.saving = true; render();
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-        
-        const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
-            user_id: user.id, tournament_id: TOURNAMENT_ID,
-            captain_id: state.captainId, vice_captain_id: state.viceCaptainId,
-            total_credits: totalCredits,
-            use_booster: state.boosterActiveInDraft
-        }).select().single();
-
-        if (team) {
-            await supabase.from("user_fantasy_team_players").delete().eq("user_fantasy_team_id", team.id);
-            await supabase.from("user_fantasy_team_players").insert(
-                state.selectedPlayers.map(p => ({ user_fantasy_team_id: team.id, player_id: p.id }))
-            );
-            alert("XI Saved Successfully!");
-            window.location.href = "home.html";
-        }
-        state.saving = false; render();
-    };
+    document.getElementById("saveTeamBtn").onclick = handleSave;
 }

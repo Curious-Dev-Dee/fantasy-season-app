@@ -1,17 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Team · Cricket Experts</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/team-builder.css">
-    <link rel="stylesheet" href="css/bottom-nav.css">
-    
-    <script type="module" src="auth-guard.js"></script>
-</head>
-
 <body class="loading-state">
 
     <div id="loadingOverlay">
@@ -27,32 +13,21 @@
         <header class="edit-header">
             <div class="header-left">
                 <a href="home.html" class="icon-back">←</a>
-                <div class="header-info">
-                    <h1>Change Team</h1>
-                </div>
+                <div class="header-info"><h1>Change Team</h1></div>
             </div>
-
             <div class="header-right">
-                <div id="upcomingMatchName" class="match-name">Loading Match...</div>
+                <div id="upcomingMatchName" class="match-name">Loading...</div>
                 <div id="headerCountdown" class="match-timer">00h 00m 00s</div>
             </div>
         </header>
 
         <div class="sticky-controls">
             <div class="premium-progress">
-                <div class="progress-line-container">
-                    <div id="progressFill" class="progress-fill"></div>
-                </div>
+                <div class="progress-line-container"><div id="progressFill" class="progress-fill"></div></div>
                 <div class="progress-labels">
-                    <div class="stat-group">
-                        <span id="playerCountLabel">0</span><small>/11</small>
-                    </div>
-                    <div class="credit-subtext">
-                        Credits: <strong id="creditCount">0</strong>/100
-                    </div>
-                    <div class="subs-text">
-                        Subs: <strong id="subsRemainingLabel">...</strong>
-                    </div>
+                    <div class="stat-group"><span id="playerCountLabel">0</span><small>/11</small></div>
+                    <div class="credit-subtext">Credits: <strong id="creditCount">0</strong>/100</div>
+                    <div class="subs-text">Subs: <strong id="subsRemainingLabel">...</strong></div>
                 </div>
             </div>
 
@@ -71,36 +46,21 @@
                         <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
                         <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
                         <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
-                        <div class="role-slider-bg"></div>
-                    </div>
+                        <div class="role-slider-bg"></div> </div>
                 </div>
 
                 <div class="dropdown-filters">
-                    <button id="matchToggle" class="pill-filter">
-                        <i class="fas fa-calendar-alt"></i> <span>Matches</span>
-                    </button>
-                    <button id="teamToggle" class="pill-filter">
-                        <i class="fas fa-shield-alt"></i> <span>Teams</span>
-                    </button>
-                    <button id="creditToggle" class="pill-filter">
-                        <i class="fas fa-coins"></i> <span>Credits</span>
-                    </button>
+                    <button id="matchToggle" class="pill-filter"><i class="fas fa-calendar-alt"></i> <span>Matches</span></button>
+                    <button id="teamToggle" class="pill-filter"><i class="fas fa-shield-alt"></i> <span>Teams</span></button>
+                    <button id="creditToggle" class="pill-filter"><i class="fas fa-coins"></i> <span>Credits</span></button>
                 </div>
             </div>
         </div>
 
         <main class="content-area">
             <div id="myxi-view" class="view-mode">
-                <div id="boosterContainer" class="booster-wrapper hidden">
-                    <label class="booster-label">
-                        <input type="checkbox" id="boosterToggle">
-                        <span class="booster-text">🚀 USE 2X MATCH BOOSTER</span>
-                    </label>
-                    <div class="booster-hint">Double your total points for this match!</div>
-                </div>
                 <div id="myXIList" class="player-list"></div>
             </div>
-
             <div id="playerPool-view" class="view-mode active">
                 <div id="playerPoolList" class="player-list"></div>
             </div>
@@ -112,23 +72,9 @@
     </div>
 
     <div id="filterBackdrop" class="filter-backdrop hidden"></div>
-    
-    <div id="matchMenu" class="dropdown-menu bottom-sheet">
-        <div class="dropdown-header">Filter by Match</div>
-        <div class="dropdown-content" id="matchListContent"></div>
-    </div>
-
-    <div id="teamMenu" class="dropdown-menu bottom-sheet">
-        <div class="dropdown-header">Filter by Team</div>
-        <div class="dropdown-content" id="teamListContent"></div>
-    </div>
-
-    <div id="creditMenu" class="dropdown-menu bottom-sheet">
-        <div class="dropdown-header">Filter by Credits</div>
-        <div class="dropdown-content" id="creditListContent"></div>
-    </div>
+    <div id="matchMenu" class="dropdown-menu bottom-sheet"><div class="dropdown-header">Filter by Match</div><div class="dropdown-content" id="matchListContent"></div></div>
+    <div id="teamMenu" class="dropdown-menu bottom-sheet"><div class="dropdown-header">Filter by Team</div><div class="dropdown-content" id="teamListContent"></div></div>
+    <div id="creditMenu" class="dropdown-menu bottom-sheet"><div class="dropdown-header">Filter by Credits</div><div class="dropdown-content" id="creditListContent"></div></div>
 
     <script type="module" src="edit-team.js"></script>
-
 </body>
-</html>
