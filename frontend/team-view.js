@@ -180,7 +180,7 @@ async function loadLastLockedXI() {
         .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (!snapshot) {
-        teamContainer.innerHTML = "<p class='empty-msg'>No match snapshots available.</p>";
+        teamContainer.innerHTML = "<p class='empty-msg'>Not Playing.</p>";
         return;
     }
 
