@@ -25,27 +25,32 @@ let realTeamsMap = {};
 ========================= */
 function revealApp() {
     if (document.body.classList.contains('loaded')) return;
+    
     document.body.classList.remove('loading-state');
     document.body.classList.add('loaded');
+    
     setTimeout(() => {
         const overlay = document.getElementById("loadingOverlay");
         if (overlay) overlay.style.display = 'none';
     }, 600);
 }
 
-// Safety timeout
+// Safety timeout: reveal app even if internet/Supabase is lagging
 setTimeout(() => {
-    if (document.body.classList.contains('loading-state')) revealApp();
+    if (document.body.classList.contains('loading-state')) {
+        console.warn("Safety trigger: Revealing team field...");
+        revealApp();
+    }
 }, 6000);
 
 /* =========================
-    INIT LOGIC
+   INIT LOGIC
 ========================= */
 init();
 
 async function init() {
     try {
-        // Parallel load basic data
+        // 1. Basic Data Load
         const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
         realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
@@ -60,6 +65,7 @@ async function init() {
         if (!activeTournament) return;
         tournamentId = activeTournament.id;
 
+        // 2. Identify User (Self or Scouting)
         if (scoutUid && scoutUid !== session.user.id) {
             userId = scoutUid;
             isScoutMode = true;
@@ -75,7 +81,7 @@ async function init() {
             if (myData?.equipped_flex && myData.equipped_flex !== 'none') viewTitle.className = `main-title ${myData.equipped_flex}`;
         }
 
-        // Fetch the actual team layout before revealing
+        // 3. Load Team Content
         await Promise.allSettled([
             setupMatchTabs(),
             isScoutMode ? loadLastLockedXI() : loadCurrentXI()
@@ -86,7 +92,7 @@ async function init() {
     } catch (err) {
         console.error("Init error:", err);
     } finally {
-        // REVEAL THE TEAM FIELD
+        // 4. TRIGGER THE REVEAL
         revealApp();
     }
 }
