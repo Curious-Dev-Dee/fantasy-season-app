@@ -433,19 +433,25 @@ if (saveProfileBtn) {
         try {
             let photoPath = existingProfile?.team_photo_url;
 
-            // 2. Handle Avatar Upload if a new file is selected
-            if (file) {
-                const fileExt = file.name.split('.').pop();
-                // Use a timestamp to avoid caching issues
-                const fileName = `${currentUserId}-${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await supabase.storage
-                    .from('team-avatars')
-                    .upload(fileName, file, { upsert: true });
+           // Inside your saveProfileBtn.onclick try block:
+if (file) {
+    const fileExt = file.name.split('.').pop();
+    // We use the UserID as the folder to make RLS easier to manage
+    const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
 
-                if (uploadError) throw uploadError;
-                photoPath = fileName;
-            }
+    const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('team-avatars')
+        .upload(fileName, file, { 
+            cacheControl: '3600',
+            upsert: true // This requires the UPDATE policy we added in Step 1
+        });
 
+    if (uploadError) {
+        console.error("Upload Error Details:", uploadError);
+        throw new Error("Storage Upload Failed: " + uploadError.message);
+    }
+    photoPath = fileName;
+}
             // 3. Construct Smart Payload 
             // We only include name/team if it's the first time to avoid trigger conflicts
             let updatePayload = { team_photo_url: photoPath };
