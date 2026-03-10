@@ -19,60 +19,77 @@ const boosterIndicator = document.getElementById("boosterIndicator");
 let userId, tournamentId, countdownInterval, isScoutMode = false;
 let realTeamsMap = {};
 
+
+/* =========================
+   PAGE LOAD TRANSITION
+========================= */
+function revealApp() {
+    if (document.body.classList.contains('loaded')) return;
+    document.body.classList.remove('loading-state');
+    document.body.classList.add('loaded');
+    setTimeout(() => {
+        const overlay = document.getElementById("loadingOverlay");
+        if (overlay) overlay.style.display = 'none';
+    }, 600);
+}
+
+// Safety timeout
+setTimeout(() => {
+    if (document.body.classList.contains('loading-state')) revealApp();
+}, 6000);
+
 /* =========================
     INIT LOGIC
 ========================= */
 init();
 
+========================= */
 async function init() {
-    const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
-    realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
+    try {
+        // Parallel load basic data
+        const { data: teamData } = await supabase.from('real_teams').select('id, short_code');
+        realTeamsMap = Object.fromEntries(teamData.map(t => [t.id, t.short_code]));
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = "login.html"; return; }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { window.location.href = "login.html"; return; }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const scoutUid = urlParams.get('uid');
-    const scoutNameFromUrl = urlParams.get('name');
+        const urlParams = new URLSearchParams(window.location.search);
+        const scoutUid = urlParams.get('uid');
+        const scoutNameFromUrl = urlParams.get('name');
 
-    // 1. Fetch Tournament ID dynamically (No more hardcoding!)
-    const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
-    if (!activeTournament) return;
-    tournamentId = activeTournament.id;
+        const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
+        if (!activeTournament) return;
+        tournamentId = activeTournament.id;
 
-    if (scoutUid && scoutUid !== session.user.id) {
-        userId = scoutUid;
-        isScoutMode = true;
-        
-        // SENIOR FIX: Pull vanity info even when scouting
-        const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("team_name, equipped_flex")
-            .eq("user_id", scoutUid)
-            .maybeSingle();
-
-        viewTitle.textContent = profile?.team_name || decodeURIComponent(scoutNameFromUrl) || "User Team";
-        
-        // Apply Name Flex (rewards) to the Scouted user's title
-        if (profile?.equipped_flex && profile.equipped_flex !== 'none') {
-            viewTitle.className = `main-title ${profile.equipped_flex}`;
+        if (scoutUid && scoutUid !== session.user.id) {
+            userId = scoutUid;
+            isScoutMode = true;
+            const { data: profile } = await supabase.from("user_profiles").select("team_name, equipped_flex").eq("user_id", scoutUid).maybeSingle();
+            viewTitle.textContent = profile?.team_name || decodeURIComponent(scoutNameFromUrl) || "User Team";
+            if (profile?.equipped_flex && profile.equipped_flex !== 'none') viewTitle.className = `main-title ${profile.equipped_flex}`;
+            tabUpcoming.style.display = 'none'; 
+            tabLocked.classList.add("active");
+        } else {
+            userId = session.user.id;
+            const { data: myData } = await supabase.from("user_profiles").select("team_name, equipped_flex").eq("user_id", userId).maybeSingle();
+            viewTitle.textContent = myData?.team_name || "My XI";
+            if (myData?.equipped_flex && myData.equipped_flex !== 'none') viewTitle.className = `main-title ${myData.equipped_flex}`;
         }
 
-        tabUpcoming.style.display = 'none'; 
-        tabLocked.classList.add("active");
-    } else {
-        userId = session.user.id;
-        const { data: myData } = await supabase.from("user_profiles").select("team_name, equipped_flex").eq("user_id", userId).maybeSingle();
-        viewTitle.textContent = myData?.team_name || "My XI";
+        // Fetch the actual team layout before revealing
+        await Promise.allSettled([
+            setupMatchTabs(),
+            isScoutMode ? loadLastLockedXI() : loadCurrentXI()
+        ]);
         
-        if (myData?.equipped_flex && myData.equipped_flex !== 'none') {
-            viewTitle.className = `main-title ${myData.equipped_flex}`;
-        }
+        setupHistoryListeners();
+
+    } catch (err) {
+        console.error("Init error:", err);
+    } finally {
+        // REVEAL THE TEAM FIELD
+        revealApp();
     }
-
-    await setupMatchTabs();
-    isScoutMode ? loadLastLockedXI() : loadCurrentXI();
-    setupHistoryListeners();
 }
 
 /* =========================
