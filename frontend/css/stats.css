@@ -279,6 +279,39 @@ body {
     animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
 }
 
+/* Highlight for consistent high-scorers */
+.player-card.elite-border {
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 15px rgba(154, 224, 0, 0.1);
+}
+
+/* Highlight for a single massive match performance */
+.history-item.big-game {
+    background: rgba(154, 224, 0, 0.05);
+    border-left: 3px solid var(--accent);
+    padding-left: 10px !important;
+}
+
+.history-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-dim);
+    margin: 15px 0 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Ensure history items look like a timeline */
+.history-item {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+
+.history-item:hover {
+    background: rgba(255,255,255,0.02);
+}
+
 @keyframes spin { 
     to { transform: rotate(360deg); } 
 }
+
