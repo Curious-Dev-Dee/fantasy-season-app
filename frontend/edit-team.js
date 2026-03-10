@@ -41,69 +41,90 @@ window.addEventListener('auth-verified', async (e) => {
     init(user); 
 });
 
+/* =========================
+   PAGE LOAD TRANSITION
+========================= */
+function revealApp() {
+    if (document.body.classList.contains('loaded')) return;
+    
+    document.body.classList.remove('loading-state');
+    document.body.classList.add('loaded');
+    
+    setTimeout(() => {
+        const overlay = document.getElementById("loadingOverlay");
+        if (overlay) overlay.style.display = 'none';
+    }, 600);
+}
+
+// Safety timeout:reveal even if Supabase is lagging
+setTimeout(() => {
+    if (document.body.classList.contains('loading-state')) {
+        console.warn("Safety trigger: Revealing team builder...");
+        revealApp();
+    }
+}, 7000); // 7 seconds for the heavy builder page
+
+/* =========================
+   INIT LOGIC
+========================= */
 async function init(user) {
     if (!user) return;
 
-    // 1. Fetch upcoming matches to identify the active match
-    const { data: matches } = await supabase.from("matches")
-        .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-        .eq("tournament_id", TOURNAMENT_ID)
-        .eq("status", "upcoming") 
-        .gt("actual_start_time", new Date().toISOString())
-        .order("actual_start_time", { ascending: true })
-        .limit(5);
+    try {
+        // 1. Fetch Tournament ID dynamically
+        const { data: activeT } = await supabase.from('active_tournament').select('*').maybeSingle();
+        const tournamentId = activeT?.id || TOURNAMENT_ID;
 
-    state.matches = matches || [];
-    if (state.matches.length === 0) {
-        console.warn("No upcoming matches found.");
-        return;
-    }
+        // 2. Load match info for the header
+        const { data: matches } = await supabase.from("matches")
+            .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+            .eq("tournament_id", tournamentId)
+            .eq("status", "upcoming") 
+            .gt("actual_start_time", new Date().toISOString())
+            .order("actual_start_time", { ascending: true })
+            .limit(1);
 
-    const currentMatchId = state.matches[0].id;
-    state.currentMatchNumber = state.matches[0].match_number || 0;
+        state.matches = matches || [];
+        if (state.matches.length > 0) {
+            state.currentMatchNumber = state.matches[0].match_number || 0;
+            updateHeaderMatch(state.matches[0]);
+        }
 
-    // 2. Fetch User Data & History in Parallel
-    const [
-        { data: players },
-        { data: dashboardData }, 
-        { data: lastLock },
-        { data: currentTeam }
-    ] = await Promise.all([
-        supabase.from("player_pool_view").select("*").eq("is_active", true),
-        supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used")
-            .eq("user_id", user.id).maybeSingle(),
+        // 3. PARALLEL DATA FETCH (Heaviest part)
+        const [players, dash, lastLock, currentTeam] = await Promise.all([
+            supabase.from("player_pool_view").select("*").eq("is_active", true),
+            supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used").eq("user_id", user.id).maybeSingle(),
+            supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", tournamentId).maybeSingle()
+        ]);
+
+        // 4. Update state with results
+        state.allPlayers = players.data || [];
+        state.baseSubsRemaining = dash.data?.subs_remaining ?? 150;
+        state.s8BoosterUsed = dash.data?.s8_booster_used ?? false;
         
-        // Fetch last lock AND its match number to handle Stage Transitions
-        supabase.from("user_match_teams").select(`
-            id, 
-            matches!inner(match_number), 
-            user_match_team_players(player_id)
-        `)
-        .eq("user_id", user.id)
-        .neq("match_id", currentMatchId) 
-        .order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+        if (lastLock.data?.user_match_team_players) {
+            state.lockedPlayerIds = lastLock.data.user_match_team_players.map(p => p.player_id);
+        }
+        
+        if (currentTeam.data) {
+            state.captainId = currentTeam.data.captain_id;
+            state.viceCaptainId = currentTeam.data.vice_captain_id;
+            state.boosterActiveInDraft = currentTeam.data.use_booster;
+            const savedIds = currentTeam.data.user_fantasy_team_players.map(row => row.player_id);
+            state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
+        }
 
-        supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)")
-            .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-    ]);
+        // 5. Initial Render
+        initFilters();
+        render();
+        setupListeners();
 
-    state.allPlayers = players || [];
-    state.baseSubsRemaining = dashboardData?.subs_remaining ?? 150;
-    state.s8BoosterUsed = dashboardData?.s8_booster_used ?? false;
-    state.boosterActiveInDraft = currentTeam?.use_booster ?? false;
-
-    // Store the last match number locked to detect if we skipped an abandoned match
-    state.lastLockedMatchNumber = lastLock?.matches?.match_number || 0;
-
-    if (lastLock?.user_match_team_players) {
-        state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
-    }
-    
-    if (currentTeam) {
-        state.captainId = currentTeam.captain_id;
-        state.viceCaptainId = currentTeam.vice_captain_id;
-        const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
-        state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
+    } catch (err) {
+        console.error("Init Error:", err);
+    } finally {
+        // 6. TRIGGER THE REVEAL
+        revealApp();
     }
 
     updateHeaderMatch(state.matches[0]);
