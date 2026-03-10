@@ -411,7 +411,7 @@ function setupHomeLeagueListeners(userId) {
 }
 
 /* =========================
-   PROFILE SAVE LOGIC
+    PROFILE SAVE LOGIC
 ========================= */
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
@@ -421,7 +421,11 @@ if (saveProfileBtn) {
         const teamName = modalTeamName.value.trim();
         const file = avatarInput.files[0];
 
-        if (!fullName || !teamName) return alert("Please enter both your name and team name!");
+        // 1. Initial validation for first-time setup
+        const isFirstTime = !existingProfile || !existingProfile.profile_completed;
+        if (isFirstTime && (!fullName || !teamName)) {
+            return alert("Please enter both your name and team name to proceed!");
+        }
 
         saveProfileBtn.disabled = true;
         saveProfileBtn.textContent = "SAVING...";
@@ -429,10 +433,11 @@ if (saveProfileBtn) {
         try {
             let photoPath = existingProfile?.team_photo_url;
 
-            // 1. Handle Avatar Upload if a new file is selected
+            // 2. Handle Avatar Upload if a new file is selected
             if (file) {
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${currentUserId}-${Math.random()}.${fileExt}`;
+                // Use a timestamp to avoid caching issues
+                const fileName = `${currentUserId}-${Date.now()}.${fileExt}`;
                 const { error: uploadError } = await supabase.storage
                     .from('team-avatars')
                     .upload(fileName, file, { upsert: true });
@@ -441,30 +446,35 @@ if (saveProfileBtn) {
                 photoPath = fileName;
             }
 
-            // 2. Update User Profile in Database
+            // 3. Construct Smart Payload 
+            // We only include name/team if it's the first time to avoid trigger conflicts
+            let updatePayload = { team_photo_url: photoPath };
+
+            if (isFirstTime) {
+                updatePayload.full_name = fullName;
+                updatePayload.team_name = teamName;
+                updatePayload.profile_completed = true;
+            }
+
+            // 4. Update User Profile in Database
             const { error: updateError } = await supabase
                 .from('user_profiles')
-                .update({
-                    full_name: fullName,
-                    team_name: teamName,
-                    team_photo_url: photoPath,
-                    profile_completed: true
-                })
+                .update(updatePayload)
                 .eq('user_id', currentUserId);
 
             if (updateError) throw updateError;
 
-            // 3. Success! Refresh and Close
+            // 5. Success! Refresh and Close
             alert("Profile updated successfully!");
             profileModal.classList.add("hidden");
-            window.location.reload(); // Reload to reflect changes across the dashboard
+            window.location.reload(); 
 
         } catch (err) {
             console.error("Save error:", err.message);
-            alert("Failed to save profile. Please try again.");
+            alert("Failed to save profile: " + err.message);
         } finally {
             saveProfileBtn.disabled = false;
-            saveProfileBtn.textContent = "Save & Start";
+            saveProfileBtn.textContent = isFirstTime ? "Save & Start" : "Update Photo";
         }
     };
 }
@@ -477,6 +487,8 @@ if (avatarInput) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 modalPreview.style.backgroundImage = `url(${e.target.result})`;
+                modalPreview.style.backgroundSize = "cover";
+                modalPreview.style.backgroundPosition = "center";
             };
             reader.readAsDataURL(file);
         }
@@ -485,33 +497,85 @@ if (avatarInput) {
 
 const closeBtn = document.getElementById("closeProfileModal");
 if (closeBtn) {
-    closeBtn.onclick = () => profileModal?.classList.add("hidden");
+    closeBtn.onclick = () => {
+        // Only allow closing if the profile isn't being forced
+        if (!profileModal.hasAttribute('data-forced')) {
+            profileModal.classList.add("hidden");
+        } else {
+            alert("Please complete your profile to continue!");
+        }
+    };
 }
-
+/* =========================
+    REFINED UI EVENTS
+========================= */
 /* =========================
     REFINED UI EVENTS
 ========================= */
 
-// 1. Profile Modal Control
+// 1. Profile Modal Control (Avatar Click)
 if (avatarElement) {
     avatarElement.onclick = () => {
         if (!profileModal || !modalFullName || !modalTeamName) return;
+        
+        // Check if this is an existing user who already completed their profile
+        const isEditing = existingProfile && existingProfile.profile_completed;
+
         if (existingProfile) {
             modalFullName.value = existingProfile.full_name || "";
             modalTeamName.value = existingProfile.team_name || "";
+            
+            if (isEditing) {
+                // LOCK FIELDS: Make them read-only and look disabled
+                modalFullName.readOnly = true;
+                modalTeamName.readOnly = true;
+                modalFullName.style.background = "rgba(255, 255, 255, 0.05)";
+                modalTeamName.style.background = "rgba(255, 255, 255, 0.05)";
+                modalFullName.style.color = "#94a3b8";
+                modalTeamName.style.color = "#94a3b8";
+                modalTeamName.style.cursor = "not-allowed";
+                
+                // UI FEEDBACK: Change button text and add the locked note
+                saveProfileBtn.textContent = "UPDATE PHOTO";
+                
+                let note = document.getElementById("profileLockNote");
+                if (!note) {
+                    note = document.createElement("p");
+                    note.id = "profileLockNote";
+                    note.style.cssText = "font-size:11px; color:#ef4444; margin-top:12px; text-align:center; font-weight:600;";
+                    saveProfileBtn.parentNode.insertBefore(note, saveProfileBtn.nextSibling);
+                }
+                note.innerText = "⚠️ Identity locked for the season.";
+            } else {
+                // First time setup state
+                saveProfileBtn.textContent = "SAVE & START";
+            }
         }
         profileModal.classList.remove("hidden");
     };
 }
 
-// Close Button
+// Close Button Logic
 if (closeBtn) {
-    closeBtn.onclick = () => profileModal?.classList.add("hidden");
+    closeBtn.onclick = () => {
+        // Prevent closing if the user is forced to complete profile (first login)
+        if (profileModal.hasAttribute('data-forced')) {
+            alert("Please complete your profile details to continue.");
+            return;
+        }
+        profileModal.classList.add("hidden");
+    };
 }
 
 // 2. Navigation Actions
 if (editButton) {
     editButton.onclick = () => {
+        // Prevent editing team if profile isn't finished
+        if (!existingProfile?.profile_completed) {
+            alert("Please complete your profile first!");
+            profileModal?.classList.remove("hidden");
+            return;
+        }
         window.location.href = "team-builder.html";
     };
 }
@@ -522,7 +586,9 @@ if (viewXiBtn) {
             alert("Please set your team name in your profile first!");
             profileModal?.classList.remove("hidden");
         } else {
-            window.location.href = `team-view.html?uid=${currentUserId}`;
+            // Encode name to handle special characters in the URL
+            const teamName = encodeURIComponent(existingProfile.team_name);
+            window.location.href = `team-view.html?uid=${currentUserId}&name=${teamName}`;
         }
     };
 }

@@ -190,3 +190,12 @@ body {
     background-size: cover;
     background-position: center;
 }
+
+.team-avatar {
+    background-color: #1f2937; /* The 'dark' part */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Add a default silhouette so it's not just a black hole */
+    background-image: url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png');
+}
