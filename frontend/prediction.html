@@ -1,124 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Cricket Expert · Fun Zone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/prediction.css" />
-    <link rel="stylesheet" href="css/bottom-nav.css" />
-</head>
-<body>
 <div class="prediction-page">
     <div class="scroll-content">
-
         <header class="fun-header">
             <div class="header-left">
-                <h1 class="theme-title">Predict & Win 🎯</h1>
-                <div class="streak-pill">
-                    <i class="fas fa-fire"></i>
-                    <span id="loginStreak">0</span> Day Streak
-                </div>
-                <p id="predictionSubtext" class="sub-label">Next: Loading...</p>
+                <h1 class="theme-title">Fun Zone 🎯</h1>
+                <div class="streak-pill"><i class="fas fa-fire"></i> <span id="loginStreak">0</span> Day Streak</div>
             </div>
-            <div class="score-pill">
-                <i class="fas fa-coins"></i>
-                <span id="userPredictionScore">0</span>
-            </div>
+            <div class="score-pill"><i class="fas fa-coins"></i> <span id="userPredictionScore">0</span></div>
         </header>
 
-        <div id="podiumSection" class="hidden">
-            <section class="card podium-card">
-                <div class="card-header-fun" id="playerPodiumMatchInfo">LAST MATCH HEROES</div>
-                <div class="podium-container" id="playerPodium"></div>
-            </section>
-
-            <section class="card podium-card">
-                <div class="card-header-fun" id="teamPodiumMatchInfo">TOP TEAMS</div>
-                <div class="podium-container" id="teamPodium"></div>
-            </section>
+        <div id="podiumSection" class="podium-stack">
+            <div class="podium-box">
+                <div class="mini-label">MATCH HEROES (PLAYERS)</div>
+                <div id="playerPodium" class="podium-grid"></div>
+            </div>
+            <div class="podium-box">
+                <div class="mini-label">MATCH EXPERTS (USERS)</div>
+                <div id="userPodium" class="podium-grid"></div>
+            </div>
         </div>
 
-        <section class="flip-card-container">
+        <section class="quiz-container">
             <div class="flip-card-inner" id="mainFlipCard">
-                
                 <div class="flip-card-front card">
-                    <div class="card-header-fun">
-                        <span><span class="live-pulse"></span> LOCK GUESSES</span>
+                    <div class="quiz-header">
+                        <span id="stepTitle">Step 1: Match Winner</span>
                         <div class="header-icons">
-                            <button class="icon-btn-fun" onclick="flipTo('results')" title="View Results">🏆</button>
-                            <button class="icon-btn-fun" onclick="flipTo('leaderboard')" title="Global Top 3">🥇</button>
+                            <button class="icon-btn-fun" onclick="flipTo('results')">📊</button>
+                            <button class="icon-btn-fun" onclick="flipTo('leaderboard')">🏆</button>
                         </div>
                     </div>
 
-                    <div class="prediction-group">
-                        <label><i class="fas fa-trophy"></i> Match Winner</label>
+                    <div id="quizStep1" class="quiz-step">
                         <div class="team-toggle-grid" id="winnerToggle"></div>
                     </div>
-
-                    <div class="prediction-group">
-                        <label><i class="fas fa-star"></i> Top Player (Most Points)</label>
-                        <select id="mvpSelect" class="theme-select">
-                            <option value="">Select a Player...</option>
-                        </select>
+                    <div id="quizStep2" class="quiz-step hidden">
+                        <select id="mvpSelect" class="theme-select"></select>
+                    </div>
+                    <div id="quizStep3" class="quiz-step hidden">
+                        <select id="userPredictSelect" class="theme-select"></select>
+                    </div>
+                    <div id="quizStepDone" class="quiz-step hidden">
+                        <div class="success-anim">✅</div>
+                        <p class="done-msg">Predictions Locked!<br><small>Results after match ends.</small></p>
                     </div>
 
-                    <div class="prediction-group">
-                        <label><i class="fas fa-user-ninja"></i> Top User Team (Most Points)</label>
-                        <select id="userPredictSelect" class="theme-select">
-                            <option value="">Select an Expert...</option>
-                        </select>
+                    <div class="quiz-actions" id="quizActions">
+                        <button id="skipBtn" class="sec-btn">SKIP</button>
+                        <button id="nextBtn" class="pri-btn">NEXT</button>
                     </div>
-
-                    <button id="submitPredictionBtn" class="theme-btn-primary">LOCK PREDICTIONS</button>
                 </div>
 
                 <div class="flip-card-back card">
-                    <div class="card-header-fun">
-                        <span id="backCardTitle">RESULTS</span>
-                        <button class="icon-btn-fun" onclick="flipTo('front')">↩ BACK</button>
+                    <div class="quiz-header">
+                        <span id="backTitle">Standings</span>
+                        <button class="icon-btn-fun" onclick="flipTo('front')">↩</button>
                     </div>
-                    
-                    <div id="backCardContent" class="back-scroll-area">
-                        </div>
+                    <div id="backContent" class="back-scroll"></div>
                 </div>
-
             </div>
         </section>
 
+        <section class="social-section">
+            <div class="mini-label">SLEDGE FEED</div>
+            <div id="feedContainer" class="feed-list"></div>
+        </section>
     </div>
 
-    <button id="chatToggleBtn" class="chat-fab">
+    <button id="postFab" class="fab left"><i class="fas fa-pen"></i></button>
+    <button id="chatToggleBtn" class="fab right">
         <i class="fas fa-comments"></i>
-        <span class="chat-badge hidden" id="newMsgBadge"></span>
+        <span id="chatBadge" class="chat-badge hidden"></span>
     </button>
 
     <div id="chatDrawer" class="chat-drawer drawer-hidden">
         <div class="drawer-header">
-            <div class="chat-toggle-tabs">
-                <button id="globalChatTab" class="chat-tab active">GLOBAL</button>
-                <button id="privateChatTab" class="chat-tab" disabled>PRIVATE</button>
+            <div class="chat-tabs">
+                <button id="btnGlobal" class="active">GLOBAL</button>
+                <button id="btnLeague">LEAGUE</button>
             </div>
-            <button id="closeChatBtn" class="close-x">&times;</button>
+            <button id="closeChat">&times;</button>
         </div>
         <div id="chatMessages" class="chat-display"></div>
-        <div class="emoji-bar" id="emojiBar">
-            <span>🏏</span><span>🔥</span><span>😂</span><span>👎</span><span>🎯</span>
-        </div>
         <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="100">
-            <button id="sendChatBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="80">
+            <button id="sendChatBtn">🚀</button>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-        <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-        <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Fun</span></a>
-        <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
-    </nav>
 </div>
-
-<script type="module" src="prediction.js"></script>
-</body>
-</html>
