@@ -43,7 +43,6 @@ setTimeout(() => {
 ========================= */
 init();
 
-========================= */
 async function init() {
     try {
         // Parallel load basic data
