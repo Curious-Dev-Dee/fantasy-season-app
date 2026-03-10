@@ -170,9 +170,7 @@ async function loadCurrentXI() {
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
 
-    renderTeamLayout(players, userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);
-    teamStatus.textContent = "Strategy for Next Match";
-}
+    renderTeamLayout(players, userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);}
 
 async function loadLastLockedXI() {
     clearInterval(countdownInterval);
