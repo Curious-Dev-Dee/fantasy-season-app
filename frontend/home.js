@@ -551,7 +551,7 @@ if (avatarElement) {
                     note.style.cssText = "font-size:11px; color:#ef4444; margin-top:12px; text-align:center; font-weight:600;";
                     saveProfileBtn.parentNode.insertBefore(note, saveProfileBtn.nextSibling);
                 }
-                note.innerText = "⚠️ Identity locked for the season.";
+                note.innerText = "⚠️ Your name & Team name locked for the season.";
             } else {
                 // First time setup state
                 saveProfileBtn.textContent = "SAVE & START";
