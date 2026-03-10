@@ -4,55 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Team · Cricket Experts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/team-builder.css">
-    
+    <link rel="stylesheet" href="css/bottom-nav.css">
     <script type="module" src="auth-guard.js"></script>
-
-    <style>
-        /* SENIOR DEV PATTERN: State-Based Visibility */
-        
-        /* State 1: LOADING (Body has 'loading-state') */
-        body.loading-state .app-container {
-          display: none; 
-        }
-        
-        body.loading-state #loadingOverlay {
-          display: flex; 
-        }
-    
-        /* State 2: LOADED (Body does NOT have 'loading-state') */
-        body .app-container {
-          display: flex; 
-          animation: fadeIn 0.4s ease-out;
-        }
-    
-        body #loadingOverlay {
-          display: none; 
-        }
-    
-        /* Standard Spinner Styles */
-        #loadingOverlay {
-          position: fixed; 
-          inset: 0; 
-          background: #0c1117;
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          z-index: 999;
-        }
-        
-        .spinner {
-          width: 40px; 
-          height: 40px; 
-          border: 4px solid rgba(154, 224, 0, 0.1);
-          border-left-color: #9AE000; 
-          border-radius: 50%; 
-          animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      </style>
 </head>
 
 <body class="loading-state">
@@ -63,13 +18,13 @@
         <div class="cricket-ball"></div>
         <div class="bowler-pos">🏏</div>
     </div>
-    <div class="loading-text">Loading Selection Room...</div>
+    <div class="loading-text">PREPARING DRAFT...</div>
 </div>
 
 <div class="app-container">
     <header class="edit-header">
         <div class="header-left">
-            <a href="/home" class="icon-back">←</a>
+            <a href="home.html" class="icon-back">←</a>
             <div class="header-info">
                 <h1>Change Team</h1>
             </div>
@@ -114,7 +69,6 @@
                     <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
                     <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
                     <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
-
                     <div class="role-slider-bg"></div>
                 </div>
             </div>
@@ -149,10 +103,10 @@
             <div id="playerPoolList" class="player-list"></div>
         </div>
     </main>
+</div>
 
-    <div class="save-bar">
-        <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
-    </div>
+<div class="save-bar">
+    <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
 </div>
 
 <div id="filterBackdrop" class="filter-backdrop hidden"></div>
