@@ -415,8 +415,8 @@ function renderList(containerId, sourceList, isMyXi) {
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
 
                 const categoryIcon =
-    p.category === "overseas" ? "🌍" :
-    p.category === "uncapped" ? "🧢" : "";
+    p.category === "overseas" ? "✈️" :
+    p.category === "uncapped" ? "👑" : "";
         
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
