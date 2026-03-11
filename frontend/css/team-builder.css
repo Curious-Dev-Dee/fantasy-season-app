@@ -1,4 +1,4 @@
-/* --- 1. CORE BRANDING & RESET --- */
+/* --- Global Resets --- */
 :root {
     --primary-green: #9be15d;
     --danger-red: #ef4444;
@@ -25,7 +25,6 @@ body {
     overflow-x: hidden;
 }
 
-/* --- 2. LOADING & TRANSITION LOGIC --- */
 .app-container { 
     max-width: 420px; 
     margin: 0 auto; 
@@ -33,145 +32,611 @@ body {
     display: flex; 
     flex-direction: column; 
     background: var(--bg-dark);
-    opacity: 0; /* Premium Reveal */
-    transition: opacity 0.5s ease;
 }
 
-body.loaded .app-container { opacity: 1; }
-
-#loadingOverlay {
-    position: fixed; inset: 0; background: var(--bg-dark);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s;
-}
-
-body.loaded #loadingOverlay { opacity: 0; visibility: hidden; pointer-events: none; }
-
-/* Cricket Pitch Animation Styles */
-.cricket-loader-wrap { position: relative; width: 200px; height: 100px; display: flex; align-items: center; }
-.pitch-line { position: absolute; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--primary-green), transparent); opacity: 0.3; }
-.bowler-pos { position: absolute; left: -30px; font-size: 24px; opacity: 0.5; }
-.cricket-ball {
-    position: absolute; width: 12px; height: 12px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000);
-    left: 0; animation: bowlingAction 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
-}
-.loading-text { margin-top: 20px; font-size: 10px; font-weight: 900; color: var(--primary-green); letter-spacing: 4px; animation: pulseText 1s infinite alternate; text-transform: uppercase; }
-
-@keyframes bowlingAction {
-    0% { left: 0; transform: translateY(0); }
-    48% { transform: translateY(0); }
-    50% { left: 100px; transform: translateY(-2px); box-shadow: 0 4px 4px rgba(0,0,0,0.5); }
-    100% { left: 200px; transform: translateY(-20px) rotate(720deg); opacity: 0; }
-}
-@keyframes pulseText { from { opacity: 0.4; } to { opacity: 1; } }
-
-/* --- 3. HEADER SECTION --- */
+/* --- Header Section --- */
 .edit-header { 
-    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; 
-    background: #0b0f14; border-bottom: 1px solid var(--border-color); 
-    position: sticky; top: 0; z-index: 500; height: var(--header-height);
+    padding: 12px 16px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: #0b0f14; 
+    border-bottom: 1px solid var(--border-color); 
+    position: sticky; 
+    top: 0; 
+    z-index: 500; 
+    height: var(--header-height);
 }
 
-.header-left { display: flex; align-items: center; gap: 12px; }
-.icon-back { color: var(--primary-green); text-decoration: none; font-size: 22px; }
-.header-info h1 { font-size: 16px; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-.header-right { text-align: right; }
-.match-name { font-size: 11px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
-.match-timer { font-size: 10px; font-weight: 700; color: var(--primary-green); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.icon-back { 
+    color: var(--primary-green); 
+    text-decoration: none; 
+    font-size: 22px; 
+}
 
-/* --- 4. STICKY CONTROLS & STATS --- */
-.sticky-controls { position: sticky; top: var(--header-height); background: var(--bg-dark); z-index: 450; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+.header-info h1 { 
+    font-size: 16px; 
+    font-weight: 800; 
+    color: var(--text-main); 
+    line-height: 1.2;
+}
+
+.header-info p { 
+    font-size: 10px; 
+    color: var(--text-dim); 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.header-right {
+    text-align: right; 
+}
+
+.match-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: 0.2px;
+}
+
+.match-timer {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-green); 
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums; 
+}
+
+/* --- Sticky Controls --- */
+.sticky-controls {
+    position: sticky;
+    top: var(--header-height);
+    background: var(--bg-dark);
+    z-index: 450;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* --- Progress Bar --- */
 .premium-progress { padding: 15px 16px 5px; }
-.progress-line-container { width: 100%; height: 6px; background: #1e293b; border-radius: 10px; overflow: hidden; }
-.progress-fill { height: 100%; width: 0%; background: var(--primary-green); transition: var(--transition); box-shadow: 0 0 12px rgba(155, 225, 93, 0.5); }
 
-.progress-labels { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.progress-line-container { 
+    width: 100%; 
+    height: 6px; 
+    background: #1e293b; 
+    border-radius: 10px; 
+    overflow: hidden; 
+}
+
+.progress-fill { 
+    height: 100%; 
+    width: 0%; 
+    background: var(--primary-green); 
+    transition: var(--transition); 
+    box-shadow: 0 0 12px rgba(155, 225, 93, 0.5); 
+}
+
+.progress-labels { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-top: 10px; 
+}
+
 .stat-group { display: flex; align-items: baseline; gap: 3px; }
 .stat-group #playerCountLabel { font-size: 18px; font-weight: 800; color: var(--text-main); }
 .stat-group small { font-size: 11px; color: var(--text-dim); font-weight: 600; }
-.credit-subtext, .subs-text { font-size: 11px; color: var(--text-dim); }
-.credit-subtext strong { color: var(--text-main); }
-.subs-text strong { color: var(--primary-green); font-weight: 800; }
-.subs-text.negative { border-color: var(--danger-red); color: var(--danger-red); background: rgba(239, 68, 68, 0.05); }
 
-/* --- 5. TABS & FILTERS --- */
+.credit-subtext { font-size: 12px; color: var(--text-dim); }
+.credit-subtext strong { color: var(--text-main); }
+
+.subs-text { 
+    font-size: 11px; 
+    background: rgba(155, 225, 93, 0.05); 
+    padding: 4px 12px; 
+    border-radius: 20px; 
+    border: 1px solid rgba(155, 225, 93, 0.15);
+    color: var(--text-dim);
+}
+.subs-text.negative { border-color: var(--danger-red); color: var(--danger-red); background: rgba(239, 68, 68, 0.05); }
+.subs-text strong { color: var(--primary-green); font-weight: 800; }
+
+/* --- View Tabs --- */
 .view-tabs { display: flex; padding: 10px 16px; gap: 10px; }
-.toggle-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; background: #1e293b; color: var(--text-dim); font-weight: 700; cursor: pointer; transition: var(--transition); }
+.toggle-btn { 
+    flex: 1; padding: 12px; border-radius: 12px; border: none; 
+    background: #1e293b; color: var(--text-dim); font-weight: 700; cursor: pointer; transition: var(--transition);
+}
 .toggle-btn.active { background: var(--primary-green); color: #000; }
 
+/* --- Search & Filters --- */
 .search-filter-wrapper { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
-#playerSearch { width: 100%; padding: 12px 16px; border-radius: 12px; background: #111827; border: 1px solid var(--border-color); color: #fff; outline: none; font-size: 14px; }
 
-/* Role Slider Navigation */
-.role-tabs-container { position: relative; display: flex; background: #111827; border-radius: 12px; padding: 4px; border: 1px solid var(--border-color); height: 48px; align-items: center; }
-.role-tab { position: relative; z-index: 2; flex: 1; text-align: center; font-size: 11px; font-weight: 800; color: var(--text-dim); cursor: pointer; background: transparent !important; }
-.role-tab.active { color: #000 !important; font-weight: 900; }
-.role-slider-bg { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(20% - 1.6px); background: var(--primary-green); border-radius: 10px; z-index: 1; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 15px rgba(154, 224, 0, 0.4); }
+#playerSearch { 
+    width: 100%; 
+    padding: 12px 16px; 
+    border-radius: 12px; 
+    background: #111827; 
+    border: 1px solid var(--border-color); 
+    color: #fff; 
+    outline: none; 
+    font-size: 14px;
+}
 
+.role-navigation-wrapper {
+    padding: 0 16px;
+    margin-bottom: 5px;
+}
+
+.role-tabs-container {
+    position: relative;
+    display: flex;
+    background: #111827; /* Deep dark track */
+    border-radius: 12px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    height: 48px;
+    align-items: center;
+}
+
+.role-tab {
+    position: relative;
+    z-index: 2; /* Sits above the slider */
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    background: transparent !important; /* Force transparent */
+    border: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+
+/* When active, text turns black to contrast with neon green */
+.role-tab.active {
+    color: #000000 !important;
+    font-weight: 900;
+}
+
+.role-count {
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.role-slider-bg {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    width: calc(20% - 1.6px);
+    background: var(--primary-green);
+    border-radius: 10px;
+    z-index: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 15px rgba(154, 224, 0, 0.4);
+}
+
+
+
+/* Slide logic: Move the background based on active tab */
 .role-tab[data-role="ALL"].active ~ .role-slider-bg { transform: translateX(0); }
 .role-tab[data-role="WK"].active ~ .role-slider-bg { transform: translateX(100%); }
 .role-tab[data-role="BAT"].active ~ .role-slider-bg { transform: translateX(200%); }
 .role-tab[data-role="AR"].active ~ .role-slider-bg { transform: translateX(300%); }
 .role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
 
-/* Filter Pills */
-.dropdown-filters { display: flex; gap: 8px; margin: 5px 0 10px; }
-.pill-filter { flex: 1; background: #111827; border: 1px solid var(--border-color); color: var(--text-dim); padding: 10px 5px; border-radius: 20px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+/* --- Dropdown Filters Section --- */
 
-/* --- 6. CATEGORY BADGES (NEW IPL RULES) --- */
-.badge-cat { display: inline-flex; align-items: center; font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; vertical-align: middle; }
-.badge-os { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
-.badge-os::before { content: "🌍 "; font-size: 7px; }
-.badge-uc { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
-.badge-uc::before { content: "🔰 "; font-size: 7px; }
+/* 1. Parent Wrapper: Forces buttons into one horizontal line */
+.dropdown-filters {
+    display: flex;            /* Enables horizontal layout */
+    gap: 8px;                 /* Space between the pills */
+    margin: 5px 16px 10px;   /* Alignment with search bar/roles */
+    padding: 0;
+    position: relative;
+    z-index: 501;             /* Keeps buttons clickable above header */
+}
 
-/* --- 7. PLAYER LIST & PREMIUM CARDS --- */
-.player-list { padding: 15px 16px 160px; display: flex; flex-direction: column; gap: 12px; }
-.player-card { background: #0f1623; border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 15px; transition: var(--transition); }
+/* 2. Filter Buttons (Pills): Equal width and premium styling */
+.pill-filter {
+    flex: 1;                  /* Forces all 3 buttons to be equal width */
+    background: #111827;      /* Match role slider track */
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    padding: 10px 5px;
+    border-radius: 20px;      /* Pill shape */
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: var(--transition);
+}
+
+.pill-filter i {
+    font-size: 8px;
+    color: var(--primary-green);
+}
+
+/* 3. The Backdrop: Blurs only the content BEHIND it */
+.filter-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.7); 
+    backdrop-filter: blur(10px);
+    z-index: 1500;            /* Lower than the menu */
+    transition: opacity 0.3s ease;
+}
+
+/* 4. The Bottom Sheet Menu: Highest layer for crystal clarity */
+.dropdown-menu.bottom-sheet {
+    position: fixed;
+    bottom: -100%;            /* Hidden state */
+    left: 0;
+    width: 100%;
+    max-height: 70vh;
+    background: #0f172a !important; /* Solid color stops blur bleed */
+    border-radius: 24px 24px 0 0;
+    z-index: 2000;            /* HIGHER than backdrop ensures items are visible */
+    display: flex;
+    flex-direction: column;
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.dropdown-menu.show { 
+    bottom: 0;                /* Visible state */
+}
+
+/* 5. Content Area: Handles the vertical list and scrolling */
+.dropdown-content {
+    overflow-y: auto;         /* Allows scrolling for long lists of matches/teams */
+    flex: 1;                  /* Fills the bottom sheet height */
+    padding: 0 16px 20px;     /* Side padding and bottom gutter */
+    display: flex;
+    flex-direction: column;   /* FORCES ITEMS TO STACK VERTICALLY */
+    gap: 10px;                /* Consistent spacing between vertical cards */
+}
+
+/* 6. Filter Items: Premium vertical card layout */
+.filter-item {
+    background: #1e293b;      /* Dark card background */
+    padding: 16px;            /* Generous touch target for mobile */
+    border-radius: 14px;      /* Matches the modern app aesthetic */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Text on left, checkbox on right */
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    width: 100%;              /* Ensures the card fills the width of the sheet */
+}
+
+/* Premium Selection Feedback: The whole card glows neon when checked */
+.filter-item:has(input:checked) {
+    border-color: var(--primary-green);
+    background: rgba(154, 224, 0, 0.08); /* Subtle neon tint */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 7. Custom Premium Checkbox Styling */
+.filter-item input[type="checkbox"] {
+    appearance: none;         /* Hide default browser checkbox */
+    width: 22px;
+    height: 22px;
+    border: 2px solid #334155;
+    border-radius: 6px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.filter-item input[type="checkbox"]:checked {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+/* The checkmark icon inside the custom checkbox */
+.filter-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000;              /* Black check on neon green background */
+    font-size: 14px;
+    font-weight: 900;
+}
+
+/* 8. Dropdown Bottom Actions (Clear/All buttons) */
+.dropdown-actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: #0f172a;
+    border-top: 1px solid var(--border-color);
+}
+
+.filter-action-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+}
+
+.filter-action-btn.clear { background: #1e293b; color: var(--text-dim); }
+.filter-action-btn.all   { background: var(--primary-green); color: #000; }
+
+/* --- Player List & Cards --- */
+.player-list { padding: 15px 16px 140px; display: flex; flex-direction: column; gap: 12px; }
+
+.player-card { 
+    background: #0f1623; border: 1px solid var(--border-color); 
+    border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 15px; 
+    transition: var(--transition);
+}
 .player-card.selected { border-color: var(--primary-green); background: rgba(155, 225, 93, 0.02); }
 
-.avatar-container { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-.player-avatar { width: 100%; height: 100%; object-fit: cover; }
+.avatar-silhouette {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #0f2f22;
+    border: 1px solid rgba(255,255,255,0.1);
+    background-repeat: no-repeat;
+    /* The JS handles the background-image and size */
+}
 
 .player-info { flex: 1; }
 .player-info strong { font-size: 14px; color: var(--text-main); display: block; margin-bottom: 2px; }
 .player-info span { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Squircle Controls */
+/* --- Player Controls --- */
 .controls { display: flex; gap: 8px; align-items: center; }
-.cv-btn, .action-btn-circle { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-dim); font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-.cv-btn.active { background: var(--primary-green); color: #000; border-color: var(--primary-green); }
-.action-btn-circle.add { color: var(--primary-green); border-color: var(--primary-green); }
-.action-btn-circle.remove { color: var(--danger-red); border-color: var(--danger-red); background: rgba(239, 68, 68, 0.05); }
 
-/* --- 8. FIXED SAVE BAR --- */
-.save-bar { 
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); 
-    width: 100%; max-width: 420px; 
-    background: rgba(2, 6, 23, 0.95); padding: 20px 16px 35px; 
-    border-top: 1px solid var(--border-color); z-index: 1000; backdrop-filter: blur(12px); 
-    opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+.cv-btn { 
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); 
+    background: transparent; color: var(--text-dim); font-size: 10px; font-weight: 800; 
+    cursor: pointer; transition: 0.2s; 
 }
-body.loaded .save-bar { opacity: 1; pointer-events: auto; }
-.save-btn { width: 100%; background: var(--primary-green); color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; }
-.save-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.cv-btn.active { background: var(--primary-green); color: #000; border-color: var(--primary-green); }
 
-/* --- 9. BOTTOM SHEETS & MODALS --- */
-.filter-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(10px); z-index: 1500; }
-.dropdown-menu.bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 70vh; background: #0f172a !important; border-radius: 24px 24px 0 0; z-index: 2000; display: flex; flex-direction: column; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); }
-.dropdown-menu.show { bottom: 0; }
-.dropdown-content { overflow-y: auto; flex: 1; padding: 0 16px 20px; display: flex; flex-direction: column; gap: 10px; }
-.filter-item { background: #1e293b; padding: 16px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.05); width: 100%; }
-.filter-item:has(input:checked) { border-color: var(--primary-green); background: rgba(154, 224, 0, 0.08); }
+.action-btn-circle { 
+    width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid; 
+    background: transparent; display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; font-size: 18px; font-weight: bold;
+}
+.action-btn-circle.add { color: var(--primary-green); border-color: var(--primary-green); }
+.action-btn-circle.remove { color: var(--danger-red); border-color: var(--danger-red); }
+
+/* --- Save Bar --- */
+.save-bar { 
+    position: fixed; bottom: 0; width: 100%; max-width: 420px; 
+    background: rgba(2, 6, 23, 0.95); padding: 20px 16px 30px; 
+    border-top: 1px solid var(--border-color); z-index: 600; backdrop-filter: blur(12px); 
+}
+
+.save-btn { 
+    width: 100%; background: var(--primary-green); color: #000; border: none; 
+    padding: 16px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; 
+}
+.save-btn:disabled {
+    background: #334155; /* Default faded */
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* Optional: Make specific error text stand out */
+.save-btn:disabled:not(:empty) {
+    font-size: 12px; /* Slightly smaller text for long requirements */
+    letter-spacing: 0.5px;
+}
+/* --- SUCCESS MODAL --- */
+.success-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center; z-index: 2000;
+    backdrop-filter: blur(8px); padding: 20px;
+}
+
+.success-modal {
+    background: var(--card-bg); width: 100%; max-width: 320px;
+    border-radius: 24px; padding: 32px 24px; text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.success-modal .icon { font-size: 48px; margin-bottom: 16px; display: block; }
+.success-modal h2 { font-size: 22px; color: var(--primary-green); margin-bottom: 8px; }
+.success-modal p { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; line-height: 1.5; }
+
+.modal-actions { display: flex; flex-direction: column; gap: 12px; }
+.modal-btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 14px; }
+.modal-btn.primary { 
+    background: var(--primary-green); 
+    color: #000; 
+    order: 1; 
+    box-shadow: 0 4px 12px rgba(155, 225, 93, 0.3);
+}
+
+.modal-btn.secondary { 
+    background: transparent; 
+    color: #94a3b8; 
+    border: 1px solid #334155;
+    order: 2;
+}
+
+.modal-btn:active { transform: scale(0.98); }
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.8) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
 
 /* Visibility Helpers */
 .view-mode { display: none; }
 .view-mode.active { display: block; }
+
+/* Utility */
 .hidden { display: none !important; }
 
-/* --- SUCCESS MODAL --- */
-.success-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(8px); padding: 20px; }
-.success-modal { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 24px; padding: 32px 24px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-@keyframes modalPop { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+/* --- SUPER 8 BOOSTER STYLES --- */
+.booster-wrapper {
+    background: linear-gradient(135deg, rgba(154, 224, 0, 0.1) 0%, rgba(15, 23, 42, 0.4) 100%);
+    border: 1px dashed rgba(154, 224, 0, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 10px 16px 20px; /* Added side margins to match player list padding */
+    animation: pulseGlow 2s infinite;
+}
+
+.booster-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.booster-text {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--primary-green);
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(155, 225, 93, 0.4);
+}
+
+.booster-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    margin-left: 26px;
+    font-style: italic;
+}
+
+/* Custom Checkbox as a Switch */
+#boosterToggle {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-green);
+    border-radius: 4px;
+    background: transparent;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#boosterToggle:checked {
+    background: var(--primary-green);
+}
+
+#boosterToggle:checked::after {
+    content: '⚡';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: #000;
+}
+
+/* Special "FREE" Sub Label Styling */
+#subsRemainingLabel:contains("FREE") {
+    animation: neonFlash 1.5s ease-in-out infinite alternate;
+}
+
+/* Animations for Premium Feel */
+@keyframes pulseGlow {
+    0% { border-color: rgba(155, 225, 93, 0.3); box-shadow: 0 0 0px rgba(155, 225, 93, 0); }
+    50% { border-color: rgba(155, 225, 93, 0.6); box-shadow: 0 0 10px rgba(155, 225, 93, 0.1); }
+    100% { border-color: rgba(155, 225, 93, 0.3); box-shadow: 0 0 0px rgba(155, 225, 93, 0); }
+}
+
+@keyframes neonFlash {
+    from { text-shadow: 0 0 2px #fff, 0 0 5px var(--primary-green); }
+    to { text-shadow: 0 0 5px #fff, 0 0 15px var(--primary-green); }
+}
+
+/* --- Adjustments to existing Save Bar --- */
+.save-bar {
+    padding-top: 15px; /* Added breathing room for booster */
+    height: auto; /* Allow bar to expand with booster */
+}
+
+/* Faded state for unavailable players */
+.player-card.player-faded {
+    opacity: 0.4;
+    filter: grayscale(0.8);
+    pointer-events: none; /* Prevents clicks on the whole card */
+    background: rgba(15, 23, 42, 0.5); /* Darken them slightly */
+}
+
+/* Ensure the disabled button looks unclickable */
+.action-btn-circle:disabled {
+    background: #1e293b;
+    color: #475569;
+    border-color: #334155;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Container to keep the circle shape */
+.avatar-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden; /* Clips the image to a circle */
+    background: #0f172a; /* Dark fallback background */
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The actual image fix */
+.player-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* FIX: Centers and scales the photo perfectly */
+    object-position: center top; /* Good for headshots to keep faces visible */
+}
+
+/* Maintain the faded look for unavailable players */
+.player-card.player-faded .avatar-container {
+    opacity: 0.3;
+    filter: grayscale(1);
+}
+
+/* Add to team-builder.css */
+.role-tab.incomplete {
+    border: 1px solid #ef4444;
+    color: #ef4444;
+}
+
+.role-tab.complete {
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+}
