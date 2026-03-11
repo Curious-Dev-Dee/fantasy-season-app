@@ -72,7 +72,12 @@ async function init(user) {
         { data: lastLock },
         { data: currentTeam }
     ] = await Promise.all([
-        supabase.from("player_pool_view").select("*").eq("is_active", true),
+        supabase
+    .from("player_pool_view")
+    .select("*")
+    .eq("is_active", true)
+    .eq("tournament_id", TOURNAMENT_ID),
+
         supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used")
             .eq("user_id", user.id).maybeSingle(),
         
