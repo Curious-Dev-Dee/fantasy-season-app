@@ -413,6 +413,10 @@ function renderList(containerId, sourceList, isMyXi) {
             : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" 
                 ${isDisabled ? 'disabled' : ''} 
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
+
+                const categoryIcon =
+    p.category === "overseas" ? "🌍" :
+    p.category === "uncapped" ? "🧢" : "";
         
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
@@ -420,7 +424,7 @@ function renderList(containerId, sourceList, isMyXi) {
                 <img src="${photoUrl}" class="player-avatar" alt="${p.name}">
             </div>
             <div class="player-info">
-                <strong>${p.name} ${isLocked ? '📌' : ''}</strong>
+            <strong>${p.name} ${categoryIcon} ${isLocked ? '📌' : ''}</strong>
                 <span>${p.role} • ${getTeamCode(p)} • ${p.credit} Cr</span>
             </div>
             ${controlsHtml}
