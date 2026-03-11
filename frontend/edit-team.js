@@ -182,7 +182,7 @@ function render() {
     const teamA = nextMatch?.team_a_id;
     const teamB = nextMatch?.team_b_id;
 
-    const ROLE_PRIORITY = {
+    const ROLE_PRIORITYY = {
         WK: 1,
         BAT: 2,
         AR: 3,
@@ -322,7 +322,27 @@ if (boosterContainer) {
     });
 
     // 6. RENDER LISTS
-    renderList("myXIList", state.selectedPlayers, true);  
+    const ROLE_PRIORITY = {
+    WK: 1,
+    BAT: 2,
+    AR: 3,
+    BOWL: 4
+};
+
+const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
+
+    // Sort by role first
+    if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) {
+        return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
+    }
+
+    // Then by credit (highest first)
+    return Number(b.credit) - Number(a.credit);
+
+});
+
+renderList("myXIList", sortedMyXI, true);
+  
     renderList("playerPoolList", filteredPlayers, false); 
 
     // 7. SAVE BUTTON VALIDATION
