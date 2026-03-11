@@ -182,7 +182,7 @@ function render() {
     const teamA = nextMatch?.team_a_id;
     const teamB = nextMatch?.team_b_id;
 
-    const ROLE_PRIORITYY = {
+    const ROLE_PRIORITY = {
         WK: 1,
         BAT: 2,
         AR: 3,
@@ -322,13 +322,6 @@ if (boosterContainer) {
     });
 
     // 6. RENDER LISTS
-    const ROLE_PRIORITY = {
-    WK: 1,
-    BAT: 2,
-    AR: 3,
-    BOWL: 4
-};
-
 const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
 
     // Sort by role first
@@ -342,8 +335,8 @@ const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
 });
 
 renderList("myXIList", sortedMyXI, true);
-  
-    renderList("playerPoolList", filteredPlayers, false); 
+
+renderList("playerPoolList", filteredPlayers, false); 
 
     // 7. SAVE BUTTON VALIDATION
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
