@@ -7,6 +7,7 @@ const LEAGUE_SUB_LIMIT = 150;
 const KNOCKOUT_SUB_LIMIT = 10;
 const PLAYOFF_START_MATCH = 71;
 const KNOCKOUT_PHASE_MATCH = 72;
+const LEAGUE_STAGE_END = 70;
 
 let state = { 
     allPlayers: [], 
@@ -43,6 +44,8 @@ window.addEventListener('auth-verified', async (e) => {
 
 async function init(user) {
     if (!user) return;
+    
+    try {
 
     // 1. Fetch upcoming matches to identify the active match
     const { data: matches } = await supabase.from("matches")
@@ -110,6 +113,16 @@ async function init(user) {
     initFilters();
     render();
     setupListeners();
+
+     } catch (err) {
+        console.error("Init failed:", err);
+    }
+
+finally {
+
+        document.body.classList.remove("loading-state");
+
+    }
 }
 
 const getTeamCode = (player) => player.team_short_code || "UNK";
