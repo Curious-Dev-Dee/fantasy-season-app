@@ -176,8 +176,22 @@ function updateHeaderMatch(match) {
    RENDER LOGIC
 ========================= */
 function render() {
+
+    // Identify next match teams for priority sorting
+    const nextMatch = state.matches?.[0];
+    const teamA = nextMatch?.team_a_id;
+    const teamB = nextMatch?.team_b_id;
+
+    const ROLE_PRIORITY = {
+        WK: 1,
+        BAT: 2,
+        AR: 3,
+        BOWL: 4
+    };
+
     // 1. APPLY FILTERS
-    const filteredPlayers = state.allPlayers.filter(p => {
+    const filteredPlayers = state.allPlayers
+    .filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(state.filters.search.toLowerCase());
         const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
         const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
@@ -190,8 +204,33 @@ function render() {
         });
 
         return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesMatch;
-    });
+    })
 
+    // 2. SORT PLAYERS (Dream11-style priority)
+    .sort((a, b) => {
+
+        // Team priority (next match teams first)
+        const aTeamPriority =
+            a.real_team_id === teamA ? 1 :
+            a.real_team_id === teamB ? 2 : 3;
+
+        const bTeamPriority =
+            b.real_team_id === teamA ? 1 :
+            b.real_team_id === teamB ? 2 : 3;
+
+        if (aTeamPriority !== bTeamPriority) {
+            return aTeamPriority - bTeamPriority;
+        }
+
+        // Role priority (WK → BAT → AR → BOWL)
+        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) {
+            return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
+        }
+
+        // Credit priority (highest first)
+        return Number(b.credit) - Number(a.credit);
+    });
+    
     // 2. DYNAMIC STAGE RESET LOGIC (IPL 2026)
     const matchNum = state.currentMatchNumber;
     const lastMatch = state.lastLockedMatchNumber;
