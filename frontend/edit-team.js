@@ -416,7 +416,7 @@ function renderList(containerId, sourceList, isMyXi) {
 
                 const categoryIcon =
     p.category === "overseas" ? "✈️" :
-    p.category === "uncapped" ? "⭐" : "";
+    p.category === "uncapped" ? "💎" : "";
         
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
