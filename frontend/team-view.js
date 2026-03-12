@@ -109,7 +109,7 @@ async function setupMatchTabs() {
             .order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
 
         if (upcoming) {
-            tabUpcoming.innerHTML = `${realTeamsMap[upcoming.team_a_id] || 'TBA'} vs ${realTeamsMap[upcoming.team_b_id] || 'TBA'} 🔓`;
+            tabUpcoming.innerHTML = `${realTeamsMap[upcoming.team_a_id] || 'TBA'} vs ${realTeamsMap[upcoming.team_b_id] || 'TBA'} 🖊️`;
             tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
     }

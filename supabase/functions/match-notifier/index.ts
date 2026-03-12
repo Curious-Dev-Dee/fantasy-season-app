@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
         return sendPersonalizedNotification(
           profile.onesignal_id,
           `Good Afternoon, ${firstName}!`,
-          `Aaj ${matchText} ki pitch ready hai. Rank 1 waali team banaoge ya wahi puraani 'safe' strategy? Set your XI!`
+          `Aaj ka match ${matchText} Rank 1 waali team banaoge ya wahi puraani 'safe' strategy? Set your XI!`
         );
       }));
     }
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
         const firstName = getFirstName(profile.full_name);
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          `Zilzal Aagaya, ${firstName}!`,
+          `Points Aagaya, ${firstName}!`,
           `Results out hain! Leaderboard pe aag laga di ya fir kal ke liye nets practice shuru? Check rank now!`
         );
       }));
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         return sendPersonalizedNotification(
           profile.onesignal_id,
           "Match Abandoned",
-          `${teamALabel} vs ${teamBLabel} cancel ho gaya boss. No subs deducted!`
+          `${teamALabel} vs ${teamBLabel} cancel ho gaya boss!`
         );
       }));
       await updateMatchNotifyStatus(supabase, match.id, 'abandoned');
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
         const firstName = getFirstName(profile.full_name);
         return sendPersonalizedNotification(
           profile.onesignal_id,
-          `Aakhri Over, ${firstName}!`,
+          `Last chance, ${firstName}!`,
           `30 mins bache hain. Kahin koi star player bench pe toh nahi reh gaya? Lock hone se pehle dekh lo!`
         );
       }));
