@@ -568,40 +568,45 @@ function setupListeners() {
     const searchInput = document.getElementById("playerSearch");
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
-    // 5. Save Team Logic
+    // 5. NEW & SECURE Save Team Logic (Step 1 Fix)
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
         render(); 
 
-        const { data: { user } } = await supabase.auth.getUser();
-        const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-        const boosterToggled = document.getElementById("boosterToggle")?.checked || false;
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
+            const boosterToggled = document.getElementById("boosterToggle")?.checked || false;
+            
+            // Collect all 11 player IDs into a simple list
+            const playerIds = state.selectedPlayers.map(p => p.id);
 
-        const { data: team, error } = await supabase.from("user_fantasy_teams").upsert({
-            user_id: user.id, 
-            tournament_id: TOURNAMENT_ID,
-            captain_id: state.captainId, 
-            vice_captain_id: state.viceCaptainId,
-            total_credits: totalCredits,
-            use_booster: boosterToggled 
-        }, { onConflict: 'user_id, tournament_id' }).select().single();
+            // CALL THE RPC: This is the atomic "all-or-nothing" save
+            const { error } = await supabase.rpc('save_fantasy_team', {
+                p_user_id: user.id,
+                p_tournament_id: TOURNAMENT_ID,
+                p_captain_id: state.captainId,
+                p_vice_captain_id: state.viceCaptainId,
+                p_total_credits: totalCredits,
+                p_use_booster: boosterToggled,
+                p_player_ids: playerIds
+            });
 
-        if(!error && team) {
-            await supabase.from("user_fantasy_team_players").delete().eq("user_fantasy_team_id", team.id);
-            if(state.selectedPlayers.length > 0) {
-                await supabase.from("user_fantasy_team_players").insert(
-                    state.selectedPlayers.map(p => ({ user_fantasy_team_id: team.id, player_id: p.id }))
-                );
-            }
+            if (error) throw error;
+
+            // Success!
             showSuccessModal();
-        } else {
-            console.error("Save error:", error);
-        }
-        state.saving = false;
-        render();
-    };
 
+        } catch (err) {
+            console.error("Save error:", err.message);
+            alert("Critical Error: Your team could not be saved. Please check your internet and try again.");
+        } finally {
+            state.saving = false;
+            render();
+        }
+    };
+    
     // 6. Booster Confirmation Logic
     const boosterToggle = document.getElementById("boosterToggle");
     if (boosterToggle) {
