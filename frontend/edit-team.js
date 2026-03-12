@@ -243,6 +243,7 @@ function render() {
     const currentLimit = isKnockoutPhase ? KNOCKOUT_SUB_LIMIT : LEAGUE_SUB_LIMIT;
 
     const count = state.selectedPlayers.length;
+    const overseasCount = state.selectedPlayers.filter(p => p.category === "overseas").length;
     let subsUsedInDraft = 0;
 
     if (isResetMatch) {
@@ -341,7 +342,7 @@ renderList("playerPoolList", filteredPlayers, false);
     // 7. SAVE BUTTON VALIDATION
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles;
+    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles && overseasCount <= 4;
 
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
@@ -394,11 +395,15 @@ function renderList(containerId, sourceList, isMyXi) {
             const forceMandatory = slotsLeft <= neededSlots;
             const thisRoleNeeded = neededRoles[p.role] > 0;
 
-            if (currentCount >= 11 || tooExpensive || (forceMandatory && !thisRoleNeeded)) {
-                isDisabled = true;
-                fadeClass = "player-faded"; 
-            }
-        }
+            // NEW LOGIC HERE:
+    const isOverseas = p.category === "overseas";
+    const overseasLimitReached = overseasCount >= 4;
+
+    if (currentCount >= 11 || tooExpensive || (forceMandatory && !thisRoleNeeded) || (isOverseas && overseasLimitReached)) {
+        isDisabled = true;
+        fadeClass = "player-faded"; 
+    }
+}
 
         const photoUrl = p.photo_url 
             ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
@@ -606,7 +611,7 @@ function setupListeners() {
             render();
         }
     };
-    
+
     // 6. Booster Confirmation Logic
     const boosterToggle = document.getElementById("boosterToggle");
     if (boosterToggle) {
