@@ -260,6 +260,7 @@ function render() {
 
     // 3. UI LABELS
     document.getElementById("playerCountLabel").innerText = count;
+    document.getElementById("overseasCountLabel").innerText = `${overseasCount}/4`;
     document.getElementById("creditCount").innerText = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0).toFixed(1);
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
     
@@ -360,10 +361,16 @@ renderList("playerPoolList", filteredPlayers, false);
 /* =========================
    LIST RENDERER
 ========================= */
+/* =========================
+   LIST RENDERER (Updated)
+========================= */
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
+    // --- NEW: Calculate overseas count specifically for this list ---
+    const overseasCount = state.selectedPlayers.filter(p => p.category === "overseas").length;
+
     const totalCreditsUsed = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const remainingCredits = 100 - totalCreditsUsed;
     const currentCount = state.selectedPlayers.length;
@@ -375,6 +382,7 @@ function renderList(containerId, sourceList, isMyXi) {
         AR: state.selectedPlayers.filter(p => p.role === "AR").length,
         BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
     };
+    
     const minRequired = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
     let neededSlots = 0;
     const neededRoles = {};
@@ -395,15 +403,16 @@ function renderList(containerId, sourceList, isMyXi) {
             const forceMandatory = slotsLeft <= neededSlots;
             const thisRoleNeeded = neededRoles[p.role] > 0;
 
-            // NEW LOGIC HERE:
-    const isOverseas = p.category === "overseas";
-    const overseasLimitReached = overseasCount >= 4;
+            // --- THE PLUG-IN LOGIC ---
+            const isOverseas = p.category === "overseas";
+            const overseasLimitReached = overseasCount >= 4;
 
-    if (currentCount >= 11 || tooExpensive || (forceMandatory && !thisRoleNeeded) || (isOverseas && overseasLimitReached)) {
-        isDisabled = true;
-        fadeClass = "player-faded"; 
-    }
-}
+            // If team is full OR player is too expensive OR role isn't needed OR overseas limit hit
+            if (currentCount >= 11 || tooExpensive || (forceMandatory && !thisRoleNeeded) || (isOverseas && overseasLimitReached)) {
+                isDisabled = true;
+                fadeClass = "player-faded"; 
+            }
+        }
 
         const photoUrl = p.photo_url 
             ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
@@ -419,9 +428,7 @@ function renderList(containerId, sourceList, isMyXi) {
                 ${isDisabled ? 'disabled' : ''} 
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
 
-                const categoryIcon =
-    p.category === "overseas" ? "✈️" :
-    p.category === "uncapped" ? "💎" : "";
+        const categoryIcon = p.category === "overseas" ? "✈️" : p.category === "uncapped" ? "💎" : "";
         
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
@@ -436,7 +443,6 @@ function renderList(containerId, sourceList, isMyXi) {
         </div>`;
     }).join('');
 }
-
 /* =========================
    ACTIONS & FILTERS
 ========================= */
