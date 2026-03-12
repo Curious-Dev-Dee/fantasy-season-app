@@ -118,10 +118,7 @@ async function startDashboard(userId) {
     } catch (err) {
         console.error("Dashboard data load error:", err);
         revealApp(true); // Call it with true to show the error UI
-    } finally {
-        // Just call the function here! 
-        revealApp(); 
-    }
+    } 
 }
 
 /* =========================
