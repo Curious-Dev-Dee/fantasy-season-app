@@ -30,6 +30,31 @@ let countdownInterval;
 let currentUserId = null;
 let existingProfile = null; 
 
+
+
+/* =========================
+   APPLICATION BOOTSTRAP
+========================= */
+async function initApp() {
+    // 1. Instant Check: Is the user already logged in? (e.g. on refresh)
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session?.user) {
+        currentUserId = session.user.id;
+        startDashboard(currentUserId);
+    } else {
+        // 2. Event Check: If no session yet, wait for the guard to verify them
+        window.addEventListener('auth-verified', (e) => {
+            if (currentUserId) return; 
+            currentUserId = e.detail.user.id;
+            startDashboard(currentUserId);
+        }, { once: true });
+    }
+}
+
+// Start the engine
+initApp();
+
 /* =========================
    INIT & DASHBOARD START
 ========================= */
@@ -45,34 +70,30 @@ let existingProfile = null;
    PAGE LOAD TRANSITION
 ========================= */
 
-// Declare it once at the top
-function revealApp() {
-    if (document.body.classList.contains('loaded')) return; // Prevent double trigger
-    
-    document.body.classList.remove('loading-state');
-    document.body.classList.add('loaded');
-    
-    // Physically hide the overlay after the CSS fade finishes
-    setTimeout(() => {
-        const overlay = document.getElementById("loadingOverlay");
-        if (overlay) overlay.style.display = 'none';
-    }, 600); 
+function revealApp(hasError = false) {
+    if (document.body.classList.contains('loaded') && !hasError) return; 
+    
+    if (hasError) {
+        // Change the loading text to show an error and a retry button
+        const loadingText = document.querySelector(".loading-text");
+        if (loadingText) {
+            loadingText.style.color = "#ef4444"; // Red for error
+            loadingText.innerHTML = `FIELD UNAVAILABLE <br> 
+                <button onclick="location.reload()" style="background:#9AE000; color:#000; border:none; padding:8px 15px; border-radius:8px; margin-top:10px; font-weight:800; cursor:pointer;">RETRY</button>`;
+        }
+        return;
+    }
+
+    document.body.classList.remove('loading-state');
+    document.body.classList.add('loaded');
+    
+    setTimeout(() => {
+        const overlay = document.getElementById("loadingOverlay");
+        if (overlay) overlay.style.display = 'none';
+    }, 600); 
 }
 
-// SAFETY: Force reveal after 6 seconds
-setTimeout(() => {
-    if (document.body.classList.contains('loading-state')) {
-        console.warn("Safety trigger: Revealing app content...");
-        revealApp();
-    }
-}, 6000);
 
-
-window.addEventListener('auth-verified', (e) => {
-    if (currentUserId) return; 
-    currentUserId = e.detail.user.id;
-    startDashboard(currentUserId);
-});
 
 /* =========================
    DASHBOARD INITIALIZATION
@@ -95,8 +116,9 @@ async function startDashboard(userId) {
             fetchPrivateLeagueData(userId)
         ]);
     } catch (err) {
-        console.error("Dashboard data load error:", err);
-    } finally {
+        console.error("Dashboard data load error:", err);
+        revealApp(true); // Call it with true to show the error UI
+    } finally {
         // Just call the function here! 
         revealApp(); 
     }
