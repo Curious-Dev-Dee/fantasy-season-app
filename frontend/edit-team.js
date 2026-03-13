@@ -13,15 +13,13 @@ let state = {
     allPlayers: [], 
     selectedPlayers: [], 
     lockedPlayerIds: [],    
-    baseSubsRemaining: 150, // Default for League
-    // ... rest of your state stays the same
-    //     matches: [], 
+    baseSubsRemaining: 150, 
     captainId: null, 
     viceCaptainId: null, 
-    s8BoosterUsed: false, 
-    boosterActiveInDraft: false, 
+    activeBooster: "NONE", // The new String-based booster state
+    usedBoosters: [],      // Array of used boosters
     currentMatchNumber: 0,
-    lastLockedMatchNumber: 0, // Tracked to handle abandoned matches
+    lastLockedMatchNumber: 0, 
     filters: { 
         search: "", 
         role: "ALL", 
@@ -46,87 +44,66 @@ async function init(user) {
     if (!user) return;
     
     try {
+        // 1. Fetch upcoming matches to identify the active match
+        const { data: matches } = await supabase.from("matches")
+            .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+            .eq("tournament_id", TOURNAMENT_ID)
+            .eq("status", "upcoming") 
+            .gt("actual_start_time", new Date().toISOString())
+            .order("actual_start_time", { ascending: true })
+            .limit(5);
 
-    // 1. Fetch upcoming matches to identify the active match
-    const { data: matches } = await supabase.from("matches")
-        .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-        .eq("tournament_id", TOURNAMENT_ID)
-        .eq("status", "upcoming") 
-        .gt("actual_start_time", new Date().toISOString())
-        .order("actual_start_time", { ascending: true })
-        .limit(5);
+        state.matches = matches || [];
+        if (state.matches.length === 0) {
+            console.warn("No upcoming matches found.");
+            return;
+        }
 
-    state.matches = matches || [];
-    if (state.matches.length === 0) {
-        console.warn("No upcoming matches found.");
-        return;
-    }
+        const currentMatchId = state.matches[0].id;
+        state.currentMatchNumber = state.matches[0].match_number || 0;
 
-    const currentMatchId = state.matches[0].id;
-    state.currentMatchNumber = state.matches[0].match_number || 0;
+        // 2. Fetch User Data & History in Parallel
+        const [
+            { data: players },
+            { data: dashData },      // For subs_remaining
+            { data: boosterData },   // For used_boosters
+            { data: lastLock },
+            { data: currentTeam }
+        ] = await Promise.all([
+            supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", TOURNAMENT_ID),
+            supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
+            supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
+            supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).neq("match_id", currentMatchId).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
+        ]);
 
-    // 2. Fetch User Data & History in Parallel
-    const [
-        { data: players },
-        { data: dashboardData }, 
-        { data: lastLock },
-        { data: currentTeam }
-    ] = await Promise.all([
-        supabase
-    .from("player_pool_view")
-    .select("*")
-    .eq("is_active", true)
-    .eq("tournament_id", TOURNAMENT_ID),
+        state.allPlayers = players || [];
+        state.baseSubsRemaining = dashData?.subs_remaining ?? 150;
+        state.usedBoosters = boosterData?.used_boosters ?? []; 
+        state.activeBooster = currentTeam?.active_booster ?? "NONE"; 
 
-        supabase.from("home_dashboard_view").select("subs_remaining, s8_booster_used")
-            .eq("user_id", user.id).maybeSingle(),
+        state.lastLockedMatchNumber = lastLock?.matches?.match_number || 0;
+
+        if (lastLock?.user_match_team_players) {
+            state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
+        }
         
-        // Fetch last lock AND its match number to handle Stage Transitions
-        supabase.from("user_match_teams").select(`
-            id, 
-            matches!inner(match_number), 
-            user_match_team_players(player_id)
-        `)
-        .eq("user_id", user.id)
-        .neq("match_id", currentMatchId) 
-        .order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+        if (currentTeam) {
+            state.captainId = currentTeam.captain_id;
+            state.viceCaptainId = currentTeam.vice_captain_id;
+            const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
+            state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
+        }
 
-        supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)")
-            .eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-    ]);
+        updateHeaderMatch(state.matches[0]);
+        initFilters();
+        render();
+        setupListeners();
 
-    state.allPlayers = players || [];
-    state.baseSubsRemaining = dashboardData?.subs_remaining ?? 150;
-    state.s8BoosterUsed = dashboardData?.s8_booster_used ?? false;
-    state.boosterActiveInDraft = currentTeam?.use_booster ?? false;
-
-    // Store the last match number locked to detect if we skipped an abandoned match
-    state.lastLockedMatchNumber = lastLock?.matches?.match_number || 0;
-
-    if (lastLock?.user_match_team_players) {
-        state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
-    }
-    
-    if (currentTeam) {
-        state.captainId = currentTeam.captain_id;
-        state.viceCaptainId = currentTeam.vice_captain_id;
-        const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
-        state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
-    }
-
-    updateHeaderMatch(state.matches[0]);
-    initFilters();
-    render();
-    setupListeners();
-
-     } catch (err) {
+    } catch (err) {
         console.error("Init failed:", err);
-    }
-
-finally {
-
+    } finally {
         document.body.classList.remove("loading-state");
-
     }
 }
 
@@ -153,9 +130,7 @@ function updateHeaderMatch(match) {
             return;
         }
 
-        // --- NEW COLOR LOGIC ---
         const totalMinutes = Math.floor(diff / (1000 * 60));
-        
         if (totalMinutes < 10) {
             timerEl.style.color = "#ef4444"; // Red
         } else if (totalMinutes < 30) {
@@ -172,22 +147,16 @@ function updateHeaderMatch(match) {
     startTimer();
     countdownInterval = setInterval(startTimer, 1000);
 }
+
 /* =========================
    RENDER LOGIC
 ========================= */
 function render() {
-
-    // Identify next match teams for priority sorting
     const nextMatch = state.matches?.[0];
     const teamA = nextMatch?.team_a_id;
     const teamB = nextMatch?.team_b_id;
 
-    const ROLE_PRIORITY = {
-        WK: 1,
-        BAT: 2,
-        AR: 3,
-        BOWL: 4
-    };
+    const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 
     // 1. APPLY FILTERS
     const filteredPlayers = state.allPlayers
@@ -196,77 +165,43 @@ function render() {
         const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
         const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
         const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
-        
         const matchesMatch = state.filters.matches.length === 0 || state.filters.matches.some(mId => {
             const m = state.matches.find(match => match.id === mId);
             if (!m) return true; 
             return (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id);
         });
-
         return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesMatch;
     })
-
-    // 2. SORT PLAYERS (Dream11-style priority)
     .sort((a, b) => {
-
-        // Team priority (next match teams first)
-        const aTeamPriority =
-            a.real_team_id === teamA ? 1 :
-            a.real_team_id === teamB ? 2 : 3;
-
-        const bTeamPriority =
-            b.real_team_id === teamA ? 1 :
-            b.real_team_id === teamB ? 2 : 3;
-
-        if (aTeamPriority !== bTeamPriority) {
-            return aTeamPriority - bTeamPriority;
-        }
-
-        // Role priority (WK → BAT → AR → BOWL)
-        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) {
-            return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
-        }
-
-        // Credit priority (highest first)
+        const aTeamPriority = a.real_team_id === teamA ? 1 : a.real_team_id === teamB ? 2 : 3;
+        const bTeamPriority = b.real_team_id === teamA ? 1 : b.real_team_id === teamB ? 2 : 3;
+        if (aTeamPriority !== bTeamPriority) return aTeamPriority - bTeamPriority;
+        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
         return Number(b.credit) - Number(a.credit);
     });
     
-    // 2. DYNAMIC STAGE RESET LOGIC (IPL 2026)
+    // 2. DYNAMIC STAGE RESET LOGIC & SUBS
     const matchNum = state.currentMatchNumber;
-    const lastMatch = state.lastLockedMatchNumber;
-
-    // RULE: Match 1 and Match 71 are "Unlimited" (Free)
     const isResetMatch = (matchNum === 1 || matchNum === PLAYOFF_START_MATCH);
-    
-    // RULE: Determine which "Pool" we are in
-    const isKnockoutPhase = matchNum >= KNOCKOUT_PHASE_MATCH;
-    const currentLimit = isKnockoutPhase ? KNOCKOUT_SUB_LIMIT : LEAGUE_SUB_LIMIT;
-
     const count = state.selectedPlayers.length;
     const overseasCount = state.selectedPlayers.filter(p => p.category === "overseas").length;
+    
     let subsUsedInDraft = 0;
 
     if (isResetMatch) {
         subsUsedInDraft = 0; 
     } else if (state.lockedPlayerIds.length > 0) {
-        // 1. Identify which players are NEW compared to the last match
         const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
-        
-        // 2. See if any of those new players are "Uncapped"
         const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
-
-        // 3. Start with the raw count of new players
         let rawSubCount = newPlayers.length;
-
-        // 4. Apply the rule: If there's at least one uncapped player, subtract 1 from the cost
-        if (hasUncappedDiscount && rawSubCount > 0) {
-            subsUsedInDraft = rawSubCount - 1;
-        } else {
-            subsUsedInDraft = rawSubCount;
-        }
+        subsUsedInDraft = (hasUncappedDiscount && rawSubCount > 0) ? rawSubCount - 1 : rawSubCount;
     }
-    // Math: If it's a reset match, they have 'Unlimited'. 
-    // Otherwise, it's (Limit - Total Used in DB - New Changes in Draft)
+
+    // BOOSTER OVERRIDE: If Free 11 is selected, subs cost 0
+    if (state.activeBooster === 'FREE_11') {
+        subsUsedInDraft = 0; 
+    }
+
     const liveSubsRemaining = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsedInDraft);
     const isOverLimit = !isResetMatch && (liveSubsRemaining < 0);
 
@@ -280,9 +215,7 @@ function render() {
     if (subsEl) {
         subsEl.innerText = liveSubsRemaining;
         subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
-        
-        // Visual polish: if it's "FREE", make it glow
-        if (liveSubsRemaining === "FREE") {
+        if (liveSubsRemaining === "FREE" || state.activeBooster === 'FREE_11') {
             subsEl.parentElement.style.borderColor = "var(--primary-green)";
             subsEl.parentElement.style.boxShadow = "0 0 10px rgba(154, 224, 0, 0.3)";
         } else {
@@ -290,38 +223,48 @@ function render() {
         }
     }
 
-    // Inside render() function...
-const boosterContainer = document.getElementById("boosterContainer");
-const boosterToggle = document.getElementById("boosterToggle");
-const boosterText = document.querySelector(".booster-text");
+    // 4. BOOSTER UI
+    const boosterContainer = document.getElementById("boosterContainer");
+    const isBoosterWindow = matchNum >= 11 && matchNum <= LEAGUE_STAGE_END;
 
-// IPL Rule: Booster is available for all League Matches (1-70)
-const isBoosterWindow = matchNum >= 11 && matchNum <= LEAGUE_STAGE_END;
+    if (boosterContainer) {
+        if (isBoosterWindow) {
+            boosterContainer.classList.remove("hidden");
+            
+            const boosterNames = {
+                TOTAL_2X: "Total 2X Points",
+                CAPPED_2X: "Indian Capped 2X",
+                UNCAPPED_2X: "Uncapped 2X",
+                OVERSEAS_2X: "Overseas 2X",
+                FREE_11: "Free 11 (Unlimited Subs)",
+                CAPTAIN_3X: "3X Captain"
+            };
 
-if (boosterContainer) {
-    if (isBoosterWindow) {
-        boosterContainer.classList.remove("hidden");
-        // ... (rest of your boosterToggle logic is perfect, leave it!)
-        
-        if (state.s8BoosterUsed) {
-            // If used in a PREVIOUS match
-            boosterToggle.checked = true;
-            boosterToggle.disabled = true;
-            boosterText.innerText = "🚀 BOOSTER USED";
-            boosterContainer.style.opacity = "0.6";
-            boosterContainer.style.filter = "grayscale(1)";
+            let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- Select Booster --</option>`;
+            
+            Object.keys(boosterNames).forEach(key => {
+                const isUsed = state.usedBoosters.includes(key);
+                const isCurrent = state.activeBooster === key;
+                optionsHtml += `<option value="${key}" ${isUsed ? 'disabled' : ''} ${isCurrent ? 'selected' : ''}>
+                    ${isUsed ? '🚫 ' : ''}${boosterNames[key]}
+                </option>`;
+            });
+
+            boosterContainer.innerHTML = `
+                <div class="booster-header">
+                    <span class="booster-icon">🚀</span>
+                    <select id="boosterSelect" class="booster-dropdown" onchange="handleBoosterChange(this.value)">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="booster-hint" style="color: var(--primary-green); font-size: 11px; margin-top: 5px;">
+                    ${state.activeBooster !== 'NONE' ? '✅ Booster Selected for this Match' : 'Pick a strategy for this match!'}
+                </div>
+            `;
         } else {
-            // Available to use in this match
-            boosterToggle.checked = state.boosterActiveInDraft;
-            boosterToggle.disabled = false;
-            boosterText.innerText = state.boosterActiveInDraft ? "🚀 BOOSTER APPLIED" : "🚀 USE 2X MATCH BOOSTER";
-            boosterContainer.style.opacity = "1";
-            boosterContainer.style.filter = "none";
+            boosterContainer.classList.add("hidden");
         }
-    } else {
-        boosterContainer.classList.add("hidden");
     }
-}
 
     // 5. ROLE COUNTS
     const roles = {
@@ -336,21 +279,13 @@ if (boosterContainer) {
     });
 
     // 6. RENDER LISTS
-const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
+    const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
+        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
+        return Number(b.credit) - Number(a.credit);
+    });
 
-    // Sort by role first
-    if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) {
-        return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
-    }
-
-    // Then by credit (highest first)
-    return Number(b.credit) - Number(a.credit);
-
-});
-
-renderList("myXIList", sortedMyXI, true);
-
-renderList("playerPoolList", filteredPlayers, false); 
+    renderList("myXIList", sortedMyXI, true);
+    renderList("playerPoolList", filteredPlayers, false); 
 
     // 7. SAVE BUTTON VALIDATION
     const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
@@ -373,16 +308,11 @@ renderList("playerPoolList", filteredPlayers, false);
 /* =========================
    LIST RENDERER
 ========================= */
-/* =========================
-   LIST RENDERER (Updated)
-========================= */
 function renderList(containerId, sourceList, isMyXi) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    // --- NEW: Calculate overseas count specifically for this list ---
     const overseasCount = state.selectedPlayers.filter(p => p.category === "overseas").length;
-
     const totalCreditsUsed = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
     const remainingCredits = 100 - totalCreditsUsed;
     const currentCount = state.selectedPlayers.length;
@@ -414,12 +344,9 @@ function renderList(containerId, sourceList, isMyXi) {
             const tooExpensive = Number(p.credit) > remainingCredits;
             const forceMandatory = slotsLeft <= neededSlots;
             const thisRoleNeeded = neededRoles[p.role] > 0;
-
-            // --- THE PLUG-IN LOGIC ---
             const isOverseas = p.category === "overseas";
             const overseasLimitReached = overseasCount >= 4;
 
-            // If team is full OR player is too expensive OR role isn't needed OR overseas limit hit
             if (currentCount >= 11 || tooExpensive || (forceMandatory && !thisRoleNeeded) || (isOverseas && overseasLimitReached)) {
                 isDisabled = true;
                 fadeClass = "player-faded"; 
@@ -455,6 +382,7 @@ function renderList(containerId, sourceList, isMyXi) {
         </div>`;
     }).join('');
 }
+
 /* =========================
    ACTIONS & FILTERS
 ========================= */
@@ -469,6 +397,32 @@ window.togglePlayer = (id) => {
         if (p) state.selectedPlayers.push(p);
     }
     render();
+};
+
+window.handleBoosterChange = (val) => {
+    if (val === "NONE") {
+        state.activeBooster = "NONE";
+        render();
+        return;
+    }
+
+    const boosterNames = {
+        TOTAL_2X: "Total 2X Points",
+        CAPPED_2X: "Indian Capped 2X",
+        UNCAPPED_2X: "Uncapped 2X",
+        OVERSEAS_2X: "Overseas 2X",
+        FREE_11: "Free 11 (Unlimited Subs)",
+        CAPTAIN_3X: "3X Captain"
+    };
+
+    const confirmMsg = `Apply ${boosterNames[val]}?\n\n⚠️ IMPORTANT: Each booster can only be used ONCE per season. Once the match locks, you cannot use this booster again!`;
+
+    if (confirm(confirmMsg)) {
+        state.activeBooster = val;
+        render(); // Recalculates subs if FREE_11 is picked
+    } else {
+        render(); // Reset dropdown visually if they hit cancel
+    }
 };
 
 window.setRole = (id, role) => {
@@ -532,7 +486,7 @@ window.selectAllFilters = (key, menuId) => {
 };
 
 function setupListeners() {
-    // 1. View Toggle Logic (Fixes "MY XI" button)
+    // 1. View Toggle Logic
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
@@ -542,13 +496,12 @@ function setupListeners() {
             const targetView = document.getElementById(`${btn.dataset.mode}-view`);
             if (targetView) targetView.classList.add("active");
 
-            // Hide search/filters when in 'My XI'
             const filterWrap = document.querySelector(".search-filter-wrapper");
             if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
 
-    // 2. Role Filter Logic (Slider)
+    // 2. Role Filter Logic
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -558,19 +511,15 @@ function setupListeners() {
         };
     });
 
-    // 3. Premium Filter Popup Logic (Match, Team, Credit)
+    // 3. Premium Filter Popup Logic
     const backdrop = document.getElementById("filterBackdrop");
-    
     ['match', 'team', 'credit'].forEach(type => {
         const btn = document.getElementById(`${type}Toggle`);
         const menu = document.getElementById(`${type}Menu`);
-        
         if(btn && menu) {
             btn.onclick = (e) => { 
                 e.stopPropagation(); 
-                // Close any other open menus
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-                // Open selected menu and backdrop
                 menu.classList.add('show');
                 if (backdrop) backdrop.classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; 
@@ -578,7 +527,6 @@ function setupListeners() {
         }
     });
 
-    // Handle backdrop click to close
     if (backdrop) {
         backdrop.onclick = () => {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
@@ -591,7 +539,7 @@ function setupListeners() {
     const searchInput = document.getElementById("playerSearch");
     if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
 
-    // 5. NEW & SECURE Save Team Logic (Step 1 Fix)
+    // 5. NEW & SECURE Save Team Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
@@ -600,25 +548,19 @@ function setupListeners() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-            const boosterToggled = document.getElementById("boosterToggle")?.checked || false;
-            
-            // Collect all 11 player IDs into a simple list
             const playerIds = state.selectedPlayers.map(p => p.id);
 
-            // CALL THE RPC: This is the atomic "all-or-nothing" save
             const { error } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
                 p_tournament_id: TOURNAMENT_ID,
                 p_captain_id: state.captainId,
                 p_vice_captain_id: state.viceCaptainId,
                 p_total_credits: totalCredits,
-                p_use_booster: boosterToggled,
+                p_active_booster: state.activeBooster, // Sending the String
                 p_player_ids: playerIds
             });
 
             if (error) throw error;
-
-            // Success!
             showSuccessModal();
 
         } catch (err) {
@@ -629,41 +571,29 @@ function setupListeners() {
             render();
         }
     };
-
-    // 6. Booster Confirmation Logic
-    const boosterToggle = document.getElementById("boosterToggle");
-    if (boosterToggle) {
-        boosterToggle.addEventListener('change', (e) => {
-            if (state.s8BoosterUsed) { e.preventDefault(); return; }
-            const willEnable = boosterToggle.checked;
-            if (confirm(willEnable ? "🚀 Use 2X Booster for this match?" : "Remove Booster?")) {
-                state.boosterActiveInDraft = willEnable;
-                render();
-            } else {
-                boosterToggle.checked = !willEnable;
-            }
-        });
-    }
 }
 
 function showSuccessModal() {
     const modal = document.createElement("div");
     modal.className = "success-modal-overlay";
 
-    // SENIOR LOGIC: Determine what feedback to show based on the IPL Stage
     const matchNum = state.currentMatchNumber;
     const isResetMatch = (matchNum === 1 || matchNum === 71);
     
-    // Calculate current draft usage
+    // Calculate current draft usage with discounts
     let subsUsedInDraft = 0;
     if (!isResetMatch && state.lockedPlayerIds.length > 0) {
         const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
         const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
-        
-        // Calculate discounted cost
         const rawCost = newPlayers.length;
         subsUsedInDraft = (hasUncappedDiscount && rawCost > 0) ? rawCost - 1 : rawCost;
     }
+    
+    // FORCE FREE 11 FOR MODAL DISPLAY
+    if (state.activeBooster === 'FREE_11') {
+        subsUsedInDraft = 0; 
+    }
+
     const remaining = isResetMatch ? "UNLIMITED" : (state.baseSubsRemaining - subsUsedInDraft);
 
     modal.innerHTML = `
@@ -686,12 +616,10 @@ function showSuccessModal() {
 
     document.body.appendChild(modal);
 
-    // Auto-redirect timer (4 seconds)
     const autoRedirect = setTimeout(() => { 
         if (document.body.contains(modal)) window.location.href = "home.html"; 
     }, 4000);
 
-    // Button Actions
     document.getElementById("btnChangeAgain").onclick = () => { 
         clearTimeout(autoRedirect); 
         modal.remove(); 
