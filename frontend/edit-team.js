@@ -405,13 +405,13 @@ window.handleBoosterChange = (val) => {
         return;
     }
 
-    const boosterNames = {
-        TOTAL_2X: "Total 2X Points",
-        CAPPED_2X: "Indian Capped 2X",
-        UNCAPPED_2X: "Uncapped 2X",
-        OVERSEAS_2X: "Overseas 2X",
+const boosterNames = {
+        TOTAL_2X: "Shaitan! 💀 (2X Total Points)",
+        CAPPED_2X: "Jay Hind! 🔱 (2X Indian Capped)",
+        UNCAPPED_2X: "Mirikaali! 🦈 (2X Uncapped)",
+        OVERSEAS_2X: "Angrej! (2X Overseas)",
         FREE_11: "Free 11 (Unlimited Subs)",
-        CAPTAIN_3X: "3X Captain"
+        CAPTAIN_3X: "Hero! (3X Captain)"
     };
 
     const confirmMsg = `Apply ${boosterNames[val]}?\n\n⚠️ IMPORTANT: Each booster can only be used ONCE per season. Once the match locks, you cannot use this booster again!`;

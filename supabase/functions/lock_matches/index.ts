@@ -58,7 +58,8 @@ async function lockSingleMatch(supabase: any, match: any) {
     return;
   }
 
-  const { data: teams, error: teamError } = await supabase
+  // DELETE the old select and PASTE this:
+const { data: teams, error: teamError } = await supabase
     .from("user_fantasy_teams")
     .select(`
       id,
@@ -66,9 +67,12 @@ async function lockSingleMatch(supabase: any, match: any) {
       captain_id,
       vice_captain_id,
       total_credits,
-      use_booster,
-      user_fantasy_team_players(player_id, players(category))`
-    )
+      active_booster, 
+      user_fantasy_team_players(
+        player_id, 
+        players(category)
+      )
+    `)
     .eq("tournament_id", match.tournament_id);
 
   if (teamError) {
@@ -82,6 +86,7 @@ async function lockSingleMatch(supabase: any, match: any) {
 }
 
 async function lockUserTeamForMatch(supabase: any, match: any, team: any) {
+  // 1. Safety Check: Don't lock twice
   const { data: existing } = await supabase
     .from("user_match_teams")
     .select("id")
@@ -91,71 +96,80 @@ async function lockUserTeamForMatch(supabase: any, match: any, team: any) {
 
   if (existing) return;
 
+  // 2. Fetch History to calculate subs
   const { data: lastSnapshot } = await supabase
     .from("user_match_teams")
-    .select(`
-      id,
-      match_id,
-      total_subs_used,
-      matches!inner(match_number)
-    `)
+    .select(`id, match_id, total_subs_used, matches!inner(match_number)`)
     .eq("user_id", team.user_id)
     .neq("match_id", match.id)
-    .order("locked_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
-// --- NEW SMART LOGIC START ---
-  
-  // 1. Keep player IDs and Categories together
+  // 3. Organize current players and their categories
   const currentPlayersInfo = (team.user_fantasy_team_players ?? []).map((p: any) => ({
     id: p.player_id,
     category: p.players?.category 
   }));
-
   const currentIds = currentPlayersInfo.map(p => p.id);
   const previousPlayers = lastSnapshot ? await getSnapshotPlayers(supabase, lastSnapshot.id) : [];
 
-  // 2. Identify the NEW players and check for an Uncapped one
-  const newPlayers = currentPlayersInfo.filter(p => !previousPlayers.includes(p.id));
-  const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
+  // 4. Calculate Sub Cost with "Free Uncapped" Rule
+  const newPlayers = currentPlayersInfo.filter((p: any) => !previousPlayers.includes(p.id));
+  const hasUncappedDiscount = newPlayers.some((p: any) => p.category === "uncapped");
   const rawChangeCount = newPlayers.length;
 
   let subsUsed = 0;
-  let totalSubsUsed = 0;
   const matchNum = match.match_number;
 
-  // 3. Apply the rules with the Discount Coupon
   if (matchNum === 1 || matchNum === PLAYOFF_START) {
-    subsUsed = 0;
-    totalSubsUsed = 0;
-  } 
-  else {
-    // Apply the "Free 1 Uncapped" rule here
+    subsUsed = 0; // Unlimited matches
+  } else {
+    // Apply the "Free 1 Uncapped per match" discount
     subsUsed = (hasUncappedDiscount && rawChangeCount > 0) ? rawChangeCount - 1 : rawChangeCount;
-
-    if (matchNum === KNOCKOUT_PHASE) {
-        totalSubsUsed = subsUsed; 
-    } else if (lastSnapshot) {
-        totalSubsUsed = (lastSnapshot.total_subs_used ?? 0) + subsUsed;
-    }
   }
 
-  // --- NEW SMART LOGIC END ---
-  
-  let boosterToApply = false;
-  if (matchNum >= BOOSTER_WINDOW_START && matchNum <= BOOSTER_WINDOW_END) {
-    const { data: boosterState } = await supabase
-      .from("user_tournament_points")
-      .select("s8_booster_used") 
-      .eq("user_id", team.user_id)
-      .eq("tournament_id", match.tournament_id)
-      .maybeSingle();
-    
-    const alreadyUsed = boosterState?.s8_booster_used ?? false;
-    boosterToApply = !!team.use_booster && !alreadyUsed;
+  // 5. BOOSTER LOGIC: Apply and "Burn"
+  let finalBoosterToApply = 'NONE';
+  if (matchNum >= BOOSTER_WINDOW_START && matchNum <= BOOSTER_WINDOW_END && team.active_booster !== 'NONE') {
+      
+      const { data: ptData } = await supabase
+        .from("user_tournament_points")
+        .select("used_boosters")
+        .eq("user_id", team.user_id)
+        .eq("tournament_id", match.tournament_id)
+        .maybeSingle();
+        
+      const currentUsedBoosters = ptData?.used_boosters || [];
+      
+      // Only apply if they haven't used this specific one before
+      if (!currentUsedBoosters.includes(team.active_booster)) {
+          finalBoosterToApply = team.active_booster;
+          
+          // RULE: FREE_11 makes this match's subs cost zero
+          if (finalBoosterToApply === 'FREE_11') {
+              subsUsed = 0;
+          }
+          
+          // Mark this booster as SPENT in the database
+          currentUsedBoosters.push(finalBoosterToApply);
+          await supabase
+            .from("user_tournament_points")
+            .update({ used_boosters: currentUsedBoosters })
+            .eq("user_id", team.user_id)
+            .eq("tournament_id", match.tournament_id);
+      }
   }
 
+  // 6. Final Sub Totals
+  let totalSubsUsed = 0;
+  if (matchNum === 1 || matchNum === PLAYOFF_START) {
+      totalSubsUsed = 0;
+  } else if (matchNum === KNOCKOUT_PHASE) {
+      totalSubsUsed = subsUsed; // Reset count for Match 72 pool
+  } else if (lastSnapshot) {
+      totalSubsUsed = (lastSnapshot.total_subs_used ?? 0) + subsUsed;
+  }
+
+  // 7. Save the Match Snapshot
   const { data: snapshot, error } = await supabase
     .from("user_match_teams")
     .insert({
@@ -167,30 +181,21 @@ async function lockUserTeamForMatch(supabase: any, match: any, team: any) {
       total_credits: team.total_credits,
       subs_used_for_match: subsUsed,
       total_subs_used: totalSubsUsed,
-      use_booster: boosterToApply,
+      active_booster: finalBoosterToApply, // NEW: Record the booster name
       locked_at: match.actual_start_time,
     })
-    .select()
-    .single();
+    .select().single();
 
   if (error) {
     console.error("Snapshot insert failed", error);
     return;
   }
 
-  if (boosterToApply) {
-    await supabase
-      .from("user_tournament_points")
-      .update({ s8_booster_used: true })
-      .eq("user_id", team.user_id)
-      .eq("tournament_id", match.tournament_id);
-  }
-
+  // 8. Save the players list for history
   const rows = currentIds.map((playerId: string) => ({
     user_match_team_id: snapshot.id,
     player_id: playerId,
   }));
-  
   await supabase.from("user_match_team_players").insert(rows);
 }
 
