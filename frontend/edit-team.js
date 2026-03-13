@@ -255,9 +255,16 @@ function renderPlayerLists(stats) {
             (p.team_short_code || "").toLowerCase().includes(s) ||
             (p.category || "").toLowerCase().includes(s);
 
-        const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
+        const matchesRole =
+state.filters.role === "ALL" || p.role === state.filters.role;
 
-        return matchesSearch && matchesRole;
+const matchesTeam =
+!state.filters.teams.length || state.filters.teams.includes(p.team_short_code);
+
+const matchesCredit =
+!state.filters.credits.length || state.filters.credits.includes(p.credit);
+
+return matchesSearch && matchesRole && matchesTeam && matchesCredit;
 
     })
         .sort((a, b) => {
@@ -488,21 +495,18 @@ window.setRole = (id, role) => {
 window.handleBoosterChange = (val) => {
 
     if (val === "NONE") {
-
         state.activeBooster = "NONE";
         render();
         return;
-
     }
 
-    if (confirm("Apply booster?")) {
-
-        state.activeBooster = val;
-
+    if (!confirm("Apply booster?")) {
+        render();
+        return;
     }
 
+    state.activeBooster = val;
     render();
-
 };
 
 
@@ -716,13 +720,17 @@ function updateHeaderMatch(match) {
 
         if (diff <= 0) {
 
-            timerEl.innerText = "LIVE";
+    clearInterval(countdownInterval);
 
-            clearInterval(countdownInterval);
+    state.matches.shift(); // remove finished match
 
-            return;
+    if (state.matches.length) {
+        updateHeaderMatch(state.matches[0]);
+    }
 
-        }
+    return;
+
+}
 
         const h = Math.floor(diff / 3600000);
 
