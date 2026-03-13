@@ -657,12 +657,13 @@ function showSuccessModal() {
     // Calculate current draft usage
     let subsUsedInDraft = 0;
     if (!isResetMatch && state.lockedPlayerIds.length > 0) {
-// To this (Exactly the same logic we just used):
-    const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
-    const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
-    subsUsedInDraft = hasUncappedDiscount && newPlayers.length > 0 ? newPlayers.length - 1 : newPlayers.length;
+        const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
+        const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
+        
+        // Calculate discounted cost
+        const rawCost = newPlayers.length;
+        subsUsedInDraft = (hasUncappedDiscount && rawCost > 0) ? rawCost - 1 : rawCost;
     }
-
     const remaining = isResetMatch ? "UNLIMITED" : (state.baseSubsRemaining - subsUsedInDraft);
 
     modal.innerHTML = `
