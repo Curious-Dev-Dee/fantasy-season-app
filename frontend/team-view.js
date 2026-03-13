@@ -69,6 +69,11 @@ function setSpinner(container) {
     container.replaceChildren(spinner);
 }
 
+function setTeamStatus(message = "") {
+    if (!teamStatus) return;
+    teamStatus.textContent = message;
+}
+
 function getPhotoUrl(bucketName, path) {
     if (!path) {
         return "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png";
@@ -455,7 +460,7 @@ async function loadCurrentXI() {
     if (isScoutMode) return;
 
     clearInterval(countdownInterval);
-    teamStatus.textContent = "";
+    setTeamStatus("");
     if (tabUpcoming.dataset.startTime) startCountdown(tabUpcoming.dataset.startTime);
 
     const { data: userTeam } = await supabase
@@ -503,7 +508,7 @@ async function loadLastLockedXI() {
 
     if (!snapshot) {
         setEmptyState(teamContainer, "Not Playing.");
-        teamStatus.textContent = "";
+        setTeamStatus("");
         updateBoosterIndicator(boosterIndicator, "NONE", "");
         return;
     }
@@ -537,7 +542,7 @@ async function loadLastLockedXI() {
         getAppliedBooster(snapshot)
     );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
-    teamStatus.textContent = `Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
+    setTeamStatus(`Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`);
 }
 
 /* =========================

@@ -64,6 +64,17 @@ body.loaded .team-view-app {
 
 /* --- 3. PLAYER FIELD & CIRCLES --- */
 .team-field { flex: 1; padding: 10px; }
+.team-status {
+    min-height: 24px;
+    padding: 0 18px 18px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 .role-section { margin-bottom: 25px; }
 .role-title { 
     text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase;
