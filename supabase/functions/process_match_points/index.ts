@@ -6,6 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const DEFAULT_ADMIN_EMAILS = ["satyara9jansahoo@gmail.com"];
+
+function normalizeName(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function getAllowedAdminEmails() {
+  const raw = Deno.env.get("PROCESS_MATCH_ADMIN_EMAILS")
+    ?? Deno.env.get("ADMIN_EMAILS")
+    ?? DEFAULT_ADMIN_EMAILS.join(",");
+
+  return raw
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -14,6 +31,32 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const authHeader = req.headers.get("Authorization");
+    const jwt = authHeader?.replace(/^Bearer\s+/i, "").trim();
+    if (!jwt) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
+    }
+
+    const { data: authData, error: authError } = await supabase.auth.getUser(jwt);
+    if (authError || !authData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
+    }
+
+    const callerEmail = (authData.user.email ?? "").trim().toLowerCase();
+    const allowedAdminEmails = getAllowedAdminEmails();
+    if (!allowedAdminEmails.includes(callerEmail)) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      });
+    }
 
     const body = await req.json();
     const { 
@@ -25,6 +68,7 @@ serve(async (req) => {
     } = body;
 
     if (!match_id) throw new Error("match_id is missing");
+    if (!Array.isArray(scoreboard)) throw new Error("scoreboard must be an array");
     const isAbandoned = winner_id === "abandoned";
     const normalizedWinnerId = isAbandoned ? null : winner_id;
     const normalizedPomId = isAbandoned ? null : pom_id;
@@ -48,15 +92,32 @@ serve(async (req) => {
       .eq('is_active', true);
 
     if (pError) throw pError;
-    
-    const nameToIdMap = Object.fromEntries(
-      dbPlayers.map(p => [p.name.trim().toLowerCase(), p.id])
-    );
+
+    const duplicateNames = new Set<string>();
+    const nameToIdMap = new Map<string, string>();
+    dbPlayers.forEach((player) => {
+      const normalized = normalizeName(player.name);
+      if (nameToIdMap.has(normalized)) duplicateNames.add(player.name);
+      nameToIdMap.set(normalized, player.id);
+    });
+
+    if (duplicateNames.size > 0) {
+      throw new Error(`Ambiguous active player names in database: ${Array.from(duplicateNames).sort().join(", ")}`);
+    }
+
+    const missingPlayerNames: string[] = [];
 
     const statsToUpsert = scoreboard.map((p: any) => {
-      const playerNameClean = p.player_name.trim().toLowerCase();
-      const playerId = nameToIdMap[playerNameClean];
-      if (!playerId) return null;
+      if (typeof p?.player_name !== "string" || !normalizeName(p.player_name)) {
+        throw new Error("Every scoreboard row must include player_name");
+      }
+
+      const playerNameClean = normalizeName(p.player_name);
+      const playerId = nameToIdMap.get(playerNameClean);
+      if (!playerId) {
+        missingPlayerNames.push(p.player_name.trim());
+        return null;
+      }
 
       const runs = Number(p.runs || 0);
       const balls = Number(p.balls || 0);
@@ -154,6 +215,15 @@ serve(async (req) => {
       };
     }).filter(Boolean);
 
+    if (missingPlayerNames.length > 0) {
+      const uniqueMissingNames = [...new Set(missingPlayerNames)];
+      throw new Error(`Unknown player names in scoreboard: ${uniqueMissingNames.join(", ")}`);
+    }
+
+    if (!isAbandoned && statsToUpsert.length === 0) {
+      throw new Error("Scoreboard has no valid player rows");
+    }
+
     if (!isAbandoned && statsToUpsert.length > 0) {
       const { error: upsertError } = await supabase
         .from('player_match_stats')
@@ -177,7 +247,7 @@ serve(async (req) => {
         status: isAbandoned ? 'abandoned' : 'completed'
     }).eq('id', match_id);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, processed_rows: statsToUpsert.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
