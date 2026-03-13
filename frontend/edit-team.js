@@ -249,10 +249,22 @@ function render() {
     if (isResetMatch) {
         subsUsedInDraft = 0; 
     } else if (state.lockedPlayerIds.length > 0) {
-        // Compare current selection to the last LOCKED team
-        subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
-    }
+        // 1. Identify which players are NEW compared to the last match
+        const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
+        
+        // 2. See if any of those new players are "Uncapped"
+        const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
 
+        // 3. Start with the raw count of new players
+        let rawSubCount = newPlayers.length;
+
+        // 4. Apply the rule: If there's at least one uncapped player, subtract 1 from the cost
+        if (hasUncappedDiscount && rawSubCount > 0) {
+            subsUsedInDraft = rawSubCount - 1;
+        } else {
+            subsUsedInDraft = rawSubCount;
+        }
+    }
     // Math: If it's a reset match, they have 'Unlimited'. 
     // Otherwise, it's (Limit - Total Used in DB - New Changes in Draft)
     const liveSubsRemaining = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsedInDraft);
@@ -645,7 +657,10 @@ function showSuccessModal() {
     // Calculate current draft usage
     let subsUsedInDraft = 0;
     if (!isResetMatch && state.lockedPlayerIds.length > 0) {
-        subsUsedInDraft = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id)).length;
+// To this (Exactly the same logic we just used):
+    const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
+    const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
+    subsUsedInDraft = hasUncappedDiscount && newPlayers.length > 0 ? newPlayers.length - 1 : newPlayers.length;
     }
 
     const remaining = isResetMatch ? "UNLIMITED" : (state.baseSubsRemaining - subsUsedInDraft);
