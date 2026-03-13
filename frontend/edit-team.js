@@ -159,19 +159,30 @@ function render() {
     const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 
     // 1. APPLY FILTERS
+    // 1. UNIVERSAL SEARCH & FILTERS
     const filteredPlayers = state.allPlayers
     .filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(state.filters.search.toLowerCase());
+        const searchTerm = state.filters.search.toLowerCase();
+        
+        // Check if search matches Name, Team Code, or Category
+        const matchesSearch = 
+            p.name.toLowerCase().includes(searchTerm) || 
+            getTeamCode(p).toLowerCase().includes(searchTerm) ||
+            p.category.toLowerCase().includes(searchTerm) ||
+            (searchTerm === 'capped' && p.category === 'none'); // Handle 'capped' search
+
         const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
         const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
         const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
+        
         const matchesMatch = state.filters.matches.length === 0 || state.filters.matches.some(mId => {
             const m = state.matches.find(match => match.id === mId);
-            if (!m) return true; 
-            return (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id);
+            return m && (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id);
         });
+
         return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesMatch;
     })
+    
     .sort((a, b) => {
         const aTeamPriority = a.real_team_id === teamA ? 1 : a.real_team_id === teamB ? 2 : 3;
         const bTeamPriority = b.real_team_id === teamA ? 1 : b.real_team_id === teamB ? 2 : 3;
@@ -209,6 +220,10 @@ function render() {
     document.getElementById("playerCountLabel").innerText = count;
     document.getElementById("overseasCountLabel").innerText = `${overseasCount}/4`;
     document.getElementById("creditCount").innerText = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0).toFixed(1);
+    
+    // Calculate how many boosters are left
+    const boostersLeft = 6 - state.usedBoosters.length;
+    document.getElementById("boosterUsedLabel").innerText = `${boostersLeft}/6`;
     document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
     
     const subsEl = document.getElementById("subsRemainingLabel");
@@ -395,13 +410,9 @@ function renderList(containerId, sourceList, isMyXi) {
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
 
         // FIXED: Using the badge variable correctly here
-        const categoryBadge = p.category === "overseas" 
-            ? `<span class="badge badge-os">OS</span>` 
-            : p.category === "uncapped" 
-            ? `<span class="badge badge-uc">UC</span>` 
-            : "";
-        
-        const lockIcon = isLocked ? '<span class="lock-pin">📌</span>' : '';
+       // Change the badge to Emojis as requested
+        const categoryIcon = p.category === "overseas" ? "✈️" : p.category === "uncapped" ? "💎" : "";
+        const lockIcon = isLocked ? '📌' : '';
                     
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
@@ -409,11 +420,12 @@ function renderList(containerId, sourceList, isMyXi) {
                 <img src="${photoUrl}" class="player-avatar" alt="${p.name}">
             </div>
             <div class="player-info">
-            <strong>${p.name} ${categoryBadge} ${lockIcon}</strong>
+            <strong>${p.name} <span class="player-category-icon">${categoryIcon} ${lockIcon}</span></strong>
                 <span>${p.role} • ${getTeamCode(p)} • ${p.credit} Cr</span>
             </div>
             ${controlsHtml}
         </div>`;
+        
     }).join('');
 }
 

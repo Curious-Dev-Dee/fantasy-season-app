@@ -707,3 +707,54 @@ body {
     70% { box-shadow: 0 0 0 15px rgba(154, 224, 0, 0); }
     100% { box-shadow: 0 0 0 0 rgba(154, 224, 0, 0); }
 }
+
+/* --- Dashboard Hierarchy --- */
+/* Hide summary in My XI, show in Change */
+#myxi-view .premium-progress { display: none; }
+
+.premium-progress {
+    padding: 15px 16px 10px;
+    background: linear-gradient(to bottom, #0b0f14, var(--bg-dark));
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-main);
+}
+
+/* --- Fixed Role Tabs --- */
+.role-tab {
+    padding: 0 10px;
+    gap: 6px !important; /* Space for the dot */
+}
+
+.role-tab::after {
+    position: static !important; /* Remove absolute positioning */
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 2px;
+}
+
+/* --- Premium Player Badges (Emojis) --- */
+.player-category-icon {
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+/* --- Search Bar Glow --- */
+#playerSearch:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 15px rgba(154, 224, 0, 0.15);
+}
