@@ -265,18 +265,33 @@ function render() {
         }
     }
 
-    // 5. ROLE COUNTS
-    const roles = {
-        WK: state.selectedPlayers.filter(p => p.role === "WK").length,
-        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
-        AR: state.selectedPlayers.filter(p => p.role === "AR").length,
-        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
+   // 5. ROLE VALIDATION & DOT LOGIC
+    const roleConfig = {
+        WK: { min: 1 },
+        BAT: { min: 3 },
+        AR: { min: 1 },
+        BOWL: { min: 3 }
     };
-    ["WK", "BAT", "AR", "BOWL"].forEach(r => {
-        const el = document.getElementById(`count-${r}`);
-        if(el) el.innerText = roles[r] > 0 ? roles[r] : "";
-    });
 
+    ["WK", "BAT", "AR", "BOWL"].forEach(r => {
+        const count = state.selectedPlayers.filter(p => p.role === r).length;
+        const el = document.getElementById(`count-${r}`);
+        const tab = document.querySelector(`.role-tab[data-role="${r}"]`);
+        
+        if(el) el.innerText = count > 0 ? count : "";
+        
+        if(tab) {
+            // Apply the Red/Green dot based on requirements
+            if (count >= roleConfig[r].min) {
+                tab.classList.add("requirement-met");
+                tab.classList.remove("requirement-missing");
+            } else {
+                tab.classList.add("requirement-missing");
+                tab.classList.remove("requirement-met");
+            }
+        }
+    });
+    
     // 6. RENDER LISTS
     const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
         if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
@@ -366,11 +381,14 @@ function renderList(containerId, sourceList, isMyXi) {
                 ${isDisabled ? 'disabled' : ''} 
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
 
-const categoryBadge = p.category === "overseas" 
+        // FIXED: Using the badge variable correctly here
+        const categoryBadge = p.category === "overseas" 
             ? `<span class="badge badge-os">OS</span>` 
             : p.category === "uncapped" 
             ? `<span class="badge badge-uc">UC</span>` 
             : "";
+        
+        const lockIcon = isLocked ? '<span class="lock-pin">📌</span>' : '';
                     
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
@@ -378,7 +396,7 @@ const categoryBadge = p.category === "overseas"
                 <img src="${photoUrl}" class="player-avatar" alt="${p.name}">
             </div>
             <div class="player-info">
-            <strong>${p.name} ${categoryIcon} ${isLocked ? '📌' : ''}</strong>
+            <strong>${p.name} ${categoryBadge} ${lockIcon}</strong>
                 <span>${p.role} • ${getTeamCode(p)} • ${p.credit} Cr</span>
             </div>
             ${controlsHtml}
