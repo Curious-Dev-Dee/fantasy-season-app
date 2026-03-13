@@ -410,3 +410,84 @@ function showSuccessModal() {
         window.location.href = "home.html"; 
     };
 }
+
+/* =========================
+   FILTER SYSTEM
+========================= */
+function initFilters() {
+    // 1. Extract Unique Teams from Player Pool
+    const teams = [];
+    const seenTeams = new Set();
+    state.allPlayers.forEach(p => {
+        if(!seenTeams.has(p.real_team_id)) {
+            seenTeams.add(p.real_team_id);
+            teams.push({ id: p.real_team_id, label: p.team_short_code });
+        }
+    });
+
+    // 2. Render Checkbox Menus
+    renderCheckboxDropdown('teamMenu', teams, 'teams', (t) => t.label);
+
+    const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
+    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
+
+    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => 
+        `M#${m.match_number}: ${m.team_a?.short_code} vs ${m.team_b?.short_code}`
+    );
+}
+
+function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
+    const container = document.getElementById(elementId);
+    if(!container) return;
+
+    const listHtml = items.map(item => {
+        const value = item.id || item; 
+        const isChecked = state.filters[filterKey].includes(value) ? 'checked' : ''; 
+        return `
+            <label class="filter-item">
+                <span>${labelFn(item)}</span>
+                <input type="checkbox" value="${value}" ${isChecked} 
+                    onchange="toggleFilter('${filterKey}', '${value}', this)">
+            </label>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="dropdown-content">${listHtml}</div>
+        <div class="dropdown-actions">
+            <button class="filter-action-btn clear" onclick="clearFilters('${filterKey}')">Clear</button>
+            <button class="filter-action-btn all" onclick="selectAllFilters('${filterKey}', '${elementId}')">Select All</button>
+        </div>
+    `;
+}
+
+/* =========================
+   FILTER ACTIONS (Window Scoped)
+========================= */
+window.toggleFilter = (key, value, el) => {
+    // Convert back to number if filtering by credits
+    const val = (key === 'credits') ? parseFloat(value) : value;
+    
+    if (el.checked) {
+        state.filters[key].push(val);
+    } else {
+        state.filters[key] = state.filters[key].filter(v => v !== val);
+    }
+    render();
+};
+
+window.clearFilters = (key) => {
+    state.filters[key] = [];
+    // Uncheck all boxes in that specific menu
+    const menuId = key === 'teams' ? 'teamMenu' : key === 'matches' ? 'matchMenu' : 'creditMenu';
+    document.querySelectorAll(`#${menuId} input[type="checkbox"]`).forEach(cb => cb.checked = false);
+    render();
+};
+
+window.selectAllFilters = (key, menuId) => {
+    const checkboxes = document.querySelectorAll(`#${menuId} input[type="checkbox"]`);
+    state.filters[key] = Array.from(checkboxes).map(cb => {
+        cb.checked = true;
+        return (key === 'credits') ? parseFloat(cb.value) : cb.value;
+    });
+    render();
+};
