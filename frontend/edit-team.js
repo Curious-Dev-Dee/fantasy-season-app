@@ -563,22 +563,131 @@ document.getElementById("saveTeamBtn").onclick = async () => {
 
 function setupListeners() {
 
+    /* =========================
+       SEARCH
+    ========================= */
+
     const search = document.getElementById("playerSearch");
 
     if (search) {
-
         search.oninput = (e) => {
-
             state.filters.search = e.target.value;
+            render();
+        };
+    }
+
+
+
+    /* =========================
+       VIEW TABS (MY XI / CHANGE)
+    ========================= */
+
+    document.querySelectorAll(".toggle-btn").forEach(btn => {
+
+        btn.onclick = () => {
+
+            document.querySelectorAll(".toggle-btn")
+                .forEach(b => b.classList.remove("active"));
+
+            document.querySelectorAll(".view-mode")
+                .forEach(v => v.classList.remove("active"));
+
+            btn.classList.add("active");
+
+            const targetView = document.getElementById(`${btn.dataset.mode}-view`);
+
+            if (targetView) targetView.classList.add("active");
+
+
+            const filterWrap = document.querySelector(".search-filter-wrapper");
+
+            if (filterWrap)
+                filterWrap.style.display =
+                    btn.dataset.mode === "myxi" ? "none" : "flex";
+
+        };
+
+    });
+
+
+
+    /* =========================
+       ROLE FILTER TABS
+    ========================= */
+
+    document.querySelectorAll(".role-tab").forEach(tab => {
+
+        tab.onclick = () => {
+
+            document.querySelectorAll(".role-tab")
+                .forEach(t => t.classList.remove("active"));
+
+            tab.classList.add("active");
+
+            state.filters.role = tab.dataset.role;
 
             render();
+
+        };
+
+    });
+
+
+
+    /* =========================
+       FILTER DROPDOWN BUTTONS
+    ========================= */
+
+    const backdrop = document.getElementById("filterBackdrop");
+
+    ["match", "team", "credit"].forEach(type => {
+
+        const btn = document.getElementById(`${type}Toggle`);
+        const menu = document.getElementById(`${type}Menu`);
+
+        if (btn && menu) {
+
+            btn.onclick = (e) => {
+
+                e.stopPropagation();
+
+                document.querySelectorAll(".dropdown-menu")
+                    .forEach(m => m.classList.remove("show"));
+
+                menu.classList.add("show");
+
+                if (backdrop) backdrop.classList.remove("hidden");
+
+                document.body.style.overflow = "hidden";
+
+            };
+
+        }
+
+    });
+
+
+
+    /* =========================
+       CLOSE FILTER SHEETS
+    ========================= */
+
+    if (backdrop) {
+
+        backdrop.onclick = () => {
+
+            document.querySelectorAll(".dropdown-menu")
+                .forEach(m => m.classList.remove("show"));
+
+            backdrop.classList.add("hidden");
+
+            document.body.style.overflow = "";
 
         };
 
     }
 
 }
-
 
 function initFilters() {
     // placeholder so filters don't break
