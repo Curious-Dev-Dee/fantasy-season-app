@@ -225,7 +225,7 @@ function render() {
 
     // 4. BOOSTER UI
     const boosterContainer = document.getElementById("boosterContainer");
-    const isBoosterWindow = matchNum >= 11 && matchNum <= LEAGUE_STAGE_END;
+    const isBoosterWindow = matchNum >= 1 && matchNum <= LEAGUE_STAGE_END;
 
     if (boosterContainer) {
         if (isBoosterWindow) {
