@@ -240,7 +240,7 @@ function render() {
                 CAPTAIN_3X: "Hero! (3X Captain)"
             };
 
-            let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- Select Booster --</option>`;
+            let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯Select Booster --</option>`;
             
             Object.keys(boosterNames).forEach(key => {
                 const isUsed = state.usedBoosters.includes(key);
@@ -252,7 +252,6 @@ function render() {
 
             boosterContainer.innerHTML = `
                 <div class="booster-header">
-                    <span class="booster-icon">🚀</span>
                     <select id="boosterSelect" class="booster-dropdown" onchange="handleBoosterChange(this.value)">
                         ${optionsHtml}
                     </select>
