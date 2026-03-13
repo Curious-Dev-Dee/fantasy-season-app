@@ -19,6 +19,48 @@ const boosterIndicator = document.getElementById("boosterIndicator");
 let userId, tournamentId, countdownInterval, isScoutMode = false;
 let realTeamsMap = {};
 
+function getAppliedBooster(record) {
+    if (record?.active_booster && record.active_booster !== "NONE") return record.active_booster;
+    return record?.use_booster ? "TOTAL_2X" : "NONE";
+}
+
+function formatBoosterLabel(booster) {
+    return booster === "NONE" ? "" : booster.replaceAll("_", " ");
+}
+
+function updateBoosterIndicator(element, booster, suffix) {
+    if (!element) return;
+    if (!booster || booster === "NONE") {
+        element.classList.add("hidden");
+        return;
+    }
+    element.textContent = `🚀 ${formatBoosterLabel(booster)} ${suffix}`;
+    element.classList.remove("hidden");
+}
+
+async function fetchUserMatchTotal(matchId) {
+    const { data } = await supabase
+        .from("user_match_points")
+        .select("total_points")
+        .eq("user_id", userId)
+        .eq("match_id", matchId)
+        .maybeSingle();
+
+    return data?.total_points ?? null;
+}
+
+async function fetchUserMatchTotals(matchIds) {
+    if (!matchIds.length) return new Map();
+
+    const { data } = await supabase
+        .from("user_match_points")
+        .select("match_id, total_points")
+        .eq("user_id", userId)
+        .in("match_id", matchIds);
+
+    return new Map((data || []).map((row) => [row.match_id, row.total_points]));
+}
+
 
 /* =========================
    PAGE LOAD TRANSITION
@@ -115,7 +157,7 @@ async function setupMatchTabs() {
     }
 
     const { data: lastLocked } = await supabase.from("user_match_teams")
-        .select("match_id").eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
+        .select("match_id").eq("user_id", userId).eq("tournament_id", tournamentId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (lastLocked) {
         const { data: mInfo } = await supabase.from("matches").select("*").eq("id", lastLocked.match_id).single();
@@ -165,7 +207,7 @@ async function loadCurrentXI() {
         return;
     }
 
-    userTeam.use_booster ? boosterIndicator.classList.remove("hidden") : boosterIndicator.classList.add("hidden");
+    updateBoosterIndicator(boosterIndicator, getAppliedBooster(userTeam), "ACTIVE");
 
     const { data: teamPlayers } = await supabase.from("user_fantasy_team_players").select("player_id").eq("user_fantasy_team_id", userTeam.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
@@ -177,14 +219,14 @@ async function loadLastLockedXI() {
     countdownContainer.classList.add("hidden");
 
     const { data: snapshot } = await supabase.from("user_match_teams").select("*")
-        .eq("user_id", userId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
+        .eq("user_id", userId).eq("tournament_id", tournamentId).order("locked_at", { ascending: false }).limit(1).maybeSingle();
 
     if (!snapshot) {
         teamContainer.innerHTML = "<p class='empty-msg'>Not Playing.</p>";
         return;
     }
 
-    snapshot.use_booster ? boosterIndicator.classList.remove("hidden") : boosterIndicator.classList.add("hidden");
+    updateBoosterIndicator(boosterIndicator, getAppliedBooster(snapshot), "USED");
 
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
     const { data: players } = await supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id));
@@ -201,7 +243,7 @@ async function loadLastLockedXI() {
         calculatedTotal += pPts;
     });
 
-    const finalTotal = snapshot.use_booster ? Math.floor(calculatedTotal * 2) : calculatedTotal;
+    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? calculatedTotal;
     teamStatus.textContent = `Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`;
 }
 
@@ -267,7 +309,7 @@ function setupHistoryListeners() {
         historyList.innerHTML = `<div class="spinner-small"></div>`;
         const { data: history } = await supabase.from('user_match_teams')
             .select('*, matches(match_number, team_a_id, team_b_id), user_match_team_players(player_id)')
-            .eq('user_id', userId).order('locked_at', { ascending: false });
+            .eq('user_id', userId).eq('tournament_id', tournamentId).order('locked_at', { ascending: false });
 
         if (!history || history.length === 0) {
             historyList.innerHTML = "<p class='empty-msg'>No season history found.</p>";
@@ -276,6 +318,7 @@ function setupHistoryListeners() {
 
         const matchIds = history.map(h => h.match_id);
         const { data: allStats } = await supabase.from("player_match_stats").select("*").in("match_id", matchIds);
+        const matchTotals = await fetchUserMatchTotals(matchIds);
 
         historyList.innerHTML = history.map(h => {
             let rowTotal = 0;
@@ -292,11 +335,11 @@ function setupHistoryListeners() {
             return `
                 <div class="history-row" onclick="viewMatchBreakdown('${h.id}')">
                     <div>
-                        <span class="h-m-num">MATCH ${h.matches.match_number} ${h.use_booster ? '🚀' : ''}</span>
+                        <span class="h-m-num">MATCH ${h.matches.match_number} ${getAppliedBooster(h) !== 'NONE' ? '🚀' : ''}</span>
                         <span class="h-teams">${realTeamsMap[h.matches.team_a_id]} vs ${realTeamsMap[h.matches.team_b_id]}</span>
                     </div>
                     <div class="h-stats">
-                        <span class="h-pts">${h.use_booster ? rowTotal * 2 : rowTotal} PTS</span>
+                        <span class="h-pts">${matchTotals.get(h.match_id) ?? rowTotal} PTS</span>
                         <span class="h-subs">${h.subs_used_for_match} SUBS</span>
                     </div>
                     <i class="fas fa-chevron-right" style="color:#475569; margin-left:10px;"></i>
@@ -325,7 +368,7 @@ window.viewMatchBreakdown = async (snapshotId) => {
     const { data: teamPlayers } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId);
     
     bTitle.innerText = `Match ${snap.matches.match_number} Details`;
-    snap.use_booster ? bBooster.classList.remove("hidden") : bBooster.classList.add("hidden");
+    updateBoosterIndicator(bBooster, getAppliedBooster(snap), "USED");
 
     const [playersRes, statsRes] = await Promise.all([
         supabase.from("players").select("*").in("id", teamPlayers.map(p => p.player_id)),
@@ -342,7 +385,8 @@ window.viewMatchBreakdown = async (snapshotId) => {
         else if (p.id === snap.vice_captain_id) pPts *= 1.5;
         total += pPts;
     });
-    bFooter.innerHTML = `MATCH TOTAL: ${snap.use_booster ? total * 2 : total} PTS | SUBS: ${snap.subs_used_for_match}`;
+    const finalTotal = await fetchUserMatchTotal(snap.match_id) ?? total;
+    bFooter.innerHTML = `MATCH TOTAL: ${finalTotal} PTS | SUBS: ${snap.subs_used_for_match}`;
 };
 
 window.openPlayerPointLog = async (playerId, matchId) => {

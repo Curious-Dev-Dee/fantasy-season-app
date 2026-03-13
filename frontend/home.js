@@ -156,11 +156,21 @@ async function fetchHomeData(userId) {
 
     // 2. IPL Dashboard Stats
     // We query the view, but we must ensure it targets our active tournament
-    const { data: dash } = await supabase
-        .from('home_dashboard_view')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+    const [{ data: dash }, { data: boosterData }] = await Promise.all([
+        supabase
+            .from('home_dashboard_view')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle(),
+        activeTournamentId
+            ? supabase
+                .from('user_tournament_points')
+                .select('used_boosters')
+                .eq('user_id', userId)
+                .eq('tournament_id', activeTournamentId)
+                .maybeSingle()
+            : Promise.resolve({ data: null })
+    ]);
     
  /* =========================
        IPL 2026 DASHBOARD RENDER
@@ -221,7 +231,7 @@ if (dash && dash.upcoming_match) {
 
 // 4. Booster Status
 if (boosterStatusEl) {
-    boosterStatusEl.textContent = dash.s8_booster_used ? "0" : "1";
+    boosterStatusEl.textContent = String(Math.max(0, 6 - ((boosterData?.used_boosters || []).length)));
 }
     }}
 // ... Keep your existing loadLeaderboardPreview, fetchPrivateLeagueData, startCountdown, etc. ...

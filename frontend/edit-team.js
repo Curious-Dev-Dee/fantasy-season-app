@@ -1,8 +1,9 @@
 import { supabase } from "./supabase.js";
 
-const TOURNAMENT_ID = "11111111-1111-1111-1111-111111111111";
 const LEAGUE_STAGE_END = 70;
 const PLAYOFF_START_MATCH = 71;
+const BOOSTER_WINDOW_START = 11;
+const BOOSTER_WINDOW_END = 70;
 const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 
 let state = { 
@@ -27,6 +28,7 @@ let state = {
 };
 
 let countdownInterval = null;
+let activeTournamentId = null;
 
 /* =========================
    INIT & AUTH
@@ -40,9 +42,13 @@ async function init(user) {
     document.body.classList.add("loading-state");
     
     try {
+        const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
+        if (!activeTournament) return;
+        activeTournamentId = activeTournament.id;
+
         const { data: matches } = await supabase.from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
-            .eq("tournament_id", TOURNAMENT_ID)
+            .eq("tournament_id", activeTournamentId)
             .eq("status", "upcoming") 
             .gt("actual_start_time", new Date().toISOString())
             .order("actual_start_time", { ascending: true })
@@ -61,11 +67,11 @@ async function init(user) {
             { data: lastLock },
             { data: currentTeam }
         ] = await Promise.all([
-            supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", TOURNAMENT_ID),
+            supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", activeTournamentId),
             supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
-            supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
-            supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).neq("match_id", currentMatchId).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
-            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", TOURNAMENT_ID).maybeSingle(),
+            supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
+            supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).eq("tournament_id", activeTournamentId).neq("match_id", currentMatchId).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
+            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
         ]);
 
         state.allPlayers = players || [];
@@ -225,7 +231,7 @@ function setupListeners() {
             const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
-                p_tournament_id: TOURNAMENT_ID,
+                p_tournament_id: activeTournamentId,
                 p_captain_id: state.captainId,
                 p_vice_captain_id: state.viceCaptainId,
                 p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
@@ -283,7 +289,7 @@ function renderList(containerId, list, isMyXi, stats) {
 function renderBoosterUI() {
     const boosterContainer = document.getElementById("boosterContainer");
     if (!boosterContainer) return;
-    const isBoosterWindow = state.currentMatchNumber >= 1 && state.currentMatchNumber <= 70;
+    const isBoosterWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START && state.currentMatchNumber <= BOOSTER_WINDOW_END;
     if (!isBoosterWindow) { boosterContainer.classList.add("hidden"); return; }
     boosterContainer.classList.remove("hidden");
     const boosterNames = { TOTAL_2X: "Shaitan! 💀", CAPPED_2X: "Jay Hind! 🔱", UNCAPPED_2X: "Mirikaali! 🦈", OVERSEAS_2X: "Angrej!", FREE_11: "Free 11", CAPTAIN_3X: "Hero!" };
