@@ -180,6 +180,56 @@ function render() {
 }
 
 /* =========================
+   BOOSTER UI RENDERER
+========================= */
+function renderBoosterUI() {
+    const boosterContainer = document.getElementById("boosterContainer");
+    if (!boosterContainer) return;
+
+    // Boosters are only available during the League Stage (Match 1 to 70)
+    const isBoosterWindow = state.currentMatchNumber >= 1 && state.currentMatchNumber <= 70;
+
+    if (!isBoosterWindow) {
+        boosterContainer.classList.add("hidden");
+        return;
+    }
+
+    boosterContainer.classList.remove("hidden");
+
+    const boosterNames = {
+        TOTAL_2X: "Shaitan! 💀 (2X Total Points)",
+        CAPPED_2X: "Jay Hind! 🔱 (2X Indian Capped)",
+        UNCAPPED_2X: "Mirikaali! 🦈 (2X Uncapped)",
+        OVERSEAS_2X: "Angrej! (2X Overseas)",
+        FREE_11: "Free 11 (Unlimited Subs)",
+        CAPTAIN_3X: "Hero! (3X Captain)"
+    };
+
+    let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯 Select Booster --</option>`;
+
+    Object.keys(boosterNames).forEach(key => {
+        const isUsed = state.usedBoosters.includes(key);
+        const isCurrent = state.activeBooster === key;
+        
+        // Disable if already used in a previous match, unless it's the one currently active
+        optionsHtml += `
+            <option value="${key}" ${isUsed && !isCurrent ? 'disabled' : ''} ${isCurrent ? 'selected' : ''}>
+                ${isUsed && !isCurrent ? '🚫 ' : ''}${boosterNames[key]}
+            </option>`;
+    });
+
+    boosterContainer.innerHTML = `
+        <div class="booster-header">
+            <select id="boosterSelect" class="booster-dropdown" onchange="handleBoosterChange(this.value)">
+                ${optionsHtml}
+            </select>
+        </div>
+        <div class="booster-hint" style="color: var(--primary-green); font-size: 11px; margin-top: 5px;">
+            ${state.activeBooster !== 'NONE' ? '✅ Booster Active for this Match' : '💡 Each booster can be used only ONCE per season'}
+        </div>
+    `;
+}
+/* =========================
    UI HELPERS
 ========================= */
 function renderList(containerId, list, isMyXi, stats) {
