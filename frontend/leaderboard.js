@@ -11,20 +11,17 @@ async function init() {
     if (!session) { window.location.href = "login.html"; return; }
     const userId = session.user.id;
 
-    // Check if we are viewing a specific private league
     const urlParams = new URLSearchParams(window.location.search);
-    const leagueId = urlParams.get('league_id');
+    const leagueId = urlParams.get("league_id");
 
     const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
     if (!activeTournament) return;
 
     let query;
     if (leagueId) {
-        // Fetch from Private View
         query = supabase.from("private_league_leaderboard").select("*").eq("league_id", leagueId);
-        document.querySelector('h1').textContent = "League Standings";
+        document.querySelector("h1").textContent = "League Standings";
     } else {
-        // Fetch from Overall View
         query = supabase.from("leaderboard_view").select("*").eq("tournament_id", activeTournament.id);
     }
 
@@ -33,81 +30,96 @@ async function init() {
         supabase.from("user_profiles").select("user_id, team_photo_url")
     ]);
 
-    const leaderboard = leaderboardRes.data;
+    const leaderboard = leaderboardRes.data || [];
     const profiles = profilesRes.data || [];
-
-    // Map ranks appropriately (use rank_in_league if private)
-    const normalizedData = leaderboard.map(row => ({
+    const normalizedData = leaderboard.map((row) => ({
         ...row,
         rank: leagueId ? row.rank_in_league : row.rank
     }));
 
-    const avatarMap = new Map(profiles.map(p => [p.user_id, p.team_photo_url]));
+    const avatarMap = new Map(profiles.map((profile) => [profile.user_id, profile.team_photo_url]));
     renderLeaderboard(normalizedData, userId, avatarMap);
 }
 
 function renderLeaderboard(leaderboard, userId, avatarMap) {
-  // 1. Split Data
-  const top3 = leaderboard.slice(0, 3);
-  const remaining = leaderboard.slice(3);
+    if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
 
-  // 2. Render Podium [2nd, 1st, 3rd layout]
-  // We ensure the fallback objects use the normalized 'rank' key
-  const p2 = top3[1] || { team_name: 'TBA', total_points: 0, rank: 2, user_id: null };
-  const p1 = top3[0] || { team_name: 'TBA', total_points: 0, rank: 1, user_id: null };
-  const p3 = top3[2] || { team_name: 'TBA', total_points: 0, rank: 3, user_id: null };
+    const top3 = leaderboard.slice(0, 3);
+    const remaining = leaderboard.slice(3);
 
-  podiumContainer.innerHTML = [p2, p1, p3].map(user => {
-    let avatarStyle = '';
-    if (user.user_id) {
-      const photoPath = avatarMap.get(user.user_id);
-      if (photoPath) {
-        const { data } = supabase.storage.from('team-avatars').getPublicUrl(photoPath);
-        const avatarUrl = `${data.publicUrl}?t=${new Date().getTime()}`;
-        avatarStyle = `style="background-image: url('${avatarUrl}');"`;
-      }
-    }
+    const p2 = top3[1] || { team_name: "TBA", total_points: 0, rank: 2, user_id: null };
+    const p1 = top3[0] || { team_name: "TBA", total_points: 0, rank: 1, user_id: null };
+    const p3 = top3[2] || { team_name: "TBA", total_points: 0, rank: 3, user_id: null };
 
-    // Clean up the name for the onclick function to prevent "undefined" strings
-    const safeName = (user.team_name || 'Anonymous').replace(/'/g, "\\'");
+    podiumContainer.replaceChildren();
+    [p2, p1, p3].forEach((user) => {
+        const card = document.createElement("div");
+        card.className = `podium-card ${user.rank === 1 ? "first" : ""}`.trim();
+        card.onclick = () => window.scoutUser(user.user_id, user.team_name || "Anonymous");
 
-    return `
-    <div class="podium-card ${user.rank === 1 ? 'first' : ''}" 
-         onclick="scoutUser('${user.user_id}', '${safeName}')">
-        <div class="rank-badge">${user.rank}</div>
-        <div class="podium-avatar" id="avatar-${user.rank}" ${avatarStyle}></div>
-        <div class="podium-name">${user.team_name || 'Anonymous'}</div>
-        <div class="podium-pts">${user.total_points} pts</div>
-    </div>
-  `}).join('');
+        const rankBadge = document.createElement("div");
+        rankBadge.className = "rank-badge";
+        rankBadge.textContent = String(user.rank);
 
-  // 3. Render User Summary
-  const currentUserRow = leaderboard.find(row => row.user_id === userId);
-  if (currentUserRow) {
-    leaderboardSummary.innerHTML = `
-      Your Rank: #${currentUserRow.rank} &nbsp;•&nbsp; Score: ${currentUserRow.total_points}
-    `;
-  } else {
-    leaderboardSummary.innerHTML = `You are not ranked yet.`;
-  }
+        const avatar = document.createElement("div");
+        avatar.className = "podium-avatar";
+        avatar.id = `avatar-${user.rank}`;
 
-  // 4. Render Remaining List (4th onwards)
-  leaderboardContainer.innerHTML = remaining.map(row => {
-    const safeName = (row.team_name || 'Anonymous').replace(/'/g, "\\'");
-    return `
-    <div class="leader-row ${row.user_id === userId ? 'you' : ''}" 
-         onclick="scoutUser('${row.user_id}', '${safeName}')">
-      <div class="l-rank">#${row.rank}</div>
-      <div class="l-team">${row.team_name}</div>
-      <div class="l-pts">${row.total_points} pts</div>
-      <div class="l-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-  `}).join('');
+        if (user.user_id) {
+            const photoPath = avatarMap.get(user.user_id);
+            if (photoPath) {
+                const { data } = supabase.storage.from("team-avatars").getPublicUrl(photoPath);
+                avatar.style.backgroundImage = `url('${data.publicUrl}?t=${Date.now()}')`;
+            }
+        }
+
+        const name = document.createElement("div");
+        name.className = "podium-name";
+        name.textContent = user.team_name || "Anonymous";
+
+        const points = document.createElement("div");
+        points.className = "podium-pts";
+        points.textContent = `${user.total_points} pts`;
+
+        card.append(rankBadge, avatar, name, points);
+        podiumContainer.appendChild(card);
+    });
+
+    const currentUserRow = leaderboard.find((row) => row.user_id === userId);
+    leaderboardSummary.textContent = currentUserRow
+        ? `Your Rank: #${currentUserRow.rank} | Score: ${currentUserRow.total_points}`
+        : "You are not ranked yet.";
+
+    leaderboardContainer.replaceChildren();
+    remaining.forEach((row) => {
+        const rowEl = document.createElement("div");
+        rowEl.className = `leader-row ${row.user_id === userId ? "you" : ""}`.trim();
+        rowEl.onclick = () => window.scoutUser(row.user_id, row.team_name || "Anonymous");
+
+        const rank = document.createElement("div");
+        rank.className = "l-rank";
+        rank.textContent = `#${row.rank}`;
+
+        const team = document.createElement("div");
+        team.className = "l-team";
+        team.textContent = row.team_name || "Anonymous";
+
+        const points = document.createElement("div");
+        points.className = "l-pts";
+        points.textContent = `${row.total_points} pts`;
+
+        const arrow = document.createElement("div");
+        arrow.className = "l-arrow";
+        const icon = document.createElement("i");
+        icon.className = "fas fa-chevron-right";
+        arrow.appendChild(icon);
+
+        rowEl.append(rank, team, points, arrow);
+        leaderboardContainer.appendChild(rowEl);
+    });
 }
 
-// Global function to navigate to team view
 window.scoutUser = (uid, name) => {
-    if (!uid || uid === 'undefined' || uid === 'null') return;
-    // Ensure this filename matches your actual file (view-team.html or team-view.html)
+    if (!uid || uid === "undefined" || uid === "null") return;
     window.location.href = `team-view.html?uid=${uid}&name=${encodeURIComponent(name)}`;
 };
