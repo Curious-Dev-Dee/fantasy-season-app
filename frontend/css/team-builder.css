@@ -501,65 +501,40 @@ body {
 /* Utility */
 .hidden { display: none !important; }
 
-/* --- SUPER 8 BOOSTER STYLES --- */
-.booster-wrapper {
-    background: linear-gradient(135deg, rgba(154, 224, 0, 0.1) 0%, rgba(15, 23, 42, 0.4) 100%);
-    border: 1px dashed rgba(154, 224, 0, 0.3);
-    border-radius: 16px;
-    padding: 16px;
-    margin: 10px 16px 20px; /* Added side margins to match player list padding */
-    animation: pulseGlow 2s infinite;
-}
-
-.booster-label {
+/* --- NEW BOOSTER DROPDOWN STYLES --- */
+.booster-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    cursor: pointer;
-    user-select: none;
 }
 
-.booster-text {
+.booster-icon {
+    font-size: 20px;
+}
+
+.booster-dropdown {
+    flex: 1;
+    background: #0f172a;
+    border: 1px solid var(--primary-green);
+    color: var(--primary-green);
+    padding: 10px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 800;
-    color: var(--primary-green);
-    letter-spacing: 0.5px;
-    text-shadow: 0 0 10px rgba(155, 225, 93, 0.4);
-}
-
-.booster-hint {
-    font-size: 10px;
-    color: var(--text-dim);
-    margin-top: 4px;
-    margin-left: 26px;
-    font-style: italic;
-}
-
-/* Custom Checkbox as a Switch */
-#boosterToggle {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--primary-green);
-    border-radius: 4px;
-    background: transparent;
-    position: relative;
+    outline: none;
     cursor: pointer;
-    transition: var(--transition);
+    appearance: none; /* removes default browser arrow */
+    text-transform: uppercase;
 }
 
-#boosterToggle:checked {
-    background: var(--primary-green);
+.booster-dropdown option {
+    background: #0f172a;
+    color: #fff;
+    font-weight: 600;
 }
 
-#boosterToggle:checked::after {
-    content: '⚡';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 10px;
-    color: #000;
+.booster-dropdown option:disabled {
+    color: #475569; /* Grey out used boosters */
 }
 
 /* Special "FREE" Sub Label Styling */
