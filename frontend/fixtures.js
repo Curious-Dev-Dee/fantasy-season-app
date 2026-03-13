@@ -46,7 +46,7 @@ async function loadData() {
 }
 
 function renderStatusFilters() {
-  const statuses = ["all", "upcoming", "locked", "completed", "abandoned"];
+  const statuses = ["all", "upcoming", "locked", "abandoned"];
   statusFiltersContainer.innerHTML = statuses.map(s => `
     <div class="filter-chip ${selectedStatuses.has(s) ? 'active' : ''}" data-status="${s}">
       ${s === 'all' ? 'All Status' : s.toUpperCase()}
@@ -103,7 +103,7 @@ function renderMatches() {
 
     // Sort: Upcoming first (soonest to latest), then Locked, then Completed (latest to oldest)
     const sorted = [...filtered].sort((a, b) => {
-        const order = { 'upcoming': 1, 'locked': 2, 'completed': 3, 'abandoned': 4 };
+        const order = { 'upcoming': 1, 'locked': 2, 'abandoned': 3 };
         if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
         
         // If same status, upcoming sorts ascending (next match first)

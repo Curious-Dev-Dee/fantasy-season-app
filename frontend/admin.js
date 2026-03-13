@@ -49,6 +49,7 @@ function setupListeners() {
     finalConfirmBtn.onclick = submitProcessing;
 
     matchSelect.onchange = () => {
+        pendingAnalysis = null;
         resetAnalysisUI();
         populateWinnerOptions();
     };
@@ -62,6 +63,9 @@ function setupListeners() {
         const isAbandoned = winnerSelect.value === "abandoned";
         pomSelect.disabled = isAbandoned;
         if (isAbandoned) pomSelect.value = "";
+        if (isAbandoned && !scoreboardInput.value.trim()) {
+            setStatus("No scoreboard needed if the match was abandoned before a ball was bowled. You can confirm directly.", "success");
+        }
         updateConfirmButton();
     };
 
@@ -191,20 +195,27 @@ function analyzeScoreboard() {
 }
 
 async function submitProcessing() {
-    if (!pendingAnalysis) {
-        setStatus("Run the name check before processing.", "error");
-        return;
-    }
-
+    const match = getSelectedMatch();
     const winnerId = winnerSelect.value;
     const pomId = winnerId === "abandoned" ? null : pomSelect.value;
+    const isAbandoned = winnerId === "abandoned";
+
+    if (!match) {
+        setStatus("Please select a match first.", "error");
+        return;
+    }
 
     if (!winnerId) {
         setStatus("Please select the match winner.", "error");
         return;
     }
 
-    if (winnerId !== "abandoned" && !pomId) {
+    if (!isAbandoned && !pendingAnalysis) {
+        setStatus("Run the name check before processing.", "error");
+        return;
+    }
+
+    if (!isAbandoned && !pomId) {
         setStatus("Please select the player of the match.", "error");
         return;
     }
@@ -215,20 +226,35 @@ async function submitProcessing() {
     setStatus("Processing points...", "loading");
 
     try {
-        const { data, error } = await supabase.functions.invoke("process_match_points", {
-            body: {
+        const requestBody = isAbandoned
+            ? {
+                match_id: match.id,
+                tournament_id: match.tournament_id,
+                scoreboard: [],
+                pom_id: null,
+                winner_id: "abandoned"
+            }
+            : {
                 match_id: pendingAnalysis.matchId,
                 tournament_id: pendingAnalysis.tournamentId,
                 scoreboard: pendingAnalysis.scoreboard,
                 pom_id: pomId,
                 winner_id: winnerId
-            }
+            };
+
+        const { data, error } = await supabase.functions.invoke("process_match_points", {
+            body: requestBody
         });
 
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
 
-        setStatus("Points processed successfully. Leaderboard updated.", "success");
+        setStatus(
+            data?.mode === "abandoned_before_start"
+                ? "Match marked abandoned before first ball. Fantasy impact cleared."
+                : "Points processed successfully. Leaderboard updated.",
+            "success"
+        );
         scoreboardInput.value = "";
         pendingAnalysis = null;
         resetAnalysisUI();
@@ -269,7 +295,7 @@ function populateWinnerOptions(match = getSelectedMatch()) {
     winnerSelect.innerHTML += `
         <option value="${match.team_a_id}">${left}</option>
         <option value="${match.team_b_id}">${right}</option>
-        <option value="abandoned">Abandoned / No Result</option>
+        <option value="abandoned">Abandoned Before First Ball</option>
     `;
 }
 
@@ -284,10 +310,14 @@ function populatePomOptions(players = []) {
 }
 
 function updateConfirmButton() {
+    const selectedMatch = getSelectedMatch();
+    const isAbandoned = winnerSelect.value === "abandoned";
     const readyForSubmit = Boolean(
-        pendingAnalysis &&
         winnerSelect.value &&
-        (winnerSelect.value === "abandoned" || pomSelect.value)
+        (
+            (isAbandoned && selectedMatch) ||
+            (pendingAnalysis && pomSelect.value)
+        )
     );
 
     finalConfirmBtn.style.display = readyForSubmit ? "block" : "none";

@@ -17,6 +17,25 @@ function safeFlexClass(flex) {
     return /^[a-z0-9_-]+$/i.test(flex || "") ? flex : "";
 }
 
+function renderWinnerOptions(match) {
+    const winnerToggle = document.getElementById("winnerToggle");
+    if (!winnerToggle) return;
+
+    winnerToggle.replaceChildren();
+
+    [
+        { id: match.team_a.id, label: match.team_a.short_code },
+        { id: match.team_b.id, label: match.team_b.short_code }
+    ].forEach((team) => {
+        const button = document.createElement("button");
+        button.className = "team-option";
+        button.type = "button";
+        button.textContent = team.label;
+        button.addEventListener("click", () => window.pickWinner(team.id, button));
+        winnerToggle.appendChild(button);
+    });
+}
+
 init();
 
 async function init() {
@@ -265,9 +284,7 @@ async function fetchNextMatch() {
         .eq("tournament_id", currentTournamentId).eq("status", "upcoming").order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
     if (match) {
         currentMatchId = match.id;
-        document.getElementById("winnerToggle").innerHTML = `
-            <button class="team-option" onclick="pickWinner('${match.team_a.id}', this)">${match.team_a.short_code}</button>
-            <button class="team-option" onclick="pickWinner('${match.team_b.id}', this)">${match.team_b.short_code}</button>`;
+        renderWinnerOptions(match);
 
         const { data: players } = await supabase.from("players").select("id, name").in("real_team_id", [match.team_a.id, match.team_b.id]);
         const mvpSelect = document.getElementById("mvpSelect");

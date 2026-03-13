@@ -30,6 +30,20 @@ serve(async (req) => {
 
     if (!match_id) throw new Error("match_id is missing");
     if (!Array.isArray(scoreboard)) throw new Error("scoreboard must be an array");
+
+    const { data: match, error: matchError } = await supabase
+      .from('matches')
+      .select('id, tournament_id')
+      .eq('id', match_id)
+      .maybeSingle();
+
+    if (matchError) throw matchError;
+    if (!match) throw new Error("match not found");
+    if (tournament_id && tournament_id !== match.tournament_id) {
+      throw new Error("tournament_id does not match the selected match");
+    }
+
+    const effectiveTournamentId = match.tournament_id;
     const isAbandoned = winner_id === "abandoned";
     const normalizedWinnerId = isAbandoned ? null : winner_id;
     const normalizedPomId = isAbandoned ? null : pom_id;
@@ -38,7 +52,10 @@ serve(async (req) => {
       throw new Error("winner_id is missing");
     }
     if (!isAbandoned && !normalizedPomId) {
-      throw new Error("pom_id is missing for completed match");
+      throw new Error("pom_id is missing for a scored match");
+    }
+    if (isAbandoned && scoreboard.length > 0) {
+      throw new Error("Leave scoreboard empty if the match was abandoned before a ball was bowled");
     }
 
     const getTrueOvers = (overs: number) => {
@@ -185,30 +202,128 @@ serve(async (req) => {
       throw new Error("Scoreboard has no valid player rows");
     }
 
-    if (!isAbandoned && statsToUpsert.length > 0) {
+    if (isAbandoned) {
+      const { data: snapshots, error: snapshotError } = await supabase
+        .from('user_match_teams')
+        .select('id, user_id, active_booster')
+        .eq('match_id', match_id);
+
+      if (snapshotError) throw snapshotError;
+
+      const snapshotIds = (snapshots ?? []).map((row) => row.id);
+      const spentBoosters = (snapshots ?? []).filter(
+        (row) => row.active_booster && row.active_booster !== 'NONE'
+      );
+
+      for (const snapshot of spentBoosters) {
+        const { data: pointsRow, error: pointsRowError } = await supabase
+          .from('user_tournament_points')
+          .select('used_boosters')
+          .eq('user_id', snapshot.user_id)
+          .eq('tournament_id', effectiveTournamentId)
+          .maybeSingle();
+
+        if (pointsRowError) throw pointsRowError;
+
+        const currentUsedBoosters = [...(pointsRow?.used_boosters ?? [])];
+        const boosterIndex = currentUsedBoosters.indexOf(snapshot.active_booster);
+        if (boosterIndex === -1) continue;
+
+        currentUsedBoosters.splice(boosterIndex, 1);
+
+        const { error: restoreBoosterError } = await supabase
+          .from('user_tournament_points')
+          .update({ used_boosters: currentUsedBoosters })
+          .eq('user_id', snapshot.user_id)
+          .eq('tournament_id', effectiveTournamentId);
+
+        if (restoreBoosterError) throw restoreBoosterError;
+      }
+
+      if (snapshotIds.length > 0) {
+        const { error: deleteSnapshotPlayersError } = await supabase
+          .from('user_match_team_players')
+          .delete()
+          .in('user_match_team_id', snapshotIds);
+
+        if (deleteSnapshotPlayersError) throw deleteSnapshotPlayersError;
+      }
+
+      const [
+        { error: deleteSnapshotsError },
+        { error: deleteStatsError },
+        { error: deleteMatchPointsError },
+        { error: resetPredictionsError }
+      ] = await Promise.all([
+        supabase.from('user_match_teams').delete().eq('match_id', match_id),
+        supabase.from('player_match_stats').delete().eq('match_id', match_id),
+        supabase.from('user_match_points').delete().eq('match_id', match_id),
+        supabase
+          .from('user_predictions')
+          .update({ points_earned: 0, is_processed: true })
+          .eq('match_id', match_id)
+      ]);
+
+      if (deleteSnapshotsError) throw deleteSnapshotsError;
+      if (deleteStatsError) throw deleteStatsError;
+      if (deleteMatchPointsError) throw deleteMatchPointsError;
+      if (resetPredictionsError) throw resetPredictionsError;
+
+      const { error: rebuildError } = await supabase.rpc('rebuild_tournament_points', {
+        p_tournament_id: effectiveTournamentId
+      });
+
+      if (rebuildError) throw rebuildError;
+    } else {
+      const { error: deleteStatsError } = await supabase
+        .from('player_match_stats')
+        .delete()
+        .eq('match_id', match_id);
+
+      if (deleteStatsError) throw deleteStatsError;
+
       const { error: upsertError } = await supabase
         .from('player_match_stats')
         .upsert(statsToUpsert, { onConflict: 'match_id, player_id' });
 
       if (upsertError) throw upsertError;
+
+      const { error: resetPredictionError } = await supabase
+        .from('user_predictions')
+        .update({ is_processed: false, points_earned: 0 })
+        .eq('match_id', match_id);
+
+      if (resetPredictionError) throw resetPredictionError;
+
+      const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', { 
+        target_match_id: match_id,
+        p_winner_id: normalizedWinnerId,
+        p_pom_id: normalizedPomId
+      });
+
+      if (rpcError) throw rpcError;
     }
 
-    const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', { 
-      target_match_id: match_id,
-      p_winner_id: normalizedWinnerId,
-      p_pom_id: normalizedPomId
-    });
+    const matchUpdate: Record<string, unknown> = {
+      points_processed: !isAbandoned,
+      is_counted_for_fantasy: !isAbandoned,
+      winner_id: normalizedWinnerId,
+      man_of_the_match_id: normalizedPomId,
+      status: isAbandoned ? 'abandoned' : 'locked',
+    };
 
-    if (rpcError) throw rpcError;
+    if (isAbandoned) {
+      matchUpdate.lock_processed = false;
+      matchUpdate.locked_at = null;
+    }
 
-    await supabase.from('matches').update({ 
-        points_processed: !isAbandoned,
-        winner_id: normalizedWinnerId,
-        man_of_the_match_id: normalizedPomId,
-        status: isAbandoned ? 'abandoned' : 'completed'
-    }).eq('id', match_id);
+    await supabase.from('matches').update(matchUpdate).eq('id', match_id);
 
-    return new Response(JSON.stringify({ success: true, processed_rows: statsToUpsert.length }), {
+    return new Response(JSON.stringify({
+      success: true,
+      processed_rows: statsToUpsert.length,
+      mode: isAbandoned ? 'abandoned_before_start' : 'scored_match'
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
