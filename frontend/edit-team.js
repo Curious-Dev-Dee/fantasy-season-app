@@ -232,12 +232,12 @@ function render() {
             boosterContainer.classList.remove("hidden");
             
             const boosterNames = {
-                TOTAL_2X: "Total 2X Points",
-                CAPPED_2X: "Indian Capped 2X",
-                UNCAPPED_2X: "Uncapped 2X",
-                OVERSEAS_2X: "Overseas 2X",
+                TOTAL_2X: "Shaitan! 💀 (2X Total Points)",
+                CAPPED_2X: "Jay Hind! 🔱 (2X Indian Capped)",
+                UNCAPPED_2X: "Mirikaali! 🦈 (2X Uncapped)",
+                OVERSEAS_2X: "Angrej! (2X Overseas",
                 FREE_11: "Free 11 (Unlimited Subs)",
-                CAPTAIN_3X: "3X Captain"
+                CAPTAIN_3X: "Hero! (3X Captain)"
             };
 
             let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- Select Booster --</option>`;
@@ -258,7 +258,7 @@ function render() {
                     </select>
                 </div>
                 <div class="booster-hint" style="color: var(--primary-green); font-size: 11px; margin-top: 5px;">
-                    ${state.activeBooster !== 'NONE' ? '✅ Booster Selected for this Match' : 'Pick a strategy for this match!'}
+                    ${state.activeBooster !== 'NONE' ? '✅ Booster Selected for this Match' : ''}
                 </div>
             `;
         } else {
