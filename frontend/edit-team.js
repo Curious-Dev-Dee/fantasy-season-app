@@ -366,8 +366,12 @@ function renderList(containerId, sourceList, isMyXi) {
                 ${isDisabled ? 'disabled' : ''} 
                 onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
 
-        const categoryIcon = p.category === "overseas" ? "✈️" : p.category === "uncapped" ? "💎" : "";
-        
+const categoryBadge = p.category === "overseas" 
+            ? `<span class="badge badge-os">OS</span>` 
+            : p.category === "uncapped" 
+            ? `<span class="badge badge-uc">UC</span>` 
+            : "";
+                    
         return `
         <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
             <div class="avatar-container">

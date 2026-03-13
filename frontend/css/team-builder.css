@@ -615,3 +615,76 @@ body {
     border: 1px solid var(--neon-green);
     color: var(--neon-green);
 }
+
+/* --- Premium Badges --- */
+.badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 900;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+.badge-os { background: #3b82f6; color: white; border: 1px solid rgba(255,255,255,0.2); } /* Blue for Overseas */
+.badge-uc { background: #f59e0b; color: black; } /* Gold for Uncapped */
+
+/* --- Role Tab Validation --- */
+.role-tab { position: relative; }
+
+/* The "Requirement Dot" */
+.role-tab::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.requirement-missing::after { background: var(--danger-red); box-shadow: 0 0 5px var(--danger-red); }
+.requirement-met::after { background: var(--primary-green); box-shadow: 0 0 5px var(--primary-green); }
+
+/* --- Polished Player Card --- */
+.player-card {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.player-info strong {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.2px;
+}
+
+.player-info span {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+/* --- The Lock Pin Animation --- */
+.lock-pin {
+    display: inline-block;
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
+    animation: pinDrop 0.5s ease-out;
+}
+
+@keyframes pinDrop {
+    0% { transform: translateY(-10px) rotate(-45deg); opacity: 0; }
+    100% { transform: translateY(0) rotate(0); opacity: 1; }
+}
+
+/* --- Save Button "Ready" State --- */
+.save-btn:not(:disabled) {
+    animation: readyPulse 2s infinite;
+    background: var(--primary-green);
+    color: #000;
+}
+
+@keyframes readyPulse {
+    0% { box-shadow: 0 0 0 0 rgba(154, 224, 0, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(154, 224, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(154, 224, 0, 0); }
+}

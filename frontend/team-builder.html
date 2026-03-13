@@ -97,21 +97,29 @@ body:not(.loading-state) .app-container {
             </div>
 
             <div class="progress-labels">
-                <div class="stat-group">
-                    <span id="playerCountLabel">0</span><small>/11</small>
-                    ✈️ <strong id="overseasCountLabel">0/4</strong>
-                </div>
-
-                <div class="credit-subtext">
-                    💰 <strong id="creditCount">0</strong>/100
-                </div>
-
-                <div class="subs-text">
-                    🔁 <strong id="subsRemainingLabel">...</strong>
-                </div>
-
-            </div>
+    <div class="stat-group">
+        <div class="stat-item">
+            <small>PLAYERS</small>
+            <span id="playerCountLabel">0</span><small>/11</small>
         </div>
+        <div class="stat-item">
+            <small>OVERSEAS</small>
+            <strong id="overseasCountLabel">0/4</strong>
+        </div>
+    </div>
+
+    <div class="stat-item central">
+        <small>CREDITS</small>
+        <strong id="creditCount">0</strong><small>/100</small>
+    </div>
+
+    <div class="stat-item right">
+        <div class="subs-text">
+            <small>SUBS</small>
+            <strong id="subsRemainingLabel">...</strong>
+        </div>
+    </div>
+</div>
 
         <div class="view-tabs">
             <button class="toggle-btn" data-mode="myxi">MY XI</button>
