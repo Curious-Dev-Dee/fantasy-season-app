@@ -14,7 +14,14 @@ const viewTitle = document.getElementById("viewTitle");
 const historyBtn = document.getElementById("viewHistoryBtn");
 const historyOverlay = document.getElementById("historyOverlay");
 const historyList = document.getElementById("historyList");
+const historySummary = document.getElementById("historySummary");
+const historySubsRemaining = document.getElementById("historySubsRemaining");
+const historyBoostersLeft = document.getElementById("historyBoostersLeft");
 const boosterIndicator = document.getElementById("boosterIndicator");
+
+const TOTAL_SUBS_LIMIT = 150;
+const TOTAL_BOOSTERS = 6;
+const PLAYOFF_START_MATCH = 71;
 
 let userId;
 let tournamentId;
@@ -181,7 +188,17 @@ function createHistoryRow(snapshot, totalPoints) {
     teams.className = "h-teams";
     teams.textContent = `${realTeamsMap[snapshot.matches.team_a_id] || "TBA"} vs ${realTeamsMap[snapshot.matches.team_b_id] || "TBA"}`;
 
-    left.append(matchNum, teams);
+    left.append(matchNum);
+
+    const booster = getAppliedBooster(snapshot);
+    if (booster !== "NONE") {
+        const boosterTag = document.createElement("span");
+        boosterTag.className = "h-booster";
+        boosterTag.textContent = formatBoosterLabel(booster);
+        left.appendChild(boosterTag);
+    }
+
+    left.appendChild(teams);
 
     const stats = document.createElement("div");
     stats.className = "h-stats";
@@ -203,6 +220,53 @@ function createHistoryRow(snapshot, totalPoints) {
 
     row.append(left, stats, arrow);
     return row;
+}
+
+function formatSubsRemaining(subsRemaining) {
+    return subsRemaining === 999 ? "UNLIMITED" : String(subsRemaining);
+}
+
+function renderHistorySummary({ subsRemaining, boostersLeft }) {
+    if (!historySummary || !historySubsRemaining || !historyBoostersLeft) return;
+    historySubsRemaining.textContent = formatSubsRemaining(subsRemaining);
+    historyBoostersLeft.textContent = `${boostersLeft}/${TOTAL_BOOSTERS}`;
+}
+
+async function fetchHistorySummaryData(history = []) {
+    const [dashboardRes, boosterRes, upcomingRes] = await Promise.all([
+        supabase
+            .from("home_dashboard_view")
+            .select("subs_remaining")
+            .eq("user_id", userId)
+            .maybeSingle(),
+        supabase
+            .from("user_tournament_points")
+            .select("used_boosters")
+            .eq("user_id", userId)
+            .eq("tournament_id", tournamentId)
+            .maybeSingle(),
+        supabase
+            .from("matches")
+            .select("match_number")
+            .eq("tournament_id", tournamentId)
+            .eq("status", "upcoming")
+            .order("actual_start_time", { ascending: true })
+            .limit(1)
+            .maybeSingle()
+    ]);
+
+    const usedBoosters = boosterRes.data?.used_boosters ?? [];
+    const fallbackTotalUsed = history[0]?.total_subs_used ?? 0;
+    let fallbackSubsRemaining = Math.max(0, TOTAL_SUBS_LIMIT - fallbackTotalUsed);
+
+    if (upcomingRes.data?.match_number === 1 || upcomingRes.data?.match_number === PLAYOFF_START_MATCH) {
+        fallbackSubsRemaining = 999;
+    }
+
+    return {
+        subsRemaining: dashboardRes.data?.subs_remaining ?? fallbackSubsRemaining,
+        boostersLeft: Math.max(0, TOTAL_BOOSTERS - usedBoosters.length)
+    };
 }
 
 async function fetchUserMatchTotal(matchId) {
@@ -519,6 +583,9 @@ function setupHistoryListeners() {
             .eq("user_id", userId)
             .eq("tournament_id", tournamentId)
             .order("locked_at", { ascending: false });
+
+        const summaryData = await fetchHistorySummaryData(history || []);
+        renderHistorySummary(summaryData);
 
         if (!history || history.length === 0) {
             setEmptyState(historyList, "No season history found.");
