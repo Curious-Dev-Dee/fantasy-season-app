@@ -202,128 +202,27 @@ serve(async (req) => {
       throw new Error("Scoreboard has no valid player rows");
     }
 
-    if (isAbandoned) {
-      const { data: snapshots, error: snapshotError } = await supabase
-        .from('user_match_teams')
-        .select('id, user_id, active_booster')
-        .eq('match_id', match_id);
-
-      if (snapshotError) throw snapshotError;
-
-      const snapshotIds = (snapshots ?? []).map((row) => row.id);
-      const spentBoosters = (snapshots ?? []).filter(
-        (row) => row.active_booster && row.active_booster !== 'NONE'
-      );
-
-      for (const snapshot of spentBoosters) {
-        const { data: pointsRow, error: pointsRowError } = await supabase
-          .from('user_tournament_points')
-          .select('used_boosters')
-          .eq('user_id', snapshot.user_id)
-          .eq('tournament_id', effectiveTournamentId)
-          .maybeSingle();
-
-        if (pointsRowError) throw pointsRowError;
-
-        const currentUsedBoosters = [...(pointsRow?.used_boosters ?? [])];
-        const boosterIndex = currentUsedBoosters.indexOf(snapshot.active_booster);
-        if (boosterIndex === -1) continue;
-
-        currentUsedBoosters.splice(boosterIndex, 1);
-
-        const { error: restoreBoosterError } = await supabase
-          .from('user_tournament_points')
-          .update({ used_boosters: currentUsedBoosters })
-          .eq('user_id', snapshot.user_id)
-          .eq('tournament_id', effectiveTournamentId);
-
-        if (restoreBoosterError) throw restoreBoosterError;
-      }
-
-      if (snapshotIds.length > 0) {
-        const { error: deleteSnapshotPlayersError } = await supabase
-          .from('user_match_team_players')
-          .delete()
-          .in('user_match_team_id', snapshotIds);
-
-        if (deleteSnapshotPlayersError) throw deleteSnapshotPlayersError;
-      }
-
-      const [
-        { error: deleteSnapshotsError },
-        { error: deleteStatsError },
-        { error: deleteMatchPointsError },
-        { error: resetPredictionsError }
-      ] = await Promise.all([
-        supabase.from('user_match_teams').delete().eq('match_id', match_id),
-        supabase.from('player_match_stats').delete().eq('match_id', match_id),
-        supabase.from('user_match_points').delete().eq('match_id', match_id),
-        supabase
-          .from('user_predictions')
-          .update({ points_earned: 0, is_processed: true })
-          .eq('match_id', match_id)
-      ]);
-
-      if (deleteSnapshotsError) throw deleteSnapshotsError;
-      if (deleteStatsError) throw deleteStatsError;
-      if (deleteMatchPointsError) throw deleteMatchPointsError;
-      if (resetPredictionsError) throw resetPredictionsError;
-
-      const { error: rebuildError } = await supabase.rpc('rebuild_tournament_points', {
-        p_tournament_id: effectiveTournamentId
-      });
-
-      if (rebuildError) throw rebuildError;
-    } else {
-      const { error: deleteStatsError } = await supabase
-        .from('player_match_stats')
-        .delete()
-        .eq('match_id', match_id);
-
-      if (deleteStatsError) throw deleteStatsError;
-
-      const { error: upsertError } = await supabase
-        .from('player_match_stats')
-        .upsert(statsToUpsert, { onConflict: 'match_id, player_id' });
-
-      if (upsertError) throw upsertError;
-
-      const { error: resetPredictionError } = await supabase
-        .from('user_predictions')
-        .update({ is_processed: false, points_earned: 0 })
-        .eq('match_id', match_id);
-
-      if (resetPredictionError) throw resetPredictionError;
-
-      const { error: rpcError } = await supabase.rpc('update_leaderboard_after_match', { 
-        target_match_id: match_id,
+    const { data: processingResult, error: processingError } = await supabase.rpc(
+      'finalize_match_processing_atomic',
+      {
+        p_match_id: match_id,
+        p_tournament_id: effectiveTournamentId,
+        p_stats_rows: statsToUpsert,
         p_winner_id: normalizedWinnerId,
-        p_pom_id: normalizedPomId
-      });
+        p_pom_id: normalizedPomId,
+        p_is_abandoned: isAbandoned
+      }
+    );
 
-      if (rpcError) throw rpcError;
-    }
+    if (processingError) throw processingError;
 
-    const matchUpdate: Record<string, unknown> = {
-      points_processed: !isAbandoned,
-      is_counted_for_fantasy: !isAbandoned,
-      winner_id: normalizedWinnerId,
-      man_of_the_match_id: normalizedPomId,
-      status: isAbandoned ? 'abandoned' : 'locked',
-    };
-
-    if (isAbandoned) {
-      matchUpdate.lock_processed = false;
-      matchUpdate.locked_at = null;
-    }
-
-    await supabase.from('matches').update(matchUpdate).eq('id', match_id);
-
-    return new Response(JSON.stringify({
-      success: true,
-      processed_rows: statsToUpsert.length,
-      mode: isAbandoned ? 'abandoned_before_start' : 'scored_match'
-    }), {
+    return new Response(JSON.stringify(
+      processingResult ?? {
+        success: true,
+        processed_rows: statsToUpsert.length,
+        mode: isAbandoned ? 'abandoned_before_start' : 'scored_match'
+      }
+    ), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });

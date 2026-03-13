@@ -89,41 +89,48 @@ function createRoleTitle(role) {
     return title;
 }
 
-function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booster) {
-    const appliedBooster = getAppliedBooster({ active_booster: booster });
-    const playerStats = statsMap || {};
-    const captainPoints = playerStats[captainId] || 0;
-    const viceCaptainPoints = playerStats[viceCaptainId] || 0;
-
-    const baseTotal = (players || []).reduce((sum, player) => {
-        const basePoints = playerStats[player.id] || 0;
-
-        switch (appliedBooster) {
-            case "TOTAL_2X":
-                return sum + (basePoints * 2);
-            case "OVERSEAS_2X":
-                return sum + (player.category === "overseas" ? basePoints * 2 : basePoints);
-            case "UNCAPPED_2X":
-                return sum + (player.category === "uncapped" ? basePoints * 2 : basePoints);
-            case "CAPPED_2X":
-                return sum + (player.category === "none" ? basePoints * 2 : basePoints);
-            default:
-                return sum + basePoints;
-        }
-    }, 0);
-
-    if (appliedBooster === "CAPTAIN_3X") {
-        return baseTotal + (captainPoints * 2) + Math.floor(viceCaptainPoints * 0.5);
+function getBoostedBasePoints(player, basePoints, booster) {
+    switch (booster) {
+        case "TOTAL_2X":
+            return basePoints * 2;
+        case "OVERSEAS_2X":
+            return player.category === "overseas" ? basePoints * 2 : basePoints;
+        case "UNCAPPED_2X":
+            return player.category === "uncapped" ? basePoints * 2 : basePoints;
+        case "CAPPED_2X":
+            return player.category === "none" ? basePoints * 2 : basePoints;
+        default:
+            return basePoints;
     }
-
-    if (appliedBooster === "TOTAL_2X") {
-        return baseTotal + (captainPoints * 2) + (Math.floor(viceCaptainPoints * 0.5) * 2);
-    }
-
-    return baseTotal + captainPoints + Math.floor(viceCaptainPoints * 0.5);
 }
 
-function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null) {
+function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster) {
+    const appliedBooster = getAppliedBooster({ active_booster: booster });
+    const basePoints = statsMap?.[player.id] || 0;
+    let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster);
+
+    if (player.id === captainId) {
+        if (appliedBooster === "CAPTAIN_3X" || appliedBooster === "TOTAL_2X") {
+            totalPoints += basePoints * 2;
+        } else {
+            totalPoints += basePoints;
+        }
+    } else if (player.id === viceCaptainId) {
+        totalPoints += appliedBooster === "TOTAL_2X"
+            ? Math.floor(basePoints * 0.5) * 2
+            : Math.floor(basePoints * 0.5);
+    }
+
+    return totalPoints;
+}
+
+function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booster) {
+    return (players || []).reduce((sum, player) => (
+        sum + calculateDisplayedPlayerPoints(player, statsMap || {}, captainId, viceCaptainId, booster)
+    ), 0);
+}
+
+function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE") {
     const wrapper = document.createElement("div");
     wrapper.className = "player-circle";
     if (player.id === captainId) wrapper.classList.add("captain");
@@ -165,9 +172,13 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
     wrapper.append(avatar, name);
 
     if (statsMap) {
-        let displayPoints = statsMap[player.id] || 0;
-        if (player.id === captainId) displayPoints *= 2;
-        else if (player.id === viceCaptainId) displayPoints *= 1.5;
+        const displayPoints = calculateDisplayedPlayerPoints(
+            player,
+            statsMap,
+            captainId,
+            viceCaptainId,
+            booster
+        );
 
         const points = document.createElement("div");
         points.className = "player-pts";
@@ -490,7 +501,15 @@ async function loadCurrentXI() {
     }
 
     const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
-    renderTeamLayout(players || [], userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer);
+    renderTeamLayout(
+        players || [],
+        userTeam.captain_id,
+        userTeam.vice_captain_id,
+        null,
+        teamContainer,
+        null,
+        getAppliedBooster(userTeam)
+    );
 }
 
 async function loadLastLockedXI() {
@@ -532,7 +551,15 @@ async function loadLastLockedXI() {
     const statsMap = Object.fromEntries((stats || []).map((row) => [row.player_id, row.fantasy_points]));
     const teamPlayersData = players || [];
 
-    renderTeamLayout(teamPlayersData, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer, snapshot.match_id);
+    renderTeamLayout(
+        teamPlayersData,
+        snapshot.captain_id,
+        snapshot.vice_captain_id,
+        statsMap,
+        teamContainer,
+        snapshot.match_id,
+        getAppliedBooster(snapshot)
+    );
 
     const fallbackTotal = calculateMatchTotal(
         teamPlayersData,
@@ -548,7 +575,7 @@ async function loadLastLockedXI() {
 /* =========================
    UNIVERSAL RENDERER
 ========================= */
-function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null) {
+function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE") {
     container.replaceChildren();
     const roleOrder = ["WK", "BAT", "AR", "BOWL"];
 
@@ -564,7 +591,7 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         row.className = "player-row";
 
         rolePlayers.forEach((player) => {
-            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId));
+            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId, booster));
         });
 
         section.appendChild(row);
@@ -678,7 +705,8 @@ window.viewMatchBreakdown = async (snapshotId) => {
         snapshot.vice_captain_id,
         statsMap,
         breakdownContainer,
-        snapshot.match_id
+        snapshot.match_id,
+        getAppliedBooster(snapshot)
     );
 
     const fallbackTotal = calculateMatchTotal(

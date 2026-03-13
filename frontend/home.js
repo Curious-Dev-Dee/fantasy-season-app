@@ -183,7 +183,7 @@ async function fetchHomeData(userId) {
         // 2. Substitution Logic (Handling the 999 "Magic Number")
         const match = dash.upcoming_match;
         
-        if (dash.subs_remaining === 999 || (match && (match.match_number === 1 || match.match_number === 71))) {
+        if (dash.subs_remaining === 999) {
             subsElement.textContent = "UNLIMITED";
             subsElement.style.color = "#9AE000"; // Make it glow green
         } else {
