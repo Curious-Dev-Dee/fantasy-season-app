@@ -2,179 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Change Team · Cricket Experts</title>
     <link rel="stylesheet" href="css/team-builder.css">
-    
     <script type="module" src="auth-guard.js"></script>
+    <style>
+        /* Loading Pattern */
+        body.loading-state .app-container { display: none; }
+        #loadingOverlay {
+            position: fixed; inset: 0; background: #0c1117;
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        body:not(.loading-state) #loadingOverlay { display: none; }
+        body:not(.loading-state) .app-container { display: flex; animation: fadeIn 0.4s ease-out; }
 
-<style>
-/* =========================
-   LOADING STATE PATTERN
-========================= */
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid rgba(154, 224, 0, 0.1);
+            border-left-color: #9AE000; border-radius: 50%; animation: spin 1s linear infinite;
+        }
 
-/* While loading → hide the app */
-body.loading-state .app-container {
-  display: none;
-}
-
-/* Spinner container */
-#loadingOverlay {
-  position: fixed;
-  inset: 0;
-  background: #0c1117;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-/* When loading finished → hide spinner */
-body:not(.loading-state) #loadingOverlay {
-  display: none;
-}
-
-/* Show app after loading */
-body:not(.loading-state) .app-container {
-  display: flex;
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* =========================
-   SPINNER STYLE
-========================= */
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(154, 224, 0, 0.1);
-  border-left-color: #9AE000;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Animations */
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
-
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 
 <body class="loading-state">
 
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-</div>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
 
-<div class="app-container">
-    <header class="edit-header">
-        <div class="header-left">
-            <a href="/home" class="icon-back">←</a>
-            <div class="header-info">
-                <h1>Change Team</h1>
+    <div class="app-container">
+        <header class="edit-header">
+            <div class="header-left">
+                <a href="/home" class="icon-back">←</a>
+                <div class="header-info">
+                    <h1>Change Team</h1>
+                </div>
             </div>
-        </div>
-
-        <div class="header-right">
-            <div id="upcomingMatchName" class="match-name">Loading Match...</div>
-            <div id="headerCountdown" class="match-timer">00h 00m 00s</div>
-        </div>
-    </header>
-
-    <div class="sticky-controls">
-
-        <div class="premium-progress">
-
-            <div class="progress-line-container">
-                <div id="progressFill" class="progress-fill"></div>
+            <div class="header-right">
+                <div id="upcomingMatchName" class="match-name">Loading...</div>
+                <div id="headerCountdown" class="match-timer">00h 00m 00s</div>
             </div>
+        </header>
 
-<div class="progress-labels">
-    <div class="dashboard-item">
-        👤 <span id="playerCountLabel">0</span>/11
-    </div>
-    <div class="dashboard-item">
-        ✈️ <span id="overseasCountLabel">0/4</span>
-    </div>
-    <div class="dashboard-item">
-        💰 <span id="creditCount">0</span>
-    </div>
-    <div class="dashboard-item">
-        🚀 <span id="boosterUsedLabel">0/6</span>
-    </div>
-    <div class="dashboard-item">
-        🔁 <span id="subsRemainingLabel">FREE</span>
-    </div>
-</div>
-
-        <div class="view-tabs">
-            <button class="toggle-btn" data-mode="myxi">MY XI</button>
-            <button class="toggle-btn active" data-mode="playerPool">CHANGE</button>
-        </div>
-
-        <div class="search-filter-wrapper">
-            <input type="text" id="playerSearch" placeholder="🔍 Kohli">
-            
-            <div class="role-navigation-wrapper">
-                <div class="role-tabs-container">
-                    <div class="role-tab active" data-role="ALL">ALL</div>
-                    <div class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></div>
-                    <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
-                    <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
-                    <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
-
-                    <div class="role-slider-bg"></div>
+        <div class="sticky-controls">
+            <div class="premium-progress">
+                <div class="progress-line-container">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div class="progress-labels">
+                    <div class="dashboard-item">👤 <span id="playerCountLabel">0</span>/11</div>
+                    <div class="dashboard-item">✈️ <span id="overseasCountLabel">0/4</span></div>
+                    <div class="dashboard-item">💰 <span id="creditCount">0</span></div>
+                    <div class="dashboard-item">🚀 <span id="boosterUsedLabel">0/6</span></div>
+                    <div class="dashboard-item">🔁 <span id="subsRemainingLabel">FREE</span></div>
                 </div>
             </div>
 
-            <div class="dropdown-filters">
-                <button id="matchToggle" class="pill-filter">
-                    <span>Matches</span> <i class="fas fa-chevron-down"></i>
-                </button>
-                <button id="teamToggle" class="pill-filter">
-                    <span>Teams</span> <i class="fas fa-chevron-down"></i>
-                </button>
-                <button id="creditToggle" class="pill-filter">
-                    <span>Credits</span> <i class="fas fa-chevron-down"></i>
-                </button>
+            <div class="view-tabs">
+                <button class="toggle-btn" data-mode="myxi">MY XI</button>
+                <button class="toggle-btn active" data-mode="playerPool">CHANGE</button>
             </div>
+
+            <div class="search-filter-wrapper">
+                <input type="text" id="playerSearch" placeholder="🔍 Search Kohli, MI, etc.">
+                
+                <div class="role-navigation-wrapper">
+                    <div class="role-tabs-container">
+                        <div class="role-tab active" data-role="ALL">ALL</div>
+                        <div class="role-tab" data-role="WK">WK <span class="role-count" id="count-WK"></span></div>
+                        <div class="role-tab" data-role="BAT">BAT <span class="role-count" id="count-BAT"></span></div>
+                        <div class="role-tab" data-role="AR">AR <span class="role-count" id="count-AR"></span></div>
+                        <div class="role-tab" data-role="BOWL">BOWL <span class="role-count" id="count-BOWL"></span></div>
+                        <div class="role-slider-bg"></div>
+                    </div>
+                </div>
+
+                <div class="dropdown-filters">
+                    <button id="matchToggle" class="pill-filter">
+                        <span>Matches</span> <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button id="teamToggle" class="pill-filter">
+                        <span>Teams</span> <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button id="creditToggle" class="pill-filter">
+                        <span>Credits</span> <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <main class="content-area">
+            <div id="myxi-view" class="view-mode">
+                <div id="boosterContainer" class="booster-wrapper hidden"></div>
+                <div id="myXIList" class="player-list"></div>
+            </div>
+
+            <div id="playerPool-view" class="view-mode active">
+                <div id="playerPoolList" class="player-list"></div>
+            </div>
+        </main>
+
+        <div class="save-bar">
+            <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
         </div>
     </div>
 
-    <main class="content-area">
-        <div id="myxi-view" class="view-mode">
-            <div id="boosterContainer" class="booster-wrapper hidden">
-                <label class="booster-label">
-                    <input type="checkbox" id="boosterToggle">
-                    <span class="booster-text">🚀 USE 2X MATCH BOOSTER</span>
-                </label>
-                <div class="booster-hint">Double your total points for this match!</div>
-            </div>
-            <div id="myXIList" class="player-list"></div>
-        </div>
+    <div id="filterBackdrop" class="filter-backdrop hidden"></div>
+    <div id="matchMenu" class="dropdown-menu bottom-sheet"></div>
+    <div id="teamMenu" class="dropdown-menu bottom-sheet"></div>
+    <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
 
-        <div id="playerPool-view" class="view-mode active">
-            <div id="playerPoolList" class="player-list"></div>
-        </div>
-    </main>
-
-    <div class="save-bar">
-        <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
-    </div>
-</div>
-
-<div id="filterBackdrop" class="filter-backdrop hidden"></div>
-<div id="matchMenu" class="dropdown-menu bottom-sheet"></div>
-<div id="teamMenu" class="dropdown-menu bottom-sheet"></div>
-<div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
-
-<script type="module" src="edit-team.js"></script>
+    <script type="module" src="edit-team.js"></script>
 </body>
 </html>

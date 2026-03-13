@@ -3,11 +3,8 @@ import { supabase } from "./supabase.js";
 const TOURNAMENT_ID = "11111111-1111-1111-1111-111111111111";
 
 // IPL 2026 CONFIG
-const LEAGUE_SUB_LIMIT = 150;
-const KNOCKOUT_SUB_LIMIT = 10;
-const PLAYOFF_START_MATCH = 71;
-const KNOCKOUT_PHASE_MATCH = 72;
 const LEAGUE_STAGE_END = 70;
+const PLAYOFF_START_MATCH = 71;
 
 let state = { 
     allPlayers: [], 
@@ -16,10 +13,10 @@ let state = {
     baseSubsRemaining: 150, 
     captainId: null, 
     viceCaptainId: null, 
-    activeBooster: "NONE", // The new String-based booster state
-    usedBoosters: [],      // Array of used boosters
+    activeBooster: "NONE", 
+    usedBoosters: [],      
     currentMatchNumber: 0,
-    lastLockedMatchNumber: 0, 
+    matches: [],
     filters: { 
         search: "", 
         role: "ALL", 
@@ -30,21 +27,21 @@ let state = {
     saving: false 
 };
 
-let countdownInterval;
+let countdownInterval = null;
 
 /* =========================
-   INIT (Auth Guard Protected)
+   INIT & AUTH
 ========================= */
 window.addEventListener('auth-verified', async (e) => {
-    const user = e.detail.user;
-    init(user); 
+    init(e.detail.user); 
 });
 
 async function init(user) {
     if (!user) return;
+    document.body.classList.add("loading-state");
     
     try {
-        // 1. Fetch upcoming matches to identify the active match
+        // 1. Fetch upcoming matches
         const { data: matches } = await supabase.from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
             .eq("tournament_id", TOURNAMENT_ID)
@@ -54,19 +51,16 @@ async function init(user) {
             .limit(5);
 
         state.matches = matches || [];
-        if (state.matches.length === 0) {
-            console.warn("No upcoming matches found.");
-            return;
-        }
+        if (state.matches.length === 0) return;
 
         const currentMatchId = state.matches[0].id;
         state.currentMatchNumber = state.matches[0].match_number || 0;
 
-        // 2. Fetch User Data & History in Parallel
+        // 2. Parallel Data Fetching
         const [
             { data: players },
-            { data: dashData },      // For subs_remaining
-            { data: boosterData },   // For used_boosters
+            { data: dashData },
+            { data: boosterData },
             { data: lastLock },
             { data: currentTeam }
         ] = await Promise.all([
@@ -81,13 +75,8 @@ async function init(user) {
         state.baseSubsRemaining = dashData?.subs_remaining ?? 150;
         state.usedBoosters = boosterData?.used_boosters ?? []; 
         state.activeBooster = currentTeam?.active_booster ?? "NONE"; 
+        state.lockedPlayerIds = lastLock?.user_match_team_players?.map(p => p.player_id) || [];
 
-        state.lastLockedMatchNumber = lastLock?.matches?.match_number || 0;
-
-        if (lastLock?.user_match_team_players) {
-            state.lockedPlayerIds = lastLock.user_match_team_players.map(p => p.player_id);
-        }
-        
         if (currentTeam) {
             state.captainId = currentTeam.captain_id;
             state.viceCaptainId = currentTeam.vice_captain_id;
@@ -97,8 +86,8 @@ async function init(user) {
 
         updateHeaderMatch(state.matches[0]);
         initFilters();
-        render();
         setupListeners();
+        render();
 
     } catch (err) {
         console.error("Init failed:", err);
@@ -107,330 +96,157 @@ async function init(user) {
     }
 }
 
-const getTeamCode = (player) => player.team_short_code || "UNK";
-
-function updateHeaderMatch(match) {
-    const nameEl = document.getElementById("upcomingMatchName");
-    const timerEl = document.getElementById("headerCountdown");
-    if (!nameEl || !timerEl) return;
-
-    nameEl.innerText = `${match.team_a?.short_code || "TBA"} vs ${match.team_b?.short_code || "TBA"}`;
-    
-    if (countdownInterval) clearInterval(countdownInterval);
-    const targetDate = new Date(match.actual_start_time).getTime();
-    
-    const startTimer = () => {
-        const now = new Date().getTime();
-        const diff = targetDate - now;
-        
-        if (diff <= 0) {
-            timerEl.innerText = "MATCH LIVE";
-            timerEl.style.color = "var(--danger-red)";
-            clearInterval(countdownInterval);
-            return;
-        }
-
-        const totalMinutes = Math.floor(diff / (1000 * 60));
-        if (totalMinutes < 10) {
-            timerEl.style.color = "#ef4444"; // Red
-        } else if (totalMinutes < 30) {
-            timerEl.style.color = "#f97316"; // Orange
-        } else {
-            timerEl.style.color = "var(--primary-green)"; // Green
-        }
-
-        const h = Math.floor(diff / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-        timerEl.innerText = `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
-    };
-    startTimer();
-    countdownInterval = setInterval(startTimer, 1000);
-}
-
 /* =========================
-   RENDER LOGIC
+   CORE LOGIC (Optimized)
 ========================= */
 function render() {
-    const nextMatch = state.matches?.[0];
-    const teamA = nextMatch?.team_a_id;
-    const teamB = nextMatch?.team_b_id;
+    // 1. Calculate Constraints ONCE (Senior approach: Don't calculate inside loops)
+    const stats = {
+        count: state.selectedPlayers.length,
+        overseas: state.selectedPlayers.filter(p => p.category === "overseas").length,
+        credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
+        roles: {
+            WK: state.selectedPlayers.filter(p => p.role === "WK").length,
+            BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
+            AR: state.selectedPlayers.filter(p => p.role === "AR").length,
+            BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
+        }
+    };
 
-    const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
-
-    // 1. APPLY FILTERS
-    // 1. UNIVERSAL SEARCH & FILTERS
-    const filteredPlayers = state.allPlayers
-    .filter(p => {
-        const searchTerm = state.filters.search.toLowerCase();
-        
-        // Check if search matches Name, Team Code, or Category
-        const matchesSearch = 
-            p.name.toLowerCase().includes(searchTerm) || 
-            getTeamCode(p).toLowerCase().includes(searchTerm) ||
-            p.category.toLowerCase().includes(searchTerm) ||
-            (searchTerm === 'capped' && p.category === 'none'); // Handle 'capped' search
-
-        const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
-        const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
-        const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
-        
-        const matchesMatch = state.filters.matches.length === 0 || state.filters.matches.some(mId => {
-            const m = state.matches.find(match => match.id === mId);
-            return m && (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id);
-        });
-
-        return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesMatch;
-    })
+    const isResetMatch = (state.currentMatchNumber === 1 || state.currentMatchNumber === PLAYOFF_START_MATCH);
     
-    .sort((a, b) => {
-        const aTeamPriority = a.real_team_id === teamA ? 1 : a.real_team_id === teamB ? 2 : 3;
-        const bTeamPriority = b.real_team_id === teamA ? 1 : b.real_team_id === teamB ? 2 : 3;
-        if (aTeamPriority !== bTeamPriority) return aTeamPriority - bTeamPriority;
-        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
-        return Number(b.credit) - Number(a.credit);
-    });
-    
-    // 2. DYNAMIC STAGE RESET LOGIC & SUBS
-    const matchNum = state.currentMatchNumber;
-    const isResetMatch = (matchNum === 1 || matchNum === PLAYOFF_START_MATCH);
-    const count = state.selectedPlayers.length;
-    const overseasCount = state.selectedPlayers.filter(p => p.category === "overseas").length;
-    
+    // Subs Calculation
     let subsUsedInDraft = 0;
-
-    if (isResetMatch) {
-        subsUsedInDraft = 0; 
-    } else if (state.lockedPlayerIds.length > 0) {
+    if (!isResetMatch && state.activeBooster !== 'FREE_11' && state.lockedPlayerIds.length > 0) {
         const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
         const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
-        let rawSubCount = newPlayers.length;
-        subsUsedInDraft = (hasUncappedDiscount && rawSubCount > 0) ? rawSubCount - 1 : rawSubCount;
-    }
-
-    // BOOSTER OVERRIDE: If Free 11 is selected, subs cost 0
-    if (state.activeBooster === 'FREE_11') {
-        subsUsedInDraft = 0; 
+        subsUsedInDraft = (hasUncappedDiscount && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
     }
 
     const liveSubsRemaining = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsedInDraft);
     const isOverLimit = !isResetMatch && (liveSubsRemaining < 0);
 
-    // 3. UI LABELS
-    document.getElementById("playerCountLabel").innerText = count;
-    document.getElementById("overseasCountLabel").innerText = `${overseasCount}/4`;
-    document.getElementById("creditCount").innerText = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0).toFixed(1);
-    
-    // Calculate how many boosters are left
-    const boostersLeft = 6 - state.usedBoosters.length;
-    document.getElementById("boosterUsedLabel").innerText = `${boostersLeft}/6`;
-    document.getElementById("progressFill").style.width = `${(count / 11) * 100}%`;
+    // 2. Update Global UI Labels
+    document.getElementById("playerCountLabel").innerText = stats.count;
+    document.getElementById("overseasCountLabel").innerText = `${stats.overseas}/4`;
+    document.getElementById("creditCount").innerText = stats.credits.toFixed(1);
+    document.getElementById("boosterUsedLabel").innerText = `${6 - state.usedBoosters.length}/6`;
+    document.getElementById("progressFill").style.width = `${(stats.count / 11) * 100}%`;
     
     const subsEl = document.getElementById("subsRemainingLabel");
     if (subsEl) {
         subsEl.innerText = liveSubsRemaining;
-        subsEl.parentElement.className = isOverLimit ? "subs-text negative" : "subs-text";
-        if (liveSubsRemaining === "FREE" || state.activeBooster === 'FREE_11') {
-            subsEl.parentElement.style.borderColor = "var(--primary-green)";
-            subsEl.parentElement.style.boxShadow = "0 0 10px rgba(154, 224, 0, 0.3)";
-        } else {
-            subsEl.parentElement.style.boxShadow = "none";
-        }
+        subsEl.parentElement.className = isOverLimit ? "dashboard-item negative" : "dashboard-item";
     }
 
-    // 4. BOOSTER UI
-    const boosterContainer = document.getElementById("boosterContainer");
-    const isBoosterWindow = matchNum >= 1 && matchNum <= LEAGUE_STAGE_END;
+    // 3. Render Booster Dropdown
+    renderBoosterUI();
 
-    if (boosterContainer) {
-        if (isBoosterWindow) {
-            boosterContainer.classList.remove("hidden");
-            
-            const boosterNames = {
-                TOTAL_2X: "Shaitan! 💀 (2X Total Points)",
-                CAPPED_2X: "Jay Hind! 🔱 (2X Indian Capped)",
-                UNCAPPED_2X: "Mirikaali! 🦈 (2X Uncapped)",
-                OVERSEAS_2X: "Angrej! (2X Overseas",
-                FREE_11: "Free 11 (Unlimited Subs)",
-                CAPTAIN_3X: "Hero! (3X Captain)"
-            };
-
-            let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯Select Booster --</option>`;
-            
-            Object.keys(boosterNames).forEach(key => {
-                const isUsed = state.usedBoosters.includes(key);
-                const isCurrent = state.activeBooster === key;
-                optionsHtml += `<option value="${key}" ${isUsed ? 'disabled' : ''} ${isCurrent ? 'selected' : ''}>
-                    ${isUsed ? '🚫 ' : ''}${boosterNames[key]}
-                </option>`;
-            });
-
-            boosterContainer.innerHTML = `
-                <div class="booster-header">
-                    <select id="boosterSelect" class="booster-dropdown" onchange="handleBoosterChange(this.value)">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="booster-hint" style="color: var(--primary-green); font-size: 11px; margin-top: 5px;">
-                    ${state.activeBooster !== 'NONE' ? '✅ Booster Selected for this Match' : ''}
-                </div>
-            `;
-        } else {
-            boosterContainer.classList.add("hidden");
-        }
-    }
-
-   // 5. ROLE VALIDATION & DOT LOGIC
-    const roleConfig = {
-        WK: { min: 1, current: state.selectedPlayers.filter(p => p.role === "WK").length },
-        BAT: { min: 3, current: state.selectedPlayers.filter(p => p.role === "BAT").length },
-        AR: { min: 1, current: state.selectedPlayers.filter(p => p.role === "AR").length },
-        BOWL: { min: 3, current: state.selectedPlayers.filter(p => p.role === "BOWL").length }
-    };
-
+    // 4. Role Validation Dot Logic
+    const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
     ["WK", "BAT", "AR", "BOWL"].forEach(r => {
-        const count = roleConfig[r].current; // Get the count we just calculated above
         const el = document.getElementById(`count-${r}`);
         const tab = document.querySelector(`.role-tab[data-role="${r}"]`);
-        
-        if(el) el.innerText = count > 0 ? count : "";
-        
-        if(tab) {
-            // Apply the Red/Green dot based on requirements
-            if (count >= roleConfig[r].min) {
-                tab.classList.add("requirement-met");
-                tab.classList.remove("requirement-missing");
-            } else {
-                tab.classList.add("requirement-missing");
-                tab.classList.remove("requirement-met");
-            }
+        if (el) el.innerText = stats.roles[r] || "";
+        if (tab) {
+            tab.classList.toggle("requirement-met", stats.roles[r] >= minReq[r]);
+            tab.classList.toggle("requirement-missing", stats.roles[r] < minReq[r]);
         }
     });
 
-    // 6. RENDER LISTS
-    const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
-        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
-        return Number(b.credit) - Number(a.credit);
+    // 5. Filter & Sort Player Pool
+    const nextMatch = state.matches[0];
+    const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
+    
+    const filteredPool = state.allPlayers.filter(p => {
+        const s = state.filters.search.toLowerCase();
+        const matchesSearch = p.name.toLowerCase().includes(s) || (p.team_short_code || "").toLowerCase().includes(s);
+        const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
+        const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
+        const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
+        return matchesSearch && matchesRole && matchesTeam && matchesCredit;
+    }).sort((a, b) => {
+        const aPri = a.real_team_id === nextMatch.team_a_id ? 1 : a.real_team_id === nextMatch.team_b_id ? 2 : 3;
+        const bPri = b.real_team_id === nextMatch.team_a_id ? 1 : b.real_team_id === nextMatch.team_b_id ? 2 : 3;
+        return aPri - bPri || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.credit - a.credit;
     });
 
-    renderList("myXIList", sortedMyXI, true);
-    renderList("playerPoolList", filteredPlayers, false); 
+    // 6. Draw Lists
+    renderList("myXIList", state.selectedPlayers, true, stats);
+    renderList("playerPoolList", filteredPool, false, stats);
 
-    // 7. SAVE BUTTON VALIDATION
-    // We now use roleConfig[ROLE].current to check if we have enough players
-    const hasRequiredRoles = roleConfig.WK.current >= 1 && 
-                             roleConfig.BAT.current >= 3 && 
-                             roleConfig.AR.current >= 1 && 
-                             roleConfig.BOWL.current >= 3;
-
-    const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    
-    // Final check for all rules
-    const isValid = count === 11 && 
-                    state.captainId && 
-                    state.viceCaptainId && 
-                    totalCredits <= 100 && 
-                    !isOverLimit && 
-                    hasRequiredRoles && 
-                    overseasCount <= 4;
-
-    const saveBtn = document.getElementById("saveTeamBtn");
-    saveBtn.disabled = !isValid;
-
-    // Update button text so user knows why it's disabled
-    if (state.saving) saveBtn.innerText = "SAVING...";
-    else if (isOverLimit) saveBtn.innerText = "OUT OF SUBS!";
-    else if (count < 11) saveBtn.innerText = `ADD ${11 - count} MORE PLAYERS`;
-    else if (!hasRequiredRoles) saveBtn.innerText = "REQ: 1 WK, 3 BAT, 1 AR, 3 BOWL";
-    else if (totalCredits > 100) saveBtn.innerText = `EXCEEDED BY ${(totalCredits - 100).toFixed(1)} Cr`;
-    else if (!state.captainId) saveBtn.innerText = "SELECT CAPTAIN (C)";
-    else if (!state.viceCaptainId) saveBtn.innerText = "SELECT VICE-CAPTAIN (VC)";
-    else saveBtn.innerText = "SAVE TEAM";
+    // 7. Save Button State
+    updateSaveButton(stats, isOverLimit, liveSubsRemaining);
 }
+
 /* =========================
-   LIST RENDERER
+   UI HELPERS
 ========================= */
-function renderList(containerId, sourceList, isMyXi) {
+function renderList(containerId, list, isMyXi, stats) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
-    const overseasCount = state.selectedPlayers.filter(p => p.category === "overseas").length;
-    const totalCreditsUsed = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const remainingCredits = 100 - totalCreditsUsed;
-    const currentCount = state.selectedPlayers.length;
-    const slotsLeft = 11 - currentCount;
 
-    const currentRoles = {
-        WK: state.selectedPlayers.filter(p => p.role === "WK").length,
-        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
-        AR: state.selectedPlayers.filter(p => p.role === "AR").length,
-        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
-    };
-    
-    const minRequired = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-    let neededSlots = 0;
-    const neededRoles = {};
-    for (const r in minRequired) {
-        const debt = Math.max(0, minRequired[r] - currentRoles[r]);
-        neededRoles[r] = debt;
-        neededSlots += debt;
-    }
+    const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+    const neededSlots = Object.keys(minReq).reduce((acc, r) => acc + Math.max(0, minReq[r] - stats.roles[r]), 0);
 
-    container.innerHTML = sourceList.map(p => {
+    container.innerHTML = list.map(p => {
         const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
         const isLocked = state.lockedPlayerIds.includes(p.id);
-        let isDisabled = false;
-        let fadeClass = "";
+        const tooExpensive = p.credit > (100 - stats.credits);
+        const overseasLimit = stats.overseas >= 4 && p.category === "overseas";
+        const roleLocked = (11 - stats.count) <= neededSlots && (minReq[p.role] - stats.roles[p.role]) <= 0;
 
-        if (!isMyXi && !isSelected) {
-            const tooExpensive = Number(p.credit) > remainingCredits;
-            const forceMandatory = slotsLeft <= neededSlots;
-            const thisRoleNeeded = neededRoles[p.role] > 0;
-            const isOverseas = p.category === "overseas";
-            const overseasLimitReached = overseasCount >= 4;
-
-            if (currentCount >= 11 || tooExpensive || (forceMandatory && !thisRoleNeeded) || (isOverseas && overseasLimitReached)) {
-                isDisabled = true;
-                fadeClass = "player-faded"; 
-            }
-        }
+        const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || overseasLimit || roleLocked);
 
         const photoUrl = p.photo_url 
             ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl 
-            : 'images/default-avatar.png'; 
-        
-        let controlsHtml = isMyXi ? `
-            <div class="controls">
-                <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
-                <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
-                <button class="action-btn-circle remove" onclick="togglePlayer('${p.id}')">−</button>
-            </div>` 
-            : `<button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" 
-                ${isDisabled ? 'disabled' : ''} 
-                onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>`;
+            : 'images/default-avatar.png';
 
-        // FIXED: Using the badge variable correctly here
-       // Change the badge to Emojis as requested
         const categoryIcon = p.category === "overseas" ? "✈️" : p.category === "uncapped" ? "💎" : "";
         const lockIcon = isLocked ? '📌' : '';
-                    
+
         return `
-        <div class="player-card ${isSelected ? 'selected' : ''} ${fadeClass}">
-            <div class="avatar-container">
-                <img src="${photoUrl}" class="player-avatar" alt="${p.name}">
-            </div>
-            <div class="player-info">
-            <strong>${p.name} <span class="player-category-icon">${categoryIcon} ${lockIcon}</span></strong>
-                <span>${p.role} • ${getTeamCode(p)} • ${p.credit} Cr</span>
-            </div>
-            ${controlsHtml}
-        </div>`;
-        
+            <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
+                <div class="avatar-container">
+                    <img src="${photoUrl}" class="player-avatar" loading="lazy">
+                </div>
+                <div class="player-info">
+                    <strong>${p.name} <span class="player-category-icon">${categoryIcon} ${lockIcon}</span></strong>
+                    <span>${p.role} • ${p.team_short_code} • ${p.credit} Cr</span>
+                </div>
+                <div class="controls">
+                    ${isMyXi ? `
+                        <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
+                        <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
+                    ` : ''}
+                    <button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" 
+                        ${isDisabled ? 'disabled' : ''} 
+                        onclick="togglePlayer('${p.id}')">
+                        ${isSelected ? '−' : '+'}
+                    </button>
+                </div>
+            </div>`;
     }).join('');
 }
 
+function updateSaveButton(stats, isOverLimit, liveSubs) {
+    const btn = document.getElementById("saveTeamBtn");
+    const hasRoles = stats.roles.WK >= 1 && stats.roles.BAT >= 3 && stats.roles.AR >= 1 && stats.roles.BOWL >= 3;
+    const isValid = stats.count === 11 && state.captainId && state.viceCaptainId && stats.credits <= 100 && !isOverLimit && hasRoles;
+
+    btn.disabled = !isValid || state.saving;
+    
+    if (state.saving) btn.innerText = "SAVING...";
+    else if (isOverLimit) btn.innerText = "OUT OF SUBS!";
+    else if (stats.count < 11) btn.innerText = `ADD ${11 - stats.count} MORE`;
+    else if (!hasRoles) btn.innerText = "CHECK ROLE LIMITS";
+    else if (stats.credits > 100) btn.innerText = "OVER BUDGET";
+    else if (!state.captainId || !state.viceCaptainId) btn.innerText = "SELECT C/VC";
+    else btn.innerText = "SAVE TEAM";
+}
+
 /* =========================
-   ACTIONS & FILTERS
+   INTERACTIONS
 ========================= */
 window.togglePlayer = (id) => {
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
@@ -439,115 +255,68 @@ window.togglePlayer = (id) => {
         if (state.captainId === id) state.captainId = null;
         if (state.viceCaptainId === id) state.viceCaptainId = null;
     } else if (state.selectedPlayers.length < 11) {
-        const p = state.allPlayers.find(p => p.id === id);
-        if (p) state.selectedPlayers.push(p);
+        const player = state.allPlayers.find(p => p.id === id);
+        if (player) state.selectedPlayers.push(player);
+    }
+    render();
+};
+
+window.setRole = (id, type) => {
+    if (type === 'C') {
+        state.captainId = (state.captainId === id) ? null : id;
+        if (state.captainId === state.viceCaptainId) state.viceCaptainId = null;
+    } else {
+        state.viceCaptainId = (state.viceCaptainId === id) ? null : id;
+        if (state.viceCaptainId === state.captainId) state.captainId = null;
     }
     render();
 };
 
 window.handleBoosterChange = (val) => {
-    if (val === "NONE") {
-        state.activeBooster = "NONE";
-        render();
-        return;
-    }
-
-const boosterNames = {
-        TOTAL_2X: "Shaitan! 💀 (2X Total Points)",
-        CAPPED_2X: "Jay Hind! 🔱 (2X Indian Capped)",
-        UNCAPPED_2X: "Mirikaali! 🦈 (2X Uncapped)",
-        OVERSEAS_2X: "Angrej! (2X Overseas)",
-        FREE_11: "Free 11 (Unlimited Subs)",
-        CAPTAIN_3X: "Hero! (3X Captain)"
-    };
-
-    const confirmMsg = `Apply ${boosterNames[val]}?\n\n⚠️ IMPORTANT: Each booster can only be used ONCE per season. Once the match locks, you cannot use this booster again!`;
-
-    if (confirm(confirmMsg)) {
+    if (val === "NONE") { state.activeBooster = "NONE"; render(); return; }
+    if (confirm(`Apply this booster? Each can be used once per season.`)) {
         state.activeBooster = val;
-        render(); // Recalculates subs if FREE_11 is picked
-    } else {
-        render(); // Reset dropdown visually if they hit cancel
-    }
-};
-
-window.setRole = (id, role) => {
-    if (role === 'C') {
-        state.captainId = (state.captainId === id) ? null : id;
-        if (state.captainId && state.viceCaptainId === id) state.viceCaptainId = null;
-    } else {
-        state.viceCaptainId = (state.viceCaptainId === id) ? null : id;
-        if (state.viceCaptainId && state.captainId === id) state.captainId = null;
     }
     render();
 };
 
-function initFilters() {
-    const teams = [];
-    const seenTeams = new Set();
-    state.allPlayers.forEach(p => {
-        if(!seenTeams.has(p.real_team_id)) {
-            seenTeams.add(p.real_team_id);
-            teams.push({ id: p.real_team_id, label: p.team_short_code });
+function updateHeaderMatch(match) {
+    const timerEl = document.getElementById("headerCountdown");
+    const nameEl = document.getElementById("upcomingMatchName");
+    if (!timerEl || !nameEl) return;
+
+    nameEl.innerText = `${match.team_a?.short_code} vs ${match.team_b?.short_code}`;
+    
+    if (countdownInterval) clearInterval(countdownInterval);
+    const target = new Date(match.actual_start_time).getTime();
+    
+    const update = () => {
+        const diff = target - Date.now();
+        if (diff <= 0) {
+            timerEl.innerText = "LIVE";
+            return clearInterval(countdownInterval);
         }
-    });
-    renderCheckboxDropdown('teamMenu', teams, 'teams', (t) => t.label);
-    const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
-    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
-    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `M#${m.match_number}: ${m.team_a?.short_code} vs ${m.team_b?.short_code}`);
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        timerEl.innerText = `${h}h ${m}m ${s}s`;
+    };
+    update();
+    countdownInterval = setInterval(update, 1000);
 }
-
-function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
-    const container = document.getElementById(elementId);
-    if(!container) return;
-    const listHtml = items.map(item => {
-        const value = item.id || item; 
-        const isChecked = state.filters[filterKey].includes(value) ? 'checked' : ''; 
-        return `<label class="filter-item"><input type="checkbox" value="${value}" ${isChecked} onchange="toggleFilter('${filterKey}', '${value}', this)"><span>${labelFn(item)}</span></label>`;
-    }).join('');
-    container.innerHTML = `<div class="dropdown-content">${listHtml}</div><div class="dropdown-actions"><button class="filter-action-btn clear" onclick="clearFilters('${filterKey}')">Clear</button><button class="filter-action-btn all" onclick="selectAllFilters('${filterKey}', '${elementId}')">All</button></div>`;
-}
-
-window.toggleFilter = (key, value, el) => {
-    const val = key === 'credits' ? parseFloat(value) : value;
-    if (el.checked) state.filters[key].push(val);
-    else state.filters[key] = state.filters[key].filter(v => v !== val);
-    render();
-};
-
-window.clearFilters = (key) => {
-    state.filters[key] = [];
-    const menuId = key === 'teams' ? 'teamMenu' : key === 'matches' ? 'matchMenu' : 'creditMenu';
-    document.querySelectorAll(`#${menuId} input[type="checkbox"]`).forEach(cb => cb.checked = false);
-    render();
-};
-
-window.selectAllFilters = (key, menuId) => {
-    const checkboxes = document.querySelectorAll(`#${menuId} input[type="checkbox"]`);
-    state.filters[key] = Array.from(checkboxes).map(cb => {
-        cb.checked = true;
-        return key === 'credits' ? parseFloat(cb.value) : cb.value;
-    });
-    render();
-};
 
 function setupListeners() {
-    // 1. View Toggle Logic
+    // View Toggles
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
-            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
-            
+            document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
             btn.classList.add("active");
-            const targetView = document.getElementById(`${btn.dataset.mode}-view`);
-            if (targetView) targetView.classList.add("active");
-
-            const filterWrap = document.querySelector(".search-filter-wrapper");
-            if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
+            document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
+            document.querySelector(".search-filter-wrapper").style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
         };
     });
 
-    // 2. Role Filter Logic
+    // Role Tabs
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -557,67 +326,33 @@ function setupListeners() {
         };
     });
 
-    // 3. Premium Filter Popup Logic
-    const backdrop = document.getElementById("filterBackdrop");
-    ['match', 'team', 'credit'].forEach(type => {
-        const btn = document.getElementById(`${type}Toggle`);
-        const menu = document.getElementById(`${type}Menu`);
-        if(btn && menu) {
-            btn.onclick = (e) => { 
-                e.stopPropagation(); 
-                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-                menu.classList.add('show');
-                if (backdrop) backdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; 
-            };
-        }
-    });
-
-    if (backdrop) {
-        backdrop.onclick = () => {
-            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-            backdrop.classList.add('hidden');
-            document.body.style.overflow = '';
-        };
-    }
-
-    // 4. Search logic
-    const searchInput = document.getElementById("playerSearch");
-    if(searchInput) searchInput.oninput = (e) => { state.filters.search = e.target.value; render(); };
-
-    // 5. NEW & SECURE Save Team Logic
+    // Save Logic
     document.getElementById("saveTeamBtn").onclick = async () => {
-        if (state.saving) return;
         state.saving = true;
-        render(); 
-
+        render();
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-            const playerIds = state.selectedPlayers.map(p => p.id);
-
             const { error } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
                 p_tournament_id: TOURNAMENT_ID,
                 p_captain_id: state.captainId,
                 p_vice_captain_id: state.viceCaptainId,
-                p_total_credits: totalCredits,
-                p_active_booster: state.activeBooster, // Sending the String
-                p_player_ids: playerIds
+                p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
+                p_active_booster: state.activeBooster,
+                p_player_ids: state.selectedPlayers.map(p => p.id)
             });
-
             if (error) throw error;
             showSuccessModal();
-
         } catch (err) {
-            console.error("Save error:", err.message);
-            alert("Critical Error: Your team could not be saved. Please check your internet and try again.");
+            alert("Error saving team: " + err.message);
         } finally {
             state.saving = false;
             render();
         }
     };
 }
+
+// Keep your existing initFilters, renderCheckboxDropdown, and showSuccessModal as they are mostly UI-binding.
 
 function showSuccessModal() {
     const modal = document.createElement("div");
