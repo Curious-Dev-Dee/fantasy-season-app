@@ -1,7 +1,5 @@
 import { supabase } from "./supabase.js";
 
-const ADMIN_EMAILS = ["satyara9jansahoo@gmail.com"];
-
 const matchSelect = document.getElementById("matchSelect");
 const scoreboardInput = document.getElementById("scoreboardInput");
 const processBtn = document.getElementById("processBtn");
@@ -25,19 +23,6 @@ init();
 async function init() {
     try {
         setStatus("Loading processor...", "loading");
-
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            window.location.href = "login.html";
-            return;
-        }
-
-        const email = normalizeEmail(session.user.email);
-        if (!ADMIN_EMAILS.includes(email)) {
-            alert("Access denied.");
-            window.location.href = "home.html";
-            return;
-        }
 
         const { data: activeTournament, error: tournamentError } = await supabase
             .from("active_tournament")
@@ -94,6 +79,8 @@ async function loadPlayers() {
 }
 
 async function loadMatches() {
+    const nowIso = new Date().toISOString();
+
     const { data, error } = await supabase
         .from("matches")
         .select(`
@@ -109,8 +96,7 @@ async function loadMatches() {
             team_b:real_teams!team_b_id(short_code)
         `)
         .eq("tournament_id", activeTournamentId)
-        .eq("points_processed", false)
-        .in("status", ["locked", "live", "completed"])
+        .lte("actual_start_time", nowIso)
         .order("actual_start_time", { ascending: false });
 
     if (error) throw error;
@@ -130,7 +116,8 @@ async function loadMatches() {
         ...matches.map((match) => {
             const left = match.team_a?.short_code || "TBA";
             const right = match.team_b?.short_code || "TBA";
-            return `<option value="${match.id}">M#${match.match_number}: ${left} vs ${right} [${match.status.toUpperCase()}]</option>`;
+            const processedTag = match.points_processed ? "PROCESSED" : "PENDING";
+            return `<option value="${match.id}">M#${match.match_number}: ${left} vs ${right} [${match.status.toUpperCase()} | ${processedTag}]</option>`;
         })
     ].join("");
 }
@@ -343,10 +330,6 @@ function parseScoreboard(rawValue) {
 
 function normalizeName(value) {
     return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function normalizeEmail(value) {
-    return String(value || "").trim().toLowerCase();
 }
 
 function setStatus(message, type) {

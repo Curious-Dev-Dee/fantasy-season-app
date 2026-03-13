@@ -6,21 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const DEFAULT_ADMIN_EMAILS = ["satyara9jansahoo@gmail.com"];
-
 function normalizeName(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function getAllowedAdminEmails() {
-  const raw = Deno.env.get("PROCESS_MATCH_ADMIN_EMAILS")
-    ?? Deno.env.get("ADMIN_EMAILS")
-    ?? DEFAULT_ADMIN_EMAILS.join(",");
-
-  return raw
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
 }
 
 serve(async (req) => {
@@ -31,32 +18,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const authHeader = req.headers.get("Authorization");
-    const jwt = authHeader?.replace(/^Bearer\s+/i, "").trim();
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      });
-    }
-
-    const { data: authData, error: authError } = await supabase.auth.getUser(jwt);
-    if (authError || !authData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      });
-    }
-
-    const callerEmail = (authData.user.email ?? "").trim().toLowerCase();
-    const allowedAdminEmails = getAllowedAdminEmails();
-    if (!allowedAdminEmails.includes(callerEmail)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403,
-      });
-    }
 
     const body = await req.json();
     const { 
