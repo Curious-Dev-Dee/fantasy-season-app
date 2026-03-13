@@ -267,14 +267,14 @@ function render() {
 
    // 5. ROLE VALIDATION & DOT LOGIC
     const roleConfig = {
-        WK: { min: 1 },
-        BAT: { min: 3 },
-        AR: { min: 1 },
-        BOWL: { min: 3 }
+        WK: { min: 1, current: state.selectedPlayers.filter(p => p.role === "WK").length },
+        BAT: { min: 3, current: state.selectedPlayers.filter(p => p.role === "BAT").length },
+        AR: { min: 1, current: state.selectedPlayers.filter(p => p.role === "AR").length },
+        BOWL: { min: 3, current: state.selectedPlayers.filter(p => p.role === "BOWL").length }
     };
 
     ["WK", "BAT", "AR", "BOWL"].forEach(r => {
-        const count = state.selectedPlayers.filter(p => p.role === r).length;
+        const count = roleConfig[r].current; // Get the count we just calculated above
         const el = document.getElementById(`count-${r}`);
         const tab = document.querySelector(`.role-tab[data-role="${r}"]`);
         
@@ -291,7 +291,7 @@ function render() {
             }
         }
     });
-    
+
     // 6. RENDER LISTS
     const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
         if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
@@ -302,13 +302,27 @@ function render() {
     renderList("playerPoolList", filteredPlayers, false); 
 
     // 7. SAVE BUTTON VALIDATION
-    const hasRequiredRoles = roles.WK >= 1 && roles.BAT >= 3 && roles.AR >= 1 && roles.BOWL >= 3;
+    // We now use roleConfig[ROLE].current to check if we have enough players
+    const hasRequiredRoles = roleConfig.WK.current >= 1 && 
+                             roleConfig.BAT.current >= 3 && 
+                             roleConfig.AR.current >= 1 && 
+                             roleConfig.BOWL.current >= 3;
+
     const totalCredits = state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0);
-    const isValid = count === 11 && state.captainId && state.viceCaptainId && totalCredits <= 100 && !isOverLimit && hasRequiredRoles && overseasCount <= 4;
+    
+    // Final check for all rules
+    const isValid = count === 11 && 
+                    state.captainId && 
+                    state.viceCaptainId && 
+                    totalCredits <= 100 && 
+                    !isOverLimit && 
+                    hasRequiredRoles && 
+                    overseasCount <= 4;
 
     const saveBtn = document.getElementById("saveTeamBtn");
     saveBtn.disabled = !isValid;
 
+    // Update button text so user knows why it's disabled
     if (state.saving) saveBtn.innerText = "SAVING...";
     else if (isOverLimit) saveBtn.innerText = "OUT OF SUBS!";
     else if (count < 11) saveBtn.innerText = `ADD ${11 - count} MORE PLAYERS`;
@@ -318,7 +332,6 @@ function render() {
     else if (!state.viceCaptainId) saveBtn.innerText = "SELECT VICE-CAPTAIN (VC)";
     else saveBtn.innerText = "SAVE TEAM";
 }
-
 /* =========================
    LIST RENDERER
 ========================= */
