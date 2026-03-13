@@ -67,8 +67,8 @@ async function lockSingleMatch(supabase: any, match: any) {
       vice_captain_id,
       total_credits,
       use_booster,
-      user_fantasy_team_players(player_id)
-    `)
+      user_fantasy_team_players(player_id, players(category))`
+    )
     .eq("tournament_id", match.tournament_id);
 
   if (teamError) {
@@ -105,36 +105,43 @@ async function lockUserTeamForMatch(supabase: any, match: any, team: any) {
     .limit(1)
     .maybeSingle();
 
-  const currentPlayers = (team.user_fantasy_team_players ?? []).map((p: any) => p.player_id);
+// --- NEW SMART LOGIC START ---
+  
+  // 1. Keep player IDs and Categories together
+  const currentPlayersInfo = (team.user_fantasy_team_players ?? []).map((p: any) => ({
+    id: p.player_id,
+    category: p.players?.category 
+  }));
+
+  const currentIds = currentPlayersInfo.map(p => p.id);
   const previousPlayers = lastSnapshot ? await getSnapshotPlayers(supabase, lastSnapshot.id) : [];
 
-  // 3. Stage-aware sub logic (Updated for IPL Specifics)
+  // 2. Identify the NEW players and check for an Uncapped one
+  const newPlayers = currentPlayersInfo.filter(p => !previousPlayers.includes(p.id));
+  const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
+  const rawChangeCount = newPlayers.length;
+
   let subsUsed = 0;
   let totalSubsUsed = 0;
-
   const matchNum = match.match_number;
-  const lastMatchNum = lastSnapshot?.matches?.match_number ?? 0;
 
-  // RULE 1: Match 1 is always free (0 subs used)
-  if (matchNum === 1) {
+  // 3. Apply the rules with the Discount Coupon
+  if (matchNum === 1 || matchNum === PLAYOFF_START) {
     subsUsed = 0;
     totalSubsUsed = 0;
   } 
-  // RULE 2: Match 71 is a Full Reset (Unlimited transfers for Playoffs)
-  else if (matchNum === PLAYOFF_START) {
-    subsUsed = 0;
-    totalSubsUsed = 0;
-  } 
-  // RULE 3: Match 72 starts the 10-sub limit phase
-  else if (matchNum === KNOCKOUT_PHASE) {
-    subsUsed = currentPlayers.filter((p: string) => !previousPlayers.includes(p)).length;
-    totalSubsUsed = subsUsed; // Start fresh count from this match
-  } 
-  // RULE 4: Standard accumulation for League (M2-M70) or Knockouts (M73-74)
-  else if (lastSnapshot) {
-    subsUsed = currentPlayers.filter((p: string) => !previousPlayers.includes(p)).length;
-    totalSubsUsed = (lastSnapshot.total_subs_used ?? 0) + subsUsed;
+  else {
+    // Apply the "Free 1 Uncapped" rule here
+    subsUsed = (hasUncappedDiscount && rawChangeCount > 0) ? rawChangeCount - 1 : rawChangeCount;
+
+    if (matchNum === KNOCKOUT_PHASE) {
+        totalSubsUsed = subsUsed; 
+    } else if (lastSnapshot) {
+        totalSubsUsed = (lastSnapshot.total_subs_used ?? 0) + subsUsed;
+    }
   }
+
+  // --- NEW SMART LOGIC END ---
   
   let boosterToApply = false;
   if (matchNum >= BOOSTER_WINDOW_START && matchNum <= BOOSTER_WINDOW_END) {
@@ -179,11 +186,11 @@ async function lockUserTeamForMatch(supabase: any, match: any, team: any) {
       .eq("tournament_id", match.tournament_id);
   }
 
-  const rows = currentPlayers.map((playerId: string) => ({
+  const rows = currentIds.map((playerId: string) => ({
     user_match_team_id: snapshot.id,
     player_id: playerId,
   }));
-
+  
   await supabase.from("user_match_team_players").insert(rows);
 }
 
