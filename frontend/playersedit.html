@@ -156,161 +156,97 @@
     // --- CONFIGURATION ---
     const SB_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE";
-
-    // We use 'db' here to avoid conflict with the 'supabase' library name
     const db = supabase.createClient(SB_URL, SB_KEY);
 
     let activeTourneyId = null;
     let allPlayers = [];
 
-    // --- INITIALIZATION ---
     async function init() {
-        try {
-            // 1. Get active tournament
-            const { data: tourney, error: tErr } = await db
-                .from('active_tournament')
-                .select('*')
-                .single();
-            
-            if (tErr) throw tErr;
-            activeTourneyId = tourney.id;
-            document.getElementById('tournamentName').innerText = tourney.name;
+        const { data: tourney } = await db.from('active_tournament').select('*').single();
+        activeTourneyId = tourney.id;
+        document.getElementById('tournamentName').innerText = tourney.name;
 
-            // 2. Load Teams
-            const { data: teams } = await db
-                .from('real_teams')
-                .select('id, name')
-                .eq('tournament_id', activeTourneyId)
-                .order('name');
-            
-            const teamSelect = document.getElementById('real_team_id');
-            teams.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.id;
-                opt.innerText = t.name;
-                teamSelect.appendChild(opt);
-            });
+        const { data: teams } = await db.from('real_teams').select('id, name').eq('tournament_id', activeTourneyId).order('name');
+        const teamSelect = document.getElementById('real_team_id');
+        teams.forEach(t => { teamSelect.innerHTML += `<option value="${t.id}">${t.name}</option>`; });
 
-            // 3. Load Players
-            fetchPlayers();
-
-        } catch (err) {
-            console.error(err);
-            alert("Error loading app: " + err.message);
-        }
+        fetchPlayers();
     }
 
-    // --- DATA FETCHING ---
     async function fetchPlayers() {
-        document.getElementById('loading').classList.remove('hidden');
-        const { data, error } = await db
-            .from('players')
-            .select(`*, real_teams(short_code)`)
-            .eq('tournament_id', activeTourneyId)
-            .order('created_at', { ascending: false });
-
-        if (!error) {
-            allPlayers = data;
-            renderList(allPlayers);
-        }
-        document.getElementById('loading').classList.add('hidden');
+        const { data } = await db.from('players').select(`*, real_teams(short_code)` || '').eq('tournament_id', activeTourneyId).order('name', { ascending: true });
+        allPlayers = data;
+        renderList(data);
     }
 
     function renderList(list) {
         const container = document.getElementById('playerList');
-        container.innerHTML = '';
-        
-        list.forEach(p => {
-            const div = document.createElement('div');
-            div.className = 'player-item';
-            div.innerHTML = `
+        container.innerHTML = list.map(p => `
+            <div class="player-item" style="opacity: ${p.is_active ? '1' : '0.5'}">
                 <div class="p-info">
-                    <strong>${p.name}</strong>
-                    <span>${p.real_teams?.short_code || '---'} | ${p.role} | ${p.credit} Cr | ${p.category}</span>
+                    <strong>${p.name} ${p.is_active ? '' : '(INACTIVE)'}</strong>
+                    <span>${p.real_teams?.short_code} | ${p.role} | ${p.credit} Cr</span>
                 </div>
                 <div class="p-actions">
                     <button class="edit-btn" onclick="prepareEdit('${p.id}')">Edit</button>
+                    <button class="del-btn" style="background:#64748b; color:white" onclick="toggleActive('${p.id}', ${p.is_active})">Toggle</button>
                     <button class="del-btn" onclick="deletePlayer('${p.id}')">Del</button>
                 </div>
-            `;
-            container.appendChild(div);
-        });
+            </div>
+        `).join('');
     }
 
-    // --- SEARCH ---
-    function filterPlayers() {
-        const term = document.getElementById('search').value.toLowerCase();
-        const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term));
-        renderList(filtered);
-    }
-
+    // THIS IS THE "TRIGGER SQL" PART
     document.getElementById('playerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('playerId').value;
-    const saveBtn = document.getElementById('saveBtn');
-    
-    saveBtn.disabled = true;
-    saveBtn.innerText = "Saving...";
+        e.preventDefault();
+        const id = document.getElementById('playerId').value;
+        
+        const playerData = {
+            name: document.getElementById('name').value,
+            real_team_id: document.getElementById('real_team_id').value,
+            role: document.getElementById('role').value,
+            credit: parseFloat(document.getElementById('credit').value),
+            category: document.getElementById('category').value,
+            tournament_id: activeTourneyId
+        };
 
-    const playerData = {
-        name: document.getElementById('name').value.trim(),
-        real_team_id: document.getElementById('real_team_id').value,
-        role: document.getElementById('role').value,
-        credit: parseFloat(document.getElementById('credit').value),
-        category: document.getElementById('category').value, // This is 'none', 'overseas', or 'uncapped'
-        tournament_id: activeTourneyId
+        let res;
+        if (id) {
+            // "UPDATE public.players SET ... WHERE id = id"
+            res = await db.from('players').update(playerData).match({ id: id }).select();
+        } else {
+            // "INSERT INTO public.players ..."
+            res = await db.from('players').insert([playerData]).select();
+        }
+
+        if (res.error) alert("Error: " + res.error.message);
+        else { resetForm(); fetchPlayers(); }
+    });
+
+    // "UPDATE public.players SET is_active = !current WHERE id = id"
+    window.toggleActive = async (id, currentStatus) => {
+        await db.from('players').update({ is_active: !currentStatus }).eq('id', id);
+        fetchPlayers();
     };
 
-    let result;
-    if (id) {
-        // UPDATE: Using { count: 'exact' } helps verify if the row was actually affected
-        result = await db
-            .from('players')
-            .update(playerData)
-            .eq('id', id)
-            .select(); // Calling .select() ensures we get the updated data back immediately
-    } else {
-        // INSERT
-        result = await db
-            .from('players')
-            .insert([playerData])
-            .select();
-    }
-
-    if (result.error) {
-        console.error("Supabase Error:", result.error);
-        alert("Update Failed: " + result.error.message);
-    } else {
-        console.log("Success:", result.data);
-        // Success! Clear form and re-fetch from source
-        resetForm();
-        await fetchPlayers(); // Re-fetch all to sync the UI
-    }
-    
-    saveBtn.disabled = false;
-});
+    window.deletePlayer = async (id) => {
+        if (confirm("Delete permanently?")) {
+            await db.from('players').delete().eq('id', id);
+            fetchPlayers();
+        }
+    };
 
     window.prepareEdit = (id) => {
         const p = allPlayers.find(x => x.id === id);
-        if (!p) return;
-
         document.getElementById('playerId').value = p.id;
         document.getElementById('name').value = p.name;
         document.getElementById('real_team_id').value = p.real_team_id;
         document.getElementById('role').value = p.role;
         document.getElementById('credit').value = p.credit;
         document.getElementById('category').value = p.category;
-
         document.getElementById('saveBtn').innerText = "Update Player";
         document.getElementById('cancelBtn').classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.deletePlayer = async (id) => {
-        if (!confirm("Are you sure?")) return;
-        const { error } = await db.from('players').delete().eq('id', id);
-        if (error) alert(error.message);
-        else fetchPlayers();
+        window.scrollTo(0,0);
     };
 
     function resetForm() {
@@ -319,8 +255,6 @@
         document.getElementById('saveBtn').innerText = "Add Player";
         document.getElementById('cancelBtn').classList.add('hidden');
     }
-
-    document.getElementById('cancelBtn').addEventListener('click', resetForm);
 
     init();
 </script>
