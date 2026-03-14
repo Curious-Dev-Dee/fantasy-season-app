@@ -285,7 +285,6 @@ function renderList(containerId, list, isMyXi, stats) {
             <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
                 <div class="avatar-container"><img src="${photoUrl}" class="player-avatar"></div>
                 <div class="player-info">
-                    // Inside renderList function, inside the innerHTML return string:
             <strong>
             ${p.name} 
             ${p.category === 'overseas' ? '<i class="fas fa-plane-arrival category-icon overseas"></i>' : ''}
