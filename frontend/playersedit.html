@@ -94,7 +94,7 @@
 <div id="loader">
     <div style="text-align:center">
         <i class="fas fa-circle-notch fa-spin" style="font-size: 32px; color: var(--primary)"></i>
-        <p style="margin-top:10px; font-size:12px; font-weight:800; color:var(--primary)">SYNCING DATABASE...</p>
+        <p style="margin-top:10px; font-size:12px; font-weight:800; color:var(--primary)">REFRESHING DATA...</p>
     </div>
 </div>
 
@@ -129,7 +129,7 @@
             </div>
             <div class="form-group" style="flex:1">
                 <label>CREDITS</label>
-                <input type="number" id="fCredit" step="0.5">
+                <input type="number" id="fCredit" step="0.1">
             </div>
         </div>
 
@@ -141,13 +141,13 @@
         <div class="form-group">
             <label>CATEGORY</label>
             <select id="fCategory">
-                <option value="none">Capped</option>
+                <option value="none">Capped (None)</option>
                 <option value="overseas">Overseas ✈️</option>
                 <option value="uncapped">Uncapped 🧢</option>
             </select>
         </div>
 
-        <button class="save-btn" id="saveBtn" onclick="handleSave()">SAVE PLAYER</button>
+        <button class="save-btn" id="saveBtn" onclick="handleSave()">SAVE CHANGES</button>
         <div class="close-form" onclick="closeModal()">CANCEL</div>
     </div>
 </div>
@@ -155,38 +155,34 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // 1. HARDCODED INIT (Prevents malformed URL errors)
-    const adminSupabaseClient = supabase.createClient(
+    // Initialize Supabase with the Service Role Key
+    const adminSupabase = supabase.createClient(
         "https://tuvqgcosbweljslbfgqc.supabase.co", 
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"
     );
 
-    let playersData = [], teamsData = [], currentTournamentId = null;
+    let playersList = [], teamsList = [], activeTournId = null;
 
-    // 2. INITIALIZATION
-    async function boot() {
+    async function init() {
         try {
-            const { data: t } = await adminSupabaseClient.from('active_tournament').select('id').maybeSingle();
-            if (!t) throw new Error("No active tournament");
-            currentTournamentId = t.id;
+            const { data: t } = await adminSupabase.from('active_tournament').select('id').maybeSingle();
+            if (!t) return alert("No active tournament found!");
+            activeTournId = t.id;
 
             const [pRes, tRes] = await Promise.all([
-                adminSupabaseClient.from('players').select('*, real_teams(short_code)').eq('tournament_id', currentTournamentId).order('name'),
-                adminSupabaseClient.from('real_teams').select('*').order('short_code')
+                adminSupabase.from('players').select('*, real_teams(short_code)').eq('tournament_id', activeTournId).order('name'),
+                adminSupabase.from('real_teams').select('*').order('short_code')
             ]);
 
-            playersData = pRes.data || [];
-            teamsData = tRes.data || [];
+            playersList = pRes.data || [];
+            teamsList = tRes.data || [];
 
-            document.getElementById('fTeam').innerHTML = teamsData.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
-            render(playersData);
+            document.getElementById('fTeam').innerHTML = teamsList.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
+            render(playersList);
             document.getElementById('loader').classList.add('hidden');
-        } catch (e) { 
-            alert("Error: " + e.message);
-        }
+        } catch (e) { console.error(e); }
     }
 
-    // 3. UI RENDERING
     function render(list) {
         document.getElementById('playerList').innerHTML = list.map(p => `
             <div class="player-item ${!p.is_active ? 'inactive' : ''}">
@@ -197,16 +193,15 @@
                 <div class="actions">
                     <button class="btn edit-btn" onclick="openEditForm('${p.id}')">EDIT</button>
                     <button class="btn del-btn" onclick="toggleActive('${p.id}', ${p.is_active})">
-                        ${p.is_active ? 'DISABLE' : 'ENABLE'}
+                        ${p.is_active ? 'OFF' : 'ON'}
                     </button>
                 </div>
             </div>
         `).join('');
     }
 
-    // 4. FORM ACTIONS
     function openAddForm() {
-        document.getElementById('formTitle').innerText = "Add Player";
+        document.getElementById('formTitle').innerText = "Add New Player";
         document.getElementById('editId').value = "";
         document.getElementById('fName').value = "";
         document.getElementById('fCredit').value = "";
@@ -214,7 +209,7 @@
     }
 
     function openEditForm(id) {
-        const p = playersData.find(x => x.id === id);
+        const p = playersList.find(x => x.id === id);
         if(!p) return;
         document.getElementById('formTitle').innerText = "Modify Player";
         document.getElementById('editId').value = p.id;
@@ -222,50 +217,71 @@
         document.getElementById('fRole').value = p.role;
         document.getElementById('fCredit').value = p.credit;
         document.getElementById('fTeam').value = p.real_team_id;
-        document.getElementById('fCategory').value = p.category;
+        document.getElementById('fCategory').value = p.category || 'none';
         document.getElementById('formModal').classList.add('show');
     }
 
     async function handleSave() {
         const id = document.getElementById('editId').value;
         const btn = document.getElementById('saveBtn');
+        
+        // Construct Payload
         const payload = {
             name: document.getElementById('fName').value.trim(),
             role: document.getElementById('fRole').value,
             credit: parseFloat(document.getElementById('fCredit').value),
             real_team_id: document.getElementById('fTeam').value,
             category: document.getElementById('fCategory').value,
-            tournament_id: currentTournamentId,
+            tournament_id: activeTournId,
             is_active: true
         };
 
-        if(!payload.name || isNaN(payload.credit)) return alert("Fill Name and Credits!");
-        btn.disabled = true;
+        // Basic Validation
+        if(!payload.name || isNaN(payload.credit)) return alert("Please enter valid Name and Credits!");
 
-        const { error } = id 
-            ? await adminSupabaseClient.from('players').update(payload).eq('id', id) 
-            : await adminSupabaseClient.from('players').insert([payload]);
-        
-        if(error) { alert(error.message); btn.disabled = false; }
-        else location.reload();
+        btn.disabled = true;
+        btn.innerText = "SAVING...";
+
+        let response;
+        if(id) {
+            // Force return data so we can verify the update worked
+            response = await adminSupabase.from('players').update(payload).eq('id', id).select();
+        } else {
+            response = await adminSupabase.from('players').insert([payload]).select();
+        }
+
+        const { data, error } = response;
+
+        if (error) {
+            alert("❌ DATABASE ERROR: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "SAVE CHANGES";
+        } else if (!data || data.length === 0) {
+            alert("⚠️ WARNING: Row was not updated. Check if the Player ID exists.");
+            btn.disabled = false;
+            btn.innerText = "SAVE CHANGES";
+        } else {
+            // Success - Force refresh with cache busting
+            console.log("Updated Data:", data);
+            window.location.href = window.location.pathname + "?" + Date.now();
+        }
     }
 
-    async function toggleActive(id, state) {
-        if(!confirm(`Change player status?`)) return;
-        const { error } = await adminSupabaseClient.from('players').update({ is_active: !state }).eq('id', id);
+    async function toggleActive(id, current) {
+        if(!confirm(`Turn player ${current ? 'OFF' : 'ON'}?`)) return;
+        const { error } = await adminSupabase.from('players').update({ is_active: !current }).eq('id', id);
         if(error) alert(error.message);
-        else location.reload();
+        else window.location.href = window.location.pathname + "?" + Date.now();
     }
 
     function closeModal() { document.getElementById('formModal').classList.remove('show'); }
 
     document.getElementById('searchBox').oninput = (e) => {
         const val = e.target.value.toLowerCase();
-        render(playersData.filter(p => p.name.toLowerCase().includes(val) || (p.real_teams?.short_code || "").toLowerCase().includes(val)));
+        render(playersList.filter(p => p.name.toLowerCase().includes(val) || (p.real_teams?.short_code || "").toLowerCase().includes(val)));
     };
 
-    // START
-    boot();
+    init();
 </script>
 </body>
 </html>
