@@ -28,7 +28,6 @@
             padding-bottom: 80px;
         }
 
-        /* --- HEADER --- */
         header {
             background: var(--card);
             padding: 20px;
@@ -40,7 +39,6 @@
         h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
         .stats-bar { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
 
-        /* --- SEARCH --- */
         .search-container { padding: 15px; background: var(--bg); }
         #searchBox {
             width: 100%;
@@ -53,7 +51,6 @@
         }
         #searchBox:focus { border-color: var(--primary); }
 
-        /* --- PLAYER LIST --- */
         .player-list { padding: 0 15px; display: flex; flex-direction: column; gap: 10px; }
         .player-item {
             background: var(--card);
@@ -77,7 +74,6 @@
             cursor: pointer;
         }
 
-        /* --- FLOATING ADD BUTTON --- */
         .fab {
             position: fixed;
             bottom: 20px;
@@ -96,7 +92,6 @@
             z-index: 200;
         }
 
-        /* --- MODAL / FORM --- */
         .modal {
             position: fixed;
             inset: 0;
@@ -133,7 +128,7 @@
         .save-btn { flex: 2; background: var(--primary); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; }
         .cancel-btn { flex: 1; background: #334155; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
     </style>
 </head>
@@ -155,8 +150,7 @@
     <input type="text" id="searchBox" placeholder="🔍 Search Name or Team code...">
 </div>
 
-<main class="player-list" id="playerList">
-    </main>
+<main class="player-list" id="playerList"></main>
 
 <button class="fab" onclick="openForm()"><i class="fas fa-plus"></i></button>
 
@@ -189,8 +183,7 @@
 
         <div class="form-group">
             <label>Real Team</label>
-            <select id="pTeam">
-                </select>
+            <select id="pTeam"></select>
         </div>
 
         <div class="form-group">
@@ -217,10 +210,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // 1. DATABASE SETUP
+    // 1. DATABASE SETUP (Renamed to adminSupabase to fix redeclaration error)
     const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"; // Use service role for admin powers
-    const supabase = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"; 
+    const adminSupabase = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let allPlayers = [];
     let allTeams = [];
@@ -229,19 +222,17 @@
     // 2. INITIALIZATION
     async function init() {
         try {
-            // Get Active Tournament
-            const { data: t } = await supabase.from('active_tournament').select('id').maybeSingle();
+            const { data: t } = await adminSupabase.from('active_tournament').select('id').maybeSingle();
             if (!t) return alert("No active tournament found!");
             activeTournamentId = t.id;
 
-            // Load Data
             const [teamRes, playerRes] = await Promise.all([
-                supabase.from('real_teams').select('*').order('short_code'),
-                supabase.from('players').select('*, real_teams(short_code)').eq('tournament_id', activeTournamentId).order('name')
+                adminSupabase.from('real_teams').select('*').order('short_code'),
+                adminSupabase.from('players').select('*, real_teams(short_code)').eq('tournament_id', activeTournamentId).order('name')
             ]);
 
-            allTeams = teamRes.data;
-            allPlayers = playerRes.data;
+            allTeams = teamRes.data || [];
+            allPlayers = playerRes.data || [];
 
             renderTeamsDropdown();
             renderPlayers(allPlayers);
@@ -249,7 +240,7 @@
             
             document.getElementById('loader').classList.add('hidden');
         } catch (e) {
-            console.error(e);
+            console.error("Init Error:", e);
         }
     }
 
@@ -260,7 +251,7 @@
             <div class="player-item">
                 <div class="p-info">
                     <strong>${p.name} ${p.category === 'overseas' ? '✈️' : p.category === 'uncapped' ? '🧢' : ''}</strong>
-                    <span>${p.role} • ${p.real_teams?.short_code} • ${p.credit} Cr</span>
+                    <span>${p.role} • ${p.real_teams?.short_code || 'TBA'} • ${p.credit} Cr</span>
                 </div>
                 <button class="edit-btn" onclick="prepareEdit('${p.id}')">MODIFY</button>
             </div>
@@ -281,7 +272,7 @@
         const term = e.target.value.toLowerCase();
         const filtered = allPlayers.filter(p => 
             p.name.toLowerCase().includes(term) || 
-            p.real_teams?.short_code.toLowerCase().includes(term)
+            (p.real_teams?.short_code || "").toLowerCase().includes(term)
         );
         renderPlayers(filtered);
     };
@@ -316,7 +307,7 @@
         document.getElementById('formModal').classList.add('show');
     }
 
-    // 6. SAVE LOGIC (ADD OR UPDATE)
+    // 6. SAVE LOGIC
     async function savePlayer() {
         const id = document.getElementById('editPlayerId').value;
         const saveBtn = document.getElementById('saveBtn');
@@ -339,12 +330,10 @@
 
         let error;
         if(id) {
-            // Update
-            const { error: err } = await supabase.from('players').update(payload).eq('id', id);
+            const { error: err } = await adminSupabase.from('players').update(payload).eq('id', id);
             error = err;
         } else {
-            // Insert
-            const { error: err } = await supabase.from('players').insert([payload]);
+            const { error: err } = await adminSupabase.from('players').insert([payload]);
             error = err;
         }
 
@@ -353,7 +342,7 @@
             saveBtn.disabled = false;
             saveBtn.innerText = "Save Player";
         } else {
-            location.reload(); // Simplest way to refresh the list
+            location.reload(); 
         }
     }
 
