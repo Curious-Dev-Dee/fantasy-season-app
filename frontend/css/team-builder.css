@@ -842,12 +842,15 @@ display:none;
 display:block;
 }
 
-/* --- PLAYER CATEGORY ICONS --- */
-
-.category-icon {
-    font-size: 10px;        /* Small and subtle */
-    margin-left: 6px;       /* Gap between name and icon */
-    vertical-align: middle; /* Aligns perfectly with the text */
+/* --- PLAYER CATEGORY EMOJIS --- */
+.category-emoji {
+    font-size: 12px;         /* Emojis look better slightly larger */
+    margin-left: 5px;        /* Spacing from name */
+    vertical-align: middle;  /* Perfect alignment with text */
+    display: inline-block;
+    line-height: 1;
+    /* Adding a tiny drop shadow to help them pop on dark backgrounds */
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); 
 }
 
 /* ✈️ Overseas: Sky Blue */

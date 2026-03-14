@@ -285,10 +285,10 @@ const category = (p.category || "").toLowerCase(); // Safety check
             <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
                 <div class="avatar-container"><img src="${photoUrl}" class="player-avatar"></div>
                 <div class="player-info">
-            <strong>
-            ${p.name} 
-            ${p.category === 'overseas' ? '<i class="fas fa-plane-arrival category-icon overseas"></i>' : ''}
-            ${p.category === 'uncapped' ? '<i class="fas fa-graduation-cap category-icon uncapped"></i>' : ''}
+<strong>
+                ${p.name} 
+                ${category === 'overseas' ? '<span class="category-emoji">✈️</span>' : ''}
+                ${category === 'uncapped' ? '<span class="category-emoji">🧢</span>' : ''}
             </strong>
 
                     <span>${p.role} • ${p.team_short_code} • ${p.credit} Cr</span>
