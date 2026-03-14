@@ -16,7 +16,7 @@ body {
     background: var(--bg-dark);
     color: #fff;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    overflow-x: hidden; /* Allow vertical scrolling for the feed */
+    overflow-x: hidden; 
 }
 
 .prediction-page { display: flex; flex-direction: column; min-height: 100vh; }
@@ -31,7 +31,7 @@ body {
 }
 .score-pill { 
     display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; 
-    border-radius: 999px; background: rgba(56, 189, 248, 0.16); font-size: 13px; font-weight: 800; 
+    border-radius: 999px; background: rgba(255, 215, 0, 0.16); color: #ffd700; font-size: 14px; font-weight: 900; 
 }
 
 /* --- PODIUM STACK (TOP) --- */
@@ -58,7 +58,9 @@ body {
 .rank-2 { order: 1; }
 .rank-3 { order: 3; }
 
-.podium-name { font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 6px; max-width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.podium-name { font-size: 10px; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 2px; max-width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.podium-league { font-size: 9px; color: var(--text-slate); margin-bottom: 6px; max-width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 .podium-avatar-wrapper { position: relative; padding: 3px; border-radius: 50%; margin-bottom: 8px; }
 
 .rank-1 .podium-avatar-wrapper { background: linear-gradient(45deg, #ffd700, #b8860b); box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
@@ -79,72 +81,89 @@ body {
 
 .podium-pts { font-size: 14px; font-weight: 900; color: var(--neon-green); }
 
-/* --- QUIZ CONTAINER & 3D FLIP --- */
-.quiz-container { perspective: 1000px; height: 400px; margin-bottom: 30px; }
-.flip-card-inner {
-    position: relative; width: 100%; height: 100%;
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
+/* Comment Button Under Podiums */
+.comment-btn {
+    width: 100%; margin-top: 15px; padding: 8px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-slate); font-size: 11px; font-weight: 700;
+    cursor: pointer; transition: var(--transition);
 }
-.flipped { transform: rotateY(180deg); }
-.flip-card-front, .flip-card-back {
-    position: absolute; width: 100%; height: 100%;
-    backface-visibility: hidden; margin: 0;
-}
-.flip-card-back { transform: rotateY(180deg); display: flex; flex-direction: column; }
+.comment-btn:hover { background: rgba(0, 242, 255, 0.1); color: var(--neon-cyan); border-color: var(--neon-cyan); }
 
-.card {
-    background: var(--card-bg); border-radius: 24px; border: 1px solid #334155;
-    padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-}
+/* --- NEW PREDICTION ENGINE (TEAM VS TEAM) --- */
+.prediction-container { margin-bottom: 30px; text-align: center; }
+.prediction-header { margin-bottom: 20px; }
+.prediction-header h3 { margin: 0 0 5px; color: #fff; font-size: 18px; }
+.prediction-hook { font-size: 12px; color: var(--neon-green); font-weight: 700; margin: 0 0 15px; }
 
-.quiz-header {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 12px; font-weight: 800; color: var(--text-slate); letter-spacing: 1px; margin-bottom: 20px;
+.icon-btn {
+    background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+    padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 800;
+    cursor: pointer; transition: 0.2s;
 }
 
-.icon-btn-fun {
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-    border-radius: 10px; cursor: pointer; font-size: 16px; padding: 6px 10px; transition: var(--transition);
-}
-.icon-btn-fun:hover { border-color: var(--neon-cyan); background: rgba(0, 242, 255, 0.1); }
-
-/* Quiz Steps */
-.quiz-step { padding: 10px 0; min-height: 140px; display: flex; flex-direction: column; justify-content: center; }
-.theme-select { 
-    width: 100%; padding: 14px; font-size: 14px; border-radius: 12px; 
-    border: 1px solid #475569; background: #020617; color: #fff; outline: none;
+.team-vs-container {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #020617; border-radius: 16px; padding: 15px;
+    border: 1px solid #334155; position: relative;
 }
 
-.team-toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.team-option {
-    padding: 16px; border-radius: 14px; background: #020617; border: 1px solid #475569;
-    color: #e2e8f0; font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s;
+.vs-badge {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    background: var(--bg-dark); color: var(--neon-cyan); font-weight: 900;
+    font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #334155; z-index: 2;
 }
-.team-option.selected { border-color: var(--neon-cyan); background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
 
-.quiz-actions { display: flex; gap: 12px; margin-top: 20px; }
-.sec-btn { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: transparent; color: #fff; font-weight: 700; cursor: pointer; }
-.pri-btn { flex: 2; padding: 14px; border-radius: 12px; border: none; background: var(--neon-cyan); color: #000; font-weight: 900; cursor: pointer; }
+.team-card {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    width: 45%; padding: 15px 5px; border-radius: 12px;
+    border: 2px solid transparent; cursor: pointer; transition: var(--transition);
+}
+.team-card img { width: 60px; height: 60px; object-fit: contain; }
+.team-card span { font-size: 14px; font-weight: 800; }
 
-/* Success State */
-.success-anim { font-size: 50px; text-align: center; margin-bottom: 10px; animation: pop 0.5s ease-out; }
-.done-msg { text-align: center; font-weight: 700; color: var(--neon-green); line-height: 1.5; }
+.team-card:hover { background: rgba(255,255,255,0.05); }
+.team-card.selected {
+    border-color: var(--neon-cyan); background: rgba(0, 242, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+}
 
-/* --- SOCIAL FEED --- */
+.locked-msg { margin-top: 15px; font-size: 13px; font-weight: 800; color: #ff4757; }
+
+/* --- AUTO POST-MATCH SUMMARY --- */
+.summary-card {
+    margin-top: 20px; background: rgba(154, 224, 0, 0.1);
+    border: 1px solid var(--neon-green); padding: 15px;
+    border-radius: 12px; text-align: left;
+}
+.summary-card h4 { margin: 0 0 8px; color: var(--neon-green); font-size: 14px; }
+.summary-card p { margin: 0; font-size: 13px; line-height: 1.5; color: #e2e8f0; }
+
+/* --- SOCIAL FEED & LIKES --- */
 .social-section { margin-top: 10px; }
 .feed-list { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
 .post-card { background: #111827; padding: 16px; border-radius: 16px; border: 1px solid var(--border); transition: 0.2s; }
-.post-user { font-size: 11px; font-weight: 800; color: var(--neon-cyan); margin-bottom: 6px; display: block; }
-.post-content { font-size: 14px; line-height: 1.5; color: #e2e8f0; }
-.post-actions { display: flex; gap: 18px; margin-top: 12px; font-size: 13px; color: var(--text-slate); }
-.post-actions span { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+.post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.post-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #020617; }
+.post-user { font-size: 13px; font-weight: 800; color: var(--neon-cyan); }
+.post-content { font-size: 14px; line-height: 1.5; color: #e2e8f0; margin: 0; }
+
+.post-actions { display: flex; gap: 10px; margin-top: 15px; }
+.reaction-btn {
+    background: transparent; border: 1px solid #334155; color: var(--text-slate);
+    border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.reaction-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.reaction-btn.active-like { background: rgba(34, 197, 94, 0.2); border-color: #22c55e; color: #22c55e; }
+.reaction-btn.active-dislike { background: rgba(255, 71, 87, 0.2); border-color: #ff4757; color: #ff4757; }
 
 /* --- FLOATING BUTTONS (FAB) --- */
 .fab { 
     position: fixed; bottom: 95px; width: 56px; height: 56px; border-radius: 50%; 
     border: none; z-index: 1000; display: flex; align-items: center; justify-content: center; 
-    font-size: 22px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); transition: 0.2s;
+    font-size: 22px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); transition: 0.2s; cursor: pointer;
 }
 .fab:active { transform: scale(0.9); }
 .fab.left { left: 20px; background: #fff; color: #000; }
@@ -174,24 +193,8 @@ body {
 
 .chat-input-area { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: #0b0f14; border-radius: 0 0 24px 24px; }
 #chatInput { flex: 1; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 10px 14px; border-radius: 10px; outline: none; }
-.send-btn { background: var(--neon-cyan); border: none; width: 40px; border-radius: 10px; cursor: pointer; }
+.send-btn { background: var(--neon-cyan); border: none; width: 40px; border-radius: 10px; cursor: pointer; color: black; }
 
-/* --- UTILS & ANIMS --- */
-.live-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 6px; animation: pulse 1.6s infinite; }
+/* --- UTILS --- */
 .hidden { display: none !important; }
-
-@keyframes pulse { 
-    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(34,197,94,0); }
-    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
-}
-
-@keyframes pop {
-    0% { transform: scale(0.5); opacity: 0; }
-    80% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-.back-scroll { flex: 1; overflow-y: auto; padding-top: 10px; }
-.mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.mini-table td { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.card { background: var(--card-bg); border-radius: 24px; border: 1px solid #334155; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }

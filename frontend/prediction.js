@@ -1,40 +1,10 @@
 import { supabase } from "./supabase.js";
 
-let currentUserId, currentMatchId, currentTournamentId;
-let currentStep = 1;
-let userChoices = { winner: null, mvp: null, expert: null };
-let activeChatType = "global";
+let currentUserId, currentTournamentId, currentMatchId;
 let userLeagueId = null;
 
-function createOption(value, label) {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = label;
-    return option;
-}
-
-function safeFlexClass(flex) {
-    return /^[a-z0-9_-]+$/i.test(flex || "") ? flex : "";
-}
-
-function renderWinnerOptions(match) {
-    const winnerToggle = document.getElementById("winnerToggle");
-    if (!winnerToggle) return;
-
-    winnerToggle.replaceChildren();
-
-    [
-        { id: match.team_a.id, label: match.team_a.short_code },
-        { id: match.team_b.id, label: match.team_b.short_code }
-    ].forEach((team) => {
-        const button = document.createElement("button");
-        button.className = "team-option";
-        button.type = "button";
-        button.textContent = team.label;
-        button.addEventListener("click", () => window.pickWinner(team.id, button));
-        winnerToggle.appendChild(button);
-    });
-}
+// The standard photo fallback
+const DEFAULT_AVATAR = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png";
 
 init();
 
@@ -43,288 +13,368 @@ async function init() {
     if (!session) { window.location.href = "login.html"; return; }
     currentUserId = session.user.id;
 
+    // 1. Get Tournament & League Info
     const { data: activeTourney } = await supabase.from("active_tournament").select("*").maybeSingle();
     if (!activeTourney) return;
     currentTournamentId = activeTourney.id;
 
     const { data: member } = await supabase.from("league_members").select("league_id").eq("user_id", currentUserId).maybeSingle();
     userLeagueId = member?.league_id;
-    if (!userLeagueId) document.getElementById("btnLeague").disabled = true;
 
+    // 2. Load all the new Gamified Sections!
     await Promise.all([
         loadPodiums(),
-        fetchNextMatch(),
-        fetchExpertsList(),
-        loadFeed(),
-        fetchUserPredictionPoints()
+        loadPredictionCard(),
+        loadPostMatchSummary()
     ]);
-
-    setupChatRealtime();
-    setupWizard();
-    checkExistingPrediction();
 }
 
+/* ==========================================
+   SECTION 1: THE PODIUMS
+========================================== */
 async function loadPodiums() {
     try {
+        // Get the last completed match
         const { data: lastMatch } = await supabase.from("matches")
-            .select("id, match_number")
+            .select("id, match_number, winner_id")
             .eq("points_processed", true)
             .order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
 
         if (!lastMatch) return;
 
+        // 1. TOP PLAYERS PODIUM
         const { data: players } = await supabase.from("player_match_stats")
             .select("fantasy_points, players(name, photo_url)")
-            .eq("match_id", lastMatch.id).order("fantasy_points", { ascending: false }).limit(3);
-        renderPodium(players, "playerPodium", true);
+            .eq("match_id", lastMatch.id)
+            .order("fantasy_points", { ascending: false }).limit(3);
+        renderPodium(players, "playerPodium", "player");
 
+        // 2. TOP USERS PODIUM (With Private League Names)
         const { data: users } = await supabase.from("user_match_points")
-            .select("total_points, user_profiles(team_name, team_photo_url, equipped_flex)")
-            .eq("match_id", lastMatch.id).order("total_points", { ascending: false }).limit(3);
-        renderPodium(users, "userPodium", false);
-    } catch (err) {
-        console.error("Podium Load Error:", err);
-    }
+            .select("total_points, user_id, user_profiles(team_name, team_photo_url)")
+            .eq("match_id", lastMatch.id)
+            .order("total_points", { ascending: false }).limit(3);
+        
+        // Quick fetch to get their league names
+        for (let user of users || []) {
+            const { data: lm } = await supabase.from("league_members").select("leagues(name)").eq("user_id", user.user_id).maybeSingle();
+            user.league_name = lm?.leagues?.name || "Global Only";
+        }
+        renderPodium(users, "userPodium", "user");
+
+        // 3. TOP PREDICTION GURUS PODIUM (Based on Stars)
+        const { data: gurus } = await supabase.from("user_tournament_points")
+            .select("prediction_stars, user_id, user_profiles(team_name, team_photo_url)")
+            .eq("tournament_id", currentTournamentId)
+            .order("prediction_stars", { ascending: false })
+            .order("updated_at", { ascending: true }) // Tie-breaker!
+            .limit(3);
+        renderPodium(gurus, "guruPodium", "guru");
+
+    } catch (err) { console.error("Podium Error:", err); }
 }
 
-function renderPodium(data, containerId, isPlayer) {
+function renderPodium(data, containerId, type) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
     if (!data || data.length < 1) {
-        const empty = document.createElement("p");
-        empty.style.fontSize = "10px";
-        empty.style.color = "#475569";
-        empty.textContent = "Awaiting Results...";
-        container.replaceChildren(empty);
+        container.innerHTML = `<p style="color:#475569; font-size:12px;">Awaiting Results...</p>`;
         return;
     }
 
+    // Olympic Order: 2nd, 1st, 3rd
     const order = [data[1], data[0], data[2]].filter(Boolean);
     container.replaceChildren();
 
     order.forEach((item) => {
         const rank = item === data[0] ? 1 : (item === data[1] ? 2 : 3);
-        const name = isPlayer
-            ? item.players?.name?.split(" ").pop() || "Player"
-            : item.user_profiles?.team_name || "Expert";
-        const pts = isPlayer ? item.fantasy_points : item.total_points;
-        const flex = !isPlayer ? safeFlexClass(item.user_profiles?.equipped_flex) : "";
+        
+        let name = "Unknown";
+        let subText = "";
+        let pts = 0;
+        let photoPath = null;
 
-        let url = "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png";
-        const path = isPlayer ? item.players?.photo_url : item.user_profiles?.team_photo_url;
-        if (path) {
-            url = supabase.storage.from(isPlayer ? "player-photos" : "team-avatars").getPublicUrl(path).data.publicUrl;
+        if (type === "player") {
+            name = item.players?.name?.split(" ").pop();
+            pts = `${item.fantasy_points} pts`;
+            photoPath = item.players?.photo_url ? supabase.storage.from("player-photos").getPublicUrl(item.players.photo_url).data.publicUrl : DEFAULT_AVATAR;
+        } else if (type === "user") {
+            name = item.user_profiles?.team_name;
+            subText = `<div class="podium-league">${item.league_name}</div>`;
+            pts = `${item.total_points} pts`;
+            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
+        } else if (type === "guru") {
+            name = item.user_profiles?.team_name;
+            pts = `${item.prediction_stars || 0} ⭐`;
+            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
         }
 
-        const itemEl = document.createElement("div");
-        itemEl.className = `podium-item rank-${rank}`;
-
-        const nameEl = document.createElement("div");
-        nameEl.className = "podium-name";
-        if (flex) nameEl.classList.add(flex);
-        nameEl.textContent = name;
-
-        const avatarWrapper = document.createElement("div");
-        avatarWrapper.className = "podium-avatar-wrapper";
-
-        const image = document.createElement("img");
-        image.src = url;
-        image.className = "podium-img";
-        image.alt = name;
-
-        const badge = document.createElement("div");
-        badge.className = "rank-badge";
-        badge.textContent = String(rank);
-
-        avatarWrapper.append(image, badge);
-
-        const pointsEl = document.createElement("div");
-        pointsEl.className = "podium-pts";
-        pointsEl.textContent = String(pts);
-
-        itemEl.append(nameEl, avatarWrapper, pointsEl);
-        container.appendChild(itemEl);
+        container.innerHTML += `
+            <div class="podium-item rank-${rank}">
+                <div class="podium-name">${name}</div>
+                ${subText}
+                <div class="podium-avatar-wrapper">
+                    <img src="${photoPath}" class="podium-img" alt="${name}">
+                    <div class="rank-badge">${rank}</div>
+                </div>
+                <div class="podium-pts">${pts}</div>
+            </div>
+        `;
     });
 }
 
-function setupWizard() {
-    const nextBtn = document.getElementById("nextBtn");
-    nextBtn.onclick = () => {
-        if (currentStep === 1 && !userChoices.winner) return alert("Pick a Winner!");
-        if (currentStep === 2 && !document.getElementById("mvpSelect").value) return alert("Pick an MVP!");
-        if (currentStep === 3 && !document.getElementById("userPredictSelect").value) return alert("Pick an Expert!");
+/* ==========================================
+   SECTION 2: PREDICTION ENGINE & STARS
+========================================== */
+async function loadPredictionCard() {
+    // Fetch User's current stars
+    const { data: userPoints } = await supabase.from("user_tournament_points").select("prediction_stars").eq("user_id", currentUserId).eq("tournament_id", currentTournamentId).maybeSingle();
+    const currentStars = userPoints?.prediction_stars || 0;
+    
+    // Update UI Header
+    const starEl = document.getElementById("userStarCount");
+    if(starEl) starEl.innerText = `${currentStars} ⭐`;
 
-        if (currentStep < 3) { currentStep++; renderStep(); }
-        else { finalizeQuiz(); }
-    };
-    document.getElementById("skipBtn").onclick = () => { if (currentStep < 3) { currentStep++; renderStep(); } else { finalizeQuiz(); } };
+    // Fetch the Next Match details (using your view that nicely formats logos!)
+    const { data: dashData } = await supabase.from("home_dashboard_view").select("upcoming_match").eq("user_id", currentUserId).maybeSingle();
+    const match = dashData?.upcoming_match;
+    
+    if (!match) {
+        document.getElementById("predictionArea").innerHTML = "<h3>No upcoming matches to predict.</h3>";
+        return;
+    }
+    
+    currentMatchId = match.match_id;
+
+    // Check if they already predicted
+    const { data: existing } = await supabase.from("user_predictions").select("predicted_winner_id").eq("user_id", currentUserId).eq("match_id", currentMatchId).maybeSingle();
+
+    renderPredictionUI(match, existing?.predicted_winner_id);
 }
 
-function renderStep() {
-    document.querySelectorAll(".quiz-step").forEach((step) => step.classList.add("hidden"));
-    document.getElementById(`quizStep${currentStep}`).classList.remove("hidden");
-    const titles = ["Step 1: Match Winner", "Step 2: Top Player", "Step 3: Top Expert"];
-    document.getElementById("stepTitle").innerText = titles[currentStep - 1];
-    if (currentStep === 3) document.getElementById("nextBtn").innerText = "FINISH";
+function renderPredictionUI(match, predictedWinnerId) {
+    const container = document.getElementById("predictionArea");
+    if(!container) return;
+
+    const logoA = match.team_a_logo ? supabase.storage.from('team-logos').getPublicUrl(match.team_a_logo).data.publicUrl : DEFAULT_AVATAR;
+    const logoB = match.team_b_logo ? supabase.storage.from('team-logos').getPublicUrl(match.team_b_logo).data.publicUrl : DEFAULT_AVATAR;
+
+    const isLocked = !!predictedWinnerId;
+
+    container.innerHTML = `
+        <div class="prediction-header">
+            <h3>Who will win?</h3>
+            <p class="prediction-hook">Answer correctly. Get 1 Sub per 10 correct! 🎁</p>
+            <button onclick="showGuruLeaderboard()" class="icon-btn">🏆 Top 5 Gurus</button>
+        </div>
+        
+        <div class="team-vs-container">
+            <div class="team-card ${predictedWinnerId === match.team_a_id ? 'selected' : ''}" onclick="${isLocked ? '' : `savePrediction('${match.team_a_id}')`}">
+                <img src="${logoA}" alt="${match.team_a_code}">
+                <span>${match.team_a_code}</span>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="team-card ${predictedWinnerId === match.team_b_id ? 'selected' : ''}" onclick="${isLocked ? '' : `savePrediction('${match.team_b_id}')`}">
+                <img src="${logoB}" alt="${match.team_b_code}">
+                <span>${match.team_b_code}</span>
+            </div>
+        </div>
+        ${isLocked ? `<div class="locked-msg">Prediction Locked! 🔒</div>` : ''}
+    `;
 }
 
-async function finalizeQuiz() {
-    userChoices.mvp = document.getElementById("mvpSelect").value;
-    userChoices.expert = document.getElementById("userPredictSelect").value;
-
-    const { error } = await supabase.from("user_predictions").upsert({
+window.savePrediction = async (teamId) => {
+    if(!confirm("Lock in this prediction? You cannot change it later.")) return;
+    
+    await supabase.from("user_predictions").upsert({
         user_id: currentUserId,
         match_id: currentMatchId,
-        predicted_winner_id: userChoices.winner,
-        predicted_mvp_id: userChoices.mvp,
-        predicted_top_user_id: userChoices.expert
+        predicted_winner_id: teamId
     });
+    
+    loadPredictionCard(); // Reload UI to show it's locked
+};
 
-    if (!error) {
-        document.getElementById("quizActions").classList.add("hidden");
-        document.querySelectorAll(".quiz-step").forEach((step) => step.classList.add("hidden"));
-        document.getElementById("quizStepDone").classList.remove("hidden");
-        document.getElementById("stepTitle").innerText = "Locked";
+/* ==========================================
+   SECTION 3: AUTO POST-MATCH SUMMARY
+========================================== */
+async function loadPostMatchSummary() {
+    const { data: lastMatch } = await supabase.from("matches").select("id, winner_id, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)").eq("points_processed", true).order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
+    
+    if(!lastMatch || !lastMatch.winner_id) return;
+
+    // Calculate prediction accuracy
+    const { count: totalPredictors } = await supabase.from("user_predictions").select("*", { count: 'exact', head: true }).eq("match_id", lastMatch.id);
+    const { count: correctPredictors } = await supabase.from("user_predictions").select("*", { count: 'exact', head: true }).eq("match_id", lastMatch.id).eq("predicted_winner_id", lastMatch.winner_id);
+    
+    let percent = totalPredictors > 0 ? Math.round((correctPredictors / totalPredictors) * 100) : 0;
+    const winnerName = lastMatch.winner_id === lastMatch.team_a.id ? lastMatch.team_a.short_code : lastMatch.team_b.short_code;
+
+    const summaryEl = document.getElementById("postMatchSummary");
+    if(summaryEl) {
+        summaryEl.innerHTML = `
+            <div class="summary-card">
+                <h4>📰 Match Report</h4>
+                <p><strong>${winnerName} won!</strong> ${percent}% of users predicted this correctly. Did you get your star?</p>
+            </div>
+        `;
     }
 }
 
-function setupChatRealtime() {
-    const drawer = document.getElementById("chatDrawer");
-    document.getElementById("chatToggleBtn").onclick = () => { drawer.classList.toggle("drawer-hidden"); loadMessages(); };
-    document.getElementById("closeChat").onclick = () => drawer.classList.add("drawer-hidden");
-    document.getElementById("sendChatBtn").onclick = sendMessage;
+/* Modal for Top 5 Gurus */
+window.showGuruLeaderboard = async () => {
+    const { data: top5 } = await supabase.from("user_tournament_points").select("prediction_stars, user_profiles(team_name)").eq("tournament_id", currentTournamentId).order("prediction_stars", { ascending: false }).order("updated_at", { ascending: true }).limit(5);
+    
+    let listHtml = top5.map((g, i) => `${i+1}. ${g.user_profiles.team_name} - ${g.prediction_stars} ⭐`).join("\n");
+    alert(`🏆 TOP 5 PREDICTION GURUS:\n\n${listHtml}\n\n(Ties broken by who predicted first!)`);
+};
 
-    document.getElementById("btnGlobal").onclick = () => { activeChatType = "global"; switchTab("btnGlobal"); loadMessages(); };
-    document.getElementById("btnLeague").onclick = () => { activeChatType = "league"; switchTab("btnLeague"); loadMessages(); };
+/* ==========================================
+   SECTION 4: THE SOCIAL FEED & REACTIONS
+========================================== */
 
-    supabase.channel("game_chat").on("postgres_changes", { event: "INSERT", schema: "public", table: "game_chat" }, (payload) => {
-        if (payload.new.league_id === (activeChatType === "global" ? null : userLeagueId)) {
-            loadMessages();
-        }
-    }).subscribe();
-}
-
-async function sendMessage() {
-    const input = document.getElementById("chatInput");
-    const msg = input.value.trim();
-    if (!msg) return;
-    input.value = "";
-    await supabase.from("game_chat").insert({
-        user_id: currentUserId,
-        message: msg,
-        league_id: activeChatType === "global" ? null : userLeagueId
-    });
-}
-
-async function loadMessages() {
-    let query = supabase.from("game_chat")
-        .select("*, user_profiles(team_name)")
+// 1. Load the Feed with Reaction Counts
+async function loadFeed() {
+    // This query is pure magic. It pulls the post, the author's team name, AND all reactions!
+    const { data: posts, error } = await supabase
+        .from("social_feed")
+        .select(`
+            id, content, created_at, user_id,
+            user_profiles(team_name, team_photo_url),
+            post_reactions(user_id, reaction_type)
+        `)
         .order("created_at", { ascending: false })
         .limit(20);
 
-    query = activeChatType === "global"
-        ? query.is("league_id", null)
-        : query.eq("league_id", userLeagueId);
-
-    const { data } = await query;
-    const area = document.getElementById("chatMessages");
-    if (!area) return;
-
-    area.replaceChildren();
-    (data || []).reverse().forEach((message) => {
-        const row = document.createElement("div");
-        const name = document.createElement("b");
-        name.textContent = `${message.user_profiles?.team_name || "Expert"}: `;
-        row.append(name, document.createTextNode(message.message || ""));
-        area.appendChild(row);
-    });
-    area.scrollTop = area.scrollHeight;
-}
-
-function switchTab(id) {
-    document.getElementById("btnGlobal").classList.remove("active");
-    document.getElementById("btnLeague").classList.remove("active");
-    document.getElementById(id).classList.add("active");
-}
-
-async function loadFeed() {
-    const { data } = await supabase.from("social_feed").select("*, user_profiles(team_name)")
-        .order("created_at", { ascending: false }).limit(15);
     const container = document.getElementById("feedContainer");
-    if (!container) return;
+    if (!container || error) return;
 
     container.replaceChildren();
-    (data || []).forEach((post) => {
-        const card = document.createElement("div");
-        card.className = "post-card";
 
-        const user = document.createElement("span");
-        user.className = "post-user";
-        user.textContent = post.user_profiles?.team_name || "Expert";
+    (posts || []).forEach((post) => {
+        // Calculate Likes and Dislikes from the attached reactions array
+        const likesCount = post.post_reactions.filter(r => r.reaction_type === 'like').length;
+        const dislikesCount = post.post_reactions.filter(r => r.reaction_type === 'dislike').length;
+        
+        // Did the current user react to this post?
+        const myReaction = post.post_reactions.find(r => r.user_id === currentUserId)?.reaction_type;
 
-        const content = document.createElement("p");
-        content.className = "post-content";
-        content.textContent = post.content || "";
+        const authorName = post.user_profiles?.team_name || "Unknown Guru";
+        const photoUrl = post.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(post.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
 
-        card.append(user, content);
-        container.appendChild(card);
+        container.innerHTML += `
+            <div class="post-card">
+                <div class="post-header">
+                    <img src="${photoUrl}" class="post-avatar">
+                    <span class="post-user">${authorName}</span>
+                </div>
+                <p class="post-content">${post.content}</p>
+                
+                <div class="post-actions">
+                    <button class="reaction-btn ${myReaction === 'like' ? 'active-like' : ''}" 
+                            onclick="reactToPost('${post.id}', 'like')">
+                        👍 ${likesCount}
+                    </button>
+                    <button class="reaction-btn ${myReaction === 'dislike' ? 'active-dislike' : ''}" 
+                            onclick="reactToPost('${post.id}', 'dislike')">
+                        👎 ${dislikesCount}
+                    </button>
+                </div>
+            </div>
+        `;
     });
 }
 
-document.getElementById("postFab").onclick = async () => {
-    const txt = prompt("Sledge the community:");
-    if (!txt) return;
-    await supabase.from("social_feed").insert({ user_id: currentUserId, content: txt });
+// 2. Handle Like / Dislike Toggles
+window.reactToPost = async (postId, type) => {
+    // Check if the user already reacted this way
+    const { data: existing } = await supabase.from("post_reactions")
+        .select("reaction_type")
+        .eq("post_id", postId)
+        .eq("user_id", currentUserId)
+        .maybeSingle();
+
+    if (existing && existing.reaction_type === type) {
+        // If they clicked 'like' but already liked it, REMOVE the like (toggle off)
+        await supabase.from("post_reactions").delete().eq("post_id", postId).eq("user_id", currentUserId);
+    } else {
+        // Otherwise, upsert the new reaction (this automatically switches dislike to like, etc.)
+        await supabase.from("post_reactions").upsert({
+            post_id: postId,
+            user_id: currentUserId,
+            reaction_type: type
+        });
+    }
+    
+    // Reload feed to show new counts
     loadFeed();
 };
 
-async function fetchNextMatch() {
-    const { data: match } = await supabase.from("matches").select("*, team_a:real_teams!team_a_id(*), team_b:real_teams!team_b_id(*)")
-        .eq("tournament_id", currentTournamentId).eq("status", "upcoming").order("actual_start_time", { ascending: true }).limit(1).maybeSingle();
-    if (match) {
-        currentMatchId = match.id;
-        renderWinnerOptions(match);
-
-        const { data: players } = await supabase.from("players").select("id, name").in("real_team_id", [match.team_a.id, match.team_b.id]);
-        const mvpSelect = document.getElementById("mvpSelect");
-        mvpSelect.replaceChildren(createOption("", "Select MVP"));
-        (players || []).forEach((player) => {
-            mvpSelect.appendChild(createOption(player.id, player.name));
-        });
-    }
-}
-
-window.pickWinner = (id, btn) => {
-    document.querySelectorAll(".team-option").forEach((button) => button.classList.remove("selected"));
-    btn.classList.add("selected");
-    userChoices.winner = id;
+// 3. Custom Post Modal (Replaces the ugly browser prompt!)
+document.getElementById("postFab").onclick = () => {
+    const text = prompt("Sledge the community! What's on your mind?");
+    // Note: I kept prompt() as a fallback, but you can easily replace this with a custom HTML modal by toggling a CSS class!
+    if (!text || text.trim() === "") return;
+    
+    submitPost(text);
 };
 
-async function fetchExpertsList() {
-    const { data } = await supabase.from("user_profiles").select("user_id, team_name").limit(30);
-    const select = document.getElementById("userPredictSelect");
-    if (!select) return;
-
-    select.replaceChildren(createOption("", "Select Expert"));
-    (data || []).forEach((expert) => {
-        select.appendChild(createOption(expert.user_id, expert.team_name || "Expert"));
+async function submitPost(text) {
+    await supabase.from("social_feed").insert({ 
+        user_id: currentUserId, 
+        content: text 
     });
+    loadFeed();
 }
 
-async function fetchUserPredictionPoints() {
-    const { data } = await supabase.from("user_predictions").select("points_earned").eq("user_id", currentUserId);
-    document.getElementById("userPredictionScore").textContent = data?.reduce((total, row) => total + (row.points_earned || 0), 0) || 0;
-}
+/* ==========================================
+   SECTION 5: PODIUM COMMENTS
+========================================== */
 
-async function checkExistingPrediction() {
-    const { data } = await supabase.from("user_predictions").select("*").eq("user_id", currentUserId).eq("match_id", currentMatchId).maybeSingle();
-    if (data) {
-        document.getElementById("quizActions").classList.add("hidden");
-        document.querySelectorAll(".quiz-step").forEach((step) => step.classList.add("hidden"));
-        document.getElementById("quizStepDone").classList.remove("hidden");
-        document.getElementById("stepTitle").innerText = "Locked";
+// Attach this to a button below each podium in your HTML
+window.openPodiumComments = async (podiumType) => {
+    // podiumType should be 'players', 'users', or 'gurus'
+    if (!currentMatchId && podiumType !== 'gurus') return alert("No recent match to comment on!");
+
+    const { data: comments } = await supabase
+        .from("podium_comments")
+        .select("comment, created_at, user_profiles(team_name)")
+        .eq("podium_type", podiumType)
+        // Only filter by match if it's the player/user podiums. Guru podium is tournament-wide!
+        .eq(podiumType !== 'gurus' ? "match_id" : "user_id", podiumType !== 'gurus' ? currentMatchId : currentUserId) 
+        .order("created_at", { ascending: true });
+
+    let commentText = comments.map(c => `[${c.user_profiles.team_name}]: ${c.comment}`).join("\n");
+    if(comments.length === 0) commentText = "No comments yet. Be the first!";
+
+    // Simple alert/prompt for now, but you should connect this to a nice HTML drawer!
+    const newComment = prompt(`--- ${podiumType.toUpperCase()} COMMENTS ---\n\n${commentText}\n\nAdd your reply:`);
+    
+    if (newComment && newComment.trim() !== "") {
+        await supabase.from("podium_comments").insert({
+            match_id: currentMatchId, // Might be null for gurus if you want season-long guru comments
+            podium_type: podiumType,
+            user_id: currentUserId,
+            comment: newComment
+        });
+        alert("Comment posted!");
     }
+};
+
+/* ==========================================
+   SECTION 6: SUPER SMOOTH REALTIME
+========================================== */
+function setupRealtimeSocial() {
+    // Listen for NEW posts
+    supabase.channel("social_updates")
+        .on("postgres_changes", { event: "*", schema: "public", table: "social_feed" }, () => {
+            loadFeed();
+        })
+        .on("postgres_changes", { event: "*", schema: "public", table: "post_reactions" }, () => {
+            loadFeed(); // Reload when someone likes/dislikes a post!
+        })
+        .subscribe();
 }
 
-window.flipTo = (side) => document.getElementById("mainFlipCard").classList.toggle("flipped", side !== "front");
+// Don't forget to call this at the end of your init() function!
+setupRealtimeSocial();

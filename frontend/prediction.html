@@ -12,70 +12,51 @@
 <body>
 <div class="prediction-page">
     <div class="scroll-content">
+        
         <header class="fun-header">
             <div class="header-left">
                 <h1 class="theme-title">Fun Zone 🎯</h1>
                 <div class="streak-pill"><i class="fas fa-fire"></i> <span id="loginStreak">0</span> Day Streak</div>
             </div>
-            <div class="score-pill"><i class="fas fa-coins"></i> <span id="userPredictionScore">0</span></div>
+            <div class="score-pill"><span id="userStarCount">0 ⭐</span></div>
         </header>
 
         <div id="podiumSection" class="podium-stack">
+            
             <div class="podium-box">
                 <div class="mini-label">MATCH HEROES (PLAYERS)</div>
                 <div id="playerPodium" class="podium-grid"></div>
+                <button class="comment-btn" onclick="openPodiumComments('players')">💬 View Comments</button>
             </div>
+            
             <div class="podium-box">
                 <div class="mini-label">MATCH EXPERTS (USERS)</div>
                 <div id="userPodium" class="podium-grid"></div>
+                <button class="comment-btn" onclick="openPodiumComments('users')">💬 View Comments</button>
             </div>
+
+            <div class="podium-box">
+                <div class="mini-label">TOP PREDICTION GURUS (STARS)</div>
+                <div id="guruPodium" class="podium-grid"></div>
+                <button class="comment-btn" onclick="openPodiumComments('gurus')">💬 View Comments</button>
+            </div>
+            
         </div>
 
-        <section class="quiz-container">
-            <div class="flip-card-inner" id="mainFlipCard">
-                <div class="flip-card-front card">
-                    <div class="quiz-header">
-                        <span id="stepTitle">Step 1: Match Winner</span>
-                        <div class="header-icons">
-                            <button class="icon-btn-fun" onclick="flipTo('results')">📊</button>
-                            <button class="icon-btn-fun" onclick="flipTo('leaderboard')">🏆</button>
-                        </div>
-                    </div>
-
-                    <div id="quizStep1" class="quiz-step">
-                        <div class="team-toggle-grid" id="winnerToggle"></div>
-                    </div>
-                    <div id="quizStep2" class="quiz-step hidden">
-                        <select id="mvpSelect" class="theme-select"></select>
-                    </div>
-                    <div id="quizStep3" class="quiz-step hidden">
-                        <select id="userPredictSelect" class="theme-select"></select>
-                    </div>
-                    <div id="quizStepDone" class="quiz-step hidden">
-                        <div class="success-anim">✅</div>
-                        <p class="done-msg">Predictions Locked!<br><small>Results after match ends.</small></p>
-                    </div>
-
-                    <div class="quiz-actions" id="quizActions">
-                        <button id="skipBtn" class="sec-btn">SKIP</button>
-                        <button id="nextBtn" class="pri-btn">NEXT</button>
-                    </div>
-                </div>
-
-                <div class="flip-card-back card">
-                    <div class="quiz-header">
-                        <span id="backTitle">Standings</span>
-                        <button class="icon-btn-fun" onclick="flipTo('front')">↩</button>
-                    </div>
-                    <div id="backContent" class="back-scroll"></div>
-                </div>
+        <section class="prediction-container card">
+            <div id="predictionArea">
+                <p style="text-align:center; color:#888;">Loading Match...</p>
             </div>
+            
+            <div id="postMatchSummary"></div>
         </section>
 
         <section class="social-section">
             <div class="mini-label">COMMUNITY SLEDGE</div>
-            <div id="feedContainer" class="feed-list"></div>
+            <div id="feedContainer" class="feed-list">
+                </div>
         </section>
+        
     </div>
 
     <button id="postFab" class="fab left"><i class="fas fa-pen"></i></button>
