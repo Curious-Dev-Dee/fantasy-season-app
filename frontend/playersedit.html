@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Player Console | Admin</title>
+    <title>Admin | Player Manager</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -21,333 +21,242 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding-bottom: 80px;
+            margin: 0; font-family: 'Inter', sans-serif;
+            background: var(--bg); color: var(--text); padding-bottom: 80px;
         }
 
         header {
-            background: var(--card);
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: var(--card); padding: 20px; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
         }
         h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
-        .stats-bar { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
 
-        .search-container { padding: 15px; background: var(--bg); }
+        .search-container { padding: 15px; }
         #searchBox {
-            width: 100%;
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 12px 15px;
-            border-radius: 12px;
-            color: white;
-            outline: none;
+            width: 100%; background: var(--card); border: 1px solid var(--border);
+            padding: 12px; border-radius: 12px; color: white; outline: none;
         }
-        #searchBox:focus { border-color: var(--primary); }
 
         .player-list { padding: 0 15px; display: flex; flex-direction: column; gap: 10px; }
         .player-item {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: var(--card); border-radius: 16px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
             border: 1px solid var(--border);
         }
+        .player-item.inactive { opacity: 0.5; filter: grayscale(1); border-style: dashed; }
+        
         .p-info strong { display: block; font-size: 15px; }
         .p-info span { font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
-        .edit-btn {
-            background: rgba(154, 224, 0, 0.1);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
+
+        .actions { display: flex; gap: 8px; }
+        .btn {
+            border: none; padding: 8px 12px; border-radius: 8px; font-size: 11px;
+            font-weight: 800; cursor: pointer; text-transform: uppercase;
         }
+        .edit-btn { background: rgba(154, 224, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+        .del-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
 
         .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary);
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            color: #000;
-            font-size: 24px;
-            border: none;
-            z-index: 200;
+            position: fixed; bottom: 20px; right: 20px; background: var(--primary);
+            width: 56px; height: 56px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; color: #000;
+            font-size: 24px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            display: none;
-            align-items: flex-end;
-            z-index: 1000;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px); display: none; align-items: flex-end; z-index: 1000;
         }
         .modal.show { display: flex; }
         .modal-content {
-            background: var(--card);
-            width: 100%;
-            border-radius: 24px 24px 0 0;
-            padding: 25px;
-            max-height: 90vh;
-            overflow-y: auto;
+            background: var(--card); width: 100%; border-radius: 24px 24px 0 0;
+            padding: 25px; max-height: 90vh; overflow-y: auto;
             animation: slideUp 0.3s ease-out;
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
+        label { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 5px; font-weight: 800; }
         input, select {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 10px;
-            color: white;
-            font-size: 14px;
+            width: 100%; background: #000; border: 1px solid var(--border);
+            padding: 12px; border-radius: 10px; color: white; font-size: 14px;
         }
-        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .save-btn { flex: 2; background: var(--primary); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-        .cancel-btn { flex: 1; background: #334155; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        .save-btn { width: 100%; background: var(--primary); color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; margin-top: 10px; cursor: pointer; }
+        .close-form { text-align: center; color: var(--text-dim); font-size: 12px; margin-top: 15px; cursor: pointer; text-decoration: underline; }
 
         .hidden { display: none !important; }
-        .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loading-overlay">
+<div id="loader">
     <div style="text-align:center">
-        <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; color: var(--primary)"></i>
-        <p style="margin-top:15px; font-weight:800">SYNCING DATABASE...</p>
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 32px; color: var(--primary)"></i>
+        <p style="margin-top:10px; font-size:12px; font-weight:800; color:var(--primary)">LOADING PLAYERS...</p>
     </div>
 </div>
 
 <header>
-    <h1>Player Console</h1>
-    <div class="stats-bar" id="statsBar">Loading players...</div>
+    <h1>Player Manager</h1>
 </header>
 
 <div class="search-container">
-    <input type="text" id="searchBox" placeholder="🔍 Search Name or Team code...">
+    <input type="text" id="searchBox" placeholder="🔍 Search name or team...">
 </div>
 
 <main class="player-list" id="playerList"></main>
 
-<button class="fab" onclick="openForm()"><i class="fas fa-plus"></i></button>
+<button class="fab" onclick="openAddForm()"><i class="fas fa-plus"></i></button>
 
 <div class="modal" id="formModal">
     <div class="modal-content">
-        <h2 id="formTitle" style="margin-top:0; font-size:20px;">Add New Player</h2>
+        <h2 id="formTitle" style="margin-top:0">Player Details</h2>
+        <input type="hidden" id="editId">
         
-        <input type="hidden" id="editPlayerId">
-
         <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="pName" placeholder="e.g. Virat Kohli">
+            <label>NAME</label>
+            <input type="text" id="fName">
         </div>
-
-        <div style="display:flex; gap:10px;">
+        
+        <div style="display:flex; gap:10px">
             <div class="form-group" style="flex:1">
-                <label>Role</label>
-                <select id="pRole">
-                    <option value="WK">Wicketkeeper (WK)</option>
-                    <option value="BAT">Batter (BAT)</option>
-                    <option value="AR">All-Rounder (AR)</option>
-                    <option value="BOWL">Bowler (BOWL)</option>
+                <label>ROLE</label>
+                <select id="fRole">
+                    <option value="WK">WK</option><option value="BAT">BAT</option><option value="AR">AR</option><option value="BOWL">BOWL</option>
                 </select>
             </div>
             <div class="form-group" style="flex:1">
-                <label>Credits</label>
-                <input type="number" id="pCredit" step="0.5" placeholder="e.g. 9.5">
+                <label>CREDITS</label>
+                <input type="number" id="fCredit" step="0.5">
             </div>
         </div>
 
         <div class="form-group">
-            <label>Real Team</label>
-            <select id="pTeam"></select>
+            <label>TEAM</label>
+            <select id="fTeam"></select>
         </div>
 
         <div class="form-group">
-            <label>Category</label>
-            <select id="pCategory">
-                <option value="none">Capped (None)</option>
+            <label>CATEGORY</label>
+            <select id="fCategory">
+                <option value="none">Capped</option>
                 <option value="overseas">Overseas ✈️</option>
                 <option value="uncapped">Uncapped 🧢</option>
             </select>
         </div>
 
-        <div class="form-group">
-            <label>Photo Filename (Optional)</label>
-            <input type="text" id="pPhoto" placeholder="e.g. v-kohli.webp">
-        </div>
-
-        <div class="form-actions">
-            <button class="cancel-btn" onclick="closeForm()">Cancel</button>
-            <button class="save-btn" id="saveBtn" onclick="savePlayer()">Save Player</button>
-        </div>
+        <button class="save-btn" id="saveBtn" onclick="handleSave()">SAVE PLAYER</button>
+        <div class="close-form" onclick="closeModal()">CANCEL</div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // 1. DATABASE SETUP (Renamed to adminSupabase to fix redeclaration error)
-    const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"; 
-    const adminSupabase = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
+    // Service role key for admin permissions
+    const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE";
+    
+    // Correct way to initialize in v2
+    const client = supabase.createClient(URL, KEY);
 
-    let allPlayers = [];
-    let allTeams = [];
-    let activeTournamentId = null;
+    let players = [], teams = [], tournamentId = null;
 
-    // 2. INITIALIZATION
     async function init() {
         try {
-            const { data: t } = await adminSupabase.from('active_tournament').select('id').maybeSingle();
-            if (!t) return alert("No active tournament found!");
-            activeTournamentId = t.id;
+            const { data: t } = await client.from('active_tournament').select('id').maybeSingle();
+            tournamentId = t?.id;
 
-            const [teamRes, playerRes] = await Promise.all([
-                adminSupabase.from('real_teams').select('*').order('short_code'),
-                adminSupabase.from('players').select('*, real_teams(short_code)').eq('tournament_id', activeTournamentId).order('name')
+            const [pRes, tRes] = await Promise.all([
+                client.from('players').select('*, real_teams(short_code)').eq('tournament_id', tournamentId).order('name'),
+                client.from('real_teams').select('*').order('short_code')
             ]);
 
-            allTeams = teamRes.data || [];
-            allPlayers = playerRes.data || [];
+            players = pRes.data || [];
+            teams = tRes.data || [];
 
-            renderTeamsDropdown();
-            renderPlayers(allPlayers);
-            updateStats();
-            
+            document.getElementById('fTeam').innerHTML = teams.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
+            render(players);
             document.getElementById('loader').classList.add('hidden');
-        } catch (e) {
-            console.error("Init Error:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
-    // 3. UI RENDERING
-    function renderPlayers(list) {
-        const container = document.getElementById('playerList');
-        container.innerHTML = list.map(p => `
-            <div class="player-item">
+    function render(list) {
+        document.getElementById('playerList').innerHTML = list.map(p => `
+            <div class="player-item ${!p.is_active ? 'inactive' : ''}">
                 <div class="p-info">
                     <strong>${p.name} ${p.category === 'overseas' ? '✈️' : p.category === 'uncapped' ? '🧢' : ''}</strong>
-                    <span>${p.role} • ${p.real_teams?.short_code || 'TBA'} • ${p.credit} Cr</span>
+                    <span>${p.role} • ${p.real_teams?.short_code || '??'} • ${p.credit} Cr</span>
                 </div>
-                <button class="edit-btn" onclick="prepareEdit('${p.id}')">MODIFY</button>
+                <div class="actions">
+                    <button class="btn edit-btn" onclick="openEditForm('${p.id}')">EDIT</button>
+                    <button class="btn del-btn" onclick="toggleStatus('${p.id}', ${p.is_active})">
+                        ${p.is_active ? 'OFF' : 'ON'}
+                    </button>
+                </div>
             </div>
         `).join('');
     }
 
-    function renderTeamsDropdown() {
-        const select = document.getElementById('pTeam');
-        select.innerHTML = allTeams.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
-    }
-
-    function updateStats() {
-        document.getElementById('statsBar').innerText = `${allPlayers.length} Players Active in IPL 2026`;
-    }
-
-    // 4. SEARCH LOGIC
-    document.getElementById('searchBox').oninput = (e) => {
-        const term = e.target.value.toLowerCase();
-        const filtered = allPlayers.filter(p => 
-            p.name.toLowerCase().includes(term) || 
-            (p.real_teams?.short_code || "").toLowerCase().includes(term)
-        );
-        renderPlayers(filtered);
-    };
-
-    // 5. FORM LOGIC
-    function openForm() {
-        document.getElementById('formTitle').innerText = "Add New Player";
-        document.getElementById('editPlayerId').value = "";
-        document.getElementById('pName').value = "";
-        document.getElementById('pCredit').value = "";
-        document.getElementById('pPhoto').value = "";
+    function openAddForm() {
+        document.getElementById('formTitle').innerText = "Add Player";
+        document.getElementById('editId').value = "";
+        document.getElementById('fName').value = "";
+        document.getElementById('fCredit').value = "";
         document.getElementById('formModal').classList.add('show');
     }
 
-    function closeForm() {
-        document.getElementById('formModal').classList.remove('show');
-    }
-
-    function prepareEdit(id) {
-        const p = allPlayers.find(x => x.id === id);
-        if(!p) return;
-
-        document.getElementById('formTitle').innerText = "Modify Player";
-        document.getElementById('editPlayerId').value = p.id;
-        document.getElementById('pName').value = p.name;
-        document.getElementById('pRole').value = p.role;
-        document.getElementById('pCredit').value = p.credit;
-        document.getElementById('pTeam').value = p.real_team_id;
-        document.getElementById('pCategory').value = p.category;
-        document.getElementById('pPhoto').value = p.photo_url || "";
-        
+    function openEditForm(id) {
+        const p = players.find(x => x.id === id);
+        document.getElementById('formTitle').innerText = "Edit Player";
+        document.getElementById('editId').value = p.id;
+        document.getElementById('fName').value = p.name;
+        document.getElementById('fRole').value = p.role;
+        document.getElementById('fCredit').value = p.credit;
+        document.getElementById('fTeam').value = p.real_team_id;
+        document.getElementById('fCategory').value = p.category;
         document.getElementById('formModal').classList.add('show');
     }
 
-    // 6. SAVE LOGIC
-    async function savePlayer() {
-        const id = document.getElementById('editPlayerId').value;
-        const saveBtn = document.getElementById('saveBtn');
-        
+    async function handleSave() {
+        const id = document.getElementById('editId').value;
+        const btn = document.getElementById('saveBtn');
         const payload = {
-            name: document.getElementById('pName').value,
-            role: document.getElementById('pRole').value,
-            credit: parseFloat(document.getElementById('pCredit').value),
-            real_team_id: document.getElementById('pTeam').value,
-            category: document.getElementById('pCategory').value,
-            photo_url: document.getElementById('pPhoto').value || null,
-            tournament_id: activeTournamentId,
+            name: document.getElementById('fName').value,
+            role: document.getElementById('fRole').value,
+            credit: parseFloat(document.getElementById('fCredit').value),
+            real_team_id: document.getElementById('fTeam').value,
+            category: document.getElementById('fCategory').value,
+            tournament_id: tournamentId,
             is_active: true
         };
 
-        if(!payload.name || isNaN(payload.credit)) return alert("Please fill Name and Credit!");
+        if(!payload.name || isNaN(payload.credit)) return alert("Check inputs!");
+        btn.disabled = true;
 
-        saveBtn.disabled = true;
-        saveBtn.innerText = "SAVING...";
-
-        let error;
-        if(id) {
-            const { error: err } = await adminSupabase.from('players').update(payload).eq('id', id);
-            error = err;
-        } else {
-            const { error: err } = await adminSupabase.from('players').insert([payload]);
-            error = err;
-        }
-
-        if(error) {
-            alert("Error: " + error.message);
-            saveBtn.disabled = false;
-            saveBtn.innerText = "Save Player";
-        } else {
-            location.reload(); 
-        }
+        const { error } = id ? await client.from('players').update(payload).eq('id', id) : await client.from('players').insert([payload]);
+        
+        if(error) alert(error.message);
+        else location.reload();
     }
+
+    async function toggleStatus(id, current) {
+        if(!confirm(`Turn player ${current ? 'OFF' : 'ON'}?`)) return;
+        const { error } = await client.from('players').update({ is_active: !current }).eq('id', id);
+        if(error) alert(error.message);
+        else location.reload();
+    }
+
+    function closeModal() { document.getElementById('formModal').classList.remove('show'); }
+
+    document.getElementById('searchBox').oninput = (e) => {
+        const val = e.target.value.toLowerCase();
+        render(players.filter(p => p.name.toLowerCase().includes(val) || p.real_teams?.short_code.toLowerCase().includes(val)));
+    };
 
     init();
 </script>
-
 </body>
 </html>
