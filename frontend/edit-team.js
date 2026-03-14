@@ -280,7 +280,7 @@ function renderList(containerId, list, isMyXi, stats) {
         const roleLocked = (11 - stats.count) <= neededSlots && (minReq[p.role] - currentRoles[p.role]) <= 0;
         const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || overseasLimit || roleLocked);
         const photoUrl = p.photo_url ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl : 'images/default-avatar.png';
-
+const category = (p.category || "").toLowerCase(); // Safety check
         return `
             <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
                 <div class="avatar-container"><img src="${photoUrl}" class="player-avatar"></div>
