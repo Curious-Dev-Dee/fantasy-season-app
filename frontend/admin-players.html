@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Player Console | Admin</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #9AE000;
+            --bg: #0c1117;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--card);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+        .stats-bar { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+
+        /* --- SEARCH --- */
+        .search-container { padding: 15px; background: var(--bg); }
+        #searchBox {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 12px 15px;
+            border-radius: 12px;
+            color: white;
+            outline: none;
+        }
+        #searchBox:focus { border-color: var(--primary); }
+
+        /* --- PLAYER LIST --- */
+        .player-list { padding: 0 15px; display: flex; flex-direction: column; gap: 10px; }
+        .player-item {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+        }
+        .p-info strong { display: block; font-size: 15px; }
+        .p-info span { font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
+        .edit-btn {
+            background: rgba(154, 224, 0, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* --- FLOATING ADD BUTTON --- */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            color: #000;
+            font-size: 24px;
+            border: none;
+            z-index: 200;
+        }
+
+        /* --- MODAL / FORM --- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: var(--card);
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 25px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
+        input, select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .save-btn { flex: 2; background: var(--primary); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        .cancel-btn { flex: 1; background: #334155; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        .hidden { display: none; }
+        .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    </style>
+</head>
+<body>
+
+<div id="loader" class="loading-overlay">
+    <div style="text-align:center">
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; color: var(--primary)"></i>
+        <p style="margin-top:15px; font-weight:800">SYNCING DATABASE...</p>
+    </div>
+</div>
+
+<header>
+    <h1>Player Console</h1>
+    <div class="stats-bar" id="statsBar">Loading players...</div>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchBox" placeholder="🔍 Search Name or Team code...">
+</div>
+
+<main class="player-list" id="playerList">
+    </main>
+
+<button class="fab" onclick="openForm()"><i class="fas fa-plus"></i></button>
+
+<div class="modal" id="formModal">
+    <div class="modal-content">
+        <h2 id="formTitle" style="margin-top:0; font-size:20px;">Add New Player</h2>
+        
+        <input type="hidden" id="editPlayerId">
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="pName" placeholder="e.g. Virat Kohli">
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <div class="form-group" style="flex:1">
+                <label>Role</label>
+                <select id="pRole">
+                    <option value="WK">Wicketkeeper (WK)</option>
+                    <option value="BAT">Batter (BAT)</option>
+                    <option value="AR">All-Rounder (AR)</option>
+                    <option value="BOWL">Bowler (BOWL)</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex:1">
+                <label>Credits</label>
+                <input type="number" id="pCredit" step="0.5" placeholder="e.g. 9.5">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Real Team</label>
+            <select id="pTeam">
+                </select>
+        </div>
+
+        <div class="form-group">
+            <label>Category</label>
+            <select id="pCategory">
+                <option value="none">Capped (None)</option>
+                <option value="overseas">Overseas ✈️</option>
+                <option value="uncapped">Uncapped 🧢</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Photo Filename (Optional)</label>
+            <input type="text" id="pPhoto" placeholder="e.g. v-kohli.webp">
+        </div>
+
+        <div class="form-actions">
+            <button class="cancel-btn" onclick="closeForm()">Cancel</button>
+            <button class="save-btn" id="saveBtn" onclick="savePlayer()">Save Player</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    // 1. DATABASE SETUP
+    const SUPABASE_URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"; // Use service role for admin powers
+    const supabase = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allPlayers = [];
+    let allTeams = [];
+    let activeTournamentId = null;
+
+    // 2. INITIALIZATION
+    async function init() {
+        try {
+            // Get Active Tournament
+            const { data: t } = await supabase.from('active_tournament').select('id').maybeSingle();
+            if (!t) return alert("No active tournament found!");
+            activeTournamentId = t.id;
+
+            // Load Data
+            const [teamRes, playerRes] = await Promise.all([
+                supabase.from('real_teams').select('*').order('short_code'),
+                supabase.from('players').select('*, real_teams(short_code)').eq('tournament_id', activeTournamentId).order('name')
+            ]);
+
+            allTeams = teamRes.data;
+            allPlayers = playerRes.data;
+
+            renderTeamsDropdown();
+            renderPlayers(allPlayers);
+            updateStats();
+            
+            document.getElementById('loader').classList.add('hidden');
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // 3. UI RENDERING
+    function renderPlayers(list) {
+        const container = document.getElementById('playerList');
+        container.innerHTML = list.map(p => `
+            <div class="player-item">
+                <div class="p-info">
+                    <strong>${p.name} ${p.category === 'overseas' ? '✈️' : p.category === 'uncapped' ? '🧢' : ''}</strong>
+                    <span>${p.role} • ${p.real_teams?.short_code} • ${p.credit} Cr</span>
+                </div>
+                <button class="edit-btn" onclick="prepareEdit('${p.id}')">MODIFY</button>
+            </div>
+        `).join('');
+    }
+
+    function renderTeamsDropdown() {
+        const select = document.getElementById('pTeam');
+        select.innerHTML = allTeams.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
+    }
+
+    function updateStats() {
+        document.getElementById('statsBar').innerText = `${allPlayers.length} Players Active in IPL 2026`;
+    }
+
+    // 4. SEARCH LOGIC
+    document.getElementById('searchBox').oninput = (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allPlayers.filter(p => 
+            p.name.toLowerCase().includes(term) || 
+            p.real_teams?.short_code.toLowerCase().includes(term)
+        );
+        renderPlayers(filtered);
+    };
+
+    // 5. FORM LOGIC
+    function openForm() {
+        document.getElementById('formTitle').innerText = "Add New Player";
+        document.getElementById('editPlayerId').value = "";
+        document.getElementById('pName').value = "";
+        document.getElementById('pCredit').value = "";
+        document.getElementById('pPhoto').value = "";
+        document.getElementById('formModal').classList.add('show');
+    }
+
+    function closeForm() {
+        document.getElementById('formModal').classList.remove('show');
+    }
+
+    function prepareEdit(id) {
+        const p = allPlayers.find(x => x.id === id);
+        if(!p) return;
+
+        document.getElementById('formTitle').innerText = "Modify Player";
+        document.getElementById('editPlayerId').value = p.id;
+        document.getElementById('pName').value = p.name;
+        document.getElementById('pRole').value = p.role;
+        document.getElementById('pCredit').value = p.credit;
+        document.getElementById('pTeam').value = p.real_team_id;
+        document.getElementById('pCategory').value = p.category;
+        document.getElementById('pPhoto').value = p.photo_url || "";
+        
+        document.getElementById('formModal').classList.add('show');
+    }
+
+    // 6. SAVE LOGIC (ADD OR UPDATE)
+    async function savePlayer() {
+        const id = document.getElementById('editPlayerId').value;
+        const saveBtn = document.getElementById('saveBtn');
+        
+        const payload = {
+            name: document.getElementById('pName').value,
+            role: document.getElementById('pRole').value,
+            credit: parseFloat(document.getElementById('pCredit').value),
+            real_team_id: document.getElementById('pTeam').value,
+            category: document.getElementById('pCategory').value,
+            photo_url: document.getElementById('pPhoto').value || null,
+            tournament_id: activeTournamentId,
+            is_active: true
+        };
+
+        if(!payload.name || isNaN(payload.credit)) return alert("Please fill Name and Credit!");
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = "SAVING...";
+
+        let error;
+        if(id) {
+            // Update
+            const { error: err } = await supabase.from('players').update(payload).eq('id', id);
+            error = err;
+        } else {
+            // Insert
+            const { error: err } = await supabase.from('players').insert([payload]);
+            error = err;
+        }
+
+        if(error) {
+            alert("Error: " + error.message);
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Save Player";
+        } else {
+            location.reload(); // Simplest way to refresh the list
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
