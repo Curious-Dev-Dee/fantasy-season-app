@@ -21,6 +21,13 @@
             <div class="score-pill"><span id="userStarCount">0 ⭐</span></div>
         </header>
 
+        <section class="prediction-container card">
+            <div id="predictionArea">
+                <p style="text-align:center; color:#888;">Loading Match...</p>
+            </div>
+            <div id="postMatchSummary"></div>
+        </section>
+
         <div id="podiumSection" class="podium-stack">
             
             <div class="podium-box">
@@ -42,42 +49,7 @@
             </div>
             
         </div>
-
-        <section class="prediction-container card">
-            <div id="predictionArea">
-                <p style="text-align:center; color:#888;">Loading Match...</p>
-            </div>
-            
-            <div id="postMatchSummary"></div>
-        </section>
-
-        <section class="social-section">
-            <div class="mini-label">COMMUNITY SLEDGE</div>
-            <div id="feedContainer" class="feed-list">
-                </div>
-        </section>
         
-    </div>
-
-    <button id="postFab" class="fab left"><i class="fas fa-pen"></i></button>
-    <button id="chatToggleBtn" class="fab right">
-        <i class="fas fa-comments"></i>
-        <span id="chatBadge" class="chat-badge hidden"></span>
-    </button>
-
-    <div id="chatDrawer" class="chat-drawer drawer-hidden">
-        <div class="drawer-header">
-            <div class="chat-tabs">
-                <button id="btnGlobal" class="active">GLOBAL</button>
-                <button id="btnLeague">LEAGUE</button>
-            </div>
-            <button id="closeChat">&times;</button>
-        </div>
-        <div id="chatMessages" class="chat-display"></div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Sledge away..." maxlength="80">
-            <button id="sendChatBtn">🚀</button>
-        </div>
     </div>
 
     <nav class="bottom-nav">

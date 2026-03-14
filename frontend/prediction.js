@@ -21,14 +21,13 @@ async function init() {
     const { data: member } = await supabase.from("league_members").select("league_id").eq("user_id", currentUserId).maybeSingle();
     userLeagueId = member?.league_id;
 
-    // 2. Load all the new Gamified Sections!
+    // 2. Load the UI (No more chat or feed functions here!)
     await Promise.all([
         loadPodiums(),
         loadPredictionCard(),
         loadPostMatchSummary()
     ]);
 }
-
 /* ==========================================
    SECTION 1: THE PODIUMS
 ========================================== */
@@ -233,99 +232,8 @@ window.showGuruLeaderboard = async () => {
    SECTION 4: THE SOCIAL FEED & REACTIONS
 ========================================== */
 
-// 1. Load the Feed with Reaction Counts
-async function loadFeed() {
-    // This query is pure magic. It pulls the post, the author's team name, AND all reactions!
-    const { data: posts, error } = await supabase
-        .from("social_feed")
-        .select(`
-            id, content, created_at, user_id,
-            user_profiles(team_name, team_photo_url),
-            post_reactions(user_id, reaction_type)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(20);
 
-    const container = document.getElementById("feedContainer");
-    if (!container || error) return;
 
-    container.replaceChildren();
-
-    (posts || []).forEach((post) => {
-        // Calculate Likes and Dislikes from the attached reactions array
-        const likesCount = post.post_reactions.filter(r => r.reaction_type === 'like').length;
-        const dislikesCount = post.post_reactions.filter(r => r.reaction_type === 'dislike').length;
-        
-        // Did the current user react to this post?
-        const myReaction = post.post_reactions.find(r => r.user_id === currentUserId)?.reaction_type;
-
-        const authorName = post.user_profiles?.team_name || "Unknown Guru";
-        const photoUrl = post.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(post.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
-
-        container.innerHTML += `
-            <div class="post-card">
-                <div class="post-header">
-                    <img src="${photoUrl}" class="post-avatar">
-                    <span class="post-user">${authorName}</span>
-                </div>
-                <p class="post-content">${post.content}</p>
-                
-                <div class="post-actions">
-                    <button class="reaction-btn ${myReaction === 'like' ? 'active-like' : ''}" 
-                            onclick="reactToPost('${post.id}', 'like')">
-                        👍 ${likesCount}
-                    </button>
-                    <button class="reaction-btn ${myReaction === 'dislike' ? 'active-dislike' : ''}" 
-                            onclick="reactToPost('${post.id}', 'dislike')">
-                        👎 ${dislikesCount}
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-}
-
-// 2. Handle Like / Dislike Toggles
-window.reactToPost = async (postId, type) => {
-    // Check if the user already reacted this way
-    const { data: existing } = await supabase.from("post_reactions")
-        .select("reaction_type")
-        .eq("post_id", postId)
-        .eq("user_id", currentUserId)
-        .maybeSingle();
-
-    if (existing && existing.reaction_type === type) {
-        // If they clicked 'like' but already liked it, REMOVE the like (toggle off)
-        await supabase.from("post_reactions").delete().eq("post_id", postId).eq("user_id", currentUserId);
-    } else {
-        // Otherwise, upsert the new reaction (this automatically switches dislike to like, etc.)
-        await supabase.from("post_reactions").upsert({
-            post_id: postId,
-            user_id: currentUserId,
-            reaction_type: type
-        });
-    }
-    
-    // Reload feed to show new counts
-    loadFeed();
-};
-
-// 3. Custom Post Modal (Replaces the ugly browser prompt!)
-document.getElementById("postFab").onclick = () => {
-    const text = prompt("Sledge the community! What's on your mind?");
-    // Note: I kept prompt() as a fallback, but you can easily replace this with a custom HTML modal by toggling a CSS class!
-    if (!text || text.trim() === "") return;
-    
-    submitPost(text);
-};
-
-async function submitPost(text) {
-    await supabase.from("social_feed").insert({ 
-        user_id: currentUserId, 
-        content: text 
-    });
-    loadFeed();
-}
 
 /* ==========================================
    SECTION 5: PODIUM COMMENTS
@@ -361,20 +269,6 @@ window.openPodiumComments = async (podiumType) => {
     }
 };
 
-/* ==========================================
-   SECTION 6: SUPER SMOOTH REALTIME
-========================================== */
-function setupRealtimeSocial() {
-    // Listen for NEW posts
-    supabase.channel("social_updates")
-        .on("postgres_changes", { event: "*", schema: "public", table: "social_feed" }, () => {
-            loadFeed();
-        })
-        .on("postgres_changes", { event: "*", schema: "public", table: "post_reactions" }, () => {
-            loadFeed(); // Reload when someone likes/dislikes a post!
-        })
-        .subscribe();
-}
 
 // Don't forget to call this at the end of your init() function!
 setupRealtimeSocial();
