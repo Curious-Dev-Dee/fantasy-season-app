@@ -144,6 +144,7 @@ function render() {
     document.getElementById("playerCountLabel").innerText = stats.count;
     document.getElementById("overseasCountLabel").innerText = `${stats.overseas}/4`;
     document.getElementById("creditCount").innerText = stats.credits.toFixed(1);
+    const activePenalty = state.activeBooster !== 'NONE' ? 1 : 0;
     document.getElementById("boosterUsedLabel").innerText = `${7 - state.usedBoosters.length}/7`;
     document.getElementById("progressFill").style.width = `${(stats.count / 11) * 100}%`;
     
@@ -342,13 +343,17 @@ function renderBoosterUI() {
         </option>`;
     });
 
+    // NEW: Calculate simulated remaining boosters for instant UI feedback
+    const activePenalty = state.activeBooster !== 'NONE' ? 1 : 0;
+    const boostersLeft = 7 - state.usedBoosters.length - activePenalty;
+
     // We add a dynamic class if a booster is active to make the UI "glow"
     const isActiveClass = state.activeBooster !== 'NONE' ? 'booster-active-glow' : '';
 
     boosterContainer.innerHTML = `
         <div class="booster-header">
             <span>⚡ Available Boosters</span>
-            <span class="booster-count">${7 - state.usedBoosters.length}/7 Remaining</span>
+            <span class="booster-count">${boostersLeft}/7 Remaining</span>
         </div>
         <div class="select-wrapper">
             <select id="boosterSelect" class="booster-dropdown ${isActiveClass}" onchange="handleBoosterChange(this.value)">
