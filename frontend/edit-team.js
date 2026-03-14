@@ -288,7 +288,7 @@ const category = (p.category || "").toLowerCase(); // Safety check
             <strong>
             ${p.name} 
             ${p.category === 'overseas' ? '<i class="fas fa-plane-arrival category-icon overseas"></i>' : ''}
-            ${p.category === 'uncapped' ? '<i class="fas fa-graduation-cap category-icon uncapped"></i>' : ''}
+            ${p.category === 'uncapped' ? '<i class="fas fa-cap category-icon uncapped"></i>' : ''}
             </strong>
 
                     <span>${p.role} • ${p.team_short_code} • ${p.credit} Cr</span>
