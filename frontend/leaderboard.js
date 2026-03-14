@@ -27,6 +27,7 @@ async function init() {
 
     const [leaderboardRes, profilesRes] = await Promise.all([
         query.order("total_points", { ascending: false }),
+        // Because you have max 100 users, this query is perfectly safe and fast!
         supabase.from("user_profiles").select("user_id, team_photo_url")
     ]);
 
@@ -52,9 +53,11 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
     const p3 = top3[2] || { team_name: "TBA", total_points: 0, rank: 3, user_id: null };
 
     podiumContainer.replaceChildren();
+    
+    // Create the Podium
     [p2, p1, p3].forEach((user) => {
         const card = document.createElement("div");
-        card.className = `podium-card ${user.rank === 1 ? "first" : ""}`.trim();
+        card.className = `podium-card rank-${user.rank}`; // Used for CSS styling
         card.onclick = () => window.scoutUser(user.user_id, user.team_name || "Anonymous");
 
         const rankBadge = document.createElement("div");
@@ -63,7 +66,9 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
 
         const avatar = document.createElement("div");
         avatar.className = "podium-avatar";
-        avatar.id = `avatar-${user.rank}`;
+        
+        // Add default avatar background just in case
+        avatar.style.backgroundImage = `url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png')`;
 
         if (user.user_id) {
             const photoPath = avatarMap.get(user.user_id);
@@ -85,15 +90,24 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
         podiumContainer.appendChild(card);
     });
 
+    // Update Summary
     const currentUserRow = leaderboard.find((row) => row.user_id === userId);
     leaderboardSummary.textContent = currentUserRow
         ? `Your Rank: #${currentUserRow.rank} | Score: ${currentUserRow.total_points}`
         : "You are not ranked yet.";
 
+    // Render Remaining List (Ranks 4 to 100)
     leaderboardContainer.replaceChildren();
     remaining.forEach((row) => {
         const rowEl = document.createElement("div");
-        rowEl.className = `leader-row ${row.user_id === userId ? "you" : ""}`.trim();
+        
+        // Determine the border color class based on rank
+        let borderClass = "";
+        if (row.rank >= 4 && row.rank <= 5) borderClass = "border-orange";
+        else if (row.rank >= 6 && row.rank <= 10) borderClass = "border-yellow";
+        else if (row.rank > 10) borderClass = "border-red";
+
+        rowEl.className = `leader-row ${row.user_id === userId ? "you" : ""} ${borderClass}`.trim();
         rowEl.onclick = () => window.scoutUser(row.user_id, row.team_name || "Anonymous");
 
         const rank = document.createElement("div");

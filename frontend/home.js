@@ -231,7 +231,7 @@ if (dash && dash.upcoming_match) {
 
 // 4. Booster Status
 if (boosterStatusEl) {
-    boosterStatusEl.textContent = String(Math.max(0, 6 - ((boosterData?.used_boosters || []).length)));
+    boosterStatusEl.textContent = String(Math.max(0, 7 - ((boosterData?.used_boosters || []).length)));
 }
     }}
 // ... Keep your existing loadLeaderboardPreview, fetchPrivateLeagueData, startCountdown, etc. ...
