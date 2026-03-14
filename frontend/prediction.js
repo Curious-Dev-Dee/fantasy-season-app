@@ -125,28 +125,37 @@ function renderPodium(data, containerId, type) {
 /* ==========================================
    SECTION 2: PREDICTION ENGINE & STARS
 ========================================== */
+/* ==========================================
+   SECTION 2: PREDICTION ENGINE & STARS
+========================================== */
 async function loadPredictionCard() {
-    // Fetch User's current stars
-    const { data: userPoints } = await supabase.from("user_tournament_points").select("prediction_stars").eq("user_id", currentUserId).eq("tournament_id", currentTournamentId).maybeSingle();
+    // 1. Fetch User's current stars
+    const { data: userPoints } = await supabase.from("user_tournament_points")
+        .select("prediction_stars").eq("user_id", currentUserId).eq("tournament_id", currentTournamentId).maybeSingle();
     const currentStars = userPoints?.prediction_stars || 0;
     
     // Update UI Header
     const starEl = document.getElementById("userStarCount");
     if(starEl) starEl.innerText = `${currentStars} ⭐`;
 
-    // Fetch the Next Match details (using your view that nicely formats logos!)
-    const { data: dashData } = await supabase.from("home_dashboard_view").select("upcoming_match").eq("user_id", currentUserId).maybeSingle();
-    const match = dashData?.upcoming_match;
+    // 2. FIXED: Query matches and real_teams directly so we get the Team IDs!
+    const { data: match } = await supabase.from("matches")
+        .select("id, team_a:real_teams!team_a_id(id, short_code, photo_name), team_b:real_teams!team_b_id(id, short_code, photo_name)")
+        .eq("tournament_id", currentTournamentId)
+        .eq("status", "upcoming")
+        .order("actual_start_time", { ascending: true })
+        .limit(1).maybeSingle();
     
     if (!match) {
         document.getElementById("predictionArea").innerHTML = "<h3>No upcoming matches to predict.</h3>";
         return;
     }
     
-    currentMatchId = match.match_id;
+    currentMatchId = match.id;
 
-    // Check if they already predicted
-    const { data: existing } = await supabase.from("user_predictions").select("predicted_winner_id").eq("user_id", currentUserId).eq("match_id", currentMatchId).maybeSingle();
+    // 3. Check if they already predicted
+    const { data: existing } = await supabase.from("user_predictions")
+        .select("predicted_winner_id").eq("user_id", currentUserId).eq("match_id", currentMatchId).maybeSingle();
 
     renderPredictionUI(match, existing?.predicted_winner_id);
 }
@@ -155,8 +164,9 @@ function renderPredictionUI(match, predictedWinnerId) {
     const container = document.getElementById("predictionArea");
     if(!container) return;
 
-    const logoA = match.team_a_logo ? supabase.storage.from('team-logos').getPublicUrl(match.team_a_logo).data.publicUrl : DEFAULT_AVATAR;
-    const logoB = match.team_b_logo ? supabase.storage.from('team-logos').getPublicUrl(match.team_b_logo).data.publicUrl : DEFAULT_AVATAR;
+    // Grab logos directly from the joined real_teams table
+    const logoA = match.team_a.photo_name ? supabase.storage.from('team-logos').getPublicUrl(match.team_a.photo_name).data.publicUrl : DEFAULT_AVATAR;
+    const logoB = match.team_b.photo_name ? supabase.storage.from('team-logos').getPublicUrl(match.team_b.photo_name).data.publicUrl : DEFAULT_AVATAR;
 
     const isLocked = !!predictedWinnerId;
 
@@ -168,30 +178,37 @@ function renderPredictionUI(match, predictedWinnerId) {
         </div>
         
         <div class="team-vs-container">
-            <div class="team-card ${predictedWinnerId === match.team_a_id ? 'selected' : ''}" onclick="${isLocked ? '' : `savePrediction('${match.team_a_id}')`}">
-                <img src="${logoA}" alt="${match.team_a_code}">
-                <span>${match.team_a_code}</span>
+            <div class="team-card ${predictedWinnerId === match.team_a.id ? 'selected' : ''}" onclick="${isLocked ? '' : `savePrediction('${match.team_a.id}')`}">
+                <img src="${logoA}" alt="${match.team_a.short_code}">
+                <span>${match.team_a.short_code}</span>
             </div>
             <div class="vs-badge">VS</div>
-            <div class="team-card ${predictedWinnerId === match.team_b_id ? 'selected' : ''}" onclick="${isLocked ? '' : `savePrediction('${match.team_b_id}')`}">
-                <img src="${logoB}" alt="${match.team_b_code}">
-                <span>${match.team_b_code}</span>
+            <div class="team-card ${predictedWinnerId === match.team_b.id ? 'selected' : ''}" onclick="${isLocked ? '' : `savePrediction('${match.team_b.id}')`}">
+                <img src="${logoB}" alt="${match.team_b.short_code}">
+                <span>${match.team_b.short_code}</span>
             </div>
         </div>
         ${isLocked ? `<div class="locked-msg">Prediction Locked! 🔒</div>` : ''}
     `;
 }
 
+// Ensure your savePrediction looks like this so it catches any future errors:
 window.savePrediction = async (teamId) => {
     if(!confirm("Lock in this prediction? You cannot change it later.")) return;
     
-    await supabase.from("user_predictions").upsert({
+    const { error } = await supabase.from("user_predictions").upsert({
         user_id: currentUserId,
         match_id: currentMatchId,
         predicted_winner_id: teamId
     });
     
-    loadPredictionCard(); // Reload UI to show it's locked
+    if (error) {
+        console.error("Database save failed:", error);
+        alert("Failed to save prediction.");
+        return;
+    }
+    
+    loadPredictionCard(); 
 };
 
 /* ==========================================
@@ -269,6 +286,3 @@ window.openPodiumComments = async (podiumType) => {
     }
 };
 
-
-// Don't forget to call this at the end of your init() function!
-setupRealtimeSocial();
