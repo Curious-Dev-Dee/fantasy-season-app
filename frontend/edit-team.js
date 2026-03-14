@@ -144,7 +144,7 @@ function render() {
     document.getElementById("playerCountLabel").innerText = stats.count;
     document.getElementById("overseasCountLabel").innerText = `${stats.overseas}/4`;
     document.getElementById("creditCount").innerText = stats.credits.toFixed(1);
-    document.getElementById("boosterUsedLabel").innerText = `${6 - state.usedBoosters.length}/6`;
+    document.getElementById("boosterUsedLabel").innerText = `${7 - state.usedBoosters.length}/7`;
     document.getElementById("progressFill").style.width = `${(stats.count / 11) * 100}%`;
     
     const subsEl = document.getElementById("subsRemainingLabel");
@@ -348,7 +348,7 @@ function renderBoosterUI() {
     boosterContainer.innerHTML = `
         <div class="booster-header">
             <span>⚡ Available Boosters</span>
-            <span class="booster-count">${6 - state.usedBoosters.length}/6 Remaining</span>
+            <span class="booster-count">${7 - state.usedBoosters.length}/7 Remaining</span>
         </div>
         <div class="select-wrapper">
             <select id="boosterSelect" class="booster-dropdown ${isActiveClass}" onchange="handleBoosterChange(this.value)">
@@ -413,15 +413,60 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
 window.toggleFilter = (k, v, el) => { const val = (k === 'credits') ? parseFloat(v) : v; if (el.checked) state.filters[k].push(val); else state.filters[k] = state.filters[k].filter(i => i !== val); render(); };
 window.clearFilters = (k) => { state.filters[k] = []; render(); initFilters(); };
 
-function updateHeaderMatch(match) {
+function updateHeaderMatch() {
+    // 1. Make sure we actually have an upcoming match
+    if (state.matches.length === 0) {
+        document.getElementById("headerCountdown").innerText = "NO MATCHES";
+        document.getElementById("upcomingMatchName").innerText = "Tournament Ended";
+        return;
+    }
+
+    const match = state.matches[0];
     const timerEl = document.getElementById("headerCountdown");
+    const saveBtn = document.getElementById("saveTeamBtn");
+    
     document.getElementById("upcomingMatchName").innerText = `${match.team_a?.short_code} vs ${match.team_b?.short_code}`;
+    
     const target = new Date(match.actual_start_time).getTime();
     if (countdownInterval) clearInterval(countdownInterval);
+    
     countdownInterval = setInterval(() => {
         const diff = target - Date.now();
-        if (diff <= 0) { timerEl.innerText = "LIVE"; return clearInterval(countdownInterval); }
-        const h = Math.floor(diff/3600000); const m = Math.floor((diff%3600000)/60000); const s = Math.floor((diff%60000)/1000);
+        
+        if (diff <= 0) { 
+            // 2. Match hits zero! Stop the timer, lock the UI temporarily
+            clearInterval(countdownInterval);
+            timerEl.innerText = "LOCKED"; 
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerText = "MATCH LOCKED";
+            }
+
+            // 3. Wait 3 seconds so the user sees it locked, then shift to the next match
+            setTimeout(() => {
+                state.matches.shift(); // Remove Match 3 from the array
+                
+                if (state.matches.length > 0) {
+                    // Update state to Match 4
+                    state.currentMatchNumber = state.matches[0].match_number;
+                    
+                    // Restart the header UI for Match 4
+                    updateHeaderMatch(); 
+                    
+                    // Re-render the whole page! (Crucial because subs/boosters depend on currentMatchNumber)
+                    render(); 
+                } else {
+                    timerEl.innerText = "NO MATCHES";
+                }
+            }, 300000); // 5 minutes delay before moving to the next match, giving users a moment to see the "LOCKED" state
+            
+            return; 
+        }
+        
+        // Normal countdown logic
+        const h = Math.floor(diff/3600000); 
+        const m = Math.floor((diff%3600000)/60000); 
+        const s = Math.floor((diff%60000)/1000);
         timerEl.innerText = `${h}h ${m}m ${s}s`;
     }, 1000);
 }
