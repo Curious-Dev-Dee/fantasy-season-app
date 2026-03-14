@@ -861,3 +861,104 @@ display:block;
     color: #facc15; 
     filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.4));
 }
+
+/* =========================
+   PREMIUM FILTER DROPDOWNS
+========================= */
+
+/* The Container inside the bottom sheet */
+.dropdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 20px;
+}
+
+/* Each Row in the filter */
+.filter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-item:active {
+    background: rgba(154, 224, 0, 0.1);
+    transform: scale(0.98);
+}
+
+/* Hide the ugly default checkbox */
+.filter-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #334155;
+    border-radius: 6px;
+    background: transparent;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Checkbox "Checked" State */
+.filter-item input[type="checkbox"]:checked {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+/* The "Check" Tick mark */
+.filter-item input[type="checkbox"]:checked::after {
+    content: '✔';
+    position: absolute;
+    color: #000;
+    font-size: 14px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* The Label Text */
+.filter-item span {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* --- THE ACTION BUTTONS (Clear/Apply) --- */
+.dropdown-actions {
+    position: sticky;
+    bottom: 0;
+    background: #0f172a; /* Matches sheet bg */
+    padding-top: 15px;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.dropdown-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+}
+
+/* Clear Button */
+.dropdown-actions button:first-child {
+    background: #1e293b;
+    color: var(--text-dim);
+}
+
+/* Done Button (Triggered by closing the backdrop) */
+.dropdown-actions button:last-child {
+    background: var(--primary-green);
+    color: #000;
+}
