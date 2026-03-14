@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin | Player Manager</title>
+    <title>Admin | Player Management</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
             display: flex; justify-content: space-between; align-items: center;
             border: 1px solid var(--border);
         }
-        .player-item.inactive { opacity: 0.5; filter: grayscale(1); border-style: dashed; }
+        .player-item.inactive { opacity: 0.4; filter: grayscale(1); border-style: dashed; }
         
         .p-info strong { display: block; font-size: 15px; }
         .p-info span { font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
@@ -94,7 +94,7 @@
 <div id="loader">
     <div style="text-align:center">
         <i class="fas fa-circle-notch fa-spin" style="font-size: 32px; color: var(--primary)"></i>
-        <p style="margin-top:10px; font-size:12px; font-weight:800; color:var(--primary)">LOADING PLAYERS...</p>
+        <p style="margin-top:10px; font-size:12px; font-weight:800; color:var(--primary)">SYNCING DATABASE...</p>
     </div>
 </div>
 
@@ -155,34 +155,38 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    const URL = "https://tuvqgcosbweljslbfgqc.supabase.co";
-    // Service role key for admin permissions
-    const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE";
-    
-    // Correct way to initialize in v2
-    const client = supabase.createClient(URL, KEY);
+    // 1. HARDCODED INIT (Prevents malformed URL errors)
+    const adminSupabaseClient = supabase.createClient(
+        "https://tuvqgcosbweljslbfgqc.supabase.co", 
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDY1OTI1OCwiZXhwIjoyMDg2MjM1MjU4fQ.ZqeBiAlM9dem6bn-TM3hDrw1tSb7xSp_rAK6zYYrXkE"
+    );
 
-    let players = [], teams = [], tournamentId = null;
+    let playersData = [], teamsData = [], currentTournamentId = null;
 
-    async function init() {
+    // 2. INITIALIZATION
+    async function boot() {
         try {
-            const { data: t } = await client.from('active_tournament').select('id').maybeSingle();
-            tournamentId = t?.id;
+            const { data: t } = await adminSupabaseClient.from('active_tournament').select('id').maybeSingle();
+            if (!t) throw new Error("No active tournament");
+            currentTournamentId = t.id;
 
             const [pRes, tRes] = await Promise.all([
-                client.from('players').select('*, real_teams(short_code)').eq('tournament_id', tournamentId).order('name'),
-                client.from('real_teams').select('*').order('short_code')
+                adminSupabaseClient.from('players').select('*, real_teams(short_code)').eq('tournament_id', currentTournamentId).order('name'),
+                adminSupabaseClient.from('real_teams').select('*').order('short_code')
             ]);
 
-            players = pRes.data || [];
-            teams = tRes.data || [];
+            playersData = pRes.data || [];
+            teamsData = tRes.data || [];
 
-            document.getElementById('fTeam').innerHTML = teams.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
-            render(players);
+            document.getElementById('fTeam').innerHTML = teamsData.map(t => `<option value="${t.id}">${t.short_code} - ${t.name}</option>`).join('');
+            render(playersData);
             document.getElementById('loader').classList.add('hidden');
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            alert("Error: " + e.message);
+        }
     }
 
+    // 3. UI RENDERING
     function render(list) {
         document.getElementById('playerList').innerHTML = list.map(p => `
             <div class="player-item ${!p.is_active ? 'inactive' : ''}">
@@ -192,14 +196,15 @@
                 </div>
                 <div class="actions">
                     <button class="btn edit-btn" onclick="openEditForm('${p.id}')">EDIT</button>
-                    <button class="btn del-btn" onclick="toggleStatus('${p.id}', ${p.is_active})">
-                        ${p.is_active ? 'OFF' : 'ON'}
+                    <button class="btn del-btn" onclick="toggleActive('${p.id}', ${p.is_active})">
+                        ${p.is_active ? 'DISABLE' : 'ENABLE'}
                     </button>
                 </div>
             </div>
         `).join('');
     }
 
+    // 4. FORM ACTIONS
     function openAddForm() {
         document.getElementById('formTitle').innerText = "Add Player";
         document.getElementById('editId').value = "";
@@ -209,8 +214,9 @@
     }
 
     function openEditForm(id) {
-        const p = players.find(x => x.id === id);
-        document.getElementById('formTitle').innerText = "Edit Player";
+        const p = playersData.find(x => x.id === id);
+        if(!p) return;
+        document.getElementById('formTitle').innerText = "Modify Player";
         document.getElementById('editId').value = p.id;
         document.getElementById('fName').value = p.name;
         document.getElementById('fRole').value = p.role;
@@ -224,27 +230,29 @@
         const id = document.getElementById('editId').value;
         const btn = document.getElementById('saveBtn');
         const payload = {
-            name: document.getElementById('fName').value,
+            name: document.getElementById('fName').value.trim(),
             role: document.getElementById('fRole').value,
             credit: parseFloat(document.getElementById('fCredit').value),
             real_team_id: document.getElementById('fTeam').value,
             category: document.getElementById('fCategory').value,
-            tournament_id: tournamentId,
+            tournament_id: currentTournamentId,
             is_active: true
         };
 
-        if(!payload.name || isNaN(payload.credit)) return alert("Check inputs!");
+        if(!payload.name || isNaN(payload.credit)) return alert("Fill Name and Credits!");
         btn.disabled = true;
 
-        const { error } = id ? await client.from('players').update(payload).eq('id', id) : await client.from('players').insert([payload]);
+        const { error } = id 
+            ? await adminSupabaseClient.from('players').update(payload).eq('id', id) 
+            : await adminSupabaseClient.from('players').insert([payload]);
         
-        if(error) alert(error.message);
+        if(error) { alert(error.message); btn.disabled = false; }
         else location.reload();
     }
 
-    async function toggleStatus(id, current) {
-        if(!confirm(`Turn player ${current ? 'OFF' : 'ON'}?`)) return;
-        const { error } = await client.from('players').update({ is_active: !current }).eq('id', id);
+    async function toggleActive(id, state) {
+        if(!confirm(`Change player status?`)) return;
+        const { error } = await adminSupabaseClient.from('players').update({ is_active: !state }).eq('id', id);
         if(error) alert(error.message);
         else location.reload();
     }
@@ -253,10 +261,11 @@
 
     document.getElementById('searchBox').oninput = (e) => {
         const val = e.target.value.toLowerCase();
-        render(players.filter(p => p.name.toLowerCase().includes(val) || p.real_teams?.short_code.toLowerCase().includes(val)));
+        render(playersData.filter(p => p.name.toLowerCase().includes(val) || (p.real_teams?.short_code || "").toLowerCase().includes(val)));
     };
 
-    init();
+    // START
+    boot();
 </script>
 </body>
 </html>
