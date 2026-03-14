@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // --- IPL 2026 CONFIGURATION ---
 const PLAYOFF_START = 71;
 const KNOCKOUT_PHASE = 72;   // Match 72 = Start of the 10-sub pool
-const BOOSTER_WINDOW_START = 11; 
+const BOOSTER_WINDOW_START = 2; 
 const BOOSTER_WINDOW_END = 70;
 
 serve(async (_req) => {
