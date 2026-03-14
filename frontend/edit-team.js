@@ -2,7 +2,7 @@ import { supabase } from "./supabase.js";
 
 const LEAGUE_STAGE_END = 70;
 const PLAYOFF_START_MATCH = 71;
-const BOOSTER_WINDOW_START = 2;
+const BOOSTER_WINDOW_START = 1;
 const BOOSTER_WINDOW_END = 70;
 const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 
@@ -10,7 +10,7 @@ let state = {
     allPlayers: [], 
     selectedPlayers: [], 
     lockedPlayerIds: [],    
-    baseSubsRemaining: 150, 
+    baseSubsRemaining: 130, 
     captainId: null, 
     viceCaptainId: null, 
     activeBooster: "NONE", 
@@ -75,7 +75,7 @@ async function init(user) {
         ]);
 
         state.allPlayers = players || [];
-        state.baseSubsRemaining = dashData?.subs_remaining ?? 150;
+        state.baseSubsRemaining = dashData?.subs_remaining ?? 130;
         state.usedBoosters = boosterData?.used_boosters ?? []; 
         state.activeBooster = currentTeam?.active_booster ?? "NONE"; 
         state.lockedPlayerIds = lastLock?.user_match_team_players?.map(p => p.player_id) || [];
@@ -310,7 +310,7 @@ function renderBoosterUI() {
     const isBoosterWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START && state.currentMatchNumber <= BOOSTER_WINDOW_END;
     if (!isBoosterWindow) { boosterContainer.classList.add("hidden"); return; }
     boosterContainer.classList.remove("hidden");
-    const boosterNames = { TOTAL_2X: "Shaitan! 💀", CAPPED_2X: "Jay Hind! 🔱", UNCAPPED_2X: "Mirikaali! 🦈", OVERSEAS_2X: "Angrej!", FREE_11: "Free 11", CAPTAIN_3X: "Hero!" };
+    const boosterNames = { TOTAL_2X: "TOTAL 2X", INDIAN_2X: "INDIAN 2X", UNCAPPED_2X: "UNCAPPED 2X", OVERSEAS_2X: "OVERSEAS 2X", FREE_11: "FREE 11", CAPTAIN_3X: "CAPTAIN 3X", MOM_2X: "MOM 2X" };
     let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯 Select Booster --</option>`;
     Object.keys(boosterNames).forEach(key => {
         const isUsed = state.usedBoosters.includes(key);
