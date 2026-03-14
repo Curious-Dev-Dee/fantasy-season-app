@@ -965,3 +965,91 @@ display:block;
     background: var(--primary-green);
     color: #000;
 }
+
+/* --- BOOSTER UI GAMING DESIGN --- */
+#boosterContainer {
+    margin: 20px 0;
+    padding: 15px;
+    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Dark gaming background */
+    border-radius: 12px;
+    border: 1px solid #3a3a5e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.booster-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0e0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.booster-count {
+    background-color: #e94560; /* Highlight color */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+/* Custom Select Wrapper for the Arrow */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select-wrapper::after {
+    content: "▼";
+    font-size: 12px;
+    color: #e94560;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.booster-dropdown {
+    width: 100%;
+    padding: 14px 15px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #0f3460;
+    border: 2px solid #2a2a4a;
+    border-radius: 8px;
+    cursor: pointer;
+    appearance: none; /* Removes default browser arrow */
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+/* When the user clicks the dropdown */
+.booster-dropdown:focus {
+    border-color: #e94560;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.4);
+}
+
+/* The GLOW effect when a booster is actually selected */
+.booster-dropdown.booster-active-glow {
+    border-color: #9AE000; /* Green success color */
+    background-color: rgba(154, 224, 0, 0.1);
+    box-shadow: 0 0 15px rgba(154, 224, 0, 0.3);
+    color: #9AE000;
+}
+
+/* Styling the options inside (Note: Mobile browsers often ignore this and use native OS styling) */
+.booster-dropdown option {
+    background-color: #1a1a2e;
+    color: #ffffff;
+    font-weight: normal;
+}
+
+.booster-dropdown option:disabled {
+    color: #666666;
+    font-style: italic;
+}

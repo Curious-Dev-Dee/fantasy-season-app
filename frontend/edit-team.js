@@ -307,18 +307,56 @@ const category = (p.category || "").toLowerCase(); // Safety check
 function renderBoosterUI() {
     const boosterContainer = document.getElementById("boosterContainer");
     if (!boosterContainer) return;
+
+    // Check if we are inside the booster window (e.g., Match 2 to 70)
     const isBoosterWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START && state.currentMatchNumber <= BOOSTER_WINDOW_END;
-    if (!isBoosterWindow) { boosterContainer.classList.add("hidden"); return; }
+    if (!isBoosterWindow) { 
+        boosterContainer.classList.add("hidden"); 
+        return; 
+    }
+    
     boosterContainer.classList.remove("hidden");
-    const boosterNames = { TOTAL_2X: "TOTAL 2X", INDIAN_2X: "INDIAN 2X", UNCAPPED_2X: "UNCAPPED 2X", OVERSEAS_2X: "OVERSEAS 2X", FREE_11: "FREE 11", CAPTAIN_3X: "CAPTAIN 3X", MOM_2X: "MOM 2X" };
-    let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯 Select Booster --</option>`;
+
+    // UPGRADED BOOSTER DICTIONARY
+    const boosterNames = { 
+        TOTAL_2X: "Shaitan! 💀 (2x Total Points)", 
+        INDIAN_2X: "Jay Hind! 🔱 (2x Indian Players)", 
+        UNCAPPED_2X: "Mirikaali! 🦈 (2x Uncapped)", 
+        OVERSEAS_2X: "Angrej! ✈️ (2x Overseas)", 
+        FREE_11: "Free 11 🆓 (Zero Sub Cost)", 
+        CAPTAIN_3X: "Hero! 🦸‍♂️ (3x Captain)",
+        MOM_2X: "MOM 2x! 🏆 (2x Man of the Match)"
+    };
+
+    let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯 Tap to Select a Power-Up --</option>`;
+    
     Object.keys(boosterNames).forEach(key => {
         const isUsed = state.usedBoosters.includes(key);
-        optionsHtml += `<option value="${key}" ${isUsed && state.activeBooster !== key ? 'disabled' : ''} ${state.activeBooster === key ? 'selected' : ''}>${isUsed ? '🚫 ' : ''}${boosterNames[key]}</option>`;
+        const isSelected = state.activeBooster === key;
+        
+        // If used, disable it. If selected, mark it.
+        optionsHtml += `<option value="${key}" 
+            ${isUsed && !isSelected ? 'disabled' : ''} 
+            ${isSelected ? 'selected' : ''}>
+            ${isUsed && !isSelected ? '🚫 ' : ''}${boosterNames[key]}
+        </option>`;
     });
-    boosterContainer.innerHTML = `<select id="boosterSelect" class="booster-dropdown" onchange="handleBoosterChange(this.value)">${optionsHtml}</select>`;
-}
 
+    // We add a dynamic class if a booster is active to make the UI "glow"
+    const isActiveClass = state.activeBooster !== 'NONE' ? 'booster-active-glow' : '';
+
+    boosterContainer.innerHTML = `
+        <div class="booster-header">
+            <span>⚡ Available Boosters</span>
+            <span class="booster-count">${6 - state.usedBoosters.length}/6 Remaining</span>
+        </div>
+        <div class="select-wrapper">
+            <select id="boosterSelect" class="booster-dropdown ${isActiveClass}" onchange="handleBoosterChange(this.value)">
+                ${optionsHtml}
+            </select>
+        </div>
+    `;
+}
 /* =========================
    UTILITIES (Filters/Roles)
 ========================= */
