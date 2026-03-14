@@ -230,3 +230,52 @@ body.loaded .team-view-app {
 }
 
 body.loaded #loadingOverlay { opacity: 0; pointer-events: none; }
+
+/* --- TIERED MATCH HISTORY --- */
+
+/* 🏆 GOLD (300+) - Radiant Sun */
+.tier-gold {
+    border: 2px solid #FFD700 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+.tier-gold::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -100%;
+    width: 200%; height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: rotate(30deg);
+    animation: sweep 4s infinite;
+}
+
+/* 🥈 SILVER (200-299) - Metallic Chrome */
+.tier-silver {
+    border: 1.5px solid #C0C0C0 !important;
+    box-shadow: 0 0 10px rgba(192, 192, 192, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+.tier-silver::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -100%;
+    width: 200%; height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(30deg);
+    animation: sweep 6s infinite; /* Slower, more subtle sweep */
+}
+
+/* 🔴 RED (Below 200) - Dimmed Slate/Red */
+.tier-red {
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    opacity: 0.85; /* Slightly fade out weaker matches */
+}
+
+/* --- THE SWEEP ANIMATION --- */
+@keyframes sweep {
+    0% { left: -100%; }
+    20% { left: 100%; }
+    100% { left: 100%; }
+}

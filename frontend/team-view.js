@@ -192,6 +192,16 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
 function createHistoryRow(snapshot, totalPoints) {
     const row = document.createElement("div");
     row.className = "history-row";
+
+    // --- 3-TIER HIGHLIGHT LOGIC ---
+    if (totalPoints >= 300) {
+        row.classList.add("tier-gold");
+    } else if (totalPoints >= 200) {
+        row.classList.add("tier-silver");
+    } else {
+        row.classList.add("tier-red");
+    }
+    
     row.addEventListener("click", () => window.viewMatchBreakdown(snapshot.id));
 
     const left = document.createElement("div");

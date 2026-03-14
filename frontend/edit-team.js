@@ -98,11 +98,8 @@ async function init(user) {
         document.body.classList.remove("loading-state");
     }
 }
-
-/* =========================
-   CORE RENDER LOGIC
-========================= */
 function render() {
+    // 1. FIRST: Calculate the data
     const stats = {
         count: state.selectedPlayers.length,
         overseas: state.selectedPlayers.filter(p => p.category === "overseas").length,
@@ -114,6 +111,22 @@ function render() {
             BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
         }
     };
+
+    // 2. SECOND: Update the Tab Numbers (The code you just shared)
+    document.getElementById("count-WK").innerText = stats.roles.WK || 0;
+    document.getElementById("count-BAT").innerText = stats.roles.BAT || 0;
+    document.getElementById("count-AR").innerText = stats.roles.AR || 0;
+    document.getElementById("count-BOWL").innerText = stats.roles.BOWL || 0;
+
+    const roles = ['WK', 'BAT', 'AR', 'BOWL'];
+    const minReqs = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+
+    roles.forEach(role => {
+        const el = document.getElementById(`count-${role}`);
+        if (el) { // Senior Tip: Add this 'if' check to prevent errors if the element is missing
+            el.style.color = (stats.roles[role] >= minReqs[role]) ? "#9AE000" : "";
+        }
+    });
 
     const isResetMatch = (state.currentMatchNumber === 1 || state.currentMatchNumber === PLAYOFF_START_MATCH);
     
@@ -272,7 +285,13 @@ function renderList(containerId, list, isMyXi, stats) {
             <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
                 <div class="avatar-container"><img src="${photoUrl}" class="player-avatar"></div>
                 <div class="player-info">
-                    <strong>${p.name}</strong>
+                    // Inside renderList function, inside the innerHTML return string:
+            <strong>
+            ${p.name} 
+            ${p.category === 'overseas' ? '<i class="fas fa-plane-arrival category-icon overseas"></i>' : ''}
+            ${p.category === 'uncapped' ? '<i class="fas fa-gem category-icon uncapped"></i>' : ''}
+            </strong>
+
                     <span>${p.role} • ${p.team_short_code} • ${p.credit} Cr</span>
                 </div>
                 <div class="controls">
@@ -372,12 +391,58 @@ function updateHeaderMatch(match) {
 
 function updateSaveButton(stats, isOverLimit, liveSubs) {
     const btn = document.getElementById("saveTeamBtn");
-    const hasRoles = stats.roles.WK >= 1 && stats.roles.BAT >= 3 && stats.roles.AR >= 1 && stats.roles.BOWL >= 3;
-    const isValid = stats.count === 11 && state.captainId && state.viceCaptainId && stats.credits <= 100 && !isOverLimit && hasRoles;
-    btn.disabled = !isValid || state.saving;
-    if (state.saving) btn.innerText = "SAVING...";
-    else if (!isValid) btn.innerText = "CHECK REQUIREMENTS";
-    else btn.innerText = "SAVE TEAM";
+    let btnText = "SAVE TEAM";
+    let isValid = true;
+
+    // 1. Check if we are currently in the middle of a save
+    if (state.saving) {
+        btnText = "SAVING...";
+        isValid = false;
+    } 
+    // 2. Check total player count first (High priority)
+    else if (stats.count < 11) {
+        btnText = `ADD ${11 - stats.count} MORE PLAYERS`;
+        isValid = false;
+    } 
+    // 3. Check for Captain and Vice-Captain
+    else if (!state.captainId || !state.viceCaptainId) {
+        btnText = "SELECT C & VC";
+        isValid = false;
+    } 
+    // 4. Role Requirements (Middle priority)
+    else if (stats.roles.WK < 1) {
+        btnText = "NEED A WICKETKEEPER";
+        isValid = false;
+    } 
+    else if (stats.roles.BAT < 3) {
+        btnText = "NEED MIN 3 BATTERS";
+        isValid = false;
+    } 
+    else if (stats.roles.AR < 1) {
+        btnText = "NEED AN ALL-ROUNDER";
+        isValid = false;
+    } 
+    else if (stats.roles.BOWL < 3) {
+        btnText = "NEED MIN 3 BOWLERS";
+        isValid = false;
+    } 
+    // 5. Constraints (Technical priority)
+    else if (stats.overseas > 4) {
+        btnText = "MAX 4 OVERSEAS ALLOWED";
+        isValid = false;
+    } 
+    else if (stats.credits > 100) {
+        btnText = "CREDITS EXCEEDED";
+        isValid = false;
+    } 
+    else if (isOverLimit) {
+        btnText = "NOT ENOUGH SUBS";
+        isValid = false;
+    }
+
+    // Apply the state to the button
+    btn.disabled = !isValid;
+    btn.innerText = btnText;
 }
 
 function showSuccessModal() {

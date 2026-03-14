@@ -388,35 +388,20 @@ align-items:center;
 
 
 
-.role-tab{
-
-flex:1;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-gap:4px;
-
-font-size:11px;
-font-weight:800;
-
-color:var(--text-dim);
-
-cursor:pointer;
-
-z-index:2;
-
-transition:color .3s;
-
+/* Styling for the count numbers (WK 1, BAT 3, etc.) */
+.role-tab span {
+    font-size: 10px;
+    margin-left: 2px;
+    font-weight: 900;
+    /* This makes the number slightly transparent so it doesn't 
+       distract from the text until it turns green */
+    opacity: 0.7; 
+    transition: color 0.3s ease;
 }
 
-
-
-.role-tab.active{
-
-color:#000;
-
+/* Ensure the number is fully visible when the tab is selected */
+.role-tab.active span {
+    opacity: 1;
 }
 
 
@@ -850,4 +835,24 @@ display:none;
 
 .view-mode.active{
 display:block;
+}
+
+/* --- PLAYER CATEGORY ICONS --- */
+
+.category-icon {
+    font-size: 10px;        /* Small and subtle */
+    margin-left: 6px;       /* Gap between name and icon */
+    vertical-align: middle; /* Aligns perfectly with the text */
+}
+
+/* ✈️ Overseas: Sky Blue */
+.category-icon.overseas {
+    color: #60a5fa; 
+    filter: drop-shadow(0 0 2px rgba(96, 165, 250, 0.4));
+}
+
+/* 💎 Uncapped: Neon Yellow/Diamond */
+.category-icon.uncapped {
+    color: #facc15; 
+    filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.4));
 }
