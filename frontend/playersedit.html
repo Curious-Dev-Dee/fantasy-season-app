@@ -244,40 +244,51 @@
         renderList(filtered);
     }
 
-    // --- FORM ACTIONS ---
     document.getElementById('playerForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('playerId').value;
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = true;
-        saveBtn.innerText = "Saving...";
+    e.preventDefault();
+    const id = document.getElementById('playerId').value;
+    const saveBtn = document.getElementById('saveBtn');
+    
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Saving...";
 
-        const playerData = {
-            name: document.getElementById('name').value,
-            real_team_id: document.getElementById('real_team_id').value,
-            role: document.getElementById('role').value,
-            credit: parseFloat(document.getElementById('credit').value),
-            category: document.getElementById('category').value,
-            tournament_id: activeTourneyId
-        };
+    const playerData = {
+        name: document.getElementById('name').value.trim(),
+        real_team_id: document.getElementById('real_team_id').value,
+        role: document.getElementById('role').value,
+        credit: parseFloat(document.getElementById('credit').value),
+        category: document.getElementById('category').value, // This is 'none', 'overseas', or 'uncapped'
+        tournament_id: activeTourneyId
+    };
 
-        let error;
-        if (id) {
-            const { error: err } = await db.from('players').update(playerData).eq('id', id);
-            error = err;
-        } else {
-            const { error: err } = await db.from('players').insert([playerData]);
-            error = err;
-        }
+    let result;
+    if (id) {
+        // UPDATE: Using { count: 'exact' } helps verify if the row was actually affected
+        result = await db
+            .from('players')
+            .update(playerData)
+            .eq('id', id)
+            .select(); // Calling .select() ensures we get the updated data back immediately
+    } else {
+        // INSERT
+        result = await db
+            .from('players')
+            .insert([playerData])
+            .select();
+    }
 
-        if (error) {
-            alert("Error: " + error.message);
-        } else {
-            resetForm();
-            fetchPlayers();
-        }
-        saveBtn.disabled = false;
-    });
+    if (result.error) {
+        console.error("Supabase Error:", result.error);
+        alert("Update Failed: " + result.error.message);
+    } else {
+        console.log("Success:", result.data);
+        // Success! Clear form and re-fetch from source
+        resetForm();
+        await fetchPlayers(); // Re-fetch all to sync the UI
+    }
+    
+    saveBtn.disabled = false;
+});
 
     window.prepareEdit = (id) => {
         const p = allPlayers.find(x => x.id === id);
