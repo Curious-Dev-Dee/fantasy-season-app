@@ -231,7 +231,7 @@ function createHistoryRow(snapshot, totalPoints) {
 
     const points = document.createElement("span");
     points.className = "h-pts";
-    points.textContent = `${totalPoints} PTS`;
+    points.textContent = `${totalPoints} PTS ||`;
 
     const subs = document.createElement("span");
     subs.className = "h-subs";
