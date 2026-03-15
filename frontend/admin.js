@@ -365,11 +365,12 @@ function parseScoreboard(rawValue) {
 
 function normalizeName(value) {
     return String(value || "")
-        .trim()
         .toLowerCase()
-        .replace(/\(c\)/g, "") // Remove captain tag
-        .replace(/\(wk\)/g, "") // Remove wicketkeeper tag
-        .replace(/\s+/g, " ")
+        .replace(/\(c\s*&\s*wk\)/g, "") // removes (c & wk)
+        .replace(/\(wk\)/g, "")        // removes (wk)
+        .replace(/\(c\)/g, "")         // removes (c)
+        .replace(/&/g, "")             // removes stray &
+        .replace(/\s+/g, " ")          // collapses multiple spaces into one
         .trim();
 }
 
@@ -404,12 +405,13 @@ function flattenScorecard(scorecard) {
 
     scorecard.forEach(inning => {
         // Process Batting
+        // Process Batting
         inning.batting?.forEach(b => {
             const p = getPlayer(b.batsman.name);
-            p.runs = b.r;
-            p.balls = b.b;
-            p.fours = b['4s'];
-            p.sixes = b['6s'];
+            p.runs = b.r || 0;
+            p.balls = b.b || 0;
+            p.fours = b['4s'] || 0; 
+            p.sixes = b['6s'] || 0; // Safely falls back to 0 if the API sends "0s" or nothing
             p.is_out = b['dismissal-text'] !== 'not out';
         });
 

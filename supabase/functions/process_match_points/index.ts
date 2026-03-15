@@ -6,8 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-function normalizeName(value: string) {
-  return value.trim().toLowerCase().replace(/\s+/g, " ");
+function normalizeName(value) {
+    return String(value || "")
+        .toLowerCase()
+        .replace(/\(c\s*&\s*wk\)/g, "") // removes (c & wk)
+        .replace(/\(wk\)/g, "")        // removes (wk)
+        .replace(/\(c\)/g, "")         // removes (c)
+        .replace(/&/g, "")             // removes stray &
+        .replace(/\s+/g, " ")          // collapses multiple spaces into one
+        .trim();
 }
 
 serve(async (req) => {
