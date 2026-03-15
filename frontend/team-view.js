@@ -393,15 +393,34 @@ async function loadLastLockedXI() {
     clearInterval(countdownInterval);
     countdownContainer.classList.add("hidden");
 
-    const { data: snapshot } = await supabase
+    // We are selecting EVERYTHING (*) and being very specific about the match join
+    const { data: snapshot, error: fetchError } = await supabase
         .from("user_match_teams")
-        .select("*, matches!match_id(man_of_the_match_id, match_number, team_a_id, team_b_id)")
+        .select(`
+            *,
+            matches!user_match_teams_match_id_fkey (
+                man_of_the_match_id, 
+                match_number, 
+                team_a_id, 
+                team_b_id
+            )
+        `)
         .eq("user_id", userId)
         .order("locked_at", { ascending: false })
-        .limit(1).maybeSingle();
+        .limit(1)
+        .maybeSingle();
+
+    if (fetchError) {
+        console.error("Fetch Error Details:", fetchError);
+        return setEmptyState(teamContainer, "Error loading team data.");
+    }
 
     if (!snapshot) return setEmptyState(teamContainer, "No locked team found.");
 
+    // The rest of your code remains the same...
+    updateBoosterIndicator(boosterIndicator, getAppliedBooster(snapshot), "USED");
+    
+    // ... (rest of the logic)
     updateBoosterIndicator(boosterIndicator, getAppliedBooster(snapshot), "USED");
 
     const { data: tp } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
