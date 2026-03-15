@@ -2,7 +2,7 @@ import { supabase } from "./supabase.js";
 
 const LEAGUE_STAGE_END = 70;
 const PLAYOFF_START_MATCH = 71;
-const BOOSTER_WINDOW_START = 1;
+const BOOSTER_WINDOW_START = 2;
 const BOOSTER_WINDOW_END = 70;
 const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 
