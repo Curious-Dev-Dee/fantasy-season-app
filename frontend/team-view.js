@@ -29,6 +29,9 @@ let countdownInterval;
 let isScoutMode = false;
 let realTeamsMap = {};
 
+/* =========================
+   UTILITIES
+========================= */
 function getAppliedBooster(record) {
     if (typeof record?.active_booster === "string" && record.active_booster !== "NONE") {
         return record.active_booster;
@@ -53,17 +56,12 @@ function updateBoosterIndicator(element, booster, suffix) {
 
 function setEmptyState(container, message) {
     if (!container) return;
-    const text = document.createElement("p");
-    text.className = "empty-msg";
-    text.textContent = message;
-    container.replaceChildren(text);
+    container.innerHTML = `<p class="empty-msg">${message}</p>`;
 }
 
 function setSpinner(container) {
     if (!container) return;
-    const spinner = document.createElement("div");
-    spinner.className = "spinner-small";
-    container.replaceChildren(spinner);
+    container.innerHTML = `<div class="spinner-small"></div>`;
 }
 
 function setTeamStatus(message = "") {
@@ -72,13 +70,9 @@ function setTeamStatus(message = "") {
 }
 
 function getPhotoUrl(bucketName, path) {
-    // If path is null, empty, or undefined, return the silhouette
     if (!path || path === "" || path === "null") {
         return "https://tuvqgcosbweljslbfgqc.supabase.co/storage/v1/object/public/player-photos/silhouette.png"; 
-        // NOTE: If you don't have this file, use this high-quality SVG placeholder:
-        // return "https://www.svgrepo.com/show/382105/male-avatar-boy-face-man-user-2.svg";
     }
-
     return supabase.storage.from(bucketName).getPublicUrl(path).data.publicUrl;
 }
 
@@ -89,6 +83,9 @@ function createRoleTitle(role) {
     return title;
 }
 
+/* =========================
+   BOOSTER & POINT MATH
+========================= */
 function getBoostedBasePoints(player, basePoints, booster, pomId = null) {
     switch (booster) {
         case "TOTAL_2X":
@@ -146,6 +143,9 @@ function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booste
     ), 0);
 }
 
+/* =========================
+   RENDERERS
+========================= */
 function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE", pomId = null) {    
     const wrapper = document.createElement("div");
     wrapper.className = "player-circle";
@@ -173,7 +173,6 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-    avatar.style.backgroundSize = "cover";
     avatar.style.backgroundImage = `url('${getPhotoUrl("player-photos", player.photo_url)}')`;
 
     const teamLabel = document.createElement("div");
@@ -191,7 +190,6 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
         const displayPoints = calculateDisplayedPlayerPoints(
             player, statsMap, captainId, viceCaptainId, booster, pomId
         );
-
         const points = document.createElement("div");
         points.className = "player-pts";
         points.textContent = `${displayPoints} pts`;
@@ -201,132 +199,28 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
     return wrapper;
 }
 
-function createHistoryRow(snapshot, totalPoints) {
-    const row = document.createElement("div");
-    row.className = "history-row";
+function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE", pomId = null) {
+    container.replaceChildren();
+    const roleOrder = ["WK", "BAT", "AR", "BOWL"];
 
-    if (totalPoints >= 300) {
-        row.classList.add("tier-gold");
-    } else if (totalPoints >= 200) {
-        row.classList.add("tier-silver");
-    } else {
-        row.classList.add("tier-red");
-    }
+    roleOrder.forEach((role) => {
+        const rolePlayers = (players || []).filter((player) => player.role === role);
+        if (!rolePlayers.length) return;
 
-    row.addEventListener("click", () => window.viewMatchBreakdown(snapshot.id));
+        const section = document.createElement("div");
+        section.className = "role-section";
+        section.appendChild(createRoleTitle(role));
 
-    const left = document.createElement("div");
+        const row = document.createElement("div");
+        row.className = "player-row";
 
-    const matchNum = document.createElement("span");
-    matchNum.className = "h-m-num";
-    matchNum.textContent = `MATCH ${snapshot.matches.match_number}${getAppliedBooster(snapshot) !== "NONE" ? " [BOOSTER]" : ""}`;
+        rolePlayers.forEach((player) => {
+            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId, booster, pomId));
+        });
 
-    const teams = document.createElement("span");
-    teams.className = "h-teams";
-    teams.textContent = `${realTeamsMap[snapshot.matches.team_a_id] || "TBA"} vs ${realTeamsMap[snapshot.matches.team_b_id] || "TBA"}`;
-
-    left.append(matchNum);
-
-    const booster = getAppliedBooster(snapshot);
-    if (booster !== "NONE") {
-        const boosterTag = document.createElement("span");
-        boosterTag.className = "h-booster";
-        boosterTag.textContent = formatBoosterLabel(booster);
-        left.appendChild(boosterTag);
-    }
-
-    left.appendChild(teams);
-
-    const stats = document.createElement("div");
-    stats.className = "h-stats";
-
-    const points = document.createElement("span");
-    points.className = "h-pts";
-    points.textContent = `${totalPoints} PTS`;
-
-    const subs = document.createElement("span");
-    subs.className = "h-subs";
-    subs.textContent = `${snapshot.subs_used_for_match} SUBS`;
-
-    stats.append(points, subs);
-
-    const arrow = document.createElement("i");
-    arrow.className = "fas fa-chevron-right";
-    arrow.style.color = "#475569";
-    arrow.style.marginLeft = "10px";
-
-    row.append(left, stats, arrow);
-    return row;
-}
-
-function formatSubsRemaining(subsRemaining) {
-    return subsRemaining === 999 ? "UNLIMITED" : String(subsRemaining);
-}
-
-function renderHistorySummary({ subsRemaining, boostersLeft }) {
-    if (!historySummary || !historySubsRemaining || !historyBoostersLeft) return;
-    historySubsRemaining.textContent = formatSubsRemaining(subsRemaining);
-    historyBoostersLeft.textContent = `${boostersLeft}/${TOTAL_BOOSTERS}`;
-}
-
-async function fetchHistorySummaryData(history = []) {
-    const [dashboardRes, boosterRes, upcomingRes] = await Promise.all([
-        supabase
-            .from("home_dashboard_view")
-            .select("subs_remaining")
-            .eq("user_id", userId)
-            .maybeSingle(),
-        supabase
-            .from("user_tournament_points")
-            .select("used_boosters")
-            .eq("user_id", userId)
-            .eq("tournament_id", tournamentId)
-            .maybeSingle(),
-        supabase
-            .from("matches")
-            .select("match_number")
-            .eq("tournament_id", tournamentId)
-            .eq("status", "upcoming")
-            .order("actual_start_time", { ascending: true })
-            .limit(1)
-            .maybeSingle()
-    ]);
-
-    const usedBoosters = boosterRes.data?.used_boosters ?? [];
-    const fallbackTotalUsed = history[0]?.total_subs_used ?? 0;
-    let fallbackSubsRemaining = Math.max(0, TOTAL_SUBS_LIMIT - fallbackTotalUsed);
-
-    if (upcomingRes.data?.match_number === 1 || upcomingRes.data?.match_number === PLAYOFF_START_MATCH) {
-        fallbackSubsRemaining = 999;
-    }
-
-    return {
-        subsRemaining: dashboardRes.data?.subs_remaining ?? fallbackSubsRemaining,
-        boostersLeft: Math.max(0, TOTAL_BOOSTERS - usedBoosters.length)
-    };
-}
-
-async function fetchUserMatchTotal(matchId) {
-    const { data } = await supabase
-        .from("user_match_points")
-        .select("total_points")
-        .eq("user_id", userId)
-        .eq("match_id", matchId)
-        .maybeSingle();
-
-    return data?.total_points ?? null;
-}
-
-async function fetchUserMatchTotals(matchIds) {
-    if (!matchIds.length) return new Map();
-
-    const { data } = await supabase
-        .from("user_match_points")
-        .select("match_id, total_points")
-        .eq("user_id", userId)
-        .in("match_id", matchIds);
-
-    return new Map((data || []).map((row) => [row.match_id, row.total_points]));
+        section.appendChild(row);
+        container.appendChild(section);
+    });
 }
 
 function revealApp() {
@@ -340,7 +234,7 @@ function revealApp() {
 }
 
 /* =========================
-   INIT LOGIC
+   INITIALIZATION
 ========================= */
 init();
 
@@ -357,49 +251,25 @@ async function init() {
 
         const urlParams = new URLSearchParams(window.location.search);
         const scoutUid = urlParams.get("uid");
-        const scoutNameFromUrl = urlParams.get("name");
+        userId = scoutUid || session.user.id;
+        isScoutMode = !!scoutUid && scoutUid !== session.user.id;
 
         const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
         if (!activeTournament) return;
         tournamentId = activeTournament.id;
 
-        if (scoutUid && scoutUid !== session.user.id) {
-            userId = scoutUid;
-            isScoutMode = true;
+        const { data: profile } = await supabase.from("user_profiles").select("team_name").eq("user_id", userId).maybeSingle();
+        viewTitle.textContent = profile?.team_name || "User Team";
 
-            const { data: profile } = await supabase
-                .from("user_profiles")
-                .select("team_name, equipped_flex")
-                .eq("user_id", scoutUid)
-                .maybeSingle();
-
-            viewTitle.textContent = profile?.team_name || decodeURIComponent(scoutNameFromUrl || "") || "User Team";
-            if (profile?.equipped_flex && profile.equipped_flex !== "none") {
-                viewTitle.className = `main-title ${profile.equipped_flex}`;
-            }
+        if (isScoutMode) {
             tabUpcoming.style.display = "none";
             tabLocked.classList.add("active");
-        } else {
-            userId = session.user.id;
-
-            const { data: myData } = await supabase
-                .from("user_profiles")
-                .select("team_name, equipped_flex")
-                .eq("user_id", userId)
-                .maybeSingle();
-
-            viewTitle.textContent = myData?.team_name || "My XI";
-            if (myData?.equipped_flex && myData.equipped_flex !== "none") {
-                viewTitle.className = `main-title ${myData.equipped_flex}`;
-            }
         }
 
-        await Promise.allSettled([
-            setupMatchTabs(),
-            isScoutMode ? loadLastLockedXI() : loadCurrentXI()
-        ]);
-
+        await setupMatchTabs();
+        isScoutMode ? loadLastLockedXI() : loadCurrentXI();
         setupHistoryListeners();
+
     } catch (err) {
         console.error("Init error:", err);
     } finally {
@@ -470,9 +340,11 @@ function startCountdown(startTime) {
     countdownInterval = setInterval(update, 1000);
 }
 
+/* =========================
+   LOADERS
+========================= */
 async function loadCurrentXI() {
     if (isScoutMode) return;
-
     clearInterval(countdownInterval);
     setTeamStatus("");
     if (tabUpcoming.dataset.startTime) startCountdown(tabUpcoming.dataset.startTime);
@@ -505,7 +377,6 @@ async function loadCurrentXI() {
 
     const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
     
-    // FIXED: Pass null for pomId since match hasn't happened
     renderTeamLayout(
         players || [],
         userTeam.captain_id,
@@ -522,93 +393,40 @@ async function loadLastLockedXI() {
     clearInterval(countdownInterval);
     countdownContainer.classList.add("hidden");
 
-    // FIXED: Join matches to get pom_id
     const { data: snapshot } = await supabase
         .from("user_match_teams")
-        .select("*, matches(pom_id, match_number, team_a_id, team_b_id)")
+        .select("*, matches!match_id(man_of_the_match_id, match_number, team_a_id, team_b_id)")
         .eq("user_id", userId)
-        .eq("tournament_id", tournamentId)
         .order("locked_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1).maybeSingle();
 
-    if (!snapshot) {
-        setEmptyState(teamContainer, "Not Playing.");
-        setTeamStatus("");
-        updateBoosterIndicator(boosterIndicator, "NONE", "");
-        return;
-    }
+    if (!snapshot) return setEmptyState(teamContainer, "No locked team found.");
 
     updateBoosterIndicator(boosterIndicator, getAppliedBooster(snapshot), "USED");
 
-    const { data: teamPlayers } = await supabase
-        .from("user_match_team_players")
-        .select("player_id")
-        .eq("user_match_team_id", snapshot.id);
-
-    const playerIds = (teamPlayers || []).map((player) => player.player_id);
+    const { data: tp } = await supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshot.id);
+    const pIds = (tp || []).map(p => p.player_id);
 
     const [{ data: players }, { data: stats }] = await Promise.all([
-        playerIds.length
-            ? supabase.from("players").select("*").in("id", playerIds)
-            : Promise.resolve({ data: [] }),
+        supabase.from("players").select("*").in("id", pIds),
         supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id)
     ]);
 
-    const statsMap = Object.fromEntries((stats || []).map((row) => [row.player_id, row.fantasy_points]));
-    const teamPlayersData = players || [];
-
-    // FIXED: Pass pom_id from joined match
+    const statsMap = Object.fromEntries((stats || []).map(s => [s.player_id, s.fantasy_points]));
+    
     renderTeamLayout(
-        teamPlayersData,
-        snapshot.captain_id,
-        snapshot.vice_captain_id,
-        statsMap,
-        teamContainer,
-        snapshot.match_id,
-        getAppliedBooster(snapshot),
-        snapshot.matches?.pom_id
+        players || [], 
+        snapshot.captain_id, 
+        snapshot.vice_captain_id, 
+        statsMap, 
+        teamContainer, 
+        snapshot.match_id, 
+        getAppliedBooster(snapshot), 
+        snapshot.matches?.man_of_the_match_id
     );
 
-    const fallbackTotal = calculateMatchTotal(
-        teamPlayersData,
-        statsMap,
-        snapshot.captain_id,
-        snapshot.vice_captain_id,
-        getAppliedBooster(snapshot),
-        snapshot.matches?.pom_id
-    );
-    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
+    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) || calculateMatchTotal(players, statsMap, snapshot.captain_id, snapshot.vice_captain_id, getAppliedBooster(snapshot), snapshot.matches?.man_of_the_match_id);
     setTeamStatus(`Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`);
-}
-
-/* =========================
-   UNIVERSAL RENDERER
-========================= */
-// FIXED: Added pomId to parameter list
-function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE", pomId = null) {
-    container.replaceChildren();
-    const roleOrder = ["WK", "BAT", "AR", "BOWL"];
-
-    roleOrder.forEach((role) => {
-        const rolePlayers = (players || []).filter((player) => player.role === role);
-        if (!rolePlayers.length) return;
-
-        const section = document.createElement("div");
-        section.className = "role-section";
-        section.appendChild(createRoleTitle(role));
-
-        const row = document.createElement("div");
-        row.className = "player-row";
-
-        rolePlayers.forEach((player) => {
-            // FIXED: Pass pomId down to circle builder
-            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId, booster, pomId));
-        });
-
-        section.appendChild(row);
-        container.appendChild(section);
-    });
 }
 
 function setupHistoryListeners() {
@@ -618,7 +436,7 @@ function setupHistoryListeners() {
         setSpinner(historyList);
         const { data: history } = await supabase
             .from("user_match_teams")
-            .select("*, matches(match_number, team_a_id, team_b_id, pom_id), user_match_team_players(player_id)")
+            .select("*, matches(match_number, team_a_id, team_b_id, man_of_the_match_id), user_match_team_players(player_id)")
             .eq("user_id", userId)
             .eq("tournament_id", tournamentId)
             .order("locked_at", { ascending: false });
@@ -659,7 +477,7 @@ function setupHistoryListeners() {
                 snapshot.captain_id,
                 snapshot.vice_captain_id,
                 getAppliedBooster(snapshot),
-                snapshot.matches?.pom_id
+                snapshot.matches?.man_of_the_match_id
             );
 
             historyList.appendChild(createHistoryRow(snapshot, matchTotals.get(snapshot.match_id) ?? fallbackTotal));
@@ -671,7 +489,7 @@ function setupHistoryListeners() {
 }
 
 /* =========================
-   OVERLAY HANDLERS
+   OVERLAYS
 ========================= */
 window.viewMatchBreakdown = async (snapshotId) => {
     const breakdownContainer = document.getElementById("breakdownTeamContainer");
@@ -683,50 +501,25 @@ window.viewMatchBreakdown = async (snapshotId) => {
     setSpinner(breakdownContainer);
 
     const [{ data: snapshot }, { data: teamPlayers }] = await Promise.all([
-        supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single(),
+        supabase.from("user_match_teams").select("*, matches(match_number, man_of_the_match_id)").eq("id", snapshotId).single(),
         supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId)
     ]);
 
-    if (!snapshot) {
-        setEmptyState(breakdownContainer, "Data unavailable.");
-        return;
-    }
+    if (!snapshot) return setEmptyState(breakdownContainer, "Data unavailable.");
 
     breakdownTitle.textContent = `Match ${snapshot.matches.match_number} Details`;
     updateBoosterIndicator(breakdownBooster, getAppliedBooster(snapshot), "USED");
 
-    const playerIds = (teamPlayers || []).map((player) => player.player_id);
+    const pIds = (teamPlayers || []).map(p => p.player_id);
     const [{ data: players }, { data: stats }] = await Promise.all([
-        playerIds.length
-            ? supabase.from("players").select("*").in("id", playerIds)
-            : Promise.resolve({ data: [] }),
+        supabase.from("players").select("*").in("id", pIds),
         supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id)
     ]);
 
-    const statsMap = Object.fromEntries((stats || []).map((stat) => [stat.player_id, stat.fantasy_points]));
-    const breakdownPlayers = players || [];
+    const statsMap = Object.fromEntries((stats || []).map(s => [s.player_id, s.fantasy_points]));
+    renderTeamLayout(players, snapshot.captain_id, snapshot.vice_captain_id, statsMap, breakdownContainer, snapshot.match_id, getAppliedBooster(snapshot), snapshot.matches?.man_of_the_match_id);
 
-    // FIXED: Pass pom_id
-    renderTeamLayout(
-        breakdownPlayers,
-        snapshot.captain_id,
-        snapshot.vice_captain_id,
-        statsMap,
-        breakdownContainer,
-        snapshot.match_id,
-        getAppliedBooster(snapshot),
-        snapshot.matches?.pom_id
-    );
-
-    const fallbackTotal = calculateMatchTotal(
-        breakdownPlayers,
-        statsMap,
-        snapshot.captain_id,
-        snapshot.vice_captain_id,
-        getAppliedBooster(snapshot),
-        snapshot.matches?.pom_id
-    );
-    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
+    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) || calculateMatchTotal(players, statsMap, snapshot.captain_id, snapshot.vice_captain_id, getAppliedBooster(snapshot), snapshot.matches?.man_of_the_match_id);
     breakdownFooter.textContent = `MATCH TOTAL: ${finalTotal} PTS | SUBS: ${snapshot.subs_used_for_match}`;
 };
 
@@ -742,10 +535,7 @@ window.openPlayerPointLog = async (playerId, matchId) => {
         .eq("player_id", playerId)
         .single();
 
-    if (!matchStat) {
-        setEmptyState(content, "Data unavailable.");
-        return;
-    }
+    if (!matchStat) return setEmptyState(content, "Data unavailable.");
 
     document.getElementById("pplPlayerName").textContent = matchStat.players.name;
     const log = [];
@@ -753,9 +543,7 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     if (matchStat.boundary_points > 0) log.push(`Boundaries (+${matchStat.boundary_points})`);
     if (matchStat.milestone_points > 0) log.push(`Milestone (+${matchStat.milestone_points})`);
     if (matchStat.sr_points !== 0) log.push(`SR (${matchStat.sr_points > 0 ? "+" : ""}${matchStat.sr_points})`);
-    if (matchStat.wickets > 0) {
-        log.push(`${matchStat.wickets} Wkts (+${20 + (Math.max(0, matchStat.wickets - 1) * 25)})`);
-    }
+    if (matchStat.wickets > 0) log.push(`${matchStat.wickets} Wkts (+${20 + (Math.max(0, matchStat.wickets - 1) * 25)})`);
     if (matchStat.er_points !== 0) log.push(`Econ (${matchStat.er_points > 0 ? "+" : ""}${matchStat.er_points})`);
     if (matchStat.catches > 0) log.push(`${matchStat.catches} Catch (+${matchStat.catches * 8})`);
     if (matchStat.involvement_points > 0) log.push(`Active (+${matchStat.involvement_points})`);
@@ -764,25 +552,17 @@ window.openPlayerPointLog = async (playerId, matchId) => {
 
     const list = document.createElement("div");
     list.className = "log-items";
-    list.style.display = "flex";
-    list.style.flexDirection = "column";
-    list.style.gap = "8px";
+    list.style.cssText = "display: flex; flex-direction: column; gap: 8px;";
 
     log.forEach((entry) => {
         const row = document.createElement("div");
         row.className = "log-entry";
-        const text = document.createElement("span");
-        text.textContent = entry;
-        row.appendChild(text);
+        row.innerHTML = `<span>${entry}</span>`;
         list.appendChild(row);
     });
 
     const total = document.createElement("div");
-    total.style.marginTop = "15px";
-    total.style.borderTop = "1px solid rgba(255,255,255,0.1)";
-    total.style.paddingTop = "10px";
-    total.style.fontWeight = "800";
-    total.style.color = "var(--accent)";
+    total.style.cssText = "margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-weight: 800; color: #9AE000;";
     total.textContent = `BASE TOTAL: ${matchStat.fantasy_points} PTS`;
     content.replaceChildren(list, total);
 };
