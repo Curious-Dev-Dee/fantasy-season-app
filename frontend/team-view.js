@@ -19,8 +19,8 @@ const historySubsRemaining = document.getElementById("historySubsRemaining");
 const historyBoostersLeft = document.getElementById("historyBoostersLeft");
 const boosterIndicator = document.getElementById("boosterIndicator");
 
-const TOTAL_SUBS_LIMIT = 150;
-const TOTAL_BOOSTERS = 6;
+const TOTAL_SUBS_LIMIT = 130;
+const TOTAL_BOOSTERS = 7;
 const PLAYOFF_START_MATCH = 71;
 
 let userId;
@@ -89,7 +89,7 @@ function createRoleTitle(role) {
     return title;
 }
 
-function getBoostedBasePoints(player, basePoints, booster) {
+function getBoostedBasePoints(player, basePoints, booster, pomId = null) {
     switch (booster) {
         case "TOTAL_2X":
             return basePoints * 2;
@@ -97,41 +97,58 @@ function getBoostedBasePoints(player, basePoints, booster) {
             return player.category === "overseas" ? basePoints * 2 : basePoints;
         case "UNCAPPED_2X":
             return player.category === "uncapped" ? basePoints * 2 : basePoints;
-        case "CAPPED_2X":
-            return player.category === "none" ? basePoints * 2 : basePoints;
+        case "INDIAN_2X": 
+            return (player.category === "none" || player.category === "uncapped") ? basePoints * 2 : basePoints;
+        case "MOM_2X":
+            return player.id === pomId ? basePoints * 2 : basePoints;
         default:
             return basePoints;
     }
 }
 
-function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster) {
+function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, pomId = null) {
     const appliedBooster = getAppliedBooster({ active_booster: booster });
     const basePoints = statsMap?.[player.id] || 0;
-    let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster);
+    
+    // 1. Get identity-boosted base points
+    let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster, pomId);
 
+    // 2. Add Captain / VC bonuses (Mirroring your SQL exactly)
     if (player.id === captainId) {
-        if (appliedBooster === "CAPTAIN_3X" || appliedBooster === "TOTAL_2X") {
+        if (appliedBooster === "CAPTAIN_3X") {
+            totalPoints += basePoints * 2; // Base + (Base * 2) = 3X
+        } else if (appliedBooster === "TOTAL_2X") {
+            totalPoints += basePoints * 2; 
+        } else if (appliedBooster === "INDIAN_2X" && (player.category === "none" || player.category === "uncapped")) {
+            totalPoints += basePoints * 2;
+        } else if (appliedBooster === "MOM_2X" && player.id === pomId) {
             totalPoints += basePoints * 2;
         } else {
-            totalPoints += basePoints;
+            totalPoints += basePoints; // Standard 2X Captain
         }
     } else if (player.id === viceCaptainId) {
-        totalPoints += appliedBooster === "TOTAL_2X"
-            ? Math.floor(basePoints * 0.5) * 2
-            : Math.floor(basePoints * 0.5);
+        let vcBase = Math.floor(basePoints * 0.5); // 1.5X is base + half
+        if (appliedBooster === "TOTAL_2X") {
+            totalPoints += vcBase * 2;
+        } else if (appliedBooster === "INDIAN_2X" && (player.category === "none" || player.category === "uncapped")) {
+            totalPoints += vcBase * 2;
+        } else if (appliedBooster === "MOM_2X" && player.id === pomId) {
+            totalPoints += vcBase * 2;
+        } else {
+            totalPoints += vcBase; // Standard 1.5X VC
+        }
     }
 
     return totalPoints;
 }
 
-function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booster) {
+function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booster, pomId = null) {
     return (players || []).reduce((sum, player) => (
-        sum + calculateDisplayedPlayerPoints(player, statsMap || {}, captainId, viceCaptainId, booster)
+        sum + calculateDisplayedPlayerPoints(player, statsMap || {}, captainId, viceCaptainId, booster, pomId)
     ), 0);
 }
 
-function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE") {
-    const wrapper = document.createElement("div");
+function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE", pomId = null) {    const wrapper = document.createElement("div");
     wrapper.className = "player-circle";
     if (player.id === captainId) wrapper.classList.add("captain");
     if (player.id === viceCaptainId) wrapper.classList.add("vice-captain");
@@ -173,11 +190,7 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
 
     if (statsMap) {
         const displayPoints = calculateDisplayedPlayerPoints(
-            player,
-            statsMap,
-            captainId,
-            viceCaptainId,
-            booster
+            player, statsMap, captainId, viceCaptainId, booster, pomId
         );
 
         const points = document.createElement("div");
@@ -201,7 +214,7 @@ function createHistoryRow(snapshot, totalPoints) {
     } else {
         row.classList.add("tier-red");
     }
-    
+
     row.addEventListener("click", () => window.viewMatchBreakdown(snapshot.id));
 
     const left = document.createElement("div");
@@ -518,7 +531,8 @@ async function loadCurrentXI() {
         null,
         teamContainer,
         null,
-        getAppliedBooster(userTeam)
+        getAppliedBooster(userTeam),
+        snapshot.matches.pom_id // <--- NEW: Pass the POM ID
     );
 }
 
@@ -576,7 +590,8 @@ async function loadLastLockedXI() {
         statsMap,
         snapshot.captain_id,
         snapshot.vice_captain_id,
-        getAppliedBooster(snapshot)
+        getAppliedBooster(snapshot),
+        snapshot.matches.pom_id // <--- NEW: Pass the POM ID
     );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
     setTeamStatus(`Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`);
