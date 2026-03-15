@@ -345,21 +345,32 @@ function getSelectedMatch() {
 
 function parseScoreboard(rawValue) {
     let parsed;
-
     try {
         parsed = JSON.parse(rawValue);
     } catch {
-        throw new Error("Invalid JSON. Paste a valid scoreboard array.");
+        throw new Error("Invalid JSON. Please check the format.");
     }
 
+    // If it's the raw API response with 'data.scorecard'
+    if (parsed?.data?.scorecard) {
+        return flattenScorecard(parsed.data.scorecard);
+    }
+
+    // Fallback for your original formats
     if (Array.isArray(parsed)) return parsed;
     if (Array.isArray(parsed?.scoreboard)) return parsed.scoreboard;
 
-    throw new Error("Scoreboard JSON must be an array or an object with a scoreboard array.");
+    throw new Error("Scoreboard format not recognized. Ensure 'data.scorecard' exists.");
 }
 
 function normalizeName(value) {
-    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\(c\)/g, "") // Remove captain tag
+        .replace(/\(wk\)/g, "") // Remove wicketkeeper tag
+        .replace(/\s+/g, " ")
+        .trim();
 }
 
 function setStatus(message, type) {
@@ -374,4 +385,51 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function flattenScorecard(scorecard) {
+    const playerStats = new Map();
+
+    const getPlayer = (name) => {
+        if (!playerStats.has(name)) {
+            playerStats.set(name, {
+                player_name: name,
+                runs: 0, balls: 0, fours: 0, sixes: 0, is_out: false,
+                wickets: 0, overs: 0, runs_conceded: 0, maidens: 0,
+                catches: 0, stumpings: 0, runouts_direct: 0, runouts_assisted: 0
+            });
+        }
+        return playerStats.get(name);
+    };
+
+    scorecard.forEach(inning => {
+        // Process Batting
+        inning.batting?.forEach(b => {
+            const p = getPlayer(b.batsman.name);
+            p.runs = b.r;
+            p.balls = b.b;
+            p.fours = b['4s'];
+            p.sixes = b['6s'];
+            p.is_out = b['dismissal-text'] !== 'not out';
+        });
+
+        // Process Bowling
+        inning.bowling?.forEach(bw => {
+            const p = getPlayer(bw.bowler.name);
+            p.wickets = bw.w;
+            p.overs = bw.o;
+            p.runs_conceded = bw.r;
+            p.maidens = bw.m;
+        });
+
+        // Process Catching/Fielding
+        inning.catching?.forEach(c => {
+            const p = getPlayer(c.catcher.name);
+            p.catches = c.catch;
+            p.stumpings = c.stumped;
+            p.runouts_direct = c.runout; // Mapping API runouts to direct for now
+        });
+    });
+
+    return Array.from(playerStats.values());
 }
