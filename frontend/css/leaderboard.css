@@ -153,30 +153,63 @@ select:disabled { opacity: 0.7; color: var(--text-slate); cursor: not-allowed; b
     box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
 }
 
-/* The CSS Fireworks Animation Effect */
-#podiumContainer::before {
+/* --- PARTY POPPER / FIREWORK SPARK BURSTS --- */
+#podiumContainer::before,
+#podiumContainer::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background-image: 
-        radial-gradient(circle, rgba(255, 215, 0, 0.15) 10%, transparent 20%),
-        radial-gradient(circle, rgba(0, 242, 255, 0.15) 10%, transparent 20%);
-    background-size: 100px 100px, 120px 120px;
-    background-position: 0 0, 50px 50px;
-    animation: fireworks 4s infinite linear;
+    bottom: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    /* Each line here is a literal spark/confetti piece shooting out! */
+    box-shadow: 
+        -30px -80px 0 2px #ffd700,
+        20px -100px 0 1px #00f2ff,
+        -50px -120px 0 2px #ff4757,
+        10px -140px 0 3px #9AE000,
+        40px -70px 0 1px #ffd700,
+        -70px -90px 0 2px #00f2ff,
+        60px -110px 0 1px #ff4757,
+        -20px -60px 0 2px #9AE000,
+        0px -130px 0 2px #ffd700,
+        -40px -100px 0 1px #00f2ff,
+        50px -130px 0 2px #ff4757,
+        30px -90px 0 1px #9AE000,
+        -10px -160px 0 2px #ffd700,
+        -60px -60px 0 1px #ff4757,
+        80px -80px 0 2px #00f2ff;
+    animation: partyPopper 2.5s infinite cubic-bezier(0.25, 1, 0.5, 1);
     z-index: 0;
     pointer-events: none;
 }
 
-@keyframes fireworks {
-    0% { transform: scale(1) translateY(0); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: scale(1.5) translateY(-50px); opacity: 0; }
+/* Fire from the left side */
+#podiumContainer::before {
+    left: 20%;
 }
 
+/* Fire from the right side (delayed so they alternate) */
+#podiumContainer::after {
+    right: 20%;
+    animation-delay: 1.25s;
+    transform: scaleX(-1); /* Flips the particle pattern */
+}
+
+@keyframes partyPopper {
+    0% {
+        transform: scale(0.1) translateY(50px);
+        opacity: 1;
+    }
+    60% {
+        opacity: 1;
+    }
+    100% {
+        /* Scales the explosion outward and floats upward */
+        transform: scale(2.8) translateY(-80px);
+        opacity: 0;
+    }
+}
 /* Ensure the podium cards sit ON TOP of the fireworks */
 .podium-card {
     position: relative;
