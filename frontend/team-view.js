@@ -72,9 +72,13 @@ function setTeamStatus(message = "") {
 }
 
 function getPhotoUrl(bucketName, path) {
-    if (!path) {
-        return "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png";
+    // If path is null, empty, or undefined, return the silhouette
+    if (!path || path === "" || path === "null") {
+        return "https://tuvqgcosbweljslbfgqc.supabase.co/storage/v1/object/public/player-photos/silhouette.png"; 
+        // NOTE: If you don't have this file, use this high-quality SVG placeholder:
+        // return "https://www.svgrepo.com/show/382105/male-avatar-boy-face-man-user-2.svg";
     }
+
     return supabase.storage.from(bucketName).getPublicUrl(path).data.publicUrl;
 }
 
