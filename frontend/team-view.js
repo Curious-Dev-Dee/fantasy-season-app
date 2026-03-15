@@ -33,7 +33,6 @@ function getAppliedBooster(record) {
     if (typeof record?.active_booster === "string" && record.active_booster !== "NONE") {
         return record.active_booster;
     }
-
     return record?.use_booster ? "TOTAL_2X" : "NONE";
 }
 
@@ -43,13 +42,11 @@ function formatBoosterLabel(booster) {
 
 function updateBoosterIndicator(element, booster, suffix) {
     if (!element) return;
-
     if (!booster || booster === "NONE") {
         element.classList.add("hidden");
         element.textContent = "";
         return;
     }
-
     element.textContent = `BOOSTER: ${formatBoosterLabel(booster)} ${suffix}`;
     element.classList.remove("hidden");
 }
@@ -78,7 +75,6 @@ function getPhotoUrl(bucketName, path) {
     if (!path) {
         return "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png";
     }
-
     return supabase.storage.from(bucketName).getPublicUrl(path).data.publicUrl;
 }
 
@@ -110,13 +106,11 @@ function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptain
     const appliedBooster = getAppliedBooster({ active_booster: booster });
     const basePoints = statsMap?.[player.id] || 0;
     
-    // 1. Get identity-boosted base points
     let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster, pomId);
 
-    // 2. Add Captain / VC bonuses (Mirroring your SQL exactly)
     if (player.id === captainId) {
         if (appliedBooster === "CAPTAIN_3X") {
-            totalPoints += basePoints * 2; // Base + (Base * 2) = 3X
+            totalPoints += basePoints * 2;
         } else if (appliedBooster === "TOTAL_2X") {
             totalPoints += basePoints * 2; 
         } else if (appliedBooster === "INDIAN_2X" && (player.category === "none" || player.category === "uncapped")) {
@@ -124,10 +118,10 @@ function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptain
         } else if (appliedBooster === "MOM_2X" && player.id === pomId) {
             totalPoints += basePoints * 2;
         } else {
-            totalPoints += basePoints; // Standard 2X Captain
+            totalPoints += basePoints; 
         }
     } else if (player.id === viceCaptainId) {
-        let vcBase = Math.floor(basePoints * 0.5); // 1.5X is base + half
+        let vcBase = Math.floor(basePoints * 0.5); 
         if (appliedBooster === "TOTAL_2X") {
             totalPoints += vcBase * 2;
         } else if (appliedBooster === "INDIAN_2X" && (player.category === "none" || player.category === "uncapped")) {
@@ -135,7 +129,7 @@ function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptain
         } else if (appliedBooster === "MOM_2X" && player.id === pomId) {
             totalPoints += vcBase * 2;
         } else {
-            totalPoints += vcBase; // Standard 1.5X VC
+            totalPoints += vcBase; 
         }
     }
 
@@ -148,7 +142,8 @@ function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booste
     ), 0);
 }
 
-function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE", pomId = null) {    const wrapper = document.createElement("div");
+function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE", pomId = null) {    
+    const wrapper = document.createElement("div");
     wrapper.className = "player-circle";
     if (player.id === captainId) wrapper.classList.add("captain");
     if (player.id === viceCaptainId) wrapper.classList.add("vice-captain");
@@ -206,7 +201,6 @@ function createHistoryRow(snapshot, totalPoints) {
     const row = document.createElement("div");
     row.className = "history-row";
 
-    // --- 3-TIER HIGHLIGHT LOGIC ---
     if (totalPoints >= 300) {
         row.classList.add("tier-gold");
     } else if (totalPoints >= 200) {
@@ -331,27 +325,15 @@ async function fetchUserMatchTotals(matchIds) {
     return new Map((data || []).map((row) => [row.match_id, row.total_points]));
 }
 
-/* =========================
-   PAGE LOAD TRANSITION
-========================= */
 function revealApp() {
     if (document.body.classList.contains("loaded")) return;
-
     document.body.classList.remove("loading-state");
     document.body.classList.add("loaded");
-
     setTimeout(() => {
         const overlay = document.getElementById("loadingOverlay");
         if (overlay) overlay.style.display = "none";
     }, 600);
 }
-
-setTimeout(() => {
-    if (document.body.classList.contains("loading-state")) {
-        console.warn("Safety trigger: Revealing team field...");
-        revealApp();
-    }
-}, 6000);
 
 /* =========================
    INIT LOGIC
@@ -421,9 +403,6 @@ async function init() {
     }
 }
 
-/* =========================
-   CORE VIEW LOGIC
-========================= */
 async function setupMatchTabs() {
     if (!isScoutMode) {
         const { data: upcoming } = await supabase
@@ -471,7 +450,6 @@ async function setupMatchTabs() {
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     countdownContainer.classList.remove("hidden");
-
     const update = () => {
         const diff = new Date(startTime) - new Date();
         if (diff <= 0) {
@@ -479,13 +457,11 @@ function startCountdown(startTime) {
             clearInterval(countdownInterval);
             return;
         }
-
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
         timerDisplay.textContent = `${h}h ${m}m ${s}s`;
     };
-
     update();
     countdownInterval = setInterval(update, 1000);
 }
@@ -524,6 +500,8 @@ async function loadCurrentXI() {
     }
 
     const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
+    
+    // FIXED: Pass null for pomId since match hasn't happened
     renderTeamLayout(
         players || [],
         userTeam.captain_id,
@@ -532,7 +510,7 @@ async function loadCurrentXI() {
         teamContainer,
         null,
         getAppliedBooster(userTeam),
-        snapshot.matches.pom_id // <--- NEW: Pass the POM ID
+        null 
     );
 }
 
@@ -540,9 +518,10 @@ async function loadLastLockedXI() {
     clearInterval(countdownInterval);
     countdownContainer.classList.add("hidden");
 
+    // FIXED: Join matches to get pom_id
     const { data: snapshot } = await supabase
         .from("user_match_teams")
-        .select("*")
+        .select("*, matches(pom_id, match_number, team_a_id, team_b_id)")
         .eq("user_id", userId)
         .eq("tournament_id", tournamentId)
         .order("locked_at", { ascending: false })
@@ -575,6 +554,7 @@ async function loadLastLockedXI() {
     const statsMap = Object.fromEntries((stats || []).map((row) => [row.player_id, row.fantasy_points]));
     const teamPlayersData = players || [];
 
+    // FIXED: Pass pom_id from joined match
     renderTeamLayout(
         teamPlayersData,
         snapshot.captain_id,
@@ -582,7 +562,8 @@ async function loadLastLockedXI() {
         statsMap,
         teamContainer,
         snapshot.match_id,
-        getAppliedBooster(snapshot)
+        getAppliedBooster(snapshot),
+        snapshot.matches?.pom_id
     );
 
     const fallbackTotal = calculateMatchTotal(
@@ -591,7 +572,7 @@ async function loadLastLockedXI() {
         snapshot.captain_id,
         snapshot.vice_captain_id,
         getAppliedBooster(snapshot),
-        snapshot.matches.pom_id // <--- NEW: Pass the POM ID
+        snapshot.matches?.pom_id
     );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
     setTeamStatus(`Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`);
@@ -600,7 +581,8 @@ async function loadLastLockedXI() {
 /* =========================
    UNIVERSAL RENDERER
 ========================= */
-function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE") {
+// FIXED: Added pomId to parameter list
+function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE", pomId = null) {
     container.replaceChildren();
     const roleOrder = ["WK", "BAT", "AR", "BOWL"];
 
@@ -616,7 +598,8 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         row.className = "player-row";
 
         rolePlayers.forEach((player) => {
-            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId, booster));
+            // FIXED: Pass pomId down to circle builder
+            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId, booster, pomId));
         });
 
         section.appendChild(row);
@@ -624,19 +607,14 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
     });
 }
 
-/* =========================
-   HISTORY FEATURE LOGIC
-========================= */
 function setupHistoryListeners() {
     if (!historyBtn) return;
-
     historyBtn.onclick = async () => {
         historyOverlay.classList.remove("hidden");
         setSpinner(historyList);
-
         const { data: history } = await supabase
             .from("user_match_teams")
-            .select("*, matches(match_number, team_a_id, team_b_id), user_match_team_players(player_id)")
+            .select("*, matches(match_number, team_a_id, team_b_id, pom_id), user_match_team_players(player_id)")
             .eq("user_id", userId)
             .eq("tournament_id", tournamentId)
             .order("locked_at", { ascending: false });
@@ -676,13 +654,13 @@ function setupHistoryListeners() {
                 statsMap,
                 snapshot.captain_id,
                 snapshot.vice_captain_id,
-                getAppliedBooster(snapshot)
+                getAppliedBooster(snapshot),
+                snapshot.matches?.pom_id
             );
 
             historyList.appendChild(createHistoryRow(snapshot, matchTotals.get(snapshot.match_id) ?? fallbackTotal));
         });
     };
-
     document.getElementById("closeHistory").onclick = () => historyOverlay.classList.add("hidden");
     document.getElementById("closePPL").onclick = () => document.getElementById("playerPointLogOverlay").classList.add("hidden");
     document.getElementById("backToHistory").onclick = () => document.getElementById("breakdownOverlay").classList.add("hidden");
@@ -724,6 +702,7 @@ window.viewMatchBreakdown = async (snapshotId) => {
     const statsMap = Object.fromEntries((stats || []).map((stat) => [stat.player_id, stat.fantasy_points]));
     const breakdownPlayers = players || [];
 
+    // FIXED: Pass pom_id
     renderTeamLayout(
         breakdownPlayers,
         snapshot.captain_id,
@@ -731,7 +710,8 @@ window.viewMatchBreakdown = async (snapshotId) => {
         statsMap,
         breakdownContainer,
         snapshot.match_id,
-        getAppliedBooster(snapshot)
+        getAppliedBooster(snapshot),
+        snapshot.matches?.pom_id
     );
 
     const fallbackTotal = calculateMatchTotal(
@@ -739,7 +719,8 @@ window.viewMatchBreakdown = async (snapshotId) => {
         statsMap,
         snapshot.captain_id,
         snapshot.vice_captain_id,
-        getAppliedBooster(snapshot)
+        getAppliedBooster(snapshot),
+        snapshot.matches?.pom_id
     );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
     breakdownFooter.textContent = `MATCH TOTAL: ${finalTotal} PTS | SUBS: ${snapshot.subs_used_for_match}`;
@@ -763,7 +744,6 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     }
 
     document.getElementById("pplPlayerName").textContent = matchStat.players.name;
-
     const log = [];
     if (matchStat.runs > 0) log.push(`${matchStat.runs} Runs (+${matchStat.runs})`);
     if (matchStat.boundary_points > 0) log.push(`Boundaries (+${matchStat.boundary_points})`);
@@ -787,7 +767,6 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     log.forEach((entry) => {
         const row = document.createElement("div");
         row.className = "log-entry";
-
         const text = document.createElement("span");
         text.textContent = entry;
         row.appendChild(text);
@@ -801,6 +780,5 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     total.style.fontWeight = "800";
     total.style.color = "var(--accent)";
     total.textContent = `BASE TOTAL: ${matchStat.fantasy_points} PTS`;
-
     content.replaceChildren(list, total);
 };
