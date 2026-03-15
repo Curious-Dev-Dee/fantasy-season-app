@@ -261,7 +261,20 @@ async function submitProcessing() {
         await loadMatches();
     } catch (err) {
         console.error("Processing failed:", err);
-        setStatus(err.message || "Failed to process points.", "error");
+        
+        let actualErrorMsg = err.message;
+        
+        // Extract the hidden Edge Function response body if it's an HTTP error
+        if (err.context && typeof err.context.json === "function") {
+            try {
+                const errBody = await err.context.json();
+                if (errBody.error) actualErrorMsg = errBody.error;
+            } catch (e) { 
+                // Ignore parse errors if the body isn't JSON
+            }
+        }
+        
+        setStatus(actualErrorMsg || "Failed to process points.", "error");
     } finally {
         processBtn.disabled = false;
         finalConfirmBtn.disabled = false;
