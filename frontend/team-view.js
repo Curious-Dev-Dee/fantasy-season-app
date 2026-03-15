@@ -242,7 +242,7 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         section.appendChild(row);
         container.appendChild(section);
     });
-}
+
 
 // ... rest of history/breakdown logic (Use fetchHistorySummaryData for stats)
     renderTeamLayout(playersRes.data, snap.captain_id, snap.vice_captain_id, statsMap, bContainer, snap.match_id);
