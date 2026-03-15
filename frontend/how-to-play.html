@@ -11,6 +11,7 @@
             --bg: #0c1117;
             --card: #161b22;
             --neon: #9AE000;
+            --cyan: #00f2ff;
             --text: #e6edf3;
             --dim: #8b949e;
             --border: rgba(255, 255, 255, 0.08);
@@ -60,7 +61,7 @@
             border: 1px solid var(--border); 
         }
         
-        h2 { color: var(--neon); font-size: 1.2rem; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        h2 { color: var(--neon); font-size: 1.1rem; margin-top: 0; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
         p { font-size: 0.95rem; color: var(--dim); }
         
         ul { padding-left: 20px; margin: 15px 0; }
@@ -77,6 +78,10 @@
             background: rgba(154, 224, 0, 0.04); margin: 15px 0;
         }
         .highlight-box strong { color: var(--neon); }
+
+        .booster-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .booster-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; font-size: 0.8rem; border: 1px solid var(--border); }
+        .booster-item b { color: var(--cyan); display: block; margin-bottom: 4px; font-size: 0.85rem; }
 
         /* FAQ */
         .faq-item { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -95,45 +100,55 @@
 
 <div class="container">
     <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('rules')">The Rules</button>
-        <button class="tab-btn" onclick="showTab('scoring')">Scorebook</button>
+        <button class="tab-btn active" onclick="showTab('rules')">Rules</button>
+        <button class="tab-btn" onclick="showTab('scoring')">Scoring</button>
+        <button class="tab-btn" onclick="showTab('boosters')">Boosters</button>
         <button class="tab-btn" onclick="showTab('faq')">FAQs</button>
     </div>
 
     <section id="rules" class="guide-section active">
         <div class="card">
             <h2><i class="fas fa-users-cog"></i> Squad Building</h2>
-            <p>Pick your 11 players squad using your <strong>100 Credit</strong> budget. Your team must follow this tactical structure:</p>
+            <p>Pick your 11-player squad with a <strong>100 Credit</strong> budget:</p>
             <ul>
                 <li><strong>WK:</strong> 1 (Wicketkeeper)</li>
                 <li><strong>BAT:</strong> 3 - 6 (Batsmen)</li>
                 <li><strong>AR:</strong> 1 - 4 (All-Rounders)</li>
                 <li><strong>BOWL:</strong> 3 - 6 (Bowlers)</li>
-                <li><strong>Overseas:</strong> 0 - 4 (Max 4 Overseas)</li>
-
+                <li><strong>Overseas:</strong> Max 4</li>
             </ul>
         </div>
 
         <div class="card">
             <h2><i class="fas fa-exchange-alt"></i> Transfer Strategy</h2>
-            <p>Your 150-substitution bank is your most precious resource. Manage it across the phases:</p>
+            <p>Manage your subs carefully across the season:</p>
             <table class="point-table">
-                <tr><td>League Stage (Matches 2-70)</td><td class="val">150 Subs</td></tr>
+                <tr><td>League Stage (Matches 2-70)</td><td class="val">130 Subs</td></tr>
                 <tr><td>Playoffs (Matches 72-74)</td><td class="val">10 Subs</td></tr>
             </table>
             
             <div class="highlight-box">
-                <p><strong>⚡ RESET WINDOWS:</strong> Matches <strong>#1</strong> (Season Start) and <strong>#71</strong> (Playoff Start) are free. Any changes made for these matches cost <strong>0 Subs</strong>.</p>
+                <p><strong>⚡ RESET WINDOWS:</strong> Matches <strong>#1</strong> (Season Start) and <strong>#71</strong> (Playoff Start) allow <strong>Unlimited Free Subs</strong>.</p>
             </div>
+            <p><small>*1 Free uncapped per match & Earn +1 Free Sub for every 10 correct match predictions in the Fun Zone!</small></p>
         </div>
+    </section>
 
+    <section id="boosters" class="guide-section">
         <div class="card">
-            <h2><i class="fas fa-rocket"></i> Match Booster</h2>
-            <p>Available for use between <strong>Match 11 and Match 70</strong>.</p>
-            <ul>
-                <li><strong>The Power:</strong> Doubles your <strong>TOTAL Team Points</strong> for the selected match.</li>
-                <li><strong>The Limit:</strong> Can be used only <strong>ONCE</strong> per season.</li>
-            </ul>
+            <h2><i class="fas fa-rocket"></i> Match Boosters</h2>
+            <p>Use these 7 unique power-ups once each during the League Stage (Match 2-70):</p>
+            
+            <div class="booster-list">
+                <div class="booster-item"><b>TOTAL 2X</b> 2x points for your whole team.</div>
+                <div class="booster-item"><b>INDIAN 2X</b> 2x points for all Indian players.</div>
+                <div class="booster-item"><b>CAPTAIN 3X</b> Triple (3x) points for Captain.</div>
+                <div class="booster-item"><b>OVERSEAS 2X</b> 2x points for Overseas players.</div>
+                <div class="booster-item"><b>UNCAPPED 2X</b> 2x points for Uncapped players.</div>
+                <div class="booster-item"><b>FREE 11</b> Unlimited transfers for 1 match.</div>
+                <div class="booster-item"><b>MOM 2X</b> 2x points for Man of the Match.</div>
+            </div>
+            <p><small>*One booster can be used per match. Each booster can only be used once.</small></p>
         </div>
     </section>
 
@@ -147,9 +162,8 @@
                 <tr><td>Milestone (30 / 50 / 75 / 100)</td><td class="val">+5/10/15/20</td></tr>
                 <tr><td>Duck Penalty (Excludes Bowlers)</td><td class="val">-2</td></tr>
             </table>
-            <p><strong>Strike Rate (SR) Bonus:</strong></p>
-            <div class="formula">Points = Runs - Balls</div>
-            <p><small>*SR points are calculated instantly for every ball faced.</small></p>
+            <p><strong>Strike Rate (SR) Points:</strong></p>
+            <div class="formula">Points = Runs - Balls Faced</div>
         </div>
 
         <div class="card">
@@ -160,44 +174,35 @@
                 <tr><td>Maiden Over</td><td class="val">+10</td></tr>
             </table>
             <p><strong>Economy Rate (ER) Points:</strong></p>
-            <p><small>Minimum 2 overs must be bowled to qualify:</small></p>
             <table class="point-table">
-                <tr><td>ER < 5.0</td><td class="val">+8</td></tr>
-                <tr><td>ER 5.0 - 6.0</td><td class="val">+6</td></tr>
-                <tr><td>ER 6.0 - 7.0</td><td class="val">+4</td></tr>
-                <tr><td>ER 11.0 - 12.0</td><td class="val">-4</td></tr>
-                <tr><td>ER > 12.0</td><td class="val">-6</td></tr>
+                <tr><td>ER < 5.0 / 5.0 - 6.0</td><td class="val">+8 / +6</td></tr>
+                <tr><td>ER 6.0 - 7.0 / > 12.0</td><td class="val">+4 / -6</td></tr>
             </table>
         </div>
 
         <div class="card">
-            <h2><i class="fas fa-hands"></i> Bonuses</h2>
+            <h2><i class="fas fa-hands"></i> Multipliers</h2>
             <table class="point-table">
-                <tr><td>Catch / Stumping / Run-out</td><td class="val">+8</td></tr>
+                <tr><td>Captain (C)</td><td class="val">2.0x</td></tr>
+                <tr><td>Vice-Captain (VC)</td><td class="val">1.5x</td></tr>
                 <tr><td>Involvement Bonus</td><td class="val">+4</td></tr>
-                <tr><td>Player of the Match (POM)</td><td class="val">+20</td></tr>
-                <tr><td>Captain (C) Multiplier</td><td class="val">2.0x</td></tr>
-                <tr><td>Vice-Captain (VC) Multiplier</td><td class="val">1.5x</td></tr>
+                <tr><td>Catch / Stumping</td><td class="val">+8</td></tr>
             </table>
         </div>
     </section>
 
     <section id="faq" class="guide-section">
         <div class="faq-item">
+            <div class="faq-q">What are Fun Zone Stars? <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-a">For every correct match prediction, you earn 1 Star. Collect 10 Stars to automatically receive 1 Free Substitution added to your bank!</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">How does "Free 11" work? <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-a">When you activate the Free 11 booster, any substitutions you make for that specific match will cost 0 subs. Perfect for heavy rotation!</div>
+        </div>
+        <div class="faq-item">
             <div class="faq-q">When do teams lock? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">Your team locks exactly at the "Actual Start Time" of the match. If the toss or match is delayed by rain, the lock time updates automatically.</div>
-        </div>
-        <div class="faq-item">
-            <div class="faq-q">What is the Involvement Bonus? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">Any player who records a non-zero fantasy score (even just 1 run or 1 catch) earns a +4 bonus. This rewards players who are "in the game" even if they don't hit a big milestone.</div>
-        </div>
-        <div class="faq-item">
-            <div class="faq-q">How does the SR formula work? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">We use a simple Runs - Balls formula. If a player scores 50 off 30 balls, they get +20 points. If they score 10 off 20 balls, they get -10 points. Volume matters!</div>
-        </div>
-        <div class="faq-item">
-            <div class="faq-q">Can I save subs for the Playoffs? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">No. Your 150-sub bank is strictly for the League Stage. At Match #71, everyone is reset to a fresh 10-sub bank for the final sprint. Use 'em or lose 'em!</div>
+            <div class="faq-a">Teams lock exactly at the first ball of the match. If the match is delayed, the timer updates automatically.</div>
         </div>
     </section>
 </div>
@@ -206,16 +211,13 @@
     function showTab(tabId) {
         document.querySelectorAll('.guide-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
         document.getElementById(tabId).classList.add('active');
         event.currentTarget.classList.add('active');
     }
 
-    // FAQ Accordion Logic
     document.querySelectorAll('.faq-q').forEach(q => {
         q.addEventListener('click', () => {
-            const item = q.parentElement;
-            item.classList.toggle('active');
+            q.parentElement.classList.toggle('active');
         });
     });
 </script>
