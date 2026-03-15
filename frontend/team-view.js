@@ -20,7 +20,7 @@ const historyBoostersLeft = document.getElementById("historyBoostersLeft");
 const boosterIndicator = document.getElementById("boosterIndicator");
 
 const TOTAL_SUBS_LIMIT = 150;
-const TOTAL_BOOSTERS = 6;
+const TOTAL_BOOSTERS = 7;
 const PLAYOFF_START_MATCH = 71;
 
 let userId;
