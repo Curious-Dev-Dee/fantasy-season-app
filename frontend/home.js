@@ -554,7 +554,7 @@ if (saveProfileBtn) {
 
         } catch (err) {
             console.error("Save error:", err.message);
-            alert("Failed to save profile: " + err.message);
+        window.showToast("Failed to save: " + err.message, "error");
         } finally {
             saveProfileBtn.disabled = false;
             saveProfileBtn.textContent = isFirstTime ? "Save & Start" : "Update Photo";
@@ -731,3 +731,12 @@ window.showCustomPrompt = (title, placeholder) => {
         btnConfirm.onclick = () => { cleanup(); resolve(inputEl.value.trim()); };
     });
 };
+
+// --- GLOBAL NETWORK EDGE CASE ---
+window.addEventListener('offline', () => {
+    window.showToast("You are offline. Reconnecting...", "error");
+});
+
+window.addEventListener('online', () => {
+    window.showToast("Back online!", "success");
+});
