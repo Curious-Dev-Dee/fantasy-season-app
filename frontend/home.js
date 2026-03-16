@@ -485,25 +485,29 @@ if (saveProfileBtn) {
         try {
             let photoPath = existingProfile?.team_photo_url;
 
-           // Inside your saveProfileBtn.onclick try block:
-if (file) {
-    const fileExt = file.name.split('.').pop();
-    // We use the UserID as the folder to make RLS easier to manage
-    const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+        if (file) {
+                const fileExt = file.name.split('.').pop();
+                
+                // FIXED: Removed Date.now() so it actively overwrites the old image!
+                const fileName = `${currentUserId}/avatar.${fileExt}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('team-avatars')
-        .upload(fileName, file, { 
-            cacheControl: '3600',
-            upsert: true // This requires the UPDATE policy we added in Step 1
-        });
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('team-avatars')
+                    .upload(fileName, file, { 
+                        cacheControl: '3600',
+                        upsert: true 
+                    });
 
-    if (uploadError) {
-        console.error("Upload Error Details:", uploadError);
-        throw new Error("Storage Upload Failed: " + uploadError.message);
-    }
-    photoPath = fileName;
-}
+                if (uploadError) {
+                    console.error("Upload Error Details:", uploadError);
+                    throw new Error("Storage Upload Failed: " + uploadError.message);
+                }
+                
+                // We add a timestamp query parameter to the end of the saved path in the database.
+                // This forces the browser to fetch the new image instead of showing the cached old one!
+                photoPath = `${fileName}?t=${Date.now()}`;
+            }
+
             // 3. Construct Smart Payload 
             // We only include name/team if it's the first time to avoid trigger conflicts
             let updatePayload = { team_photo_url: photoPath };
