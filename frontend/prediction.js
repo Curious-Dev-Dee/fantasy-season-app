@@ -160,7 +160,7 @@ function renderPredictionUI(match, predictedWinnerId) {
         <div class="prediction-header">
             <h3>Who will win?</h3>
             <p class="prediction-hook">Answer correctly. Get 1 Sub per 10 correct! 🎁</p>
-            <button onclick="showGuruLeaderboard()" class="icon-btn">🏆 Top 5 Gurus</button>
+            <button onclick="showGuruLeaderboard()" class="icon-btn">🏆 Top Prediction Masters</button>
         </div>
         
         <div class="team-vs-container">
@@ -227,19 +227,19 @@ async function loadPostMatchSummary() {
    SECTION 3: PREMIUM TOP 5 GURUS MODAL
 ========================================== */
 window.showGuruLeaderboard = async () => {
-    const { data: top5 } = await supabase.from("user_tournament_points")
+    const { data: top100 } = await supabase.from("user_tournament_points") // Renamed variable for clarity
         .select("prediction_stars, user_profiles(team_name, team_photo_url)")
         .eq("tournament_id", currentTournamentId)
         .order("prediction_stars", { ascending: false })
         .order("updated_at", { ascending: true })
-        .limit(5);
+        .limit(100); // <--- CHANGED TO 100
     
-    // Inject modal HTML
+    // Inject modal HTML (Notice the Top 100 text change)
     if (!document.getElementById("guruModal")) {
-        document.body.insertAdjacentHTML('beforeend', `<div id="guruModal" class="custom-modal-overlay hidden"><div class="custom-modal"><div class="modal-header"><h3>🏆 Top 5 Gurus</h3><button onclick="document.getElementById('guruModal').classList.add('hidden')" class="close-btn">×</button></div><div id="guruList" class="guru-list"></div></div></div>`);
+        document.body.insertAdjacentHTML('beforeend', `<div id="guruModal" class="custom-modal-overlay hidden"><div class="custom-modal"><div class="modal-header"><h3>🏆 Top Prediction Masters</h3><button onclick="document.getElementById('guruModal').classList.add('hidden')" class="close-btn">×</button></div><div id="guruList" class="guru-list"></div></div></div>`);
     }
 
-    const listHtml = top5.map((g, i) => {
+    const listHtml = top100.map((g, i) => { // Updated variable name
         const avatar = g.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(g.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
         return `
             <div class="guru-row">

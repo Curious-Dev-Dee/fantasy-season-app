@@ -128,3 +128,58 @@ body {
     display: flex; flex-direction: column; justify-content: flex-end;
 }
 .hidden { display: none !important; }
+
+
+/* --- TOP 100 GURUS LEADERBOARD --- */
+.custom-modal { 
+    background: #0f172a; 
+    border-radius: 20px 20px 0 0; 
+    max-height: 85vh; /* Slightly taller to fit more rows */
+    display: flex; 
+    flex-direction: column; /* Crucial for scrolling the list inside it */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between; /* Pushes Title left, 'X' right */
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0b0f14;
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.close-btn { 
+    background: transparent; 
+    color: var(--text-slate); 
+    border: none; 
+    font-size: 28px; /* Slightly larger for easier tapping */
+    line-height: 1;
+    cursor: pointer; 
+    padding: 0 5px; /* Bigger tap target */
+}
+
+.guru-list { 
+    padding: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    overflow-y: auto; /* ALLOWS THE 100 USERS TO SCROLL! */
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); /* iPhone bottom safe area */
+}
+
+.guru-row {
+    display: flex; align-items: center; background: rgba(255,255,255,0.05);
+    padding: 12px; border-radius: 12px;
+}
+.guru-rank { font-weight: 900; color: var(--primary-green); width: 35px; } /* Slightly wider in case of rank #100 */
+.guru-avatar { width: 36px; height: 36px; border-radius: 50%; margin-right: 12px; border: 1px solid var(--border); }
+.guru-name { flex: 1; font-weight: 700; font-size: 14px; }
+.guru-stars { font-weight: 900; background: rgba(154, 224, 0, 0.1); color: var(--primary-green); padding: 4px 8px; border-radius: 8px; }
