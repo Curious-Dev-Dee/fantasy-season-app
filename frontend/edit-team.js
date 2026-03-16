@@ -329,7 +329,7 @@ function renderBoosterUI() {
         FREE_11: "Free 11 🆓 (Zero Sub Cost)",
     };
 
-    let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯 Tap to Select a Power-Up --</option>`;
+    let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🚀 Tap to Select a Booster! --</option>`;
     
     Object.keys(boosterNames).forEach(key => {
         const isUsed = state.usedBoosters.includes(key);
@@ -352,7 +352,7 @@ function renderBoosterUI() {
 
     boosterContainer.innerHTML = `
         <div class="booster-header">
-            <span>⚡ Available Boosters</span>
+            <span>🚀 Available Boosters</span>
             <span class="booster-count">${boostersLeft}/7 Remaining</span>
         </div>
         <div class="select-wrapper">
