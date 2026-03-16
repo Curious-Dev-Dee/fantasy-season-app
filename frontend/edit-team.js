@@ -353,7 +353,6 @@ function renderBoosterUI() {
                 <div class="booster-icon">${config.icon}</div>
                 <div class="booster-info">
                     <div class="b-name">${config.name}</div>
-                    <div class="b-desc">${config.desc}</div>
                 </div>
                 ${isActive ? '<div class="active-badge">EQUIPPED</div>' : ''}
                 ${isUsed ? '<div class="used-overlay"><span>USED</span></div>' : ''}
