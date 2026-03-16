@@ -178,7 +178,7 @@ function render() {
         const s = state.filters.search.toLowerCase();
         const pCategory = (p.category || "").toLowerCase();
         
-        // 1. Upgraded Search: Now checks Name, Team, OR Category (uncapped/overseas)
+        // 1. Upgraded Search
         const matchesSearch = p.name.toLowerCase().includes(s) || 
                               (p.team_short_code || "").toLowerCase().includes(s) ||
                               pCategory.includes(s);
@@ -186,17 +186,23 @@ function render() {
         const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
         const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
         const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
-        
-        // 2. New Type Filter Logic
         const matchesType = state.filters.type.length === 0 || state.filters.type.includes(pCategory);
 
-        return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesType;
+        // 2. MISSING MATCH FILTER LOGIC ADDED HERE:
+        // A player passes if NO matches are selected, OR if their team is playing in a selected match.
+        const matchesMatch = state.filters.matches.length === 0 || state.matches.some(m => 
+            state.filters.matches.includes(m.id) && 
+            (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id)
+        );
+
+        // 3. Make sure to include `matchesMatch` at the end!
+        return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesType && matchesMatch;
     }).sort((a, b) => {
         const aPri = a.real_team_id === nextMatch.team_a_id ? 1 : a.real_team_id === nextMatch.team_b_id ? 2 : 3;
         const bPri = b.real_team_id === nextMatch.team_a_id ? 1 : b.real_team_id === nextMatch.team_b_id ? 2 : 3;
         return aPri - bPri || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.credit - a.credit;
     });
-
+    
     renderList("myXIList", sortedMyXI, true, stats);
     renderList("playerPoolList", filteredPool, false, stats);
     updateSaveButton(stats, isOverLimit, liveSubsRemaining);
