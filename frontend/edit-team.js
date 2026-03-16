@@ -47,13 +47,13 @@ async function init(user) {
         if (!activeTournament) return;
         activeTournamentId = activeTournament.id;
 
+// FETCH ALL UPCOMING MATCHES WITH LOGOS
         const { data: matches } = await supabase.from("matches")
-            .select("*, team_a:real_teams!team_a_id(short_code), team_b:real_teams!team_b_id(short_code)")
+            .select("*, team_a:real_teams!team_a_id(short_code, photo_name), team_b:real_teams!team_b_id(short_code, photo_name)")
             .eq("tournament_id", activeTournamentId)
             .eq("status", "upcoming") 
             .gt("actual_start_time", new Date().toISOString())
-            .order("actual_start_time", { ascending: true })
-            .limit(5);
+            .order("actual_start_time", { ascending: true }); // Removed .limit(5)
 
         state.matches = matches || [];
         if (state.matches.length === 0) return;
@@ -483,7 +483,7 @@ window.handleBoosterChange = async (val) => {
     // If they clicked Apply, update state and show the toast!
     if (isConfirmed) {
         state.activeBooster = val;
-        window.showToast(`${prettyName} applied successfully!`, "success");
+        window.showToast(`${prettyName} Applied Successfully!`, "success");
         render();
     }
     // If they clicked Cancel, the state remains unchanged.
@@ -501,9 +501,7 @@ function initFilters() {
     renderCheckboxDropdown('teamMenu', teams, 'teams', (t) => t.label);
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
-    renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `M#${m.match_number}: ${m.team_a?.short_code} vs ${m.team_b?.short_code}`);
-// ADD THIS NEW BLOCK:
-    const playerTypes = [
+renderMatchDropdown();    const playerTypes = [
         { id: 'uncapped', label: 'Uncapped 🧢' },
         { id: 'overseas', label: 'Overseas ✈️' }
     ];
@@ -539,6 +537,50 @@ function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
 
 window.toggleFilter = (k, v, el) => { const val = (k === 'credits') ? parseFloat(v) : v; if (el.checked) state.filters[k].push(val); else state.filters[k] = state.filters[k].filter(i => i !== val); render(); };
 window.clearFilters = (k) => { state.filters[k] = []; render(); initFilters(); };
+
+function renderMatchDropdown() {
+    const container = document.getElementById('matchMenu');
+    if(!container) return;
+    
+    const bucket = supabase.storage.from("team-logos");
+
+    const listHtml = state.matches.map(m => {
+        const isSelected = state.filters.matches.includes(m.id);
+        
+        const logoA = m.team_a?.photo_name ? bucket.getPublicUrl(m.team_a.photo_name).data.publicUrl : 'images/default-team.png';
+        const logoB = m.team_b?.photo_name ? bucket.getPublicUrl(m.team_b.photo_name).data.publicUrl : 'images/default-team.png';
+        
+        // Format the Date & Time
+        const dateObj = new Date(m.actual_start_time);
+        const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); // e.g., 22 Mar 2026
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); // e.g., 07:30 PM
+
+        return `
+            <div class="match-filter-card ${isSelected ? 'selected' : ''}" onclick="toggleMatchFilterCard('${m.id}', this)">
+                <div class="mfc-header">Match #${m.match_number}</div>
+                <div class="mfc-teams">
+                    <div class="mfc-logo" style="background-image: url('${logoA}')"></div>
+                    <div class="mfc-team-name">${m.team_a?.short_code}</div>
+                    <div class="mfc-vs">VS</div>
+                    <div class="mfc-team-name">${m.team_b?.short_code}</div>
+                    <div class="mfc-logo" style="background-image: url('${logoB}')"></div>
+                </div>
+                <div class="mfc-details">
+                    <div>🏟️ ${m.venue || 'Venue TBA'}</div>
+                    <div><i class="far fa-clock"></i> ${dateStr}, ${timeStr}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `
+        <div class="dropdown-content match-filter-grid">${listHtml}</div>
+        <div class="dropdown-actions">
+            <button onclick="clearFilters('matches')">Clear</button>
+            <button onclick="closeFilters()">Apply</button>
+        </div>
+    `;
+}
 
 function updateHeaderMatch() {
     // 1. Make sure we actually have an upcoming match
@@ -672,4 +714,17 @@ window.showToast = (message, type = 'success') => {
         toast.classList.add('fade-out');
         toast.addEventListener('animationend', () => toast.remove());
     }, 3000); 
+};
+
+window.toggleMatchFilterCard = (matchId, element) => {
+    if (state.filters.matches.includes(matchId)) {
+        // If already selected, remove it
+        state.filters.matches = state.filters.matches.filter(id => id !== matchId);
+        element.classList.remove('selected');
+    } else {
+        // If not selected, add it
+        state.filters.matches.push(matchId);
+        element.classList.add('selected');
+    }
+    render(); // Updates the background player list immediately!
 };
