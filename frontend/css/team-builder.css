@@ -970,14 +970,14 @@ display:block;
 .premium-booster-shelf {
     padding: 16px 0;
     background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0) 100%);
-    border-radius: 20px;
-    margin: 10px 0;
+    border-radius: 18px;
+    margin: 8px 0;
 }
 
 .booster-header {
     display: flex;
     justify-content: space-between;
-    padding: 0 16px 12px;
+    padding: 0 14px 10px;
 }
 
 .b-title {
@@ -1026,19 +1026,19 @@ display:block;
 .booster-card.active {
     background: linear-gradient(145deg, #9ae00022, #0f172a);
     border-color: var(--primary-green);
-    box-shadow: 0 0 20px rgba(154, 224, 0, 0.15);
+    box-shadow: 0 0 18px rgba(154, 224, 0, 0.15);
     transform: translateY(-4px);
 }
 
 .active-badge {
     position: absolute;
-    top: -8px;
+    top: -10px;
     background: var(--primary-green);
     color: #000;
     font-size: 8px;
     font-weight: 900;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
 }
 
 /* USED STATE */
