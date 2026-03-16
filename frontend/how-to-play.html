@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guide & Scoring | FantasyCric26</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>Guide & Scoring | FantasyCric26</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
@@ -99,11 +98,16 @@
 <body>
 
 <div class="container">
+    <header style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+        <button onclick="window.location.href='more.html'" style="background: var(--card); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; font-size: 16px;">←</button>
+        <h1 style="margin: 0; font-size: 20px; color: #fff;">How to Play</h1>
+    </header>
+
     <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('rules')">Rules</button>
-        <button class="tab-btn" onclick="showTab('scoring')">Scoring</button>
-        <button class="tab-btn" onclick="showTab('boosters')">Boosters</button>
-        <button class="tab-btn" onclick="showTab('faq')">FAQs</button>
+        <button class="tab-btn active" onclick="showTab('rules', this)">Rules</button>
+        <button class="tab-btn" onclick="showTab('scoring', this)">Scoring</button>
+        <button class="tab-btn" onclick="showTab('boosters', this)">Boosters</button>
+        <button class="tab-btn" onclick="showTab('faq', this)">FAQs</button>
     </div>
 
     <section id="rules" class="guide-section active">
@@ -208,13 +212,12 @@
 </div>
 
 <script>
-    function showTab(tabId) {
+function showTab(tabId, btnElement) {
         document.querySelectorAll('.guide-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        btnElement.classList.add('active'); // FIXED! Safely targets the clicked button
     }
-
     document.querySelectorAll('.faq-q').forEach(q => {
         q.addEventListener('click', () => {
             q.parentElement.classList.toggle('active');
