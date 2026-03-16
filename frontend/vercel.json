@@ -4,7 +4,7 @@
       "source": "/onesignal-scripts/:path*",
       "destination": "https://cdn.onesignal.com/sdks/web/v16/:path*"
     },
-    { "source": "/", "destination": "/login.html" },
+    { "source": "/", "destination": "/index.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/home", "destination": "/home.html" },
     { "source": "/auth", "destination": "/auth.js" },
