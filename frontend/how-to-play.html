@@ -28,6 +28,42 @@
 
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
 
+        /* --- PREMIUM HEADER --- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-top: 10px; /* Safe space for top screen edge */
+        }
+
+        .back-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:active {
+            transform: scale(0.9);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #fff;
+            font-weight: 800;
+        }
+        
         body {
             background-color: var(--bg);
             color: var(--text);
@@ -230,8 +266,9 @@
             </table>
             <p><strong>Economy Rate (ER) Points:</strong></p>
             <table class="point-table">
-                <tr><td>ER < 5.0 / 5.0 - 6.0</td><td class="val">+8 / +6</td></tr>
-                <tr><td>ER 6.0 - 7.0 / > 12.0</td><td class="val">+4 / -6</td></tr>
+                <tr><td>ER <= 6.0</td><td class="val">+8</td></tr>
+                <tr><td>ER <6.0 - 9.0</td><td class="val">+4</td></tr>
+                <tr><td>ER <9.0</td><td class="val">-4</td></tr>
             </table>
         </div>
 
