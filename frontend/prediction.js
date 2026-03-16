@@ -267,6 +267,9 @@ window.showGuruLeaderboard = async () => {
 window.openPodiumComments = async (podiumType) => {
     if (!currentMatchId && podiumType !== 'gurus') return alert("No recent match to comment on!");
 
+    // Lock the background scroll!
+    document.body.style.overflow = 'hidden';
+
     // Inject Chat UI if it doesn't exist
     if (!document.getElementById("chatDrawer")) {
         document.body.insertAdjacentHTML('beforeend', `
@@ -274,7 +277,7 @@ window.openPodiumComments = async (podiumType) => {
                 <div class="chat-drawer">
                     <div class="chat-header">
                         <h3 id="chatTitle">Comments</h3>
-                        <button onclick="document.getElementById('chatDrawer').classList.add('hidden')" class="close-btn">×</button>
+                        <button onclick="closeChatDrawer()" class="close-btn">×</button>
                     </div>
                     <div id="chatMessages" class="chat-messages"></div>
                     <div class="chat-input-area">
@@ -286,10 +289,6 @@ window.openPodiumComments = async (podiumType) => {
         `);
     }
 
-// --- Find this line and replace it ---
-    // document.getElementById("chatTitle").innerText = `${podiumType.toUpperCase()} BANTER`;
-
-    // --- Replace with this: ---
     let displayTitle = "Comments";
     if (podiumType === 'player' || podiumType === 'players') {
         displayTitle = "Top Players Banter";
@@ -298,11 +297,21 @@ window.openPodiumComments = async (podiumType) => {
     }
     
     document.getElementById("chatTitle").innerText = displayTitle.toUpperCase();
-        document.getElementById("chatDrawer").classList.remove("hidden");
+    document.getElementById("chatDrawer").classList.remove("hidden");
     document.getElementById("chatMessages").innerHTML = `<div class="loading-chat">Loading...</div>`;
     window.currentChatContext = podiumType;
 
     await loadComments(podiumType);
+};
+
+// NEW FUNCTION: Closes the chat AND unlocks the background scroll
+window.closeChatDrawer = () => {
+    const drawer = document.getElementById('chatDrawer');
+    if (drawer) {
+        drawer.classList.add('hidden');
+    }
+    // Unlock the background scroll!
+    document.body.style.overflow = '';
 };
 
 window.loadComments = async (podiumType) => {
