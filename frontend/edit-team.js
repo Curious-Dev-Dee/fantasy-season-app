@@ -320,13 +320,13 @@ function renderBoosterUI() {
 
     // UPGRADED BOOSTER DICTIONARY
     const boosterNames = { 
-        TOTAL_2X: "Shaitan! 💀 (2x Total Points)", 
-        INDIAN_2X: "Jay Hind! 🔱 (2x Indian Players)", 
-        UNCAPPED_2X: "Mirikaali! 🦈 (2x Uncapped)", 
-        OVERSEAS_2X: "Angrej! ✈️ (2x Overseas)", 
-        FREE_11: "Free 11 🆓 (Zero Sub Cost)", 
-        CAPTAIN_3X: "Hero! 🦸‍♂️ (3x Captain)",
-        MOM_2X: "MOM 2x! 🏆 (2x Man of the Match)"
+        TOTAL_2X: "TOTAL 2X (2X All Players)", 
+        INDIAN_2X: "INDIAN 2X! 🇮🇳 (2x Indian Players)", 
+        OVERSEAS_2X: "OVERSEAS 2X ✈️ (2x Overseas Players)",
+        UNCAPPED_2X: "UNCAPPED 2X 🦈 (2x Uncapped Players)", 
+        CAPTAIN_3X: "Captain 3x (3x Captain)",
+        MOM_2X: "MOM 2x! 🏆 (2x Man of the Match)",
+        FREE_11: "Free 11 🆓 (Zero Sub Cost)",
     };
 
     let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🎯 Tap to Select a Power-Up --</option>`;
