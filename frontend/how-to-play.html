@@ -28,6 +28,53 @@
 
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
 
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            line-height: 1.6;
+            -webkit-tap-highlight-color: transparent;
+            /* --- PREVENTS iOS ZOOMING --- */
+            touch-action: manipulation; 
+        }
+
+        /* --- PREMIUM HEADER --- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-top: 10px; /* Safe space for top screen edge */
+        }
+
+        .back-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:active {
+            transform: scale(0.9);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #fff;
+            font-weight: 800;
+        }
+
         /* TABS */
         .tabs { 
             display: flex; 
@@ -98,10 +145,14 @@
 <body>
 
 <div class="container">
-    <header style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
-        <button onclick="window.location.href='more.html'" style="background: var(--card); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 12px; cursor: pointer; font-size: 16px;">←</button>
-        <h1 style="margin: 0; font-size: 20px; color: #fff;">How to Play</h1>
+    
+<header class="app-header">
+        <button class="back-btn" onclick="window.location.href='more.html'">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <h1>How to Play</h1>
     </header>
+
 
     <div class="tabs">
         <button class="tab-btn active" onclick="showTab('rules', this)">Rules</button>
