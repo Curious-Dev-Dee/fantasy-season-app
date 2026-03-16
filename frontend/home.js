@@ -419,10 +419,10 @@ function setupHomeLeagueListeners(userId) {
     if (!createBtn || !joinBtn) return;
 
     createBtn.onclick = async () => {
-        const name = prompt("Enter a cool name for your League:");
+        // FIXED: Using custom prompt
+        const name = await window.showCustomPrompt("Create League", "Enter a cool name...");
         if (!name) return;
         
-        // Generate unique code
         const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         
         const { data: league, error } = await supabase
@@ -431,16 +431,18 @@ function setupHomeLeagueListeners(userId) {
             .select()
             .single();
 
-        if (error) return alert("Error creating league: " + error.message);
+        // FIXED: Using Toast for errors
+        if (error) return window.showToast("Error creating league: " + error.message, "error");
 
         await supabase.from("league_members").insert([{ league_id: league.id, user_id: userId }]);
         
-        // Refresh the dashboard data immediately
+        window.showToast("League Created! Share your code.", "success");
         fetchPrivateLeagueData(userId);
     };
 
     joinBtn.onclick = async () => {
-        const code = prompt("Enter Invite Code:");
+        // FIXED: Using custom prompt
+        const code = await window.showCustomPrompt("Join League", "Enter Invite Code...");
         if (!code) return;
 
         const { data: league } = await supabase
@@ -449,19 +451,18 @@ function setupHomeLeagueListeners(userId) {
             .eq("invite_code", code.toUpperCase())
             .maybeSingle();
 
-        if (!league) return alert("Invalid Code!");
+        if (!league) return window.showToast("Invalid Code! Double check it.", "error");
 
         const { error } = await supabase
             .from("league_members")
             .insert([{ league_id: league.id, user_id: userId }]);
 
-        if (error) return alert("You're already in this league or it failed.");
+        if (error) return window.showToast("You're already in this league or it failed.", "error");
         
-        // Refresh the dashboard data immediately
+        window.showToast("Joined League Successfully!", "success");
         fetchPrivateLeagueData(userId);
     };
 }
-
 /* =========================
     PROFILE SAVE LOGIC
 ========================= */
@@ -667,3 +668,46 @@ window.addEventListener('click', (event) => {
         profileModal.classList.add("hidden");
     }
 });
+
+// Replaces alert()
+window.showToast = (message, type = 'success') => {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3000); // Disappears after 3 seconds
+};
+
+// Replaces prompt()
+window.showCustomPrompt = (title, placeholder) => {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('customPromptOverlay');
+        const titleEl = document.getElementById('promptTitle');
+        const inputEl = document.getElementById('promptInput');
+        const btnCancel = document.getElementById('promptCancel');
+        const btnConfirm = document.getElementById('promptConfirm');
+
+        if (!overlay) return resolve(null);
+
+        titleEl.textContent = title;
+        inputEl.placeholder = placeholder;
+        inputEl.value = '';
+        overlay.classList.remove('hidden');
+        inputEl.focus();
+
+        const cleanup = () => {
+            overlay.classList.add('hidden');
+            btnCancel.onclick = null;
+            btnConfirm.onclick = null;
+        };
+
+        btnCancel.onclick = () => { cleanup(); resolve(null); };
+        btnConfirm.onclick = () => { cleanup(); resolve(inputEl.value.trim()); };
+    });
+};

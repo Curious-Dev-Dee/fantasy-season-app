@@ -540,3 +540,86 @@ body.loaded #loadingOverlay {
     from { opacity: 0.3; letter-spacing: 4px; }
     to { opacity: 1; letter-spacing: 6px; }
 }
+
+/* --- TOAST NOTIFICATIONS --- */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background: #1e293b;
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    border-left: 4px solid var(--accent, #9AE000);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    animation: slideInRight 0.3s ease forwards;
+    min-width: 250px;
+}
+
+.toast.error {
+    border-left-color: #ef4444; /* Red for errors */
+}
+
+.toast.fade-out {
+    animation: fadeOutToast 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+    to { transform: translateX(120%); opacity: 0; }
+}
+
+/* --- CUSTOM PROMPT MODAL --- */
+.prompt-modal {
+    max-width: 320px;
+    height: auto;
+    border-radius: 20px;
+    padding: 24px;
+    align-self: center; /* Centers vertically in your overlay flexbox */
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-top: none; /* Override standard overlay-content */
+}
+
+.prompt-title { margin: 0; font-size: 16px; color: #fff; text-align: center; font-weight: 800; text-transform: uppercase; }
+
+.prompt-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.prompt-input:focus { border-color: var(--accent, #9AE000); box-shadow: 0 0 8px rgba(154, 224, 0, 0.2); }
+
+.prompt-actions { display: flex; gap: 10px; }
+
+.prompt-actions button {
+    flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; font-size: 13px; text-transform: uppercase;
+}
+
+.btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-confirm { background: var(--accent, #9AE000); color: #000; }

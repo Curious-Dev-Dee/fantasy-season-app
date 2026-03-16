@@ -197,6 +197,19 @@
 
 <div id="notificationPrompt" class="hidden"></div>
 
+<div id="toastContainer" class="toast-container"></div>
+
+<div id="customPromptOverlay" class="overlay hidden" style="z-index: 9999;">
+    <div class="overlay-content prompt-modal">
+        <h3 id="promptTitle" class="prompt-title">Enter Value</h3>
+        <input type="text" id="promptInput" class="prompt-input" placeholder="...">
+        <div class="prompt-actions">
+            <button id="promptCancel" class="btn-cancel">Cancel</button>
+            <button id="promptConfirm" class="btn-confirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
 <nav class="bottom-nav">
   <a href="home.html" class="active"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
