@@ -966,90 +966,122 @@ display:block;
     color: #000;
 }
 
-/* --- BOOSTER UI GAMING DESIGN --- */
-#boosterContainer {
-    margin: 20px 0;
-    padding: 15px;
-    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Dark gaming background */
-    border-radius: 12px;
-    border: 1px solid #3a3a5e;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+/* --- PREMIUM BOOSTER SHELF --- */
+.premium-booster-shelf {
+    padding: 16px 0;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0) 100%);
+    border-radius: 20px;
+    margin: 10px 0;
 }
 
 .booster-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #e0e0e0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    padding: 0 16px 12px;
 }
 
-.booster-count {
-    background-color: #e94560; /* Highlight color */
-    color: white;
+.b-title {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+}
+
+.b-count {
+    font-size: 10px;
+    background: var(--danger-red);
     padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 800;
 }
 
-/* Custom Select Wrapper for the Arrow */
-.select-wrapper {
+/* HORIZONTAL SCROLL */
+.booster-scroll-pane {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 16px 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.booster-scroll-pane::-webkit-scrollbar { display: none; }
+
+/* THE CARD */
+.booster-card {
+    flex: 0 0 130px;
+    height: 150px;
+    background: #1e293b;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
     position: relative;
-    width: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    scroll-snap-align: center;
 }
 
-.select-wrapper::after {
-    content: "▼";
+.booster-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.b-name {
     font-size: 12px;
-    color: #e94560;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.b-desc {
+    font-size: 9px;
+    color: var(--text-dim);
+    line-height: 1.2;
+}
+
+/* ACTIVE STATE (Glow) */
+.booster-card.active {
+    background: linear-gradient(145deg, #9ae00022, #0f172a);
+    border-color: var(--primary-green);
+    box-shadow: 0 0 20px rgba(154, 224, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+.active-badge {
     position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
+    top: -8px;
+    background: var(--primary-green);
+    color: #000;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
-.booster-dropdown {
-    width: 100%;
-    padding: 14px 15px;
-    font-size: 15px;
-    font-weight: bold;
-    color: #ffffff;
-    background-color: #0f3460;
-    border: 2px solid #2a2a4a;
-    border-radius: 8px;
-    cursor: pointer;
-    appearance: none; /* Removes default browser arrow */
-    outline: none;
-    transition: all 0.3s ease;
+/* USED STATE */
+.booster-card.used {
+    opacity: 0.5;
+    filter: grayscale(0.8);
 }
 
-/* When the user clicks the dropdown */
-.booster-dropdown:focus {
-    border-color: #e94560;
-    box-shadow: 0 0 10px rgba(233, 69, 96, 0.4);
+.used-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* The GLOW effect when a booster is actually selected */
-.booster-dropdown.booster-active-glow {
-    border-color: #9AE000; /* Green success color */
-    background-color: rgba(154, 224, 0, 0.1);
-    box-shadow: 0 0 15px rgba(154, 224, 0, 0.3);
-    color: #9AE000;
-}
-
-/* Styling the options inside (Note: Mobile browsers often ignore this and use native OS styling) */
-.booster-dropdown option {
-    background-color: #1a1a2e;
-    color: #ffffff;
-    font-weight: normal;
-}
-
-.booster-dropdown option:disabled {
-    color: #666666;
-    font-style: italic;
+.used-overlay span {
+    transform: rotate(-15deg);
+    border: 1px solid #fff;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 900;
 }

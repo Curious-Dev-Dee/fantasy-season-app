@@ -318,7 +318,6 @@ function renderBoosterUI() {
     const boosterContainer = document.getElementById("boosterContainer");
     if (!boosterContainer) return;
 
-    // Check if we are inside the booster window (e.g., Match 2 to 70)
     const isBoosterWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START && state.currentMatchNumber <= BOOSTER_WINDOW_END;
     if (!isBoosterWindow) { 
         boosterContainer.classList.add("hidden"); 
@@ -327,47 +326,50 @@ function renderBoosterUI() {
     
     boosterContainer.classList.remove("hidden");
 
-    // UPGRADED BOOSTER DICTIONARY
-    const boosterNames = { 
-        TOTAL_2X: "TOTAL 2X (2X All Players)", 
-        INDIAN_2X: "INDIAN 2X! 🇮🇳 (2x Indian Players)", 
-        OVERSEAS_2X: "OVERSEAS 2X ✈️ (2x Overseas Players)",
-        UNCAPPED_2X: "UNCAPPED 2X 🦈 (2x Uncapped Players)", 
-        CAPTAIN_3X: "Captain 3x (3x Captain)",
-        MOM_2X: "MOM 2x! 🏆 (2x Man of the Match)",
-        FREE_11: "Free 11 🆓 (Zero Sub Cost)",
+    const boosterConfigs = {
+        TOTAL_2X: { name: "Total 2X", desc: "All Players 2x", icon: "🚀" },
+        INDIAN_2X: { name: "Indian 2X", desc: "Local Stars 2x", icon: "🇮🇳" },
+        OVERSEAS_2X: { name: "Overseas 2X", desc: "Foreigners 2x", icon: "✈️" },
+        UNCAPPED_2X: { name: "Uncapped 2X", desc: "Youngsters 2x", icon: "🧢" },
+        CAPTAIN_3X: { name: "Captain 3X", desc: "C gets 3x Pts", icon: "👑" },
+        MOM_2X: { name: "MOM 2X", desc: "Match Hero 2x", icon: "🏆" },
+        FREE_11: { name: "Free 11", desc: "Unlimited Subs", icon: "🆓" }
     };
 
-    let optionsHtml = `<option value="NONE" ${state.activeBooster === 'NONE' ? 'selected' : ''}>-- 🚀 Tap to Select a Booster! --</option>`;
-    
-    Object.keys(boosterNames).forEach(key => {
-        const isUsed = state.usedBoosters.includes(key);
-        const isSelected = state.activeBooster === key;
-        
-        // If used, disable it. If selected, mark it.
-        optionsHtml += `<option value="${key}" 
-            ${isUsed && !isSelected ? 'disabled' : ''} 
-            ${isSelected ? 'selected' : ''}>
-            ${isUsed && !isSelected ? '🚫 ' : ''}${boosterNames[key]}
-        </option>`;
-    });
-
-    // NEW: Calculate simulated remaining boosters for instant UI feedback
     const activePenalty = state.activeBooster !== 'NONE' ? 1 : 0;
     const boostersLeft = 7 - state.usedBoosters.length - activePenalty;
 
-    // We add a dynamic class if a booster is active to make the UI "glow"
-    const isActiveClass = state.activeBooster !== 'NONE' ? 'booster-active-glow' : '';
+    let cardsHtml = Object.keys(boosterConfigs).map(key => {
+        const config = boosterConfigs[key];
+        const isUsed = state.usedBoosters.includes(key);
+        const isActive = state.activeBooster === key;
+        
+        let statusClass = "";
+        if (isActive) statusClass = "active";
+        else if (isUsed) statusClass = "used";
+
+        return `
+            <div class="booster-card ${statusClass}" onclick="${isUsed ? '' : `handleBoosterChange('${isActive ? 'NONE' : key}')`}">
+                <div class="booster-icon">${config.icon}</div>
+                <div class="booster-info">
+                    <div class="b-name">${config.name}</div>
+                    <div class="b-desc">${config.desc}</div>
+                </div>
+                ${isActive ? '<div class="active-badge">EQUIPPED</div>' : ''}
+                ${isUsed ? '<div class="used-overlay"><span>USED</span></div>' : ''}
+            </div>
+        `;
+    }).join('');
 
     boosterContainer.innerHTML = `
-        <div class="booster-header">
-            <span>🚀 Available Boosters</span>
-            <span class="booster-count">${boostersLeft}/7 Remaining</span>
-        </div>
-        <div class="select-wrapper">
-            <select id="boosterSelect" class="booster-dropdown ${isActiveClass}" onchange="handleBoosterChange(this.value)">
-                ${optionsHtml}
-            </select>
+        <div class="premium-booster-shelf">
+            <div class="booster-header">
+                <div class="b-title">MATCH BOOSTERS</div>
+                <div class="b-count">${boostersLeft} LEFT</div>
+            </div>
+            <div class="booster-scroll-pane">
+                ${cardsHtml}
+            </div>
         </div>
     `;
 }
