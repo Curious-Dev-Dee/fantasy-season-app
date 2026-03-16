@@ -213,11 +213,11 @@ if (dash && dash.upcoming_match) {
     matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
 
     // --- POPULATE THE VENUE ---
+    // --- POPULATE THE VENUE ---
     const venueElement = document.getElementById("matchVenue");
     if (venueElement) {
-        venueElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${match.venue || 'Venue TBA'}`;
+        venueElement.innerHTML = `🏟️ ${match.venue || 'Venue TBA'}`;
     }
-
     // Get Storage Bucket Instance
     const bucket = supabase.storage.from("team-logos");
 
