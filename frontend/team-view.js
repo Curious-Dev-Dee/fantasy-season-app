@@ -89,7 +89,7 @@ function createRoleTitle(role) {
     return title;
 }
 
-function getBoostedBasePoints(player, basePoints, booster) {
+function getBoostedBasePoints(player, basePoints, booster, momId = null) {
     switch (booster) {
         case "TOTAL_2X":
             return basePoints * 2;
@@ -97,28 +97,40 @@ function getBoostedBasePoints(player, basePoints, booster) {
             return player.category === "overseas" ? basePoints * 2 : basePoints;
         case "UNCAPPED_2X":
             return player.category === "uncapped" ? basePoints * 2 : basePoints;
-        case "CAPPED_2X":
-            return player.category === "none" ? basePoints * 2 : basePoints;
+        case "INDIAN_2X": // FIXED: Changed from CAPPED_2X to match the database
+            return (player.category === "none" || player.category === "uncapped") ? basePoints * 2 : basePoints;
+        case "MOM_2X": // FIXED: Added MOM logic
+            return player.id === momId ? basePoints * 2 : basePoints;
         default:
             return basePoints;
     }
 }
 
-function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster) {
+function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, momId = null) {
     const appliedBooster = getAppliedBooster({ active_booster: booster });
     const basePoints = statsMap?.[player.id] || 0;
-    let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster);
+    
+    // 1. Get their base points (boosted if applicable)
+    let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster, momId);
 
+    // 2. Did this specific player get boosted?
+    const gotBoosted = totalPoints > basePoints; 
+
+    // 3. Apply Captain / VC Math
     if (player.id === captainId) {
-        if (appliedBooster === "CAPTAIN_3X" || appliedBooster === "TOTAL_2X") {
-            totalPoints += basePoints * 2;
+        if (appliedBooster === "CAPTAIN_3X") {
+            totalPoints += (basePoints * 2); // Base + 2x Bonus = 3x
+        } else if (gotBoosted) {
+            totalPoints += (basePoints * 2); // If base doubled, bonus doubles = 4x
         } else {
-            totalPoints += basePoints;
+            totalPoints += basePoints;       // Normal 2x
         }
     } else if (player.id === viceCaptainId) {
-        totalPoints += appliedBooster === "TOTAL_2X"
-            ? Math.floor(basePoints * 0.5) * 2
-            : Math.floor(basePoints * 0.5);
+        if (gotBoosted) {
+            totalPoints += Math.floor(basePoints * 0.5) * 2; // Double the VC bonus
+        } else {
+            totalPoints += Math.floor(basePoints * 0.5);     // Normal 1.5x
+        }
     }
 
     return totalPoints;
