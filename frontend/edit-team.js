@@ -66,14 +66,19 @@ async function init(user) {
             { data: dashData },
             { data: boosterData },
             { data: lastLock },
-            { data: currentTeam }
+            { data: currentTeam },
+            { data: realTeamsData } // <--- ADDED THIS
         ] = await Promise.all([
             supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", activeTournamentId),
             supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
             supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
             supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).eq("tournament_id", activeTournamentId).neq("match_id", currentMatchId).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
             supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
+            supabase.from("real_teams").select("id, name, short_code, photo_name") // <--- ADDED THIS QUERY
         ]);
+
+        // Save it to state so we can use it for the filter!
+        state.realTeamsMap = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
 
         state.allPlayers = players || [];
         state.baseSubsRemaining = dashData?.subs_remaining ?? 130;
@@ -490,15 +495,7 @@ window.handleBoosterChange = async (val) => {
 };
 
 function initFilters() {
-    const teams = [];
-    const seenTeams = new Set();
-    state.allPlayers.forEach(p => {
-        if(!seenTeams.has(p.real_team_id)) {
-            seenTeams.add(p.real_team_id);
-            teams.push({ id: p.real_team_id, label: p.team_short_code });
-        }
-    });
-    renderCheckboxDropdown('teamMenu', teams, 'teams', (t) => t.label);
+    renderTeamDropdown();
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
 renderMatchDropdown();    const playerTypes = [
@@ -577,6 +574,49 @@ function renderMatchDropdown() {
         <div class="dropdown-content match-filter-grid">${listHtml}</div>
         <div class="dropdown-actions">
             <button onclick="clearFilters('matches')">Clear</button>
+            <button onclick="closeFilters()">Apply</button>
+        </div>
+    `;
+}
+
+window.toggleTeamFilterCard = (teamId, element) => {
+    if (state.filters.teams.includes(teamId)) {
+        state.filters.teams = state.filters.teams.filter(id => id !== teamId);
+        element.classList.remove('selected');
+    } else {
+        state.filters.teams.push(teamId);
+        element.classList.add('selected');
+    }
+    render(); // Updates the player list instantly
+};
+
+function renderTeamDropdown() {
+    const container = document.getElementById('teamMenu');
+    if(!container) return;
+    
+    const bucket = supabase.storage.from("team-logos");
+
+    // Get the unique team IDs that actually have players in the pool
+    const uniqueTeamIds = [...new Set(state.allPlayers.map(p => p.real_team_id))];
+
+    const listHtml = uniqueTeamIds.map(teamId => {
+        const isSelected = state.filters.teams.includes(teamId);
+        const teamInfo = state.realTeamsMap[teamId] || { name: 'Unknown', short_code: 'UNK' };
+        
+        const logoUrl = teamInfo.photo_name ? bucket.getPublicUrl(teamInfo.photo_name).data.publicUrl : 'images/default-team.png';
+
+        return `
+            <div class="team-filter-card ${isSelected ? 'selected' : ''}" onclick="toggleTeamFilterCard('${teamId}', this)">
+                <div class="tfc-logo" style="background-image: url('${logoUrl}')"></div>
+                <div class="tfc-name">${teamInfo.name} (${teamInfo.short_code})</div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `
+        <div class="dropdown-content team-filter-grid">${listHtml}</div>
+        <div class="dropdown-actions">
+            <button onclick="clearFilters('teams')">Clear</button>
             <button onclick="closeFilters()">Apply</button>
         </div>
     `;
