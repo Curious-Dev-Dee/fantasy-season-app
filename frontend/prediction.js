@@ -286,8 +286,19 @@ window.openPodiumComments = async (podiumType) => {
         `);
     }
 
-    document.getElementById("chatTitle").innerText = `${podiumType.toUpperCase()} BANTER`;
-    document.getElementById("chatDrawer").classList.remove("hidden");
+// --- Find this line and replace it ---
+    // document.getElementById("chatTitle").innerText = `${podiumType.toUpperCase()} BANTER`;
+
+    // --- Replace with this: ---
+    let displayTitle = "Comments";
+    if (podiumType === 'player' || podiumType === 'players') {
+        displayTitle = "Top Players Banter";
+    } else if (podiumType === 'user' || podiumType === 'users') {
+        displayTitle = "Top Expert Teams Banter";
+    }
+    
+    document.getElementById("chatTitle").innerText = displayTitle.toUpperCase();
+        document.getElementById("chatDrawer").classList.remove("hidden");
     document.getElementById("chatMessages").innerHTML = `<div class="loading-chat">Loading...</div>`;
     window.currentChatContext = podiumType;
 

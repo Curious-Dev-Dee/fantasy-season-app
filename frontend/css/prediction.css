@@ -202,42 +202,54 @@ body {
 
 /* The Bubble Shape */
 .chat-bubble { 
-    padding: 8px 14px; 
+    padding: 10px 14px; 
     border-radius: 16px; 
     font-size: 13px; 
     display: inline-block;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* Their Bubble Styling (Dark Blue) */
+/* Their Bubble Styling (Left) */
 .theirs .chat-bubble { 
-    background: #1e293b; 
+    background: #1e293b; /* Dark slate background */
     border-bottom-left-radius: 4px; 
-    color: #f8fafc;
+    color: #ffffff; /* White message text */
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* My Bubble Styling (Brand Green) */
+/* My Bubble Styling (Right) */
 .mine .chat-bubble { 
-    background: var(--primary-green); 
+    background: #020617; /* Extra dark background so neon green pops */
     border-bottom-right-radius: 4px; 
-    color: #000;
+    color: #ffffff; /* White message text */
+    border: 1px solid rgba(154, 224, 0, 0.3); /* Subtle neon green border */
 }
 
 /* Team Name Styling inside bubble */
 .chat-name { 
     font-size: 11px; 
     font-weight: 900; 
-    margin-bottom: 4px; 
+    margin-bottom: 5px; 
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
-/* Name colors for contrast */
-.theirs .chat-name { color: var(--primary-green); }
-.mine .chat-name { color: #064e3b; /* Darker green for contrast on light green */ }
+/* Name colors for perfect contrast */
+.theirs .chat-name { 
+    color: #00e5ff; /* Neon Cyan/Blue */ 
+    text-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+}
+.mine .chat-name { 
+    color: var(--primary-green); /* Neon Green */ 
+    text-shadow: 0 0 5px rgba(154, 224, 0, 0.3);
+}
 
+/* The actual message text */
 .chat-text { 
-    font-weight: 600; 
+    font-weight: 500; 
     word-wrap: break-word; 
-    line-height: 1.3;
+    line-height: 1.4;
+    color: #f8fafc; /* Crisp white */
 }
 
 /* Input Area */
