@@ -133,27 +133,29 @@ async function fetchHomeData(userId) {
         .eq('user_id', userId)
         .maybeSingle();
 
-    if (profile) {
-        existingProfile = profile;
-        if (!profile.profile_completed) {
-            if (profileModal) {
-                profileModal.classList.remove("hidden");
-                const closeBtn = document.getElementById("closeProfileModal");
-                if (closeBtn) closeBtn.style.display = "none"; 
-                profileModal.setAttribute('data-forced', 'true');
-            }
-        }
+    existingProfile = profile; // Save to global state whether it exists or not
 
-        const firstName = profile.full_name ? profile.full_name.split(" ")[0] : "Expert";
-        welcomeText.textContent = `Welcome back, ${firstName}!`;
-        teamNameElement.textContent = profile.team_name || "Set your team name";
-        
-        if (profile.team_photo_url) {
-            const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url);
-            avatarElement.style.backgroundImage = `url(${imgData.publicUrl})`;
+    // THE FIX: If profile is null OR not completed, force the modal open!
+    if (!profile || !profile.profile_completed) {
+        if (profileModal) {
+            profileModal.classList.remove("hidden");
+            const closeBtn = document.getElementById("closeProfileModal");
+            if (closeBtn) closeBtn.style.display = "none"; 
+            profileModal.setAttribute('data-forced', 'true');
         }
     }
 
+    // Safely update UI
+    const firstName = profile?.full_name ? profile.full_name.split(" ")[0] : "Expert";
+    welcomeText.textContent = `Welcome back, ${firstName}!`;
+    teamNameElement.textContent = profile?.team_name || "Set your team name";
+    
+    if (profile?.team_photo_url) {
+        const { data: imgData } = supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url);
+        avatarElement.style.backgroundImage = `url(${imgData.publicUrl})`;
+    }
+    
+    // ... [keep the rest of your IPL Dashboard Stats logic exactly the same] ...
     // 2. IPL Dashboard Stats
     // We query the view, but we must ensure it targets our active tournament
     const [{ data: dash }, { data: boosterData }] = await Promise.all([
@@ -238,15 +240,14 @@ if (boosterStatusEl) {
 
 // ... (KEEP your loadLeaderboardPreview, fetchPrivateLeagueData, and other functions exactly as they were)
 async function loadLeaderboardPreview() {
-    // 1. Fetch top 3 users from the overall leaderboard view
     const { data: lb } = await supabase
         .from("leaderboard_view")
         .select("team_name, total_points, rank, user_id")
         .order("rank", { ascending: true })
         .limit(3);
     
-    if (lb) {
-        leaderboardContainer.innerHTML = ''; // Clear "Updating..." text
+    if (lb && lb.length > 0) {
+        leaderboardContainer.innerHTML = ''; // Clear the "Updating..." text
         
         lb.forEach(row => {
             const rowDiv = document.createElement('div');
@@ -269,12 +270,16 @@ async function loadLeaderboardPreview() {
             
             leaderboardContainer.appendChild(rowDiv);
         });
+    } else {
+        // THE FIX: Graceful empty state before Match 1 happens
+        leaderboardContainer.innerHTML = '<p style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px 0; margin: 0;">Rankings will appear after Match 1!</p>';
+    }
 
-        // 2. Update the "YOUR RANK" badge in the section header
-        const rankHeader = document.getElementById("overallUserRank");
-        if (rankHeader) {
-            rankHeader.textContent = rankElement.textContent;
-        }
+    // 2. Update the "YOUR RANK" badge in the section header
+    // Moved outside the if/else so it always runs!
+    const rankHeader = document.getElementById("overallUserRank");
+    if (rankHeader) {
+        rankHeader.textContent = rankElement?.textContent || "--";
     }
 }
 
@@ -522,7 +527,7 @@ if (saveProfileBtn) {
             // 4. Update User Profile in Database
             const { error: updateError } = await supabase
                 .from('user_profiles')
-                .update(updatePayload)
+                .upsert(updatePayload)
                 .eq('user_id', currentUserId);
 
             if (updateError) throw updateError;
