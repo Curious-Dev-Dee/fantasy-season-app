@@ -45,24 +45,43 @@ async function init() {
 function renderLeaderboard(leaderboard, userId, avatarMap) {
     if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
 
+    // THE FIX: Handle Day 1 elegantly
+    if (leaderboard.length === 0) {
+        podiumContainer.innerHTML = '<p style="color:#94a3b8; margin: auto; padding: 20px;">No rankings available yet.</p>';
+        leaderboardContainer.innerHTML = '';
+        leaderboardSummary.textContent = "Rankings will appear after Match 1.";
+        return;
+    }
+
     const top3 = leaderboard.slice(0, 3);
+    // ... [rest of the function continues normally]
+    
     const remaining = leaderboard.slice(3);
 
     const p2 = top3[1] || { team_name: "TBA", total_points: 0, rank: 2, user_id: null };
     const p1 = top3[0] || { team_name: "TBA", total_points: 0, rank: 1, user_id: null };
     const p3 = top3[2] || { team_name: "TBA", total_points: 0, rank: 3, user_id: null };
 
-    podiumContainer.replaceChildren();
+podiumContainer.replaceChildren();
     
+    // THE FIX: explicitly map the visual position (pos) separate from the database rank!
+    const podiumPositions = [
+        { pos: 2, user: p2 },
+        { pos: 1, user: p1 },
+        { pos: 3, user: p3 }
+    ];
+
     // Create the Podium
-    [p2, p1, p3].forEach((user) => {
+    podiumPositions.forEach(({ pos, user }) => {
         const card = document.createElement("div");
-        card.className = `podium-card rank-${user.rank}`; // Used for CSS styling
+        // Use 'pos' so the CSS layout NEVER breaks, even during a tie!
+        card.className = `podium-card rank-${pos}`; 
         card.onclick = () => window.scoutUser(user.user_id, user.team_name || "Anonymous");
 
         const rankBadge = document.createElement("div");
         rankBadge.className = "rank-badge";
-        rankBadge.textContent = String(user.rank);
+        // Print the actual database rank (or default to pos if TBA)
+        rankBadge.textContent = String(user.rank || pos);
 
         const avatar = document.createElement("div");
         avatar.className = "podium-avatar";
@@ -74,7 +93,8 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
             const photoPath = avatarMap.get(user.user_id);
             if (photoPath) {
                 const { data } = supabase.storage.from("team-avatars").getPublicUrl(photoPath);
-                avatar.style.backgroundImage = `url('${data.publicUrl}?t=${Date.now()}')`;
+                // THE FIX: Removed the Date.now() cache-buster!
+                avatar.style.backgroundImage = `url('${data.publicUrl}')`;
             }
         }
 

@@ -138,7 +138,11 @@ body {
 /* DISABLE STATE */
 select:disabled { opacity: 0.7; color: var(--text-slate); cursor: not-allowed; border-color: transparent; }
 
-/* --- PODIUM FIREWORKS BACKGROUND --- */
+/* =========================
+   RICH ACHIEVEMENT PODIUM
+========================= */
+
+/* The Container gets a subtle glowing energy field */
 #podiumContainer {
     display: flex;
     justify-content: space-around;
@@ -147,69 +151,131 @@ select:disabled { opacity: 0.7; color: var(--text-slate); cursor: not-allowed; b
     margin-bottom: 20px;
     position: relative;
     border-radius: 20px;
-    background: #0f172a;
+    background: radial-gradient(circle, #1a2942 0%, #0f172a 100%); /* Subtle central focus */
     overflow: hidden;
-    /* This creates a dark gradient base */
     box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
 }
 
-/* --- PARTY POPPER / FIREWORK SPARK BURSTS --- */
-#podiumContainer::before,
-#podiumContainer::after {
-    content: '';
-    position: absolute;
-    bottom: 10px;
-    width: 6px;
-    height: 6px;
+/* Subtle upward flowing particles background - can be done with a small image or complex keyframes */
+/* Let's keep it simple and powerful with sophisticated glows */
+
+/* Define Keyframes for the pulsing aura */
+@keyframes pulseAura {
+    0%, 100% {
+        box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 25px 10px rgba(255, 255, 255, 0.6);
+    }
+}
+
+@keyframes pulseGoldAura {
+    0%, 100% {
+        box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 35px 15px rgba(255, 215, 0, 0.7);
+    }
+}
+
+/* Ensure the podium cards sit on top of any background and have the hover effect */
+.podium-card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 15px 5px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.podium-card:hover { transform: translateY(-5px); }
+
+/* Apply order and refine vertical step-down heights */
+/* Rank 1 is centered (order 2), highest, and gets the intense gold aura */
+.podium-card.rank-1 {
+    order: 2;
+    transform: translateY(-20px); /* Enhanced visual separation */
+    height: 170px; /* Slightly taller for dominance */
+    background: linear-gradient(180deg, #1e293b 0%, #0c1117 100%);
+    border-color: #ffd700; /* Gold */
+    animation: pulseGoldAura 2s infinite ease-in-out;
+}
+
+/* Rank 2 is on the left (order 1), and slightly lower than Rank 1 */
+.podium-card.rank-2 {
+    order: 1;
+    transform: translateY(-8px); /* Clear step down from Rank 1, slightly higher than Rank 3 */
+    border-color: #e2e8f0; /* Silver */
+    animation: pulseAura 2.5s infinite ease-in-out;
+    /* Redefining aura color inside animation with a subtle overlay color is tricky.
+       A simple pulsing aura for all top 3 is cleaner than separate keyframes for each.
+       Let's stick to simple, powerful pulsing for now. */
+}
+
+/* Rank 3 is on the right (order 3), lowest overall */
+.podium-card.rank-3 {
+    order: 3;
+    transform: translateY(0px); /* Absolute baseline for the top 3 */
+    border-color: #cd7f32; /* Bronze */
+    animation: pulseAura 3s infinite ease-in-out;
+}
+
+/* --- DYNAMIC NEON AVATAR RINGS (Simplified from old) --- */
+.podium-avatar {
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    /* Each line here is a literal spark/confetti piece shooting out! */
-    box-shadow: 
-        -30px -80px 0 2px #ffd700,
-        20px -100px 0 1px #00f2ff,
-        -50px -120px 0 2px #ff4757,
-        10px -140px 0 3px #9AE000,
-        40px -70px 0 1px #ffd700,
-        -70px -90px 0 2px #00f2ff,
-        60px -110px 0 1px #ff4757,
-        -20px -60px 0 2px #9AE000,
-        0px -130px 0 2px #ffd700,
-        -40px -100px 0 1px #00f2ff,
-        50px -130px 0 2px #ff4757,
-        30px -90px 0 1px #9AE000,
-        -10px -160px 0 2px #ffd700,
-        -60px -60px 0 1px #ff4757,
-        80px -80px 0 2px #00f2ff;
-    animation: partyPopper 2.5s infinite cubic-bezier(0.25, 1, 0.5, 1);
-    z-index: 0;
-    pointer-events: none;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    margin-bottom: 12px;
+}
+.podium-card.rank-1 .podium-avatar {
+    width: 80px;
+    height: 80px;
+    border: 3px solid #ffd700; /* Gold */
+    box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.6);
+}
+.podium-card.rank-2 .podium-avatar {
+    border: 3px solid #e2e8f0; /* Silver */
+    box-shadow: 0 0 15px 5px rgba(226, 232, 240, 0.6);
+}
+.podium-card.rank-3 .podium-avatar {
+    border: 3px solid #cd7f32; /* Bronze */
+    box-shadow: 0 0 15px 5px rgba(205, 127, 50, 0.6);
 }
 
-/* Fire from the left side */
-#podiumContainer::before {
-    left: 20%;
+/* Rank text badge refined to be smaller and sit centrally */
+.rank-badge {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    z-index: 2;
+    border: 2px solid #0f172a;
 }
+.podium-card.rank-1 .rank-badge { background: #ffd700; }
+.podium-card.rank-2 .rank-badge { background: #e2e8f0; }
+.podium-card.rank-3 .rank-badge { background: #cd7f32; }
 
-/* Fire from the right side (delayed so they alternate) */
-#podiumContainer::after {
-    right: 20%;
-    animation-delay: 1.25s;
-    transform: scaleX(-1); /* Flips the particle pattern */
-}
+/* Podium text styling remains the same but with enhanced hierarchy */
+.podium-name { font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.podium-pts { font-size: 14px; font-weight: 900; color: #9AE000; }
 
-@keyframes partyPopper {
-    0% {
-        transform: scale(0.1) translateY(50px);
-        opacity: 1;
-    }
-    60% {
-        opacity: 1;
-    }
-    100% {
-        /* Scales the explosion outward and floats upward */
-        transform: scale(2.8) translateY(-80px);
-        opacity: 0;
-    }
-}
 /* Ensure the podium cards sit ON TOP of the fireworks */
 .podium-card {
     position: relative;
