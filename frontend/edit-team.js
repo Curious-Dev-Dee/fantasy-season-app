@@ -327,13 +327,13 @@ function renderBoosterUI() {
     boosterContainer.classList.remove("hidden");
 
     const boosterConfigs = {
-        TOTAL_2X: { name: "Total 2X", desc: "All Players 2x", icon: "🚀" },
-        INDIAN_2X: { name: "Indian 2X", desc: "Local Stars 2x", icon: "🇮🇳" },
-        OVERSEAS_2X: { name: "Overseas 2X", desc: "Foreigners 2x", icon: "✈️" },
-        UNCAPPED_2X: { name: "Uncapped 2X", desc: "Youngsters 2x", icon: "🧢" },
-        CAPTAIN_3X: { name: "Captain 3X", desc: "C gets 3x Pts", icon: "👑" },
-        MOM_2X: { name: "MOM 2X", desc: "Match Hero 2x", icon: "🏆" },
-        FREE_11: { name: "Free 11", desc: "Unlimited Subs", icon: "🆓" }
+        TOTAL_2X: { name: "Total 2X", icon: "🚀" },
+        INDIAN_2X: { name: "Indian 2X", icon: "🇮🇳" },
+        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" },
+        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
+        CAPTAIN_3X: { name: "Captain 3X",  icon: "👑" },
+        MOM_2X: { name: "MOM 2X", icon: "🏆" },
+        FREE_11: { name: "Free 11", icon: "🆓" }
     };
 
     const activePenalty = state.activeBooster !== 'NONE' ? 1 : 0;
