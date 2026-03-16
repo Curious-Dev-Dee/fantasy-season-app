@@ -88,6 +88,55 @@ async function loadPodiums() {
 
     } catch (err) { console.error("Podium Error:", err); }
 }
+
+function renderPodium(data, containerId, type) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!data || data.length < 1) {
+        container.innerHTML = `<p style="color:#475569; font-size:12px; text-align:center; width:100%;">Awaiting Results...</p>`;
+        return;
+    }
+
+    // Olympic Order: 2nd, 1st, 3rd
+    const order = [data[1], data[0], data[2]].filter(Boolean);
+    container.replaceChildren();
+
+    order.forEach((item) => {
+        const rank = item === data[0] ? 1 : (item === data[1] ? 2 : 3);
+        
+        let name = "Unknown";
+        let subText = "";
+        let pts = 0;
+        let photoPath = null;
+
+        if (type === "player") {
+            name = item.players?.name?.split(" ").pop();
+            pts = `${item.fantasy_points} pts`;
+            photoPath = item.players?.photo_url ? supabase.storage.from("player-photos").getPublicUrl(item.players.photo_url).data.publicUrl : DEFAULT_AVATAR;
+        } else if (type === "user") {
+            name = item.user_profiles?.team_name;
+            subText = `<div class="podium-league">${item.league_name || 'Global'}</div>`;
+            pts = `${item.total_points} pts`;
+            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
+        } else if (type === "guru") {
+            name = item.user_profiles?.team_name;
+            pts = `${item.prediction_stars || 1} ⭐`;
+            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
+        }
+
+        container.innerHTML += `
+            <div class="podium-item rank-${rank}">
+                <div class="podium-name">${name}</div>
+                ${subText}
+                <div class="podium-avatar-wrapper">
+                    <img src="${photoPath}" class="podium-img" alt="${name}">
+                    <div class="rank-badge">${rank}</div>
+                </div>
+                <div class="podium-pts">${pts}</div>
+            </div>
+        `;
+    });
+}
 /* ==========================================
    SECTION 2: PREDICTION ENGINE & STARS
 ========================================== */
