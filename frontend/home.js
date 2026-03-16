@@ -177,11 +177,23 @@ async function fetchHomeData(userId) {
  /* =========================
        IPL 2026 DASHBOARD RENDER
     ========================= */
+    /* =========================
+       IPL 2026 DASHBOARD RENDER
+    ========================= */
     if (dash) {
         // 1. Update Scores and Ranks
         scoreElement.textContent = dash.total_points || 0;
-        rankElement.textContent = (dash.user_rank && dash.user_rank > 0) ? `#${dash.user_rank}` : "--";
+        
+        // Format the rank properly
+        const displayRank = (dash.user_rank && dash.user_rank > 0) ? `#${dash.user_rank}` : "--";
+        
+        // Update BOTH rank elements directly from the database data!
+        if (rankElement) rankElement.textContent = displayRank;
+        
+        const overallRankHeader = document.getElementById("overallUserRank");
+        if (overallRankHeader) overallRankHeader.textContent = displayRank;
 
+        // ... [The rest of your subs and match logic stays exactly the same]
         // 2. Substitution Logic (Handling the 999 "Magic Number")
         const match = dash.upcoming_match;
         
@@ -273,15 +285,7 @@ async function loadLeaderboardPreview() {
     } else {
         // THE FIX: Graceful empty state before Match 1 happens
         leaderboardContainer.innerHTML = '<p style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px 0; margin: 0;">Rankings will appear after Match 1!</p>';
-    }
-
-    // 2. Update the "YOUR RANK" badge in the section header
-    // Moved outside the if/else so it always runs!
-    const rankHeader = document.getElementById("overallUserRank");
-    if (rankHeader) {
-        rankHeader.textContent = rankElement?.textContent || "--";
-    }
-}
+    }};
 
 async function fetchPrivateLeagueData(userId) {
     const card = document.getElementById('privateLeagueCard');
