@@ -1130,3 +1130,12 @@ display:block;
 .toast.fade-out {
     animation: fadeOutToast 0.3s ease forwards;
 }
+
+@keyframes slideInRight {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+    to { transform: translateX(120%); opacity: 0; }
+}
