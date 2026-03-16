@@ -62,7 +62,7 @@ async function loadPlayerStats() {
 
 function renderStats(data) {
     if (data.length === 0) {
-        statsContainer.innerHTML = `<div class="empty-state">No performance data found.</div>`;
+        statsContainer.innerHTML = `<div class="empty-state">No player found.</div>`;
         return;
     }
 
@@ -113,10 +113,37 @@ function renderStats(data) {
 
 function renderDetailedHistoryItem(m) {
     const log = [];
-    if (m.runs > 0) log.push(`${m.runs} Runs`);
-    if (m.wickets > 0) log.push(`${m.wickets} Wkts`);
-    if (m.catches > 0) log.push(`${m.catches} Cth`);
-    if (m.is_player_of_match) log.push(`POM 🏆`);
+    
+    // --- BATTING STATS ---
+    if (m.runs > 0) {
+        // Show balls faced if available, e.g., "40 Runs (20b)"
+        const ballsText = m.balls ? ` (${m.balls}b)` : '';
+        log.push(`<span class="stat-tag bat">🏏 ${m.runs} Runs${ballsText}</span>`);
+    }
+    if (m.fours > 0 || m.sixes > 0) {
+        log.push(`<span class="stat-tag boundary">🎯 ${m.fours || 0}x4, ${m.sixes || 0}x6</span>`);
+    }
+    if (m.sr_points && m.sr_points !== 0) {
+        log.push(`<span class="stat-tag bonus">⚡ SR ${m.sr_points > 0 ? '+' : ''}${m.sr_points}</span>`);
+    }
+    if (m.duck_penalty && m.duck_penalty < 0) {
+        log.push(`<span class="stat-tag penalty">🦆 Duck ${m.duck_penalty}</span>`);
+    }
+    
+    // --- BOWLING STATS ---
+    if (m.wickets > 0) log.push(`<span class="stat-tag bowl">🎳 ${m.wickets} Wkts</span>`);
+    if (m.maidens > 0) log.push(`<span class="stat-tag bowl">🧱 ${m.maidens} Mdn</span>`);
+    if (m.er_points && m.er_points !== 0) {
+        log.push(`<span class="stat-tag bonus">📉 Econ ${m.er_points > 0 ? '+' : ''}${m.er_points}</span>`);
+    }
+    
+    // --- FIELDING STATS ---
+    if (m.catches > 0) log.push(`<span class="stat-tag field">🧤 ${m.catches} Cth</span>`);
+    if (m.stumpings > 0) log.push(`<span class="stat-tag field">🏃‍♂️ ${m.stumpings} Stmp</span>`);
+    if (m.run_outs && m.run_outs > 0) log.push(`<span class="stat-tag field">🎯 ${m.run_outs} RO</span>`);
+    
+    // --- AWARDS ---
+    if (m.is_player_of_match) log.push(`<span class="stat-tag gold">🏆 POM</span>`);
 
     // Senior UI Tip: Highlight big games (100+ points)
     const isBigGame = m.fantasy_points >= 100;
@@ -127,8 +154,8 @@ function renderDetailedHistoryItem(m) {
                 <span>Match ${m.match?.match_number || '#'}</span>
                 <span class="h-pts">${isBigGame ? '🌟 ' : ''}+${m.fantasy_points} pts</span>
             </div>
-            <div class="log-items">
-                ${log.length > 0 ? log.map(item => `<span>${item}</span>`).join('') : '<span>Played</span>'}
+            <div class="detailed-stat-grid">
+                ${log.length > 0 ? log.join('') : '<span class="stat-tag empty">Played</span>'}
             </div>
         </div>
     `;

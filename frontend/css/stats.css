@@ -325,3 +325,74 @@ body {
     to { transform: rotate(360deg); } 
 }
 
+
+/* =========================
+   DETAILED STATS GRID
+========================= */
+.detailed-stat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.stat-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    letter-spacing: 0.3px;
+    border: 1px solid transparent;
+}
+
+/* Color Theory for Quick Scanning */
+.stat-tag.bat {
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8; /* Light Blue */
+    border-color: rgba(56, 189, 248, 0.2);
+}
+
+.stat-tag.boundary {
+    background: rgba(56, 189, 248, 0.05);
+    color: #7dd3fc;
+    border-color: rgba(56, 189, 248, 0.1);
+}
+
+.stat-tag.bowl {
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e; /* Rose Red */
+    border-color: rgba(244, 63, 94, 0.2);
+}
+
+.stat-tag.field {
+    background: rgba(167, 139, 250, 0.1);
+    color: #a78bfa; /* Purple */
+    border-color: rgba(167, 139, 250, 0.2);
+}
+
+.stat-tag.bonus {
+    background: rgba(154, 224, 0, 0.1);
+    color: var(--accent); /* Neon Green */
+    border-color: rgba(154, 224, 0, 0.3);
+}
+
+.stat-tag.penalty {
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff4d4d;
+    border-color: rgba(255, 0, 0, 0.3);
+}
+
+.stat-tag.gold {
+    background: rgba(255, 215, 0, 0.1);
+    color: #ffd700;
+    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.stat-tag.empty {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    border-color: var(--border);
+}
