@@ -55,7 +55,7 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
 
     const top3 = leaderboard.slice(0, 3);
     // ... [rest of the function continues normally]
-    
+
     const remaining = leaderboard.slice(3);
 
     const p2 = top3[1] || { team_name: "TBA", total_points: 0, rank: 2, user_id: null };
@@ -157,3 +157,153 @@ window.scoutUser = (uid, name) => {
     if (!uid || uid === "undefined" || uid === "null") return;
     window.location.href = `team-view.html?uid=${uid}&name=${encodeURIComponent(name)}`;
 };
+
+/* =========================
+   LIVE CHAT MODULE
+========================= */
+let chatSubscription = null;
+let chatUserId = null;
+let currentLeagueId = null;
+
+// Get DOM Elements
+const chatFab = document.getElementById("chatFab");
+const chatBackdrop = document.getElementById("chatBackdrop");
+const chatPanel = document.getElementById("chatPanel");
+const closeChatBtn = document.getElementById("closeChatBtn");
+const chatMessages = document.getElementById("chatMessages");
+const chatForm = document.getElementById("chatForm");
+const chatInput = document.getElementById("chatInput");
+const chatTitle = document.getElementById("chatTitle");
+const unreadBadge = document.getElementById("unreadBadge");
+
+// 1. Initialize Chat
+async function initChat() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    chatUserId = session.user.id;
+
+    // Grab the league ID from the URL (null if Global)
+    const urlParams = new URLSearchParams(window.location.search);
+    currentLeagueId = urlParams.get("league_id");
+
+    // Update Title
+    chatTitle.textContent = currentLeagueId ? "League Banter" : "Global Banter";
+
+    // UI Listeners
+    chatFab.onclick = () => {
+        chatPanel.classList.add("show");
+        chatBackdrop.classList.remove("hidden");
+        unreadBadge.classList.add("hidden"); // Clear badge
+        setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 100);
+    };
+
+    const closeChat = () => {
+        chatPanel.classList.remove("show");
+        chatBackdrop.classList.add("hidden");
+    };
+    closeChatBtn.onclick = closeChat;
+    chatBackdrop.onclick = closeChat;
+
+    // Send Message Logic
+    chatForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const msg = chatInput.value.trim();
+        if (!msg) return;
+
+        chatInput.value = ""; // Clear input immediately for UX
+        
+        // Optimistic UI: Draw it locally right away
+        renderMessage({ user_id: chatUserId, message: msg, user_profiles: { team_name: "You" } }, true);
+
+        // Send to Database
+        await supabase.from("game_chat").insert([{
+            user_id: chatUserId,
+            message: msg,
+            league_id: currentLeagueId // Perfectly maps to your schema!
+        }]);
+    };
+
+    loadChatHistory();
+    subscribeToChat();
+}
+
+// 2. Load History
+async function loadChatHistory() {
+    let query = supabase
+        .from("game_chat")
+        .select("user_id, message, created_at, user_profiles(team_name)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+    // Route query to correct room using your schema
+    if (currentLeagueId) {
+        query = query.eq("league_id", currentLeagueId);
+    } else {
+        query = query.is("league_id", null);
+    }
+
+    const { data } = await query;
+    chatMessages.innerHTML = ""; // Clear spinner
+    
+    if (data && data.length > 0) {
+        // Reverse so newest is at the bottom
+        data.reverse().forEach(msg => renderMessage(msg, false));
+    } else {
+        chatMessages.innerHTML = '<p style="color:#64748b; text-align:center; font-size:12px; margin-top:20px;">Be the first to talk trash!</p>';
+    }
+}
+
+// 3. Render Message
+function renderMessage(msgData, isOptimistic = false) {
+    const isMe = msgData.user_id === chatUserId;
+    const senderName = isMe ? "You" : (msgData.user_profiles?.team_name || "Expert");
+
+    // Remove the empty state text if it exists
+    if (chatMessages.innerHTML.includes("Be the first")) {
+        chatMessages.innerHTML = "";
+    }
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `chat-msg ${isMe ? "me" : "them"}`;
+    
+    // Only show sender name if it's someone else
+    const nameHtml = !isMe ? `<div class="msg-sender">${senderName}</div>` : '';
+    
+    msgDiv.innerHTML = `
+        ${nameHtml}
+        <div class="msg-bubble">${msgData.message}</div>
+    `;
+
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+}
+
+// 4. Real-time Subscription
+function subscribeToChat() {
+    chatSubscription = supabase
+        .channel('public:game_chat')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'game_chat' }, async (payload) => {
+            const newMsg = payload.new;
+            
+            // Client-side room filter
+            const isMatch = currentLeagueId ? (newMsg.league_id === currentLeagueId) : (newMsg.league_id === null);
+            
+            // Don't render if it's not for this room, or if I just sent it (Optimistic UI already drew it)
+            if (!isMatch || newMsg.user_id === chatUserId) return;
+
+            // Fetch the sender's name
+            const { data: profile } = await supabase.from('user_profiles').select('team_name').eq('user_id', newMsg.user_id).single();
+            newMsg.user_profiles = profile;
+
+            renderMessage(newMsg, false);
+
+            // If panel is closed, show the red unread dot!
+            if (!chatPanel.classList.contains("show")) {
+                unreadBadge.classList.remove("hidden");
+            }
+        })
+        .subscribe();
+}
+
+// Start the engine
+document.addEventListener("DOMContentLoaded", initChat);

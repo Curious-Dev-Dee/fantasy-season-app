@@ -28,11 +28,28 @@
     </main>
 </div>
 
-<nav class="bottom-nav">
-  <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Play</span></a>
-</nav>
+
+<button id="chatFab" class="chat-fab">
+    <i class="fas fa-comment-dots"></i>
+    <span id="unreadBadge" class="unread-badge hidden"></span>
+</button>
+
+<div id="chatBackdrop" class="chat-backdrop hidden"></div>
+<div id="chatPanel" class="chat-panel bottom-sheet">
+    <div class="chat-header">
+        <h3 id="chatTitle">Global Banter</h3>
+        <button id="closeChatBtn" class="close-chat"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div id="chatMessages" class="chat-messages">
+        <div class="spinner-small" style="margin: auto;"></div>
+    </div>
+    
+    <form id="chatForm" class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Send a message..." autocomplete="off" maxlength="150" required>
+        <button type="submit" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+    </form>
+</div>
 
 <script type="module" src="leaderboard.js?v=1.0"></script>
 </body>
