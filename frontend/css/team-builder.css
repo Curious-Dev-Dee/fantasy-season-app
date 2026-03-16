@@ -966,6 +966,126 @@ display:block;
     color: #000;
 }
 
+/* --- PREMIUM BOOSTER SHELF --- */
+.premium-booster-shelf {
+    padding: 16px 0;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0) 100%);
+    border-radius: 20px;
+    margin: 10px 0;
+}
+
+.booster-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 16px 12px;
+}
+
+.b-title {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+}
+
+.b-count {
+    font-size: 10px;
+    background: var(--danger-red);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 800;
+}
+
+/* HORIZONTAL SCROLL */
+.booster-scroll-pane {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 16px 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.booster-scroll-pane::-webkit-scrollbar { display: none; }
+
+/* THE CARD */
+.booster-card {
+    flex: 0 0 130px;
+    height: 150px;
+    background: #1e293b;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    scroll-snap-align: center;
+}
+
+.booster-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.b-name {
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.b-desc {
+    font-size: 9px;
+    color: var(--text-dim);
+    line-height: 1.2;
+}
+
+/* ACTIVE STATE (Glow) */
+.booster-card.active {
+    background: linear-gradient(145deg, #9ae00022, #0f172a);
+    border-color: var(--primary-green);
+    box-shadow: 0 0 20px rgba(154, 224, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+.active-badge {
+    position: absolute;
+    top: -8px;
+    background: var(--primary-green);
+    color: #000;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* USED STATE */
+.booster-card.used {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+}
+
+.used-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.used-overlay span {
+    transform: rotate(-15deg);
+    border: 1px solid #fff;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 900;
+}
+
 /* --- TIGHT BOOSTER SECTION --- */
 .booster-section-compact {
     padding: 8px 0; /* Reduced top/bottom padding */
