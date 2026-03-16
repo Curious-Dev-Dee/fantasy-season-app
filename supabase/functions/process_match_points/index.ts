@@ -152,11 +152,16 @@ serve(async (req) => {
       if (rawOvers >= 2) {
         const trueOvers = getTrueOvers(rawOvers);
         const rpo = Number(p.runs_conceded || 0) / trueOvers;
-        if (rpo < 5) er_pts = 8;
-        else if (rpo < 6) er_pts = 6;
-        else if (rpo <= 7) er_pts = 4;
-        else if (rpo > 12) er_pts = -6;
-        else if (rpo > 11) er_pts = -4;
+        
+        // New Economy Logic
+        if (rpo <= 6.0) {
+            er_pts = 8;
+        } else if (rpo <= 9.0) {
+            er_pts = 4;
+        } else {
+            er_pts = -4;
+        }
+        
         pts += er_pts;
       }
 
