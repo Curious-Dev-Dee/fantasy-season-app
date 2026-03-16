@@ -40,7 +40,8 @@ async function signInWithGoogle() {
         btnText.textContent = "Continue with Google";
         spinner?.classList.add("hidden");
         
-        errorEl.textContent = "Connection failed. Check your internet.";
+        // Show the actual Supabase error if it exists, otherwise use the fallback
+        errorEl.textContent = err.message || "Connection failed. Check your internet.";
         errorEl.style.display = "block";
     }
 }
