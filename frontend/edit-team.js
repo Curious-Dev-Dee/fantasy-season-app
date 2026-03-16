@@ -202,7 +202,7 @@ function render() {
         const bPri = b.real_team_id === nextMatch.team_a_id ? 1 : b.real_team_id === nextMatch.team_b_id ? 2 : 3;
         return aPri - bPri || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.credit - a.credit;
     });
-    
+
     renderList("myXIList", sortedMyXI, true, stats);
     renderList("playerPoolList", filteredPool, false, stats);
     updateSaveButton(stats, isOverLimit, liveSubsRemaining);
@@ -212,12 +212,16 @@ function render() {
    LISTENERS (Search/Filters Fixed)
 ========================= */
 function setupListeners() {
-    // 1. Search Logic
+    // 1. Upgraded Search Logic with Debounce!
     const searchInput = document.getElementById("playerSearch");
+    let searchTimeout;
     if(searchInput) {
         searchInput.oninput = (e) => { 
-            state.filters.search = e.target.value; 
-            render(); 
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                state.filters.search = e.target.value; 
+                render(); 
+            }, 300); // Waits 300ms before doing the heavy lifting
         };
     }
 
@@ -280,7 +284,7 @@ function setupListeners() {
             });
             if (error) throw error;
             showSuccessModal();
-        } catch (err) { alert(err.message); }
+        } catch (err) { window.showToast(err.message, "error"); }
         finally { state.saving = false; render(); }
     };
 }
@@ -310,8 +314,7 @@ function renderList(containerId, list, isMyXi, stats) {
 const category = (p.category || "").toLowerCase(); // Safety check
         return `
             <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
-                <div class="avatar-container"><img src="${photoUrl}" class="player-avatar"></div>
-                <div class="player-info">
+<div class="avatar-container"><img src="${photoUrl}" class="player-avatar" loading="lazy"></div>                <div class="player-info">
 <strong>
                 ${p.name} 
                 ${category === 'overseas' ? '<span class="category-emoji">✈️</span>' : ''}
@@ -414,9 +417,10 @@ window.setRole = (id, type) => {
 window.handleBoosterChange = (val) => {
     if (val === "NONE") { state.activeBooster = "NONE"; render(); return; }
     if (confirm(`Apply booster?`)) state.activeBooster = val;
+state.activeBooster = val;
+    window.showToast("Booster Applied!", "success");
     render();
 };
-
 function initFilters() {
     const teams = [];
     const seenTeams = new Set();
@@ -583,6 +587,21 @@ function updateSaveButton(stats, isOverLimit, liveSubs) {
 }
 
 function showSuccessModal() {
-    alert("Team Saved Successfully!");
-    window.location.href = "home.html";
+    window.showToast("Team Saved Successfully!", "success");
+    setTimeout(() => {
+        window.location.href = "home.html";
+    }, 1500); // Give them 1.5s to read the toast before leaving
 }
+
+window.showToast = (message, type = 'success') => {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3000); 
+};
