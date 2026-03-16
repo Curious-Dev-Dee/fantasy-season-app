@@ -148,10 +148,15 @@ body {
     margin: 0;
     text-transform: uppercase;
 }
-
-.modal-header, .chat-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px; border-bottom: 1px solid var(--border-color);
+/* Make sure the header looks perfectly aligned with the new title */
+.chat-header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 16px; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0b0f14;
+    border-radius: 20px 20px 0 0;
 }
 .close-btn { background: transparent; color: var(--text-dim); border: none; font-size: 24px; cursor: pointer; }
 
