@@ -354,7 +354,6 @@ window.loadComments = async (podiumType) => {
 };
 
 function setupRealtimeChat(podiumType) {
-    // Kill existing connection if one is stuck open
     if (chatSubscription) supabase.removeChannel(chatSubscription);
 
     chatSubscription = supabase.channel('public:podium_comments')
@@ -365,10 +364,26 @@ function setupRealtimeChat(podiumType) {
             filter: `match_id=eq.${currentMatchId}` 
         }, async (payload) => {
             
-            // Ignore if we already rendered this exact message via Optimistic UI
+            // 1. Normal deduplication (if DB response finished first)
             if (document.querySelector(`.chat-wrapper[data-id="${payload.new.id}"]`)) return;
 
-            // Fetch the team name for the incoming message
+            // 2. RACE CONDITION FIX (Laptop is too fast!)
+            // If it's your message, check if there's a temporary bubble with the exact same text
+            if (payload.new.user_id === currentUserId) {
+                // Safely escape quotes in the text for the selector
+                const safeText = payload.new.comment.replace(/"/g, '\\"');
+                const tempMsg = document.querySelector(`.temp-msg[data-text="${safeText}"]`);
+                
+                if (tempMsg) {
+                    // Match found! Upgrade the temp bubble with the real DB ID and stop.
+                    tempMsg.setAttribute('data-id', payload.new.id);
+                    tempMsg.classList.remove('temp-msg');
+                    tempMsg.removeAttribute('id');
+                    return; 
+                }
+            }
+
+            // If it's truly a new message from someone else (or a recovered one), draw it
             const { data: profile } = await supabase.from('user_profiles').select('team_name').eq('user_id', payload.new.user_id).maybeSingle();
             
             const newComment = {
@@ -385,7 +400,6 @@ function setupRealtimeChat(podiumType) {
             chatBox.insertAdjacentHTML('beforeend', createChatBubbleHtml(newComment));
             chatBox.scrollTop = chatBox.scrollHeight;
             
-            // Limit DOM to 100 bubbles so the phone doesn't lag if they chat for hours
             while (chatBox.children.length > 100) {
                 chatBox.removeChild(chatBox.firstChild);
             }
@@ -398,9 +412,9 @@ window.postComment = async () => {
     const text = input.value.trim();
     if (!text) return;
 
-    input.value = ""; // Clear instantly for snappy feel
+    input.value = ""; // Clear instantly
+    const safeTextAttr = text.replace(/"/g, '&quot;'); // Prevent HTML breaks
 
-    // 1. Optimistic UI: Show instantly without waiting for DB
     const { data: myProfile } = await supabase.from("user_profiles").select("team_name").eq("user_id", currentUserId).maybeSingle();
     const tempId = 'temp-' + Date.now();
     
@@ -408,8 +422,9 @@ window.postComment = async () => {
     const emptyMsg = chatBox.querySelector('.empty-chat');
     if (emptyMsg) emptyMsg.remove();
 
+    // Added the 'temp-msg' class and 'data-text' attribute here!
     chatBox.insertAdjacentHTML('beforeend', `
-        <div class="chat-wrapper mine" id="${tempId}">
+        <div class="chat-wrapper mine temp-msg" id="${tempId}" data-text="${safeTextAttr}">
             <div class="chat-bubble">
                 <div class="chat-name">${myProfile?.team_name || "You"}</div>
                 <div class="chat-text">${text}</div>
@@ -418,7 +433,6 @@ window.postComment = async () => {
     `);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 2. Save to database
     const { data: insertedData, error } = await supabase.from("podium_comments").insert({
         match_id: currentMatchId,
         podium_type: window.currentChatContext,
@@ -426,12 +440,12 @@ window.postComment = async () => {
         comment: text
     }).select();
 
-    // 3. Update the temporary ID with the real Database ID so Realtime doesn't duplicate it
     if (!error && insertedData && insertedData.length > 0) {
         const tempBubble = document.getElementById(tempId);
         if (tempBubble) {
             tempBubble.setAttribute('data-id', insertedData[0].id);
             tempBubble.removeAttribute('id');
+            tempBubble.classList.remove('temp-msg'); // Clean up the temp tag
         }
     }
 };
