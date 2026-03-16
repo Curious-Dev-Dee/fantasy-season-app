@@ -262,12 +262,20 @@ window.showGuruLeaderboard = async () => {
 
 
 /* ==========================================
-   SECTION 5: ENGAGING CHAT INTERFACE
+   SECTION 5: REAL-TIME ENGAGING CHAT
 ========================================== */
-window.openPodiumComments = async (podiumType) => {
-    if (!currentMatchId && podiumType !== 'gurus') return alert("No recent match to comment on!");
+let chatSubscription = null; // Holds our live connection
 
-    // Lock the background scroll!
+window.openPodiumComments = async (podiumType) => {
+    // 1. Block Top Players Podium
+    if (podiumType !== 'user' && podiumType !== 'users') {
+        alert("Banter is only available for the Top Expert Teams!");
+        return;
+    }
+
+    if (!currentMatchId) return alert("No recent match to comment on!");
+
+    // Lock the background scroll
     document.body.style.overflow = 'hidden';
 
     // Inject Chat UI if it doesn't exist
@@ -276,7 +284,7 @@ window.openPodiumComments = async (podiumType) => {
             <div id="chatDrawer" class="chat-drawer-overlay hidden">
                 <div class="chat-drawer">
                     <div class="chat-header">
-                        <h3 id="chatTitle">Comments</h3>
+                        <h3 id="chatTitle">TOP EXPERTS BANTER</h3>
                         <button onclick="closeChatDrawer()" class="close-btn">×</button>
                     </div>
                     <div id="chatMessages" class="chat-messages"></div>
@@ -289,93 +297,141 @@ window.openPodiumComments = async (podiumType) => {
         `);
     }
 
-    let displayTitle = "Comments";
-    if (podiumType === 'player' || podiumType === 'players') {
-        displayTitle = "Top Players Banter";
-    } else if (podiumType === 'user' || podiumType === 'users') {
-        displayTitle = "Top Expert Teams Banter";
-    }
-    
-    document.getElementById("chatTitle").innerText = displayTitle.toUpperCase();
     document.getElementById("chatDrawer").classList.remove("hidden");
     document.getElementById("chatMessages").innerHTML = `<div class="loading-chat">Loading...</div>`;
     window.currentChatContext = podiumType;
 
     await loadComments(podiumType);
+    setupRealtimeChat(podiumType); // Start listening for live messages!
 };
 
-// NEW FUNCTION: Closes the chat AND unlocks the background scroll
+// Closes chat, unlocks scroll, and kills the live connection to save battery/data
 window.closeChatDrawer = () => {
     const drawer = document.getElementById('chatDrawer');
-    if (drawer) {
-        drawer.classList.add('hidden');
-    }
-    // Unlock the background scroll!
+    if (drawer) drawer.classList.add('hidden');
     document.body.style.overflow = '';
+    
+    if (chatSubscription) {
+        supabase.removeChannel(chatSubscription);
+        chatSubscription = null;
+    }
 };
+
+// Helper function to draw a single chat bubble
+function createChatBubbleHtml(c) {
+    const isMe = c.user_id === currentUserId;
+    const teamName = c.user_profiles?.team_name || "Unknown";
+    return `
+        <div class="chat-wrapper ${isMe ? 'mine' : 'theirs'}" data-id="${c.id}">
+            <div class="chat-bubble">
+                <div class="chat-name">${teamName}</div>
+                <div class="chat-text">${c.comment}</div>
+            </div>
+        </div>
+    `;
+}
 
 window.loadComments = async (podiumType) => {
     const { data: comments } = await supabase
         .from("podium_comments")
-        .select("comment, created_at, user_id, user_profiles(team_name)")
+        .select("id, comment, created_at, user_id, user_profiles(team_name)")
         .eq("podium_type", podiumType)
-        .eq(podiumType !== 'gurus' ? "match_id" : "user_id", podiumType !== 'gurus' ? currentMatchId : currentUserId) 
-        .order("created_at", { ascending: true });
+        .eq("match_id", currentMatchId) 
+        .order("created_at", { ascending: false }) // Fetch newest first
+        .limit(100); // Limit to exactly 100 recent messages
 
     const chatBox = document.getElementById("chatMessages");
     if (!comments || comments.length === 0) {
-        chatBox.innerHTML = `<div class="empty-chat">No comments yet. Start the banter!</div>`;
+        chatBox.innerHTML = `<div class="empty-chat">No banter yet. Start the trash talk!</div>`;
         return;
     }
 
-    chatBox.innerHTML = comments.map(c => {
-        const isMe = c.user_id === currentUserId;
-        return `
-            <div class="chat-wrapper ${isMe ? 'mine' : 'theirs'}">
-                <div class="chat-bubble">
-                    <div class="chat-name">${c.user_profiles?.team_name || "Unknown"}</div>
-                    <div class="chat-text">${c.comment}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    // Auto-scroll to the newest message at the bottom
+    // Reverse them so the oldest of the 100 is at the top, newest at bottom
+    comments.reverse();
+
+    chatBox.innerHTML = comments.map(c => createChatBubbleHtml(c)).join('');
     chatBox.scrollTop = chatBox.scrollHeight; 
 };
+
+function setupRealtimeChat(podiumType) {
+    // Kill existing connection if one is stuck open
+    if (chatSubscription) supabase.removeChannel(chatSubscription);
+
+    chatSubscription = supabase.channel('public:podium_comments')
+        .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'podium_comments',
+            filter: `match_id=eq.${currentMatchId}` 
+        }, async (payload) => {
+            
+            // Ignore if we already rendered this exact message via Optimistic UI
+            if (document.querySelector(`.chat-wrapper[data-id="${payload.new.id}"]`)) return;
+
+            // Fetch the team name for the incoming message
+            const { data: profile } = await supabase.from('user_profiles').select('team_name').eq('user_id', payload.new.user_id).maybeSingle();
+            
+            const newComment = {
+                id: payload.new.id,
+                user_id: payload.new.user_id,
+                comment: payload.new.comment,
+                user_profiles: { team_name: profile?.team_name || "Unknown" }
+            };
+
+            const chatBox = document.getElementById("chatMessages");
+            const emptyMsg = chatBox.querySelector('.empty-chat');
+            if (emptyMsg) emptyMsg.remove();
+
+            chatBox.insertAdjacentHTML('beforeend', createChatBubbleHtml(newComment));
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Limit DOM to 100 bubbles so the phone doesn't lag if they chat for hours
+            while (chatBox.children.length > 100) {
+                chatBox.removeChild(chatBox.firstChild);
+            }
+        })
+        .subscribe();
+}
 
 window.postComment = async () => {
     const input = document.getElementById("chatInput");
     const text = input.value.trim();
     if (!text) return;
 
-    input.value = ""; // Clear immediately for snappy feel
-    const podiumType = window.currentChatContext;
+    input.value = ""; // Clear instantly for snappy feel
 
-    // Fetch your own team name so it shows instantly when you post
+    // 1. Optimistic UI: Show instantly without waiting for DB
     const { data: myProfile } = await supabase.from("user_profiles").select("team_name").eq("user_id", currentUserId).maybeSingle();
-    const myTeamName = myProfile?.team_name || "You";
-
-    // Optimistic UI update (shows comment instantly)
+    const tempId = 'temp-' + Date.now();
+    
     const chatBox = document.getElementById("chatMessages");
     const emptyMsg = chatBox.querySelector('.empty-chat');
     if (emptyMsg) emptyMsg.remove();
 
     chatBox.insertAdjacentHTML('beforeend', `
-        <div class="chat-wrapper mine">
+        <div class="chat-wrapper mine" id="${tempId}">
             <div class="chat-bubble">
-                <div class="chat-name">${myTeamName}</div>
+                <div class="chat-name">${myProfile?.team_name || "You"}</div>
                 <div class="chat-text">${text}</div>
             </div>
         </div>
     `);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Save to database in the background
-    await supabase.from("podium_comments").insert({
+    // 2. Save to database
+    const { data: insertedData, error } = await supabase.from("podium_comments").insert({
         match_id: currentMatchId,
-        podium_type: podiumType,
+        podium_type: window.currentChatContext,
         user_id: currentUserId,
         comment: text
-    });
+    }).select();
+
+    // 3. Update the temporary ID with the real Database ID so Realtime doesn't duplicate it
+    if (!error && insertedData && insertedData.length > 0) {
+        const tempBubble = document.getElementById(tempId);
+        if (tempBubble) {
+            tempBubble.setAttribute('data-id', insertedData[0].id);
+            tempBubble.removeAttribute('id');
+        }
+    }
 };
