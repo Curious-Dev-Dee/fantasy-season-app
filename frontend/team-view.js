@@ -127,7 +127,8 @@ function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptain
         }
     } else if (player.id === viceCaptainId) {
         if (gotBoosted) {
-            totalPoints += Math.floor(basePoints * 0.5) * 2; // Double the VC bonus
+            // FIXED: Halve the actual boosted total, not the base!
+            totalPoints += Math.floor(totalPoints * 0.5); 
         } else {
             totalPoints += Math.floor(basePoints * 0.5);     // Normal 1.5x
         }
@@ -658,10 +659,17 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
 function setupHistoryListeners() {
     if (!historyBtn) return;
 
-    historyBtn.onclick = async () => {
-        historyOverlay.classList.remove("hidden");
-        setSpinner(historyList);
+    
+let isFetchingHistory = false;
 
+    historyBtn.onclick = async () => {
+        if (isFetchingHistory) return; // Stop double-taps!
+        isFetchingHistory = true;
+        document.body.style.overflow = 'hidden'; // LOCK SCROLL
+        historyOverlay.classList.remove("hidden");
+        // ... rest of the function
+        setSpinner(historyList);
+        try {
         // 🟢 ADDED: Fetching man_of_the_match_id inside matches()
         const { data: history } = await supabase
             .from("user_match_teams")
@@ -712,15 +720,28 @@ function setupHistoryListeners() {
                 momId // 🟢 Passed momId
             );
 
-            historyList.appendChild(createHistoryRow(snapshot, matchTotals.get(snapshot.match_id) ?? fallbackTotal));
+      historyList.appendChild(createHistoryRow(snapshot, matchTotals.get(snapshot.match_id) ?? fallbackTotal));
         });
+        } finally {
+            isFetchingHistory = false; // Unlock it when done!
+        }
     };
 
-    document.getElementById("closeHistory").onclick = () => historyOverlay.classList.add("hidden");
-    document.getElementById("closePPL").onclick = () => document.getElementById("playerPointLogOverlay").classList.add("hidden");
-    document.getElementById("backToHistory").onclick = () => document.getElementById("breakdownOverlay").classList.add("hidden");
+ document.getElementById("closeHistory").onclick = () => {
+        historyOverlay.classList.add("hidden");
+        document.body.style.overflow = ''; // UNLOCK SCROLL
+    };
+    
+    document.getElementById("closePPL").onclick = () => {
+        document.getElementById("playerPointLogOverlay").classList.add("hidden");
+        // Keep locked if breakdown is still open behind it
+    };
+    
+    document.getElementById("backToHistory").onclick = () => {
+        document.getElementById("breakdownOverlay").classList.add("hidden");
+        // Keep locked because History is still open behind it
+    };
 }
-
 /* =========================
    OVERLAY HANDLERS
 ========================= */
