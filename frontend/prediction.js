@@ -297,7 +297,7 @@ window.openPodiumComments = async (podiumType) => {
 window.loadComments = async (podiumType) => {
     const { data: comments } = await supabase
         .from("podium_comments")
-        .select("comment, created_at, user_id, user_profiles(team_name, team_photo_url)")
+        .select("comment, created_at, user_id, user_profiles(team_name)")
         .eq("podium_type", podiumType)
         .eq(podiumType !== 'gurus' ? "match_id" : "user_id", podiumType !== 'gurus' ? currentMatchId : currentUserId) 
         .order("created_at", { ascending: true });
@@ -310,18 +310,18 @@ window.loadComments = async (podiumType) => {
 
     chatBox.innerHTML = comments.map(c => {
         const isMe = c.user_id === currentUserId;
-        const avatar = c.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(c.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
         return `
             <div class="chat-wrapper ${isMe ? 'mine' : 'theirs'}">
-                ${!isMe ? `<img src="${avatar}" class="chat-avatar">` : ''}
                 <div class="chat-bubble">
-                    ${!isMe ? `<div class="chat-name">${c.user_profiles?.team_name}</div>` : ''}
+                    <div class="chat-name">${c.user_profiles?.team_name || "Unknown"}</div>
                     <div class="chat-text">${c.comment}</div>
                 </div>
             </div>
         `;
     }).join('');
-    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+    
+    // Auto-scroll to the newest message at the bottom
+    chatBox.scrollTop = chatBox.scrollHeight; 
 };
 
 window.postComment = async () => {
@@ -332,18 +332,26 @@ window.postComment = async () => {
     input.value = ""; // Clear immediately for snappy feel
     const podiumType = window.currentChatContext;
 
-    // Optimistic UI update (shows comment instantly before saving to DB)
+    // Fetch your own team name so it shows instantly when you post
+    const { data: myProfile } = await supabase.from("user_profiles").select("team_name").eq("user_id", currentUserId).maybeSingle();
+    const myTeamName = myProfile?.team_name || "You";
+
+    // Optimistic UI update (shows comment instantly)
     const chatBox = document.getElementById("chatMessages");
     const emptyMsg = chatBox.querySelector('.empty-chat');
     if (emptyMsg) emptyMsg.remove();
 
     chatBox.insertAdjacentHTML('beforeend', `
         <div class="chat-wrapper mine">
-            <div class="chat-bubble"><div class="chat-text">${text}</div></div>
+            <div class="chat-bubble">
+                <div class="chat-name">${myTeamName}</div>
+                <div class="chat-text">${text}</div>
+            </div>
         </div>
     `);
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // Save to database in the background
     await supabase.from("podium_comments").insert({
         match_id: currentMatchId,
         podium_type: podiumType,

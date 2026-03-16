@@ -157,20 +157,120 @@ body {
 .guru-stars { font-weight: 900; background: rgba(154, 224, 0, 0.1); color: var(--primary-green); padding: 4px 8px; border-radius: 8px; }
 
 /* --- LIVE CHAT DRAWER --- */
-.chat-drawer { background: #0f172a; border-radius: 20px 20px 0 0; height: 75vh; display: flex; flex-direction: column; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.empty-chat { text-align: center; color: var(--text-dim); margin-top: 40px; font-weight: 600; }
+.chat-drawer { 
+    background: #0f172a; 
+    border-radius: 20px 20px 0 0; 
+    height: 75vh; 
+    display: flex; 
+    flex-direction: column; 
+}
 
-.chat-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; }
-.chat-wrapper.theirs { align-self: flex-start; }
-.chat-wrapper.mine { align-self: flex-end; }
+.chat-messages { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+}
 
-.chat-avatar { width: 28px; height: 28px; border-radius: 50%; }
-.chat-bubble { padding: 10px 14px; border-radius: 16px; font-size: 13px; }
-.theirs .chat-bubble { background: #1e293b; border-bottom-left-radius: 4px; }
-.mine .chat-bubble { background: var(--primary-green); color: #000; border-bottom-right-radius: 4px; font-weight: 600; }
-.chat-name { font-size: 10px; color: var(--primary-green); font-weight: 800; margin-bottom: 4px; }
+.empty-chat { 
+    text-align: center; 
+    color: var(--text-dim); 
+    margin-top: 40px; 
+    font-weight: 600; 
+}
 
-.chat-input-area { display: flex; padding: 12px 16px; background: #0b0f14; border-top: 1px solid var(--border-color); gap: 10px; }
-#chatInput { flex: 1; background: #1e293b; border: 1px solid var(--border-color); color: #fff; padding: 12px 16px; border-radius: 20px; outline: none; }
-.send-btn { background: var(--primary-green); color: #000; border: none; width: 42px; height: 42px; border-radius: 50%; font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+/* Base Wrapper for aligning left/right */
+.chat-wrapper { 
+    display: flex; 
+    flex-direction: column; 
+    max-width: 80%; 
+}
+
+/* Theirs: Left side */
+.chat-wrapper.theirs { 
+    align-self: flex-start; 
+    align-items: flex-start;
+}
+
+/* Mine: Right side */
+.chat-wrapper.mine { 
+    align-self: flex-end; 
+    align-items: flex-end;
+}
+
+/* The Bubble Shape */
+.chat-bubble { 
+    padding: 8px 14px; 
+    border-radius: 16px; 
+    font-size: 13px; 
+    display: inline-block;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Their Bubble Styling (Dark Blue) */
+.theirs .chat-bubble { 
+    background: #1e293b; 
+    border-bottom-left-radius: 4px; 
+    color: #f8fafc;
+}
+
+/* My Bubble Styling (Brand Green) */
+.mine .chat-bubble { 
+    background: var(--primary-green); 
+    border-bottom-right-radius: 4px; 
+    color: #000;
+}
+
+/* Team Name Styling inside bubble */
+.chat-name { 
+    font-size: 11px; 
+    font-weight: 900; 
+    margin-bottom: 4px; 
+}
+
+/* Name colors for contrast */
+.theirs .chat-name { color: var(--primary-green); }
+.mine .chat-name { color: #064e3b; /* Darker green for contrast on light green */ }
+
+.chat-text { 
+    font-weight: 600; 
+    word-wrap: break-word; 
+    line-height: 1.3;
+}
+
+/* Input Area */
+.chat-input-area { 
+    display: flex; 
+    padding: 12px 16px; 
+    background: #0b0f14; 
+    border-top: 1px solid var(--border-color); 
+    gap: 10px; 
+}
+
+#chatInput { 
+    flex: 1; 
+    background: #1e293b; 
+    border: 1px solid var(--border-color); 
+    color: #fff; 
+    padding: 12px 16px; 
+    border-radius: 20px; 
+    outline: none; 
+    font-weight: 600;
+}
+
+.send-btn { 
+    background: var(--primary-green); 
+    color: #000; 
+    border: none; 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%; 
+    font-size: 16px; 
+    font-weight: 900; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
