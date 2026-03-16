@@ -414,13 +414,81 @@ window.setRole = (id, type) => {
     render();
 };
 
-window.handleBoosterChange = (val) => {
-    if (val === "NONE") { state.activeBooster = "NONE"; render(); return; }
-    if (confirm(`Apply booster?`)) state.activeBooster = val;
-state.activeBooster = val;
-    window.showToast("Booster Applied!", "success");
-    render();
+// --- 1. BULLETPROOF TOAST ---
+window.showToast = (message, type = 'success') => {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    
+    // Guaranteed to remove after 3 seconds, no CSS keyframes required!
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(120%)';
+        setTimeout(() => toast.remove(), 300); // Wait for the visual fade out
+    }, 3000); 
 };
+
+// --- 2. CUSTOM CONFIRM MODAL ---
+window.showConfirm = (title, message) => {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('customConfirmOverlay');
+        const titleEl = document.getElementById('confirmTitle');
+        const textEl = document.getElementById('confirmText');
+        const btnCancel = document.getElementById('confirmCancelBtn');
+        const btnApply = document.getElementById('confirmApplyBtn');
+
+        if (!overlay) return resolve(true); // Safety fallback
+
+        titleEl.textContent = title;
+        textEl.textContent = message;
+        overlay.classList.remove('hidden');
+
+        const cleanup = () => {
+            overlay.classList.add('hidden');
+            btnCancel.onclick = null;
+            btnApply.onclick = null;
+        };
+
+        btnCancel.onclick = () => { cleanup(); resolve(false); }; // User clicked Cancel
+        btnApply.onclick = () => { cleanup(); resolve(true); };   // User clicked Apply
+    });
+};
+
+// --- 3. UPDATED BOOSTER LOGIC ---
+// Notice the 'async' added here!
+window.handleBoosterChange = async (val) => {
+    if (val === "NONE") { 
+        state.activeBooster = "NONE"; 
+        render(); 
+        return; 
+    }
+
+    // A map to get the pretty name for the UI
+    const boosterNames = {
+        TOTAL_2X: "Total 2X", INDIAN_2X: "Indian 2X", OVERSEAS_2X: "Overseas 2X",
+        UNCAPPED_2X: "Uncapped 2X", CAPTAIN_3X: "Captain 3X", MOM_2X: "MOM 2X", FREE_11: "Free 11"
+    };
+    
+    const prettyName = boosterNames[val] || val;
+
+    // Trigger our custom popup and wait for their answer
+    const isConfirmed = await window.showConfirm(
+        `Apply ${prettyName} Booster?`, 
+        "Note: You can only use this booster once and once the team locks you cannot undo!"
+    );
+
+    // If they clicked Apply, update state and show the toast!
+    if (isConfirmed) {
+        state.activeBooster = val;
+        window.showToast(`${prettyName} applied successfully!`, "success");
+        render();
+    }
+    // If they clicked Cancel, the state remains unchanged.
+};
+
 function initFilters() {
     const teams = [];
     const seenTeams = new Set();

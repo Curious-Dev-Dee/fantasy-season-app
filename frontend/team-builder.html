@@ -309,6 +309,17 @@ SAVE TEAM
 
 <div id="toastContainer" class="toast-container"></div>
 
+<div id="customConfirmOverlay" class="filter-backdrop hidden" style="z-index: 9999; display: flex; align-items: center; justify-content: center;">
+    <div style="background: #0f172a; width: 85%; max-width: 320px; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+        <h3 id="confirmTitle" style="margin: 0; font-size: 16px; color: #9AE000; text-align: center; font-weight: 900; text-transform: uppercase;">Apply Booster?</h3>
+        <p id="confirmText" style="font-size: 13px; color: #94a3b8; text-align: center; margin: 0; line-height: 1.4;"></p>
+        <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <button id="confirmCancelBtn" style="flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; font-size: 13px; background: #334155; color: #fff;">CANCEL</button>
+            <button id="confirmApplyBtn" style="flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; font-size: 13px; background: #9AE000; color: #000;">APPLY</button>
+        </div>
+    </div>
+</div>
+
 <script type="module" src="edit-team.js"></script>
 
 </body>
