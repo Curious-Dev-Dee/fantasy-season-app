@@ -253,14 +253,24 @@ body {
     font-size: 14px;
 }
 
-/* Empty State */
+/* --- PREMIUM EMPTY STATE --- */
 .empty-state {
     text-align: center;
-    padding: 40px;
+    padding: 60px 20px;
     color: var(--text-dim);
     font-size: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    margin-top: 20px;
 }
-
+.empty-state::before {
+    content: "🏏";
+    display: block;
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
 /* Loader Styling */
 .premium-loader { 
     display: none; 

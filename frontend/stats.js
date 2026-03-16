@@ -134,8 +134,20 @@ function renderDetailedHistoryItem(m) {
     `;
 }
 
-// Event Listeners
-searchInput.addEventListener("input", () => loadPlayerStats());
+// --- EVENT LISTENERS ---
+let searchTimeout;
+
+searchInput.addEventListener("input", () => {
+    // Clear the previous timer if they are still typing
+    clearTimeout(searchTimeout);
+    
+    // Wait 400ms after they stop typing before hitting the database
+    searchTimeout = setTimeout(() => {
+        loadPlayerStats();
+    }, 400);
+});
+
 teamFilter.addEventListener("change", () => loadPlayerStats());
 matchFilter.addEventListener("change", () => loadPlayerStats());
+
 initStats();
