@@ -31,6 +31,9 @@ async function init() {
 /* ==========================================
    SECTION 1: THE PODIUMS
 ========================================== */
+/* ==========================================
+   SECTION 1: THE PODIUMS
+========================================== */
 async function loadPodiums() {
     try {
         const { data: lastMatch } = await supabase.from("matches")
@@ -59,32 +62,7 @@ async function loadPodiums() {
         }
         renderPodium(users, "userPodium", "user");
 
-        // 3. TOP PREDICTION GURUS (Who got it right in the LAST MATCH!)
-        const { data: correctPredictions } = await supabase.from("user_predictions")
-            .select("user_id, user_profiles(team_name, team_photo_url)")
-            .eq("match_id", lastMatch.id)
-            .eq("points_earned", 1) // Only those who predicted the winner correctly
-            .order("created_at", { ascending: true }) // Fastest predictors win the tie
-            .limit(3);
-
-        let gurus = [];
-        if (correctPredictions && correctPredictions.length > 0) {
-            const userIds = correctPredictions.map(p => p.user_id);
-            // Fetch their total stars to display on the podium
-            const { data: userStars } = await supabase.from("user_tournament_points")
-                .select("user_id, prediction_stars")
-                .eq("tournament_id", currentTournamentId)
-                .in("user_id", userIds);
-
-            gurus = correctPredictions.map(p => {
-                const starData = userStars?.find(s => s.user_id === p.user_id);
-                return {
-                    user_profiles: p.user_profiles,
-                    prediction_stars: starData ? starData.prediction_stars : 1
-                };
-            });
-        }
-        renderPodium(gurus, "guruPodium", "guru");
+        // (The Top Prediction Gurus Podium has been completely removed from here)
 
     } catch (err) { console.error("Podium Error:", err); }
 }
@@ -117,10 +95,6 @@ function renderPodium(data, containerId, type) {
             name = item.user_profiles?.team_name;
             subText = `<div class="podium-league">${item.league_name || 'Global'}</div>`;
             pts = `${item.total_points} pts`;
-            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
-        } else if (type === "guru") {
-            name = item.user_profiles?.team_name;
-            pts = `${item.prediction_stars || 1} ⭐`;
             photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
         }
 
