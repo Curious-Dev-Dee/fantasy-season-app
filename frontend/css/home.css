@@ -585,41 +585,64 @@ body.loaded #loadingOverlay {
 
 /* --- CUSTOM PROMPT MODAL --- */
 .prompt-modal {
-    max-width: 320px;
-    height: auto;
-    border-radius: 20px;
-    padding: 24px;
-    align-self: center; /* Centers vertically in your overlay flexbox */
-    margin: auto;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    border-top: none; /* Override standard overlay-content */
+    gap: 18px;
+    border-radius: 24px;
 }
 
-.prompt-title { margin: 0; font-size: 16px; color: #fff; text-align: center; font-weight: 800; text-transform: uppercase; }
+.prompt-title { 
+    margin: 0; 
+    font-size: 16px; 
+    color: var(--accent, #9AE000); 
+    text-align: center; 
+    font-weight: 900; 
+    text-transform: uppercase; 
+}
 
 .prompt-input {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: #0c1117;
+    border: 1px solid #334155;
     color: #fff;
     padding: 14px 16px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
     width: 100%;
     box-sizing: border-box;
-    font-weight: 600;
+    font-weight: 700;
+    text-align: center;
     transition: all 0.2s ease;
 }
 
-.prompt-input:focus { border-color: var(--accent, #9AE000); box-shadow: 0 0 8px rgba(154, 224, 0, 0.2); }
-
-.prompt-actions { display: flex; gap: 10px; }
-
-.prompt-actions button {
-    flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; font-size: 13px; text-transform: uppercase;
+.prompt-input:focus { 
+    border-color: var(--accent, #9AE000); 
+    box-shadow: 0 0 8px rgba(154, 224, 0, 0.2); 
 }
 
-.btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
-.btn-confirm { background: var(--accent, #9AE000); color: #000; }
+.prompt-actions { 
+    display: flex; 
+    gap: 12px; 
+}
+
+.prompt-actions button {
+    flex: 1; 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-weight: 800; 
+    cursor: pointer; 
+    border: none; 
+    font-size: 13px; 
+    text-transform: uppercase;
+}
+
+.btn-cancel { 
+    background: #334155; 
+    color: #fff; 
+}
+
+.btn-confirm { 
+    background: var(--accent, #9AE000); 
+    color: #000; 
+}
