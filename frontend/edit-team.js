@@ -26,6 +26,7 @@ let state = {
         type: [] // <--- ADD THIS
     }, 
     saving: false 
+    
 };
 
 let countdownInterval = null;
@@ -278,6 +279,11 @@ function setupListeners() {
         render();
         try {
             const { data: { user } } = await supabase.auth.getUser();
+            // --- ADD THIS SAFETY CHECK ---
+            if (authError || !user) {
+                throw new Error("Session expired! Please refresh the page to save.");
+            }
+            // -----------------------------
             const { error } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
                 p_tournament_id: activeTournamentId,
@@ -289,7 +295,14 @@ function setupListeners() {
             });
             if (error) throw error;
             showSuccessModal();
-        } catch (err) { window.showToast(err.message, "error"); }
+      } catch (err) { 
+            // --- TRANSLATE NERDY ERRORS TO PLAIN ENGLISH ---
+            let errorMsg = err.message;
+            if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
+                errorMsg = "Weak internet! Please tap save again.";
+            }
+            window.showToast(errorMsg, "error"); 
+        }
         finally { state.saving = false; render(); }
     };
 }
@@ -722,7 +735,7 @@ function updateSaveButton(stats, isOverLimit, liveSubs) {
         btnText = "MAX 4 OVERSEAS ALLOWED";
         isValid = false;
     } 
-    else if (stats.credits > 100) {
+    else if (stats.credits > 100.1) { // Added a tiny buffer to prevent floating point issues
         btnText = "CREDITS EXCEEDED";
         isValid = false;
     } 
