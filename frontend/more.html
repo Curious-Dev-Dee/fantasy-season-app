@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/bottom-nav.css?v=1.0" />
   
+
   <style>
     :root {
       --bg-dark: #0c1117;
@@ -129,6 +130,48 @@
       font-weight: 900;
       margin-left: 8px;
     }
+
+    /* --- NATIVE MODAL CSS --- */
+    .hidden { display: none !important; }
+    
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px); z-index: 3000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; animation: fadeIn 0.2s ease-out;
+    }
+    
+    .modal-content {
+      background: var(--card-bg); width: 100%; max-width: 320px;
+      border-radius: 24px; padding: 24px; text-align: center;
+      border: 1px solid #334155; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      animation: scaleUp 0.2s ease-out;
+    }
+    
+    .modal-icon {
+      width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 77, 77, 0.1);
+      color: #ff4d4d; font-size: 20px; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    
+    .modal-content h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
+    .modal-content p { margin: 0 0 24px; font-size: 13px; color: var(--text-slate); line-height: 1.4; }
+    
+    .modal-actions { display: flex; gap: 12px; }
+    .modal-actions button {
+      flex: 1; padding: 14px; border-radius: 14px; font-weight: 800;
+      font-size: 14px; border: none; cursor: pointer; transition: all 0.2s;
+    }
+    
+    .btn-cancel { background: #0c1117; color: #fff; border: 1px solid #334155 !important; }
+    .btn-cancel:active { background: #334155; }
+    
+    .btn-danger { background: #ff4d4d; color: #000; }
+    .btn-danger:active { transform: scale(0.96); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
   </style>
 </head>
 
@@ -188,6 +231,18 @@
 
 </div>
 
+<div id="logoutOverlay" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-icon"><i class="fas fa-sign-out-alt"></i></div>
+      <h3>Sign Out</h3>
+      <p>Are you sure you want to leave the pavilion?</p>
+      <div class="modal-actions">
+        <button id="cancelLogout" class="btn-cancel">Cancel</button>
+        <button id="confirmLogout" class="btn-danger">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
 <nav class="bottom-nav">
   <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
@@ -196,18 +251,41 @@
 </nav>
 
 <script type="module">
-  import { supabase } from "./supabase.js";
+  import { supabase } from "./supabase.js?v=1.0";
   
-  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+  const logoutBtn = document.getElementById('logoutBtn');
+  const logoutOverlay = document.getElementById('logoutOverlay');
+  const cancelLogout = document.getElementById('cancelLogout');
+  const confirmLogout = document.getElementById('confirmLogout');
+
+  // Show Modal
+  logoutBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    const confirmed = confirm("Are you sure you want to sign out from Cricket Experts?");
-    if (confirmed) {
-        const { error } = await supabase.auth.signOut();
-        if (!error) {
-          window.location.href = "login.html";
-        } else {
-          alert("Logout failed: " + error.message);
-        }
+    logoutOverlay.classList.remove('hidden');
+  });
+
+  // Hide Modal
+  cancelLogout.addEventListener('click', () => {
+    logoutOverlay.classList.add('hidden');
+  });
+
+  // Execute Logout
+  confirmLogout.addEventListener('click', async () => {
+    confirmLogout.textContent = "Signing out...";
+    confirmLogout.style.opacity = "0.7";
+    confirmLogout.style.pointerEvents = "none";
+    
+    const { error } = await supabase.auth.signOut();
+    
+    if (!error) {
+      window.location.href = "login.html";
+    } else {
+      // Revert button if network fails
+      confirmLogout.textContent = "Sign Out";
+      confirmLogout.style.opacity = "1";
+      confirmLogout.style.pointerEvents = "auto";
+      logoutOverlay.classList.add('hidden');
+      alert("Weak internet! Please try again."); // Fallback error
     }
   });
 </script>
