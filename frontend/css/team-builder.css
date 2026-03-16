@@ -1007,23 +1007,7 @@ display:block;
 
 .booster-scroll-pane::-webkit-scrollbar { display: none; }
 
-/* THE CARD */
-.booster-card {
-    flex: 0 0 130px;
-    height: 150px;
-    background: #1e293b;
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    scroll-snap-align: center;
-}
+
 
 .booster-icon {
     font-size: 28px;
