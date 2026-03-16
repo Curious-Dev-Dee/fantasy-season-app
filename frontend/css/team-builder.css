@@ -964,51 +964,59 @@ display:block;
 }
 
 /* =========================
-   COMPACT BOOSTER SHELF
+   COMPACT PREMIUM BOOSTER SHELF
 ========================= */
 
-/* Main Container: Squashed to save vertical space */
-.booster-section-compact {
+.premium-booster-shelf {
     padding: 10px 0 6px;
-    margin-bottom: 4px;
     background: rgba(15, 23, 42, 0.4);
     border-bottom: 1px solid var(--border-color);
+    margin-bottom: 5px;
 }
 
-.booster-header-compact {
+.booster-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 0 16px 8px;
+}
+
+.b-title {
     font-size: 10px;
     font-weight: 900;
     color: var(--text-dim);
     letter-spacing: 1px;
-    text-transform: uppercase;
 }
 
-.booster-count-pill {
-    color: var(--primary-green);
+.b-count {
+    font-size: 10px;
+    background: var(--danger-red);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 6px;
     font-weight: 800;
 }
 
-/* Horizontal Scrolling Logic */
-.booster-scroll-container {
+/* HORIZONTAL SCROLL */
+.booster-scroll-pane {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     overflow-x: auto;
-    padding: 0 16px 10px;
+    padding: 4px 16px 12px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
 }
 
-.booster-scroll-container::-webkit-scrollbar { display: none; }
+.booster-scroll-pane::-webkit-scrollbar { 
+    display: none; 
+}
 
-/* THE SQUASHED CARD: Smaller icons, readable text */
-.booster-card-compact {
-    flex: 0 0 85px; 
-    height: 75px;   
+/* --- THE SMALL CARD --- */
+.booster-card {
+    flex: 0 0 90px;   /* Very narrow width */
+    height: 80px;     /* Small height so it doesn't cover the screen */
     background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -1017,42 +1025,70 @@ display:block;
     position: relative;
     transition: all 0.2s ease;
     scroll-snap-align: start;
+    padding: 6px;
 }
 
-.b-icon-small {
-    font-size: 18px; 
+.booster-icon {
+    font-size: 22px; /* Decent sized icon */
     margin-bottom: 4px;
 }
 
-.b-name-small {
+.booster-info {
+    text-align: center;
+}
+
+.b-name {
     font-size: 10px;
     font-weight: 800;
     color: #fff;
-    text-align: center;
     line-height: 1.1;
-    padding: 0 4px;
 }
 
-/* ACTIVE STATE: Subtle neon glow & indicator */
-.booster-card-compact.active {
-    border-color: var(--primary-green);
+/* Hide the sub-description to keep the card small and clean */
+.b-desc {
+    display: none; 
+}
+
+/* --- ACTIVE STATE --- */
+.booster-card.active {
     background: rgba(154, 224, 0, 0.1);
-    box-shadow: 0 0 12px rgba(154, 224, 0, 0.1);
+    border-color: var(--primary-green);
 }
 
-.active-indicator {
+.active-badge {
     position: absolute;
-    bottom: 5px;
-    width: 14px;
-    height: 2px;
+    top: -6px;
     background: var(--primary-green);
-    border-radius: 2px;
-    box-shadow: 0 0 5px var(--primary-green);
+    color: #000;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
 }
 
-/* USED STATE: Faded out but still visible */
-.booster-card-compact.used {
-    opacity: 0.35;
+/* --- USED STATE --- */
+.booster-card.used {
+    opacity: 0.4;
     filter: grayscale(1);
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.used-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.used-overlay span {
+    transform: rotate(-15deg);
+    border: 1px solid #fff;
+    padding: 2px 6px;
+    font-size: 9px;
+    font-weight: 900;
+    color: #fff;
+    background: rgba(0,0,0,0.5);
 }
