@@ -24,6 +24,11 @@ async function init() {
   // Toggle Dropdowns
   statusBtn.onclick = (e) => { e.stopPropagation(); statusPanel.classList.toggle("hidden"); teamPanel.classList.add("hidden"); };
   teamBtn.onclick = (e) => { e.stopPropagation(); teamPanel.classList.toggle("hidden"); statusPanel.classList.add("hidden"); };
+  
+  // --- ADD THESE TWO LINES ---
+  statusPanel.onclick = (e) => e.stopPropagation();
+  teamPanel.onclick = (e) => e.stopPropagation();
+
   document.onclick = () => { statusPanel.classList.add("hidden"); teamPanel.classList.add("hidden"); };
 
   await loadData();
@@ -112,16 +117,12 @@ function renderMatches() {
         return new Date(b.actual_start_time) - new Date(a.actual_start_time);
     });
 
-    sorted.forEach(match => {
+    // Map the array to an array of HTML strings, then join them and inject ONCE
+    const htmlString = sorted.map(match => {
         const tA = allTeams.find(t => t.id === match.team_a_id);
         const tB = allTeams.find(t => t.id === match.team_b_id);
         
-        const getLogoUrl = (team) => {
-            if (team?.photo_name) {
-                return supabase.storage.from('team-logos').getPublicUrl(team.photo_name).data.publicUrl;
-            }
-            return null;
-        };
+        const getLogoUrl = (team) => team?.photo_name ? supabase.storage.from('team-logos').getPublicUrl(team.photo_name).data.publicUrl : null;
 
         const logoA = getLogoUrl(tA);
         const logoB = getLogoUrl(tB);
@@ -130,32 +131,34 @@ function renderMatches() {
             day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
         });
 
-        // ... inside sorted.forEach ...
+        return `
+        <div class="match-card status-${match.status}">
+            <div class="card-header">
+                <span style="font-weight: 800; color: #9AE000;">Match #${match.match_number}</span>
+                <span>${dateStr}</span>
+            </div>
+            <div class="team-display">
+                <div class="team-slot">
+                    <div class="team-logo" style="${logoA ? `background-image:url('${logoA}')` : ''}">
+                        ${!logoA ? (tA?.short_code || '?') : ''}
+                    </div>
+                    <b>${tA?.short_code || 'TBA'}</b>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="team-slot">
+                    <div class="team-logo" style="${logoB ? `background-image:url('${logoB}')` : ''}">
+                        ${!logoB ? (tB?.short_code || '?') : ''}
+                    </div>
+                    <b>${tB?.short_code || 'TBA'}</b>
+                </div>
+            </div>
+            <div style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 10px;">
+                🏟️ ${match.venue || 'Venue TBA'}
+            </div>
+            <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
+        </div>`;
+    }).join('');
 
-const card = document.createElement("div");
-card.className = `match-card status-${match.status}`;
-card.innerHTML = `
-    <div class="card-header">
-        <span>${dateStr}</span>
-        <span class="status-indicator"></span>
-    </div>
-    <div class="team-display">
-        <div class="team-slot">
-            <div class="team-logo" style="${logoA ? `background-image:url('${logoA}')` : ''}">
-                ${!logoA ? (tA?.short_code || '?') : ''}
-            </div>
-            <b>${tA?.short_code || 'TBA'}</b>
-        </div>
-        <div class="vs-badge">VS</div>
-        <div class="team-slot">
-            <div class="team-logo" style="${logoB ? `background-image:url('${logoB}')` : ''}">
-                ${!logoB ? (tB?.short_code || '?') : ''}
-            </div>
-            <b>${tB?.short_code || 'TBA'}</b>
-        </div>
-    </div>
-    <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
-`;
-matchesContainer.appendChild(card);
-    });
+    // Inject to DOM exactly once
+    matchesContainer.innerHTML = htmlString;
 }
