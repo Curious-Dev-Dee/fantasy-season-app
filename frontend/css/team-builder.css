@@ -874,7 +874,7 @@ display:block;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding-bottom: 20px;
+    padding-bottom: 18px;
 }
 
 /* Each Row in the filter */
@@ -884,7 +884,7 @@ display:block;
     align-items: center;
     background: rgba(255, 255, 255, 0.03);
     padding: 16px;
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1010,7 +1010,7 @@ display:block;
 
 
 .booster-icon {
-    font-size: 28px;
+    font-size: 20px;
     margin-bottom: 10px;
 }
 
@@ -1021,11 +1021,6 @@ display:block;
     margin-bottom: 4px;
 }
 
-.b-desc {
-    font-size: 9px;
-    color: var(--text-dim);
-    line-height: 1.2;
-}
 
 /* ACTIVE STATE (Glow) */
 .booster-card.active {
