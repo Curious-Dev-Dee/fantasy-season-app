@@ -658,7 +658,3 @@ body.loaded #loadingOverlay {
     margin-top: -12px; /* Pulls it up closer to the team names */
     margin-bottom: 12px;
 }
-.match-venue i {
-    color: #ef4444; /* Small red map pin for a pop of color */
-    margin-right: 4px;
-}
