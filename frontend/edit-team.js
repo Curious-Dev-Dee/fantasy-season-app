@@ -22,7 +22,8 @@ let state = {
         role: "ALL", 
         teams: [],   
         credits: [], 
-        matches: []  
+        matches: [],  
+        type: [] // <--- ADD THIS
     }, 
     saving: false 
 };
@@ -175,11 +176,21 @@ function render() {
     const nextMatch = state.matches[0];
     const filteredPool = state.allPlayers.filter(p => {
         const s = state.filters.search.toLowerCase();
-        const matchesSearch = p.name.toLowerCase().includes(s) || (p.team_short_code || "").toLowerCase().includes(s);
+        const pCategory = (p.category || "").toLowerCase();
+        
+        // 1. Upgraded Search: Now checks Name, Team, OR Category (uncapped/overseas)
+        const matchesSearch = p.name.toLowerCase().includes(s) || 
+                              (p.team_short_code || "").toLowerCase().includes(s) ||
+                              pCategory.includes(s);
+                              
         const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
         const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
         const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
-        return matchesSearch && matchesRole && matchesTeam && matchesCredit;
+        
+        // 2. New Type Filter Logic
+        const matchesType = state.filters.type.length === 0 || state.filters.type.includes(pCategory);
+
+        return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesType;
     }).sort((a, b) => {
         const aPri = a.real_team_id === nextMatch.team_a_id ? 1 : a.real_team_id === nextMatch.team_b_id ? 2 : 3;
         const bPri = b.real_team_id === nextMatch.team_a_id ? 1 : b.real_team_id === nextMatch.team_b_id ? 2 : 3;
@@ -206,7 +217,7 @@ function setupListeners() {
 
     // 2. Dropdown Toggle Logic
     const backdrop = document.getElementById("filterBackdrop");
-    ['match', 'team', 'credit'].forEach(type => {
+    ['match', 'team', 'credit', 'type'].forEach(type => { // <-- Added 'type'
         const btn = document.getElementById(`${type}Toggle`);
         const menu = document.getElementById(`${type}Menu`);
         if(btn && menu) {
@@ -413,16 +424,39 @@ function initFilters() {
     const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
     renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
     renderCheckboxDropdown('matchMenu', state.matches, 'matches', (m) => `M#${m.match_number}: ${m.team_a?.short_code} vs ${m.team_b?.short_code}`);
+// ADD THIS NEW BLOCK:
+    const playerTypes = [
+        { id: 'uncapped', label: 'Uncapped 🧢' },
+        { id: 'overseas', label: 'Overseas ✈️' }
+    ];
+    renderCheckboxDropdown('typeMenu', playerTypes, 'type', (t) => t.label);
 }
 
+// Add this helper function anywhere in your UTILITIES section
+window.closeFilters = () => {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+    document.getElementById("filterBackdrop").classList.add('hidden');
+    document.body.style.overflow = ''; 
+};
+
+// Replace your existing renderCheckboxDropdown with this updated one:
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
     if(!container) return;
+    
     const listHtml = items.map(item => {
         const val = item.id || item;
         return `<label class="filter-item"><span>${labelFn(item)}</span><input type="checkbox" value="${val}" ${state.filters[filterKey].includes(val) ? 'checked' : ''} onchange="toggleFilter('${filterKey}', '${val}', this)"></label>`;
     }).join('');
-    container.innerHTML = `<div class="dropdown-content">${listHtml}</div><div class="dropdown-actions"><button onclick="clearFilters('${filterKey}')">Clear</button></div>`;
+    
+    // Now includes both Clear and Apply buttons!
+    container.innerHTML = `
+        <div class="dropdown-content">${listHtml}</div>
+        <div class="dropdown-actions">
+            <button onclick="clearFilters('${filterKey}')">Clear</button>
+            <button onclick="closeFilters()">Apply</button>
+        </div>
+    `;
 }
 
 window.toggleFilter = (k, v, el) => { const val = (k === 'credits') ? parseFloat(v) : v; if (el.checked) state.filters[k].push(val); else state.filters[k] = state.filters[k].filter(i => i !== val); render(); };

@@ -959,6 +959,11 @@ display:block;
 }
 
 .dropdown-actions button:last-child {
+    background: #1e293b;
+    color: var(--text-dim);
+}
+
+.dropdown-actions button:last-child {
     background: var(--primary-green);
     color: #000;
 }
