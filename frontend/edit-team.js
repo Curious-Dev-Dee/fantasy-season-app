@@ -86,6 +86,15 @@ async function init(user) {
             const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
             state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
         }
+        let savedBooster = currentTeam?.active_booster ?? "NONE";
+
+        // If the saved booster is already in the 'used' list, 
+        // it means it was for a previous match. Reset it to NONE for the new draft.
+        if (state.usedBoosters.includes(savedBooster)) {
+        state.activeBooster = "NONE";
+        } else {
+        state.activeBooster = savedBooster;
+        }
 
         updateHeaderMatch(state.matches[0]);
         initFilters();
