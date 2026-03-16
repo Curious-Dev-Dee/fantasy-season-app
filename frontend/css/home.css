@@ -646,3 +646,19 @@ body.loaded #loadingOverlay {
     background: var(--accent, #9AE000); 
     color: #000; 
 }
+
+/* --- MATCH VENUE STYLING --- */
+.match-venue {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: -12px; /* Pulls it up closer to the team names */
+    margin-bottom: 12px;
+}
+.match-venue i {
+    color: #ef4444; /* Small red map pin for a pop of color */
+    margin-right: 4px;
+}

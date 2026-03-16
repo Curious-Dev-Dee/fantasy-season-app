@@ -212,13 +212,19 @@ if (dash && dash.upcoming_match) {
     // Update Team Names
     matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
 
+    // --- POPULATE THE VENUE ---
+    const venueElement = document.getElementById("matchVenue");
+    if (venueElement) {
+        venueElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${match.venue || 'Venue TBA'}`;
+    }
+
     // Get Storage Bucket Instance
     const bucket = supabase.storage.from("team-logos");
 
     // Build Public URLs for logos
     const logoAUrl = match.team_a_logo 
         ? bucket.getPublicUrl(match.team_a_logo).data.publicUrl 
-        : 'images/default-team.png'; // Fallback icon
+        : 'images/default-team.png';
 
     const logoBUrl = match.team_b_logo 
         ? bucket.getPublicUrl(match.team_b_logo).data.publicUrl 
@@ -230,19 +236,18 @@ if (dash && dash.upcoming_match) {
     if (teamALogo && teamBLogo) {
         teamALogo.style.backgroundImage = `url('${logoAUrl}')`;
         teamBLogo.style.backgroundImage = `url('${logoBUrl}')`;
-        
-        // Show them (overriding the display:none from CSS if still there)
         teamALogo.style.display = "block";
         teamBLogo.style.display = "block";
     }
 
-    // Start the Countdown Timer
+    // Start the Smart Countdown Timer
     startCountdown(match.actual_start_time);
 } else {
     matchTeamsElement.textContent = "No Upcoming Matches";
+    const venueElement = document.getElementById("matchVenue");
+    if (venueElement) venueElement.innerHTML = ""; // Hide venue if no match
     if (matchTimeElement) matchTimeElement.textContent = "Check back soon!";
 }
-
 // 4. Booster Status
 if (boosterStatusEl) {
     boosterStatusEl.textContent = String(Math.max(0, 7 - ((boosterData?.used_boosters || []).length)));
@@ -389,23 +394,30 @@ function startCountdown(startTime) {
             if (editButton) {
                 editButton.disabled = true;
                 editButton.style.opacity = "0.5";
-                editButton.style.pointerEvents = "none"; // Hard lock against clicks
+                editButton.style.pointerEvents = "none";
                 editButton.textContent = "LOCKED";
             }
 
-            // SENIOR SYNC: Wait 5s for the Edge Function to finish 'Locking' the match
-            // so the next 'Upcoming' match is ready when we reload.
             setTimeout(() => {
                 window.location.reload(); 
             }, 5000); 
             return; 
         }
         
-        const h = Math.floor(dist / 3600000);
-        const m = Math.floor((dist % 3600000) / 60000);
-        const s = Math.floor((dist % 60000) / 1000);
+        // NEW SMART TIME MATH
+        const days = Math.floor(dist / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((dist % (1000 * 60)) / 1000);
         
-        matchTimeElement.innerHTML = `<i class="far fa-clock"></i> Starts in ${h}h ${m}m ${s}s`;
+        // FORMAT CHECKER
+        if (days > 0) {
+            // More than 24 hours: Show Days, Hours, Mins
+            matchTimeElement.innerHTML = `<i class="far fa-clock"></i> Starts in ${days}d ${hours}h ${minutes}m`;
+        } else {
+            // Less than 24 hours: Show Hours, Mins, Secs
+            matchTimeElement.innerHTML = `<i class="far fa-clock"></i> Starts in ${hours}h ${minutes}m ${seconds}s`;
+        }
         
         // Visual Warning: Turn the timer red if less than 15 minutes remain
         if (dist < 900000) {
@@ -417,7 +429,6 @@ function startCountdown(startTime) {
     update(); 
     countdownInterval = setInterval(update, 1000);
 }
-
 /* =========================
    HOME LEAGUE ACTIONS
 ========================= */
