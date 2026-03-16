@@ -864,7 +864,6 @@ display:block;
     color: #facc15; 
     filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.4));
 }
-
 /* =========================
    PREMIUM FILTER DROPDOWNS
 ========================= */
@@ -937,7 +936,7 @@ display:block;
 .dropdown-actions {
     position: sticky;
     bottom: 0;
-    background: #0f172a; /* Matches sheet bg */
+    background: #0f172a; 
     padding-top: 15px;
     display: flex;
     gap: 10px;
@@ -954,194 +953,106 @@ display:block;
     border: none;
 }
 
-/* Clear Button */
 .dropdown-actions button:first-child {
     background: #1e293b;
     color: var(--text-dim);
 }
 
-/* Done Button (Triggered by closing the backdrop) */
 .dropdown-actions button:last-child {
     background: var(--primary-green);
     color: #000;
 }
 
-/* --- PREMIUM BOOSTER SHELF --- */
-.premium-booster-shelf {
-    padding: 16px 0;
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0) 100%);
-    border-radius: 18px;
-    margin: 8px 0;
-}
+/* =========================
+   COMPACT BOOSTER SHELF
+========================= */
 
-.booster-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 14px 10px;
-}
-
-.b-title {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    color: var(--text-dim);
-}
-
-.b-count {
-    font-size: 10px;
-    background: var(--danger-red);
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-weight: 800;
-}
-
-/* HORIZONTAL SCROLL */
-.booster-scroll-pane {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 4px 16px 12px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-}
-
-.booster-scroll-pane::-webkit-scrollbar { display: none; }
-
-
-
-.booster-icon {
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-.b-name {
-    font-size: 12px;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 4px;
-}
-
-
-/* ACTIVE STATE (Glow) */
-.booster-card.active {
-    background: linear-gradient(145deg, #9ae00022, #0f172a);
-    border-color: var(--primary-green);
-    box-shadow: 0 0 18px rgba(154, 224, 0, 0.15);
-    transform: translateY(-4px);
-}
-
-.active-badge {
-    position: absolute;
-    top: -10px;
-    background: var(--primary-green);
-    color: #000;
-    font-size: 8px;
-    font-weight: 900;
-    padding: 2px 6px;
-    border-radius: 3px;
-}
-
-/* USED STATE */
-.booster-card.used {
-    opacity: 0.5;
-    filter: grayscale(0.8);
-}
-
-.used-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.used-overlay span {
-    transform: rotate(-15deg);
-    border: 1px solid #fff;
-    padding: 2px 8px;
-    font-size: 10px;
-    font-weight: 900;
-}
-
-/* --- TIGHT BOOSTER SECTION --- */
+/* Main Container: Squashed to save vertical space */
 .booster-section-compact {
-    padding: 8px 0; /* Reduced top/bottom padding */
-    margin-bottom: 4px; /* Tiny gap before My XI list starts */
-    background: rgba(15, 23, 42, 0.6);
+    padding: 10px 0 6px;
+    margin-bottom: 4px;
+    background: rgba(15, 23, 42, 0.4);
     border-bottom: 1px solid var(--border-color);
 }
 
 .booster-header-compact {
     display: flex;
     justify-content: space-between;
-    padding: 0 16px 6px;
+    padding: 0 16px 8px;
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 900;
     color: var(--text-dim);
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .booster-count-pill {
     color: var(--primary-green);
+    font-weight: 800;
 }
 
+/* Horizontal Scrolling Logic */
 .booster-scroll-container {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding: 0 16px 8px;
+    padding: 0 16px 10px;
+    scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
 }
 
 .booster-scroll-container::-webkit-scrollbar { display: none; }
 
-/* --- THE SQUASHED CARD --- */
+/* THE SQUASHED CARD: Smaller icons, readable text */
 .booster-card-compact {
-    flex: 0 0 85px; /* Narrower width */
-    height: 75px;   /* Significantly shorter height */
+    flex: 0 0 85px; 
+    height: 75px;   
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
+    scroll-snap-align: start;
 }
 
 .b-icon-small {
-    font-size: 18px; /* Icon is visible but doesn't eat space */
+    font-size: 18px; 
     margin-bottom: 4px;
 }
 
 .b-name-small {
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 800;
     color: #fff;
     text-align: center;
     line-height: 1.1;
     padding: 0 4px;
 }
 
-/* ACTIVE & USED STATES */
+/* ACTIVE STATE: Subtle neon glow & indicator */
 .booster-card-compact.active {
     border-color: var(--primary-green);
     background: rgba(154, 224, 0, 0.1);
+    box-shadow: 0 0 12px rgba(154, 224, 0, 0.1);
 }
 
 .active-indicator {
     position: absolute;
-    bottom: 4px;
-    width: 12px;
+    bottom: 5px;
+    width: 14px;
     height: 2px;
     background: var(--primary-green);
     border-radius: 2px;
+    box-shadow: 0 0 5px var(--primary-green);
 }
 
+/* USED STATE: Faded out but still visible */
 .booster-card-compact.used {
-    opacity: 0.3;
+    opacity: 0.35;
     filter: grayscale(1);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
 }
