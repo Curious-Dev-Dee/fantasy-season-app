@@ -33,7 +33,6 @@ async function init() {
 ========================================== */
 async function loadPodiums() {
     try {
-        // Get the last completed match
         const { data: lastMatch } = await supabase.from("matches")
             .select("id, match_number, winner_id")
             .eq("points_processed", true)
@@ -41,90 +40,54 @@ async function loadPodiums() {
 
         if (!lastMatch) return;
 
-        // 1. TOP PLAYERS PODIUM
+        // 1. TOP PLAYERS
         const { data: players } = await supabase.from("player_match_stats")
             .select("fantasy_points, players(name, photo_url)")
             .eq("match_id", lastMatch.id)
             .order("fantasy_points", { ascending: false }).limit(3);
         renderPodium(players, "playerPodium", "player");
 
-        // 2. TOP USERS PODIUM (With Private League Names)
+        // 2. TOP USERS
         const { data: users } = await supabase.from("user_match_points")
             .select("total_points, user_id, user_profiles(team_name, team_photo_url)")
             .eq("match_id", lastMatch.id)
             .order("total_points", { ascending: false }).limit(3);
         
-        // Quick fetch to get their league names
         for (let user of users || []) {
             const { data: lm } = await supabase.from("league_members").select("leagues(name)").eq("user_id", user.user_id).maybeSingle();
             user.league_name = lm?.leagues?.name || "Global Only";
         }
         renderPodium(users, "userPodium", "user");
 
-        // 3. TOP PREDICTION GURUS PODIUM (Based on Stars)
-        const { data: gurus } = await supabase.from("user_tournament_points")
-            .select("prediction_stars, user_id, user_profiles(team_name, team_photo_url)")
-            .eq("tournament_id", currentTournamentId)
-            .order("prediction_stars", { ascending: false })
-            .order("updated_at", { ascending: true }) // Tie-breaker!
+        // 3. TOP PREDICTION GURUS (Who got it right in the LAST MATCH!)
+        const { data: correctPredictions } = await supabase.from("user_predictions")
+            .select("user_id, user_profiles(team_name, team_photo_url)")
+            .eq("match_id", lastMatch.id)
+            .eq("points_earned", 1) // Only those who predicted the winner correctly
+            .order("created_at", { ascending: true }) // Fastest predictors win the tie
             .limit(3);
+
+        let gurus = [];
+        if (correctPredictions && correctPredictions.length > 0) {
+            const userIds = correctPredictions.map(p => p.user_id);
+            // Fetch their total stars to display on the podium
+            const { data: userStars } = await supabase.from("user_tournament_points")
+                .select("user_id, prediction_stars")
+                .eq("tournament_id", currentTournamentId)
+                .in("user_id", userIds);
+
+            gurus = correctPredictions.map(p => {
+                const starData = userStars?.find(s => s.user_id === p.user_id);
+                return {
+                    user_profiles: p.user_profiles,
+                    prediction_stars: starData ? starData.prediction_stars : 1
+                };
+            });
+        }
         renderPodium(gurus, "guruPodium", "guru");
 
     } catch (err) { console.error("Podium Error:", err); }
 }
-
-function renderPodium(data, containerId, type) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    if (!data || data.length < 1) {
-        container.innerHTML = `<p style="color:#475569; font-size:12px;">Awaiting Results...</p>`;
-        return;
-    }
-
-    // Olympic Order: 2nd, 1st, 3rd
-    const order = [data[1], data[0], data[2]].filter(Boolean);
-    container.replaceChildren();
-
-    order.forEach((item) => {
-        const rank = item === data[0] ? 1 : (item === data[1] ? 2 : 3);
-        
-        let name = "Unknown";
-        let subText = "";
-        let pts = 0;
-        let photoPath = null;
-
-        if (type === "player") {
-            name = item.players?.name?.split(" ").pop();
-            pts = `${item.fantasy_points} pts`;
-            photoPath = item.players?.photo_url ? supabase.storage.from("player-photos").getPublicUrl(item.players.photo_url).data.publicUrl : DEFAULT_AVATAR;
-        } else if (type === "user") {
-            name = item.user_profiles?.team_name;
-            subText = `<div class="podium-league">${item.league_name}</div>`;
-            pts = `${item.total_points} pts`;
-            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
-        } else if (type === "guru") {
-            name = item.user_profiles?.team_name;
-            pts = `${item.prediction_stars || 0} ⭐`;
-            photoPath = item.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
-        }
-
-        container.innerHTML += `
-            <div class="podium-item rank-${rank}">
-                <div class="podium-name">${name}</div>
-                ${subText}
-                <div class="podium-avatar-wrapper">
-                    <img src="${photoPath}" class="podium-img" alt="${name}">
-                    <div class="rank-badge">${rank}</div>
-                </div>
-                <div class="podium-pts">${pts}</div>
-            </div>
-        `;
-    });
-}
-
-/* ==========================================
-   SECTION 2: PREDICTION ENGINE & STARS
-========================================== */
 /* ==========================================
    SECTION 2: PREDICTION ENGINE & STARS
 ========================================== */
@@ -237,14 +200,37 @@ async function loadPostMatchSummary() {
     }
 }
 
-/* Modal for Top 5 Gurus */
+/* ==========================================
+   SECTION 3: PREMIUM TOP 5 GURUS MODAL
+========================================== */
 window.showGuruLeaderboard = async () => {
-    const { data: top5 } = await supabase.from("user_tournament_points").select("prediction_stars, user_profiles(team_name)").eq("tournament_id", currentTournamentId).order("prediction_stars", { ascending: false }).order("updated_at", { ascending: true }).limit(5);
+    const { data: top5 } = await supabase.from("user_tournament_points")
+        .select("prediction_stars, user_profiles(team_name, team_photo_url)")
+        .eq("tournament_id", currentTournamentId)
+        .order("prediction_stars", { ascending: false })
+        .order("updated_at", { ascending: true })
+        .limit(5);
     
-    let listHtml = top5.map((g, i) => `${i+1}. ${g.user_profiles.team_name} - ${g.prediction_stars} ⭐`).join("\n");
-    alert(`🏆 TOP 5 PREDICTION GURUS:\n\n${listHtml}\n\n(Ties broken by who predicted first!)`);
-};
+    // Inject modal HTML
+    if (!document.getElementById("guruModal")) {
+        document.body.insertAdjacentHTML('beforeend', `<div id="guruModal" class="custom-modal-overlay hidden"><div class="custom-modal"><div class="modal-header"><h3>🏆 Top 5 Gurus</h3><button onclick="document.getElementById('guruModal').classList.add('hidden')" class="close-btn">×</button></div><div id="guruList" class="guru-list"></div></div></div>`);
+    }
 
+    const listHtml = top5.map((g, i) => {
+        const avatar = g.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(g.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
+        return `
+            <div class="guru-row">
+                <div class="guru-rank">#${i + 1}</div>
+                <img src="${avatar}" class="guru-avatar">
+                <div class="guru-name">${g.user_profiles.team_name}</div>
+                <div class="guru-stars">${g.prediction_stars} ⭐</div>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById("guruList").innerHTML = listHtml;
+    document.getElementById("guruModal").classList.remove("hidden");
+};
 /* ==========================================
    SECTION 4: THE SOCIAL FEED & REACTIONS
 ========================================== */
@@ -253,36 +239,92 @@ window.showGuruLeaderboard = async () => {
 
 
 /* ==========================================
-   SECTION 5: PODIUM COMMENTS
+   SECTION 5: ENGAGING CHAT INTERFACE
 ========================================== */
-
-// Attach this to a button below each podium in your HTML
 window.openPodiumComments = async (podiumType) => {
-    // podiumType should be 'players', 'users', or 'gurus'
     if (!currentMatchId && podiumType !== 'gurus') return alert("No recent match to comment on!");
 
+    // Inject Chat UI if it doesn't exist
+    if (!document.getElementById("chatDrawer")) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="chatDrawer" class="chat-drawer-overlay hidden">
+                <div class="chat-drawer">
+                    <div class="chat-header">
+                        <h3 id="chatTitle">Comments</h3>
+                        <button onclick="document.getElementById('chatDrawer').classList.add('hidden')" class="close-btn">×</button>
+                    </div>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Talk trash here..." onkeypress="if(event.key === 'Enter') postComment()">
+                        <button onclick="postComment()" class="send-btn">➤</button>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
+    document.getElementById("chatTitle").innerText = `${podiumType.toUpperCase()} BANTER`;
+    document.getElementById("chatDrawer").classList.remove("hidden");
+    document.getElementById("chatMessages").innerHTML = `<div class="loading-chat">Loading...</div>`;
+    window.currentChatContext = podiumType;
+
+    await loadComments(podiumType);
+};
+
+window.loadComments = async (podiumType) => {
     const { data: comments } = await supabase
         .from("podium_comments")
-        .select("comment, created_at, user_profiles(team_name)")
+        .select("comment, created_at, user_id, user_profiles(team_name, team_photo_url)")
         .eq("podium_type", podiumType)
-        // Only filter by match if it's the player/user podiums. Guru podium is tournament-wide!
         .eq(podiumType !== 'gurus' ? "match_id" : "user_id", podiumType !== 'gurus' ? currentMatchId : currentUserId) 
         .order("created_at", { ascending: true });
 
-    let commentText = comments.map(c => `[${c.user_profiles.team_name}]: ${c.comment}`).join("\n");
-    if(comments.length === 0) commentText = "No comments yet. Be the first!";
-
-    // Simple alert/prompt for now, but you should connect this to a nice HTML drawer!
-    const newComment = prompt(`--- ${podiumType.toUpperCase()} COMMENTS ---\n\n${commentText}\n\nAdd your reply:`);
-    
-    if (newComment && newComment.trim() !== "") {
-        await supabase.from("podium_comments").insert({
-            match_id: currentMatchId, // Might be null for gurus if you want season-long guru comments
-            podium_type: podiumType,
-            user_id: currentUserId,
-            comment: newComment
-        });
-        alert("Comment posted!");
+    const chatBox = document.getElementById("chatMessages");
+    if (!comments || comments.length === 0) {
+        chatBox.innerHTML = `<div class="empty-chat">No comments yet. Start the banter!</div>`;
+        return;
     }
+
+    chatBox.innerHTML = comments.map(c => {
+        const isMe = c.user_id === currentUserId;
+        const avatar = c.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(c.user_profiles.team_photo_url).data.publicUrl : DEFAULT_AVATAR;
+        return `
+            <div class="chat-wrapper ${isMe ? 'mine' : 'theirs'}">
+                ${!isMe ? `<img src="${avatar}" class="chat-avatar">` : ''}
+                <div class="chat-bubble">
+                    ${!isMe ? `<div class="chat-name">${c.user_profiles?.team_name}</div>` : ''}
+                    <div class="chat-text">${c.comment}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
 };
 
+window.postComment = async () => {
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = ""; // Clear immediately for snappy feel
+    const podiumType = window.currentChatContext;
+
+    // Optimistic UI update (shows comment instantly before saving to DB)
+    const chatBox = document.getElementById("chatMessages");
+    const emptyMsg = chatBox.querySelector('.empty-chat');
+    if (emptyMsg) emptyMsg.remove();
+
+    chatBox.insertAdjacentHTML('beforeend', `
+        <div class="chat-wrapper mine">
+            <div class="chat-bubble"><div class="chat-text">${text}</div></div>
+        </div>
+    `);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    await supabase.from("podium_comments").insert({
+        match_id: currentMatchId,
+        podium_type: podiumType,
+        user_id: currentUserId,
+        comment: text
+    });
+};
