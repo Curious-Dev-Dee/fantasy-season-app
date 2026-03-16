@@ -36,24 +36,90 @@ body.loaded .team-view-app {
 
 /* --- 2. PREMIUM HEADER & TABS --- */
 .premium-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 20px 15px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Allows center to expand vertically */
+    padding: 16px 15px 12px; 
+    background: rgba(0,0,0,0.3); 
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .back-circle {
     width: 40px; height: 40px; border-radius: 50%;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
     color: var(--accent); font-size: 18px; cursor: pointer;
+    margin-top: 2px; /* Aligns with the top of the Team Name */
 }
 
-.main-title { font-size: 18px; font-weight: 800; margin: 0; text-align: center; }
+/* --- THE CENTER STACK --- */
+.header-center {
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    align-items: center;    /* Centers them horizontally */
+    justify-content: center;
+    flex: 1;
+    gap: 6px;               /* Clean spacing between elements */
+    padding: 0 10px;
+}
+
+.main-title { 
+    font-size: 18px; 
+    font-weight: 800; 
+    margin: 0; 
+    text-align: center; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.booster-indicator-view {
+    background: var(--accent);
+    color: #000; 
+    padding: 3px 10px; 
+    border-radius: 12px;
+    font-size: 10px; 
+    font-weight: 900; 
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(154, 224, 0, 0.3);
+}
+
+.countdown-text {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 800;
+    background: rgba(154, 224, 0, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(154, 224, 0, 0.1);
+}
 
 .history-trigger {
-    background: rgba(154, 224, 0, 0.15); color: var(--accent); border: 1px solid var(--accent);
-    padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800;
-    margin-top: 8px; cursor: pointer; text-transform: uppercase;
-    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(154, 224, 0, 0.1); 
+    color: var(--accent); 
+    border: 1px solid rgba(154, 224, 0, 0.3);
+    padding: 6px 14px; 
+    border-radius: 20px; 
+    font-size: 10px; 
+    font-weight: 800;
+    cursor: pointer; 
+    text-transform: uppercase;
+    display: inline-flex; 
+    align-items: center; 
+    gap: 6px;
+    transition: all 0.2s ease;
 }
+
+.history-trigger:active {
+    background: rgba(154, 224, 0, 0.2);
+    transform: scale(0.96);
+}
+
+/* Helpers */
+.hidden { display: none !important; }
 
 .xi-toggle { display: flex; justify-content: center; gap: 8px; padding: 15px; }
 .xi-tab {
