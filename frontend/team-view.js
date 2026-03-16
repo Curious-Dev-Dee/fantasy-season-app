@@ -498,12 +498,21 @@ async function loadCurrentXI() {
     setTeamStatus("");
     if (tabUpcoming.dataset.startTime) startCountdown(tabUpcoming.dataset.startTime);
 
-    const { data: userTeam } = await supabase
-        .from("user_fantasy_teams")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("tournament_id", tournamentId)
-        .maybeSingle();
+    // 1. Fetch both the Team AND the Used Boosters at the same time
+    const [ { data: userTeam }, { data: pointsData } ] = await Promise.all([
+        supabase
+            .from("user_fantasy_teams")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("tournament_id", tournamentId)
+            .maybeSingle(),
+        supabase
+            .from("user_tournament_points")
+            .select("used_boosters")
+            .eq("user_id", userId)
+            .eq("tournament_id", tournamentId)
+            .maybeSingle()
+    ]);
 
     if (!userTeam) {
         setEmptyState(teamContainer, "Team not created yet.");
@@ -511,7 +520,17 @@ async function loadCurrentXI() {
         return;
     }
 
-    updateBoosterIndicator(boosterIndicator, getAppliedBooster(userTeam), "ACTIVE");
+    // 2. THE FIX: Check if the saved booster is already spent
+    const usedBoosters = pointsData?.used_boosters || [];
+    let currentBooster = getAppliedBooster(userTeam);
+
+    // If it's in the used list, it belonged to a past match. Reset to NONE for UI.
+    if (usedBoosters.includes(currentBooster)) {
+        currentBooster = "NONE";
+    }
+
+    // 3. Update the UI with the corrected booster state
+    updateBoosterIndicator(boosterIndicator, currentBooster, "ACTIVE");
 
     const { data: teamPlayers } = await supabase
         .from("user_fantasy_team_players")
@@ -525,6 +544,8 @@ async function loadCurrentXI() {
     }
 
     const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
+    
+    // 4. Pass the corrected booster to the renderer so it doesn't wrongly double player points
     renderTeamLayout(
         players || [],
         userTeam.captain_id,
@@ -532,8 +553,8 @@ async function loadCurrentXI() {
         null,
         teamContainer,
         null,
-        getAppliedBooster(userTeam),
-        null // No match ID or MOM yet for upcoming teams
+        currentBooster, // Pass the verified booster here!
+        null 
     );
 }
 
