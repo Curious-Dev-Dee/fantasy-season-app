@@ -343,8 +343,14 @@ async function fetchPrivateLeagueData(userId) {
     }
 
     if (viewBtn) {
-        viewBtn.onclick = () => {
-            window.location.href = `leaderboard.html?league_id=${m.league_id}`;
+        viewBtn.onclick = (e) => {
+            // 1. Prevent immediate navigation
+            e.preventDefault();
+            
+            // 2. Delay the redirect
+            setTimeout(() => {
+                window.location.href = `leaderboard.html?league_id=${m.league_id}`;
+            }, 400);
         };
     }
 
@@ -677,8 +683,14 @@ if (viewXiBtn) {
 }
 
 if (viewFullLeaderboardBtn) {
-    viewFullLeaderboardBtn.onclick = () => {
-        window.location.href = "leaderboard.html";
+    viewFullLeaderboardBtn.onclick = (e) => {
+        // 1. Prevent the immediate navigation
+        e.preventDefault(); 
+        
+        // 2. Allow Monetag's click event listener to process
+        setTimeout(() => {
+            window.location.href = "leaderboard.html";
+        }, 400); // 400 milliseconds is enough time for the ad to trigger
     };
 }
 

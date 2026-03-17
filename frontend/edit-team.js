@@ -812,10 +812,27 @@ function updateSaveButton(stats, isOverLimit, liveSubs) {
 }
 
 function showSuccessModal() {
+    // 1. Show the success toast exactly as you designed it
     window.showToast("Team Saved Successfully!", "success");
+    
+    // 2. Wait 1.5 seconds so the user can read the success message
     setTimeout(() => {
-        window.location.href = "home.html";
-    }, 1500); // Give them 1.5s to read the toast before leaving
+        
+        // THE MAGIC TRICK:
+        // Create an invisible link so Monetag's auto-script can "see" the navigation
+        const adLink = document.createElement('a');
+        adLink.href = 'home.html';
+        
+        // Add it to the page (invisible)
+        adLink.style.display = 'none';
+        document.body.appendChild(adLink);
+        
+        // Click it! 
+        // Monetag will intercept this click, pop the full-screen ad, 
+        // and safely route the user to home.html when they close the ad.
+        adLink.click(); 
+
+    }, 1500); 
 }
 
 window.toggleMatchFilterCard = (matchId, element) => {
