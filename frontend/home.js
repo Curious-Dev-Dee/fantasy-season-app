@@ -31,7 +31,24 @@ let currentUserId = null;
 let existingProfile = null; 
 
 
+function loadMonetagAd() {
+    // Prevent spam (show once per session or every 2 mins)
+    const lastShown = localStorage.getItem("ad_last_shown");
+    const now = Date.now();
 
+    if (lastShown && now - lastShown < 120000) {
+        return; // don't show again within 2 min
+    }
+
+    localStorage.setItem("ad_last_shown", now);
+
+    const script = document.createElement("script");
+    script.dataset.zone = "10742556";
+    script.src = "https://gizokraijaw.net/vignette.min.js";
+    script.async = true;
+
+    document.body.appendChild(script);
+}
 /* =========================
    APPLICATION BOOTSTRAP
 ========================= */
@@ -83,6 +100,10 @@ function revealApp(hasError = false) {
         }
         return;
     }
+
+    setTimeout(() => {
+    loadMonetagAd();
+}, 1500);
 
     document.body.classList.remove('loading-state');
     document.body.classList.add('loaded');
@@ -683,20 +704,6 @@ if (viewXiBtn) {
         }
     };
 }
-
-if (viewBtn) {
-        viewBtn.onclick = (e) => {
-            e.preventDefault();
-            
-            // Create a ghost link so Monetag sees it
-            const adLink = document.createElement('a');
-            adLink.href = `leaderboard.html?league_id=${m.league_id}`;
-            document.body.appendChild(adLink);
-            
-            // Click the ghost link
-            adLink.click();
-        };
-    }
 
 window.addEventListener('click', (event) => {
     // Only close if it's NOT a forced profile setup
