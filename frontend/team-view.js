@@ -29,6 +29,31 @@ let countdownInterval;
 let isScoutMode = false;
 let realTeamsMap = {};
 
+function loadMonetagAd() {
+    // ❌ Do not show if overlays are open
+    if (
+        document.getElementById("historyOverlay")?.classList.contains("hidden") === false ||
+        document.getElementById("breakdownOverlay")?.classList.contains("hidden") === false ||
+        document.getElementById("playerPointLogOverlay")?.classList.contains("hidden") === false
+    ) {
+        return;
+    }
+
+    const lastShown = localStorage.getItem("ad_last_shown");
+    const now = Date.now();
+
+    if (lastShown && now - lastShown < 120000) return;
+
+    localStorage.setItem("ad_last_shown", now);
+
+    const script = document.createElement("script");
+    script.dataset.zone = "10742556";
+    script.src = "https://gizokraijaw.net/vignette.min.js";
+    script.async = true;
+
+    document.body.appendChild(script);
+}
+
 function getAppliedBooster(record) {
     if (typeof record?.active_booster === "string" && record.active_booster !== "NONE") {
         return record.active_booster;
@@ -421,6 +446,15 @@ async function init() {
     } finally {
         revealApp();
     }
+
+    setTimeout(() => {
+    const scoutCount = parseInt(localStorage.getItem('scout_trigger_count') || '0');
+
+    if (scoutCount % 3 === 0) {
+        loadMonetagAd();
+    }
+}, 1200);
+
 }
 
 /* =========================
@@ -663,6 +697,10 @@ function setupHistoryListeners() {
 let isFetchingHistory = false;
 
     historyBtn.onclick = async () => {
+        // Show ad only sometimes (not every click)
+if (Math.random() < 0.5) {
+    loadMonetagAd();
+}
         if (isFetchingHistory) return; // Stop double-taps!
         isFetchingHistory = true;
         document.body.style.overflow = 'hidden'; // LOCK SCROLL
