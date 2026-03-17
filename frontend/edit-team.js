@@ -283,18 +283,20 @@ function setupListeners() {
         state.saving = true;
         render();
         try {
-// FIXED: We are now actually extracting the error (named authError) from Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    // --- ADD THIS SAFETY CHECK ---
-    if (authError || !user) {
+            // --- BULLETPROOF AUTH CHECK ---
+            const authResponse = await supabase.auth.getUser();
+            const user = authResponse?.data?.user;
+            const error = authResponse?.error;
+            
+            if (error || !user) {
                 throw new Error("Session expired! Please refresh the page to save.");
             }
-            // -----------------------------
-            const { error } = await supabase.rpc('save_fantasy_team', {
+            // ------------------------------
+
+            const { error: saveError } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
                 p_tournament_id: activeTournamentId,
-                p_captain_id: state.captainId,
+// ... the rest of the function stays exactly the same            p_captain_id: state.captainId,
                 p_vice_captain_id: state.viceCaptainId,
                 p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
                 p_active_booster: state.activeBooster,
