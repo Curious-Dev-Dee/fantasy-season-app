@@ -673,30 +673,33 @@ function updateHeaderMatch() {
         if (diff <= 0) { 
             clearInterval(countdownInterval);
             timerEl.innerText = "LOCKED"; 
-            timerEl.classList.remove("timer-warning"); // Remove red if it was there
+            timerEl.classList.remove("timer-warning");
 
             if (saveBtn) {
                 saveBtn.disabled = true;
                 saveBtn.innerText = "MATCH LOCKED";
             }
 
-            // --- RICH LOCK TOAST ---
-            const logoA = match.team_a?.photo_name ? supabase.storage.from("team-logos").getPublicUrl(match.team_a.photo_name).data.publicUrl : '';
-            const logoB = match.team_b?.photo_name ? bucket.getPublicUrl(match.team_b.photo_name).data.publicUrl : '';
-            
+            // --- GET NEXT MATCH INFO FOR THE NOTE ---
+            const nextMatch = state.matches[1];
+            const nextMatchInfo = nextMatch 
+                ? `${nextMatch.team_a.short_code} vs ${nextMatch.team_b.short_code}` 
+                : "the end of tournament";
+
+            // --- PLAIN TEXT TOAST (HTML formatting for bolding) ---
             const lockMessage = `
-                <div class="lock-toast">
-                    <p>🔒 Team Locked for Match #${match.match_number}</p>
-                    <div class="lock-toast-teams">
-                        <img src="${logoA}"> ${match.team_a.short_code} VS ${match.team_b.short_code} <img src="${logoB}">
-                    </div>
-                    <small>Edits now apply to next match.</small>
+                <div style="line-height:1.5;">
+                    <p>🔒 <b>Team Locked</b> for ${match.team_a.short_code} vs ${match.team_b.short_code}</p>
+                    <p style="font-size: 11px; margin-top: 5px; opacity: 0.9;">
+                        Note: Saving now will apply to next match: <b>${nextMatchInfo}</b>
+                    </p>
                 </div>
             `;
-            window.showToast(lockMessage, "error"); // Red toast for "Locked"
-            window.triggerHaptic('error'); // Vibration to alert user
+            
+            window.showToast(lockMessage, "error"); 
+            window.triggerHaptic('error');
 
-            // Wait 5 seconds then shift to next match
+            // Wait 5 seconds, then move to the next match UI
             setTimeout(() => {
                 state.matches.shift();
                 if (state.matches.length > 0) {
@@ -718,10 +721,8 @@ function updateHeaderMatch() {
         const seconds = Math.floor((diff % 60000) / 1000);
 
         if (days >= 1) {
-            // Above 24 Hours: Show Days, Hours, Mins
             timerEl.innerText = `${days}d ${hours}h ${minutes}m`;
         } else {
-            // Below 24 Hours: Show Hours, Mins, Seconds
             timerEl.innerText = `${hours}h ${minutes}m ${seconds}s`;
         }
 
