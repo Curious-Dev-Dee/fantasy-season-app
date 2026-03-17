@@ -209,9 +209,14 @@ function render() {
         return aPri - bPri || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.credit - a.credit;
     });
 
+ // At the bottom of render() ...
+    
     renderList("myXIList", sortedMyXI, true, stats);
     renderList("playerPoolList", filteredPool, false, stats);
     updateSaveButton(stats, isOverLimit, liveSubsRemaining);
+    
+    // --- ADD THIS ONE LINE ---
+    updateFilterButtonStates(); 
 }
 
 /* =========================
@@ -781,3 +786,26 @@ window.toggleMatchFilterCard = (matchId, element) => {
     }
     render(); // Updates the background player list immediately!
 };
+
+// --- ADD THIS HELPER FUNCTION AT THE BOTTOM ---
+function updateFilterButtonStates() {
+    // Map the HTML button IDs to their respective arrays in our state
+    const mappings = {
+        'matchToggle': state.filters.matches,
+        'teamToggle': state.filters.teams,
+        'creditToggle': state.filters.credits,
+        'typeToggle': state.filters.type
+    };
+
+    for (const [btnId, filterArray] of Object.entries(mappings)) {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            // If there is anything inside the filter array, highlight the button!
+            if (filterArray && filterArray.length > 0) {
+                btn.classList.add('active-filter');
+            } else {
+                btn.classList.remove('active-filter');
+            }
+        }
+    }
+}

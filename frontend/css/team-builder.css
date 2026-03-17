@@ -392,7 +392,15 @@ box-shadow:0 0 10px rgba(154,224,0,.2);
     transition: color 0.3s;
     white-space: nowrap; /* Prevents text from breaking into two lines */
 }
+/* --- ADD THIS TO MAKE ACTIVE TABS BLACK --- */
+.role-tab.active {
+    color: #000;
+}
 
+.role-tab.active span {
+    color: #000;
+    background: rgba(0, 0, 0, 0.2); /* Darkens the little number badge slightly */
+}
 /* Let's make the count span look like a real badge */
 .role-tab span {
     font-size: 9px;
@@ -404,10 +412,7 @@ box-shadow:0 0 10px rgba(154,224,0,.2);
     text-align: center;
 }
 
-/* Ensure the number is fully visible when the tab is selected */
-.role-tab.active span {
-    opacity: 1;
-}
+
 
 
 
@@ -480,6 +485,13 @@ font-weight:700;
 
 cursor:pointer;
 
+}
+
+/* --- ADD THIS FOR ACTIVE FILTERS --- */
+.pill-filter.active-filter {
+    background: rgba(154, 224, 0, 0.1);
+    border-color: var(--primary-green);
+    color: var(--primary-green);
 }
 
 
