@@ -446,23 +446,25 @@ window.setRole = (id, type) => {
     render();
 };
 
-// --- 1. BULLETPROOF TOAST ---
 window.showToast = (message, type = 'success') => {
     const container = document.getElementById('toastContainer');
     if (!container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.textContent = message;
+    // Use innerHTML so the bold tags and line breaks work!
+    toast.innerHTML = message; 
+
     container.appendChild(toast);
-    
-    // Guaranteed to remove after 3 seconds, no CSS keyframes required!
+
+    // Fade out and remove
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(120%)';
-        setTimeout(() => toast.remove(), 300); // Wait for the visual fade out
-    }, 3000); 
+        toast.style.transition = 'all 0.5s ease';
+        setTimeout(() => toast.remove(), 500);
+    }, 4000); 
 };
-
 // --- 2. CUSTOM CONFIRM MODAL ---
 window.showConfirm = (title, message) => {
     return new Promise((resolve) => {
@@ -661,7 +663,10 @@ function updateHeaderMatch() {
     const timerEl = document.getElementById("headerCountdown");
     const saveBtn = document.getElementById("saveTeamBtn");
     
-    document.getElementById("upcomingMatchName").innerText = `${match.team_a?.short_code} vs ${match.team_b?.short_code}`;
+    // Safety check for names
+    const teamA = match.team_a?.short_code || "TBA";
+    const teamB = match.team_b?.short_code || "TBA";
+    document.getElementById("upcomingMatchName").innerText = `${teamA} vs ${teamB}`;
     
     const target = new Date(match.actual_start_time).getTime();
     if (countdownInterval) clearInterval(countdownInterval);
@@ -680,18 +685,19 @@ function updateHeaderMatch() {
                 saveBtn.innerText = "MATCH LOCKED";
             }
 
-            // --- GET NEXT MATCH INFO FOR THE NOTE ---
+            // --- FIND NEXT MATCH FOR THE TOAST ---
             const nextMatch = state.matches[1];
             const nextMatchInfo = nextMatch 
-                ? `${nextMatch.team_a.short_code} vs ${nextMatch.team_b.short_code}` 
+                ? `${nextMatch.team_a?.short_code || 'TBA'} vs ${nextMatch.team_b?.short_code || 'TBA'}` 
                 : "the end of tournament";
 
-            // --- PLAIN TEXT TOAST (HTML formatting for bolding) ---
+            // --- THE TOAST MESSAGE ---
             const lockMessage = `
-                <div style="line-height:1.5;">
-                    <p>🔒 <b>Team Locked</b> for ${match.team_a.short_code} vs ${match.team_b.short_code}</p>
-                    <p style="font-size: 11px; margin-top: 5px; opacity: 0.9;">
-                        Note: Saving now will apply to next match: <b>${nextMatchInfo}</b>
+                <div style="text-align:center;">
+                    <p style="margin-bottom:8px;">🔒 <b>TEAM LOCKED</b></p>
+                    <p style="font-size:13px;">Match #${match.match_number}: ${teamA} vs ${teamB}</p>
+                    <p style="font-size:11px; margin-top:8px; color: #94a3b8;">
+                        Any saves now will apply to: <br><b>${nextMatchInfo}</b>
                     </p>
                 </div>
             `;
@@ -699,7 +705,7 @@ function updateHeaderMatch() {
             window.showToast(lockMessage, "error"); 
             window.triggerHaptic('error');
 
-            // Wait 5 seconds, then move to the next match UI
+            // Shift to next match after 5 seconds
             setTimeout(() => {
                 state.matches.shift();
                 if (state.matches.length > 0) {
@@ -723,7 +729,9 @@ function updateHeaderMatch() {
         if (days >= 1) {
             timerEl.innerText = `${days}d ${hours}h ${minutes}m`;
         } else {
-            timerEl.innerText = `${hours}h ${minutes}m ${seconds}s`;
+            // Pad seconds with a leading zero if below 10
+            const displaySec = seconds < 10 ? `0${seconds}` : seconds;
+            timerEl.innerText = `${hours}h ${minutes}m ${displaySec}s`;
         }
 
         // --- RED ALERT (Below 15 Minutes) ---
@@ -798,19 +806,6 @@ function showSuccessModal() {
         window.location.href = "home.html";
     }, 1500); // Give them 1.5s to read the toast before leaving
 }
-
-window.showToast = (message, type = 'success') => {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-toast.innerHTML = message;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.add('fade-out');
-        toast.addEventListener('animationend', () => toast.remove());
-    }, 3000); 
-};
 
 window.toggleMatchFilterCard = (matchId, element) => {
     if (state.filters.matches.includes(matchId)) {
