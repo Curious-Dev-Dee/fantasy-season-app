@@ -819,21 +819,21 @@ function updateFilterButtonStates() {
 //    HAPTIC ENGINE
 // =========================
 window.triggerHaptic = (style = 'light') => {
-    // Safety check: If the device doesn't support it (like iPhones or Desktops), just ignore.
+    // Safety check: If the device doesn't support it, just ignore.
     if (!navigator.vibrate) return;
 
     switch (style) {
         case 'light':
-            navigator.vibrate(15); // A tiny, crisp tap
+            navigator.vibrate(40); // Increased from 15 to 40ms so Android motors can spin up
             break;
         case 'medium':
-            navigator.vibrate(30); // A slightly heavier thud
+            navigator.vibrate(80); // Increased from 30 to 80ms
             break;
         case 'success':
-            navigator.vibrate([30, 60, 30]); // A double-pulse "ba-dum"
+            navigator.vibrate([50, 80, 50]); // A heavier double-pulse
             break;
         case 'error':
-            navigator.vibrate([50, 50, 50, 50, 50]); // An angry stutter
+            navigator.vibrate([80, 50, 80, 50, 80]); // A heavier angry stutter
             break;
     }
 };
