@@ -23,12 +23,15 @@ let state = {
         teams: [],   
         credits: [], 
         matches: [],  
-        type: [] // <--- ADD THIS
+        type: [],
+         // <--- ADD THIS
     }, 
-    saving: false 
+    
+    saving: false,
+     
     
 };
-
+let isTransitioning = false; // This prevents the button from re-enabling
 let countdownInterval = null;
 let activeTournamentId = null;
 
@@ -677,6 +680,7 @@ function updateHeaderMatch() {
         
         if (diff <= 0) { 
             clearInterval(countdownInterval);
+            isTransitioning = true; // LOCK THE BUTTONS
             timerEl.innerText = "LOCKED"; 
             timerEl.classList.remove("timer-warning");
 
@@ -708,6 +712,7 @@ function updateHeaderMatch() {
             // Shift to next match after 5 seconds
             setTimeout(() => {
                 state.matches.shift();
+                isTransitioning = false; // UNLOCK FOR THE NEXT MATCH
                 if (state.matches.length > 0) {
                     state.currentMatchNumber = state.matches[0].match_number;
                     updateHeaderMatch(); 
@@ -715,7 +720,7 @@ function updateHeaderMatch() {
                 } else {
                     timerEl.innerText = "NO MATCHES";
                 }
-            }, 5000); 
+            }, 300000); 
             return; 
         }
         
@@ -746,6 +751,12 @@ function updateHeaderMatch() {
 
 function updateSaveButton(stats, isOverLimit, liveSubs) {
     const btn = document.getElementById("saveTeamBtn");
+    // MASTER OVERRIDE: If match just started, force the button to stay locked
+    if (isTransitioning) {
+        btn.disabled = true;
+        btn.innerText = "MATCH LOCKED";
+        return; 
+    }
     let btnText = "SAVE TEAM";
     let isValid = true;
 

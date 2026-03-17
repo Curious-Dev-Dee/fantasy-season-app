@@ -1110,37 +1110,47 @@ display:block;
     background: rgba(0,0,0,0.5);
 }
 
-/* --- TOAST NOTIFICATIONS --- */
+/* --- CENTERED TOAST NOTIFICATIONS --- */
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Perfect middle alignment */
     z-index: 10000;
     display: flex;
     flex-direction: column;
     gap: 10px;
     pointer-events: none;
+    width: 90%; /* Responsive width */
+    max-width: 320px;
 }
 
 .toast {
     background: #1e293b;
     color: #fff;
-    padding: 14px 20px;
-    border-radius: 12px;
-    font-size: 13px;
+    padding: 20px;
+    border-radius: 16px;
+    font-size: 14px;
     font-weight: 700;
-    border-left: 4px solid var(--accent, #9AE000);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    animation: slideInRight 0.3s ease forwards;
-    min-width: 250px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6); /* Heavy shadow for depth */
+    animation: toastPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .toast.error {
-    border-left-color: #ef4444; /* Red for errors */
+    border-left: 6px solid #ef4444;
+}
+
+/* Updated animation for center entry */
+@keyframes toastPopIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .toast.fade-out {
-    animation: fadeOutToast 0.3s ease forwards;
+    transition: all 0.4s ease;
+    opacity: 0 !important;
+    transform: scale(0.9) !important;
 }
 
 @keyframes slideInRight {
