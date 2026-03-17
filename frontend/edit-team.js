@@ -283,17 +283,10 @@ document.getElementById("saveTeamBtn").onclick = async () => {
         state.saving = true;
         render();
         try {
-            // --- BULLETPROOF AUTH CHECK ---
-            const authResponse = await supabase.auth.getUser();
-            const user = authResponse?.data?.user;
-            const authError = authResponse?.error;
+            // BACK TO THE OLD WORKING CODE:
+            const { data: { user } } = await supabase.auth.getUser();
             
-            if (authError || !user) {
-                throw new Error("Session expired! Please refresh the page to save.");
-            }
-
-            // --- DATABASE PAYLOAD ---
-            const { error: saveError } = await supabase.rpc('save_fantasy_team', {
+            const { error } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
                 p_tournament_id: activeTournamentId,
                 p_captain_id: state.captainId,
@@ -303,15 +296,16 @@ document.getElementById("saveTeamBtn").onclick = async () => {
                 p_player_ids: state.selectedPlayers.map(p => p.id)
             });
             
-            // FIXED: Checking the correct error variable
-            if (saveError) throw saveError;
+            if (error) throw error;
             
+            // HAPTIC SUCCESS ADDED HERE
             window.triggerHaptic('success');
             showSuccessModal();
 
       } catch (err) { 
+            // HAPTIC ERROR ADDED HERE
             window.triggerHaptic('error');
-            // --- TRANSLATE NERDY ERRORS TO PLAIN ENGLISH ---
+            
             let errorMsg = err.message;
             if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
                 errorMsg = "Weak internet! Please tap save again.";
@@ -322,7 +316,8 @@ document.getElementById("saveTeamBtn").onclick = async () => {
             state.saving = false; 
             render(); 
         }
-    };}
+    };
+}
 
 /* =========================
    UI HELPERS (Renderers)
