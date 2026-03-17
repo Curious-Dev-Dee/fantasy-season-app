@@ -821,24 +821,66 @@ function updateFilterButtonStates() {
 }
 
 // =========================
-//    HAPTIC ENGINE
+//    HAPTIC & AUDIO ENGINE
 // =========================
+
+// Initialize a single audio context for the whole app
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
 window.triggerHaptic = (style = 'light') => {
-    // Safety check: If the device doesn't support it, just ignore.
-    if (!navigator.vibrate) return;
+    // 1. TRIGGER VIBRATION (If supported)
+    if (navigator.vibrate) {
+        switch (style) {
+            case 'light': navigator.vibrate(40); break;
+            case 'medium': navigator.vibrate(80); break;
+            case 'success': navigator.vibrate([50, 80, 50]); break;
+            case 'error': navigator.vibrate([80, 50, 80, 50, 80]); break;
+        }
+    }
+
+    // 2. TRIGGER AUDIO SYNTHESIS
+    // Browsers require a user interaction before playing sound, so we resume the context if it was suspended.
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
 
     switch (style) {
         case 'light':
-            navigator.vibrate(40); // Increased from 15 to 40ms so Android motors can spin up
+            // A crisp, high-pitched "pop" (like tapping a plastic card)
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, now);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+            gainNode.gain.setValueAtTime(0.05, now); // Very low volume
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            oscillator.start(now);
+            oscillator.stop(now + 0.05);
             break;
-        case 'medium':
-            navigator.vibrate(80); // Increased from 30 to 80ms
-            break;
+
         case 'success':
-            navigator.vibrate([50, 80, 50]); // A heavier double-pulse
+            // A quick, pleasant two-tone chime (C -> E)
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(523.25, now); // C5
+            oscillator.frequency.setValueAtTime(659.25, now + 0.1); // E5
+            gainNode.gain.setValueAtTime(0.05, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+            oscillator.start(now);
+            oscillator.stop(now + 0.3);
             break;
+
         case 'error':
-            navigator.vibrate([80, 50, 80, 50, 80]); // A heavier angry stutter
+            // A low, flat "buzz"
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, now);
+            gainNode.gain.setValueAtTime(0.05, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
+            oscillator.start(now);
+            oscillator.stop(now + 0.2);
             break;
     }
 };
