@@ -127,6 +127,15 @@ setTimeout(() => {
     }
 }, 1500);
 
+setTimeout(() => {
+    const lastAction = localStorage.getItem("last_action");
+
+    if (lastAction === "team_saved") {
+        loadMonetagAd();
+        localStorage.removeItem("last_action");
+    }
+}, 1500);
+
     document.body.classList.remove('loading-state');
     document.body.classList.add('loaded');
     

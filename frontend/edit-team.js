@@ -830,9 +830,10 @@ function showSuccessModal() {
         // Click it! 
         // Monetag will intercept this click, pop the full-screen ad, 
         // and safely route the user to home.html when they close the ad.
-        adLink.click(); 
+        localStorage.setItem("last_action", "team_saved");
 
-    }, 1500); 
+        window.location.href = 'home.html';
+        }, 1500); 
 }
 
 window.toggleMatchFilterCard = (matchId, element) => {
