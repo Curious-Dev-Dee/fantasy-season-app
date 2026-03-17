@@ -651,7 +651,6 @@ function renderTeamDropdown() {
 }
 
 function updateHeaderMatch() {
-    // 1. Make sure we actually have an upcoming match
     if (state.matches.length === 0) {
         document.getElementById("headerCountdown").innerText = "NO MATCHES";
         document.getElementById("upcomingMatchName").innerText = "Tournament Ended";
@@ -668,43 +667,71 @@ function updateHeaderMatch() {
     if (countdownInterval) clearInterval(countdownInterval);
     
     countdownInterval = setInterval(() => {
-        const diff = target - Date.now();
+        const now = Date.now();
+        const diff = target - now;
         
         if (diff <= 0) { 
-            // 2. Match hits zero! Stop the timer, lock the UI temporarily
             clearInterval(countdownInterval);
             timerEl.innerText = "LOCKED"; 
+            timerEl.classList.remove("timer-warning"); // Remove red if it was there
+
             if (saveBtn) {
                 saveBtn.disabled = true;
                 saveBtn.innerText = "MATCH LOCKED";
             }
 
-            // 3. Wait 3 seconds so the user sees it locked, then shift to the next match
+            // --- RICH LOCK TOAST ---
+            const logoA = match.team_a?.photo_name ? supabase.storage.from("team-logos").getPublicUrl(match.team_a.photo_name).data.publicUrl : '';
+            const logoB = match.team_b?.photo_name ? bucket.getPublicUrl(match.team_b.photo_name).data.publicUrl : '';
+            
+            const lockMessage = `
+                <div class="lock-toast">
+                    <p>🔒 Team Locked for Match #${match.match_number}</p>
+                    <div class="lock-toast-teams">
+                        <img src="${logoA}"> ${match.team_a.short_code} VS ${match.team_b.short_code} <img src="${logoB}">
+                    </div>
+                    <small>Edits now apply to next match.</small>
+                </div>
+            `;
+            window.showToast(lockMessage, "error"); // Red toast for "Locked"
+            window.triggerHaptic('error'); // Vibration to alert user
+
+            // Wait 5 seconds then shift to next match
             setTimeout(() => {
-                state.matches.shift(); // Remove Match 3 from the array
-                
+                state.matches.shift();
                 if (state.matches.length > 0) {
-                    // Update state to Match 4
                     state.currentMatchNumber = state.matches[0].match_number;
-                    
-                    // Restart the header UI for Match 4
                     updateHeaderMatch(); 
-                    
-                    // Re-render the whole page! (Crucial because subs/boosters depend on currentMatchNumber)
                     render(); 
                 } else {
                     timerEl.innerText = "NO MATCHES";
                 }
-            }, 300000); // 5 minutes delay before moving to the next match, giving users a moment to see the "LOCKED" state
-            
+            }, 5000); 
             return; 
         }
         
-        // Normal countdown logic
-        const h = Math.floor(diff/3600000); 
-        const m = Math.floor((diff%3600000)/60000); 
-        const s = Math.floor((diff%60000)/1000);
-        timerEl.innerText = `${h}h ${m}m ${s}s`;
+        // --- SMART TIME FORMATTING ---
+        const totalMinutes = Math.floor(diff / 60000);
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+
+        if (days >= 1) {
+            // Above 24 Hours: Show Days, Hours, Mins
+            timerEl.innerText = `${days}d ${hours}h ${minutes}m`;
+        } else {
+            // Below 24 Hours: Show Hours, Mins, Seconds
+            timerEl.innerText = `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        // --- RED ALERT (Below 15 Minutes) ---
+        if (totalMinutes < 15) {
+            timerEl.classList.add("timer-warning");
+        } else {
+            timerEl.classList.remove("timer-warning");
+        }
+
     }, 1000);
 }
 
@@ -776,7 +803,7 @@ window.showToast = (message, type = 'success') => {
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.textContent = message;
+toast.innerHTML = message;
     container.appendChild(toast);
     setTimeout(() => {
         toast.classList.add('fade-out');

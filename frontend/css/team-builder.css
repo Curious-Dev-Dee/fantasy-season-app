@@ -1293,3 +1293,43 @@ display:block;
     color: #fff;
     flex: 1; /* Pushes the checkmark to the right */
 }
+
+/* Red Warning for Timer */
+.timer-warning {
+    color: #ef4444 !important;
+    animation: pulse-red 1s infinite alternate;
+}
+
+@keyframes pulse-red {
+    from { opacity: 1; }
+    to { opacity: 0.7; }
+}
+
+/* Rich Lock Toast Styling */
+.lock-toast {
+    text-align: center;
+}
+.lock-toast p {
+    font-weight: 800;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.lock-toast-teams {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 5px;
+}
+.lock-toast-teams img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+.lock-toast small {
+    font-size: 10px;
+    opacity: 0.8;
+    display: block;
+}
