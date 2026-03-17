@@ -283,9 +283,11 @@ function setupListeners() {
         state.saving = true;
         render();
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            // --- ADD THIS SAFETY CHECK ---
-            if (authError || !user) {
+// FIXED: We are now actually extracting the error (named authError) from Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    // --- ADD THIS SAFETY CHECK ---
+    if (authError || !user) {
                 throw new Error("Session expired! Please refresh the page to save.");
             }
             // -----------------------------
