@@ -299,8 +299,10 @@ function setupListeners() {
                 p_player_ids: state.selectedPlayers.map(p => p.id)
             });
             if (error) throw error;
+            window.triggerHaptic('success');
             showSuccessModal();
       } catch (err) { 
+        window.triggerHaptic('error');
             // --- TRANSLATE NERDY ERRORS TO PLAIN ENGLISH ---
             let errorMsg = err.message;
             if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
@@ -419,6 +421,7 @@ function renderBoosterUI() {
    UTILITIES (Filters/Roles)
 ========================= */
 window.togglePlayer = (id) => {
+    window.triggerHaptic('light');
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
     if (idx > -1) {
         state.selectedPlayers.splice(idx, 1);
@@ -432,6 +435,7 @@ window.togglePlayer = (id) => {
 };
 
 window.setRole = (id, type) => {
+    window.triggerHaptic('light');
     if (type === 'C') { state.captainId = (state.captainId === id) ? null : id; if (state.captainId === state.viceCaptainId) state.viceCaptainId = null; }
     else { state.viceCaptainId = (state.viceCaptainId === id) ? null : id; if (state.viceCaptainId === state.captainId) state.captainId = null; }
     render();
@@ -505,6 +509,7 @@ window.handleBoosterChange = async (val) => {
 
     // If they clicked Apply, update state and show the toast!
     if (isConfirmed) {
+        window.triggerHaptic('success');
         state.activeBooster = val;
         window.showToast(`${prettyName} Applied Successfully!`, "success");
         render();
@@ -809,3 +814,26 @@ function updateFilterButtonStates() {
         }
     }
 }
+
+// =========================
+//    HAPTIC ENGINE
+// =========================
+window.triggerHaptic = (style = 'light') => {
+    // Safety check: If the device doesn't support it (like iPhones or Desktops), just ignore.
+    if (!navigator.vibrate) return;
+
+    switch (style) {
+        case 'light':
+            navigator.vibrate(15); // A tiny, crisp tap
+            break;
+        case 'medium':
+            navigator.vibrate(30); // A slightly heavier thud
+            break;
+        case 'success':
+            navigator.vibrate([30, 60, 30]); // A double-pulse "ba-dum"
+            break;
+        case 'error':
+            navigator.vibrate([50, 50, 50, 50, 50]); // An angry stutter
+            break;
+    }
+};
