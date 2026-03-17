@@ -824,11 +824,11 @@ function updateFilterButtonStates() {
 //    HAPTIC & AUDIO ENGINE
 // =========================
 
-// Initialize a single audio context for the whole app
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// Leave this empty at first! Don't create the audio engine until they tap.
+let audioCtx = null; 
 
 window.triggerHaptic = (style = 'light') => {
-    // 1. TRIGGER VIBRATION (If supported)
+    // 1. TRIGGER VIBRATION
     if (navigator.vibrate) {
         switch (style) {
             case 'light': navigator.vibrate(40); break;
@@ -839,48 +839,55 @@ window.triggerHaptic = (style = 'light') => {
     }
 
     // 2. TRIGGER AUDIO SYNTHESIS
-    // Browsers require a user interaction before playing sound, so we resume the context if it was suspended.
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    try {
+        // Only wake up the audio hardware when they actually interact
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
 
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
 
-    const now = audioCtx.currentTime;
+        const now = audioCtx.currentTime;
 
-    switch (style) {
-        case 'light':
-            // A crisp, high-pitched "pop" (like tapping a plastic card)
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(800, now);
-            oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
-            gainNode.gain.setValueAtTime(0.05, now); // Very low volume
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-            oscillator.start(now);
-            oscillator.stop(now + 0.05);
-            break;
+        switch (style) {
+            case 'light':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, now);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+                gainNode.gain.setValueAtTime(0.05, now); // Low volume
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                oscillator.start(now);
+                oscillator.stop(now + 0.05);
+                break;
 
-        case 'success':
-            // A quick, pleasant two-tone chime (C -> E)
-            oscillator.type = 'triangle';
-            oscillator.frequency.setValueAtTime(523.25, now); // C5
-            oscillator.frequency.setValueAtTime(659.25, now + 0.1); // E5
-            gainNode.gain.setValueAtTime(0.05, now);
-            gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
-            oscillator.start(now);
-            oscillator.stop(now + 0.3);
-            break;
+            case 'success':
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(523.25, now); 
+                oscillator.frequency.setValueAtTime(659.25, now + 0.1); 
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+                break;
 
-        case 'error':
-            // A low, flat "buzz"
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(150, now);
-            gainNode.gain.setValueAtTime(0.05, now);
-            gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
-            oscillator.start(now);
-            oscillator.stop(now + 0.2);
-            break;
+            case 'error':
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, now);
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
+                oscillator.start(now);
+                oscillator.stop(now + 0.2);
+                break;
+        }
+    } catch (err) {
+        // Silently fail if their specific device completely blocks web audio
+        console.log("Audio blocked by device:", err);
     }
 };
