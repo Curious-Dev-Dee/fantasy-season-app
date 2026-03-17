@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Points Predictor | FantasyCric26</title>
+    <title>Points Calculator | FantasyCric26</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -175,7 +175,7 @@
 
     <header class="app-header">
         <a href="more.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-        <h1 style="margin:0; font-size: 17px; font-weight: 800;">Points Predictor</h1>
+        <h1 style="margin:0; font-size: 17px; font-weight: 800;">Points Calculator</h1>
     </header>
 
     <div class="container">
@@ -197,25 +197,6 @@
                 </div>
             </div>
 
-            <div class="input-group full">
-                <label>Match Booster</label>
-                <select id="boosterSelect" onchange="calculate()">
-                    <option value="NONE">No Active Booster</option>
-                    <option value="TOTAL_2X">Total 2X</option>
-                    <option value="INDIAN_2X">Indian / Overseas 2X</option>
-                    <option value="UNCAPPED_2X">Uncapped 2X</option>
-                    <option value="CAPTAIN_3X">Captain 3X (Only if C)</option>
-                    <option value="MOM_2X">MOM 2X</option>
-                </select>
-            </div>
-            
-            <div class="full">
-                <div class="toggle-row" style="border-color: var(--cyan);">
-                    <span>Player of the Match?</span>
-                    <input type="checkbox" id="isPOM" onchange="calculate()" style="width: 20px; height: 20px;">
-                </div>
-            </div>
-        </div>
 
         <div class="section-title"><i class="fas fa-bat-ball"></i> Batting</div>
         <div class="card">
@@ -278,7 +259,13 @@
                 <input type="number" id="runouts" placeholder="0" oninput="calculate()">
             </div>
         </div>
-
+<div class="full">
+                <div class="toggle-row" style="border-color: var(--cyan);">
+                    <span>Man of the Match?</span>
+                    <input type="checkbox" id="isPOM" onchange="calculate()" style="width: 20px; height: 20px;">
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="floating-score" id="floatBar">
@@ -373,11 +360,7 @@
 
             let finalScore = pts * multiplier;
 
-            // 6. Boosters
-            if (booster === 'TOTAL_2X' || booster === 'INDIAN_2X' || booster === 'UNCAPPED_2X') finalScore *= 2;
-            if (booster === 'MOM_2X' && isPOM) finalScore += (20 * multiplier);
-            if (booster === 'CAPTAIN_3X' && currentRole === 'c') finalScore = (finalScore / 2) * 3;
-
+            
             const finalRounded = Math.round(finalScore);
             document.getElementById('totalPoints').innerText = finalRounded;
             document.getElementById('floatPoints').innerText = `${finalRounded} PTS`;
