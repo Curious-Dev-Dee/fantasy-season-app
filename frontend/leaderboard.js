@@ -155,7 +155,21 @@ podiumContainer.replaceChildren();
 
 window.scoutUser = (uid, name) => {
     if (!uid || uid === "undefined" || uid === "null") return;
-    window.location.href = `team-view.html?uid=${uid}&name=${encodeURIComponent(name)}`;
+
+    // Retrieve or initialize the counter from local storage
+    let scoutCount = parseInt(localStorage.getItem('scout_trigger_count') || '0');
+    scoutCount++;
+    localStorage.setItem('scout_trigger_count', scoutCount);
+
+    const targetUrl = `team-view.html?uid=${uid}&name=${encodeURIComponent(name)}`;
+
+    // If it's the 3rd, 6th, etc. click, we send them to the team-view.html 
+    // where the script in the <head> will handle the full-screen ad.
+    if (scoutCount % 3 === 0) {
+        console.log("Scout threshold reached. Ad will trigger on page load.");
+    }
+
+    window.location.href = targetUrl;
 };
 
 /* =========================
