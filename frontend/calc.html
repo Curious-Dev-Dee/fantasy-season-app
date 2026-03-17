@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Points Predictor | FantasyCric26</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c1117;
+            --card: #161b22;
+            --neon: #9AE000;
+            --cyan: #00f2ff;
+            --text: #e6edf3;
+            --dim: #8b949e;
+            --border: rgba(255, 255, 255, 0.08);
+            --danger: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding-bottom: 40px;
+            touch-action: manipulation;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            background: rgba(12, 17, 23, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .container { max-width: 500px; margin: 0 auto; padding: 15px; }
+
+        /* SCORE DISPLAY */
+        .total-display {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            padding: 30px 20px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid var(--neon);
+            box-shadow: 0 10px 30px rgba(154, 224, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .total-label { font-size: 12px; color: var(--neon); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        .total-val { font-size: 64px; font-weight: 900; margin: 10px 0; color: #fff; }
+        .breakdown-summary { font-size: 13px; color: var(--dim); }
+
+        /* FORM SECTIONS */
+        .section-title { font-size: 14px; font-weight: 800; color: var(--cyan); margin: 25px 0 15px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        
+        .calc-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 11px; font-weight: 700; color: var(--dim); }
+        .input-group input, .input-group select {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+        }
+        .input-group input:focus { border-color: var(--neon); }
+
+        /* ROLES & BOOSTERS */
+        .chip-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .chip {
+            flex: 1;
+            padding: 12px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .chip.active { background: var(--neon); color: #000; border-color: var(--neon); }
+
+        .full-width { grid-column: span 2; }
+
+        .pom-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 242, 255, 0.05);
+            border-radius: 12px;
+            border: 1px dashed var(--cyan);
+        }
+
+        /* HAPTIC ANIMATION */
+        .pulse { animation: pulseAnim 0.3s ease-in-out; }
+        @keyframes pulseAnim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <a href="more.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 style="margin:0; font-size: 20px;">Points Predictor</h1>
+    </header>
+
+    <div class="container">
+        
+        <div class="total-display" id="mainDisplay">
+            <div class="total-label">Projected Points</div>
+            <div class="total-val" id="totalPoints">0</div>
+            <div class="breakdown-summary" id="breakdownText">Start entering stats to calculate...</div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-star"></i> Multipliers & Boosters</div>
+        <div class="calc-card">
+            <div class="input-group full-width">
+                <label>Player Role</label>
+                <div class="chip-group">
+                    <div class="chip active" onclick="setRole('norm', this)">Standard</div>
+                    <div class="chip" onclick="setRole('c', this)">Captain (2x)</div>
+                    <div class="chip" onclick="setRole('vc', this)">Vice-Cap (1.5x)</div>
+                </div>
+            </div>
+
+            <div class="input-group full-width">
+                <label>Active Booster</label>
+                <select id="boosterSelect" onchange="calculate()">
+                    <option value="NONE">No Booster</option>
+                    <option value="TOTAL_2X">Total 2X</option>
+                    <option value="INDIAN_2X">Indian / Overseas 2X</option>
+                    <option value="UNCAPPED_2X">Uncapped 2X</option>
+                    <option value="CAPTAIN_3X">Captain 3X (Only if C)</option>
+                    <option value="MOM_2X">MOM 2X</option>
+                </select>
+            </div>
+            
+            <div class="input-group full-width">
+                <div class="pom-toggle">
+                    <span style="font-size: 13px; font-weight: 700;">Player of the Match?</span>
+                    <input type="checkbox" id="isPOM" onchange="calculate()" style="width: 20px; height: 20px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-bat-ball"></i> Batting Stats</div>
+        <div class="calc-card">
+            <div class="input-group">
+                <label>Runs Scored</label>
+                <input type="number" id="runs" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Balls Faced</label>
+                <input type="number" id="balls" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Fours (4s)</label>
+                <input type="number" id="fours" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Sixes (6s)</label>
+                <input type="number" id="sixes" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group full-width">
+                <div class="pom-toggle" style="border: 1px solid var(--border); background: none;">
+                    <span style="font-size: 13px; font-weight: 700; color: var(--danger);">Got Out for Duck? (Non-Bowlers)</span>
+                    <input type="checkbox" id="isDuck" onchange="calculate()" style="width: 20px; height: 20px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-bowling-ball"></i> Bowling Stats</div>
+        <div class="calc-card">
+            <div class="input-group">
+                <label>Wickets</label>
+                <input type="number" id="wickets" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Maiden Overs</label>
+                <input type="number" id="maidens" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Overs Bowled</label>
+                <input type="number" id="overs" step="0.1" placeholder="0.0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Runs Conceded</label>
+                <input type="number" id="runsConceded" placeholder="0" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-hands"></i> Fielding Stats</div>
+        <div class="calc-card">
+            <div class="input-group">
+                <label>Catches</label>
+                <input type="number" id="catches" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Stumpings</label>
+                <input type="number" id="stumpings" placeholder="0" oninput="calculate()">
+            </div>
+            <div class="input-group full-width">
+                <label>Run Outs (Direct or Assisted)</label>
+                <input type="number" id="runouts" placeholder="0" oninput="calculate()">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentRole = 'norm';
+
+        function setRole(role, el) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentRole = role;
+            calculate();
+            triggerHaptic();
+        }
+
+        function triggerHaptic() {
+            if (navigator.vibrate) navigator.vibrate(30);
+            const disp = document.getElementById('mainDisplay');
+            disp.classList.remove('pulse');
+            void disp.offsetWidth; 
+            disp.classList.add('pulse');
+        }
+
+        function calculate() {
+            const runs = Number(document.getElementById('runs').value) || 0;
+            const balls = Number(document.getElementById('balls').value) || 0;
+            const fours = Number(document.getElementById('fours').value) || 0;
+            const sixes = Number(document.getElementById('sixes').value) || 0;
+            const wickets = Number(document.getElementById('wickets').value) || 0;
+            const maidens = Number(document.getElementById('maidens').value) || 0;
+            const overs = Number(document.getElementById('overs').value) || 0;
+            const conceded = Number(document.getElementById('runsConceded').value) || 0;
+            const catches = Number(document.getElementById('catches').value) || 0;
+            const stumpings = Number(document.getElementById('stumpings').value) || 0;
+            const runouts = Number(document.getElementById('runouts').value) || 0;
+            const isPOM = document.getElementById('isPOM').checked;
+            const isDuck = document.getElementById('isDuck').checked;
+            const booster = document.getElementById('boosterSelect').value;
+
+            let pts = 0;
+
+            // 1. Batting
+            pts += runs;
+            pts += (fours * 1) + (sixes * 2);
+            if (runs >= 100) pts += 20;
+            else if (runs >= 75) pts += 15;
+            else if (runs >= 50) pts += 10;
+            else if (runs >= 30) pts += 5;
+            
+            if (runs === 0 && isDuck) pts -= 2;
+            pts += (runs - balls); // Strike Rate Points
+
+            // 2. Bowling
+            if (wickets > 0) pts += 20 + ((wickets - 1) * 25);
+            pts += (maidens * 10);
+
+            if (overs >= 2) {
+                const wholeOvers = Math.floor(overs);
+                const extraBalls = Math.round((overs - wholeOvers) * 10);
+                const trueOvers = wholeOvers + (extraBalls / 6);
+                const er = conceded / trueOvers;
+                if (er <= 6) pts += 8;
+                else if (er <= 9) pts += 4;
+                else pts -= 4;
+            }
+
+            // 3. Fielding
+            pts += (catches * 8);
+            pts += (stumpings * 8);
+            pts += (runouts * 8);
+
+            // 4. Involvement
+            if (pts !== 0) pts += 4;
+
+            // 5. POM
+            if (isPOM) pts += 20;
+
+            // 6. Multipliers
+            let multiplier = 1;
+            if (currentRole === 'c') multiplier = 2;
+            if (currentRole === 'vc') multiplier = 1.5;
+
+            let finalScore = pts * multiplier;
+
+            // 7. Boosters
+            if (booster === 'TOTAL_2X') finalScore *= 2;
+            if (booster === 'INDIAN_2X') finalScore *= 2;
+            if (booster === 'UNCAPPED_2X') finalScore *= 2;
+            if (booster === 'MOM_2X' && isPOM) finalScore += (20 * multiplier); // Double the POM portion
+            if (booster === 'CAPTAIN_3X' && currentRole === 'c') {
+                // Remove the 2x and apply 3x
+                finalScore = (finalScore / 2) * 3;
+            }
+
+            document.getElementById('totalPoints').innerText = Math.round(finalScore);
+            document.getElementById('breakdownText').innerText = `Base: ${pts} pts | Mult: ${multiplier}x ${booster !== 'NONE' ? '| Booster Active' : ''}`;
+        }
+    </script>
+</body>
+</html>
