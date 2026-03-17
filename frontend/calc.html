@@ -197,6 +197,25 @@
                 </div>
             </div>
 
+            <div class="input-group full">
+                <label>Match Booster</label>
+                <select id="boosterSelect" onchange="calculate()">
+                    <option value="NONE">No Active Booster</option>
+                    <option value="TOTAL_2X">Total 2X</option>
+                    <option value="INDIAN_2X">Indian / Overseas 2X</option>
+                    <option value="UNCAPPED_2X">Uncapped 2X</option>
+                    <option value="CAPTAIN_3X">Captain 3X (Only if C)</option>
+                    <option value="MOM_2X">MOM 2X</option>
+                </select>
+            </div>
+            
+            <div class="full">
+                <div class="toggle-row" style="border-color: var(--cyan);">
+                    <span>Player of the Match?</span>
+                    <input type="checkbox" id="isPOM" onchange="calculate()" style="width: 20px; height: 20px;">
+                </div>
+            </div>
+        </div>
 
         <div class="section-title"><i class="fas fa-bat-ball"></i> Batting</div>
         <div class="card">
@@ -259,17 +278,11 @@
                 <input type="number" id="runouts" placeholder="0" oninput="calculate()">
             </div>
         </div>
-<div class="full">
-                <div class="toggle-row" style="border-color: var(--cyan);">
-                    <span>Man of the Match?</span>
-                    <input type="checkbox" id="isPOM" onchange="calculate()" style="width: 20px; height: 20px;">
-                </div>
-            </div>
-        </div>
+
     </div>
 
     <div class="floating-score" id="floatBar">
-        <span>TOTAL PREDICTION</span>
+        <span>TOTAL POINTS</span>
         <span id="floatPoints">0 PTS</span>
     </div>
 
@@ -360,7 +373,11 @@
 
             let finalScore = pts * multiplier;
 
-            
+            // 6. Boosters
+            if (booster === 'TOTAL_2X' || booster === 'INDIAN_2X' || booster === 'UNCAPPED_2X') finalScore *= 2;
+            if (booster === 'MOM_2X' && isPOM) finalScore += (20 * multiplier);
+            if (booster === 'CAPTAIN_3X' && currentRole === 'c') finalScore = (finalScore / 2) * 3;
+
             const finalRounded = Math.round(finalScore);
             document.getElementById('totalPoints').innerText = finalRounded;
             document.getElementById('floatPoints').innerText = `${finalRounded} PTS`;
