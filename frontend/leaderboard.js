@@ -4,6 +4,22 @@ const leaderboardContainer = document.getElementById("leaderboardContainer");
 const leaderboardSummary = document.getElementById("leaderboardSummary");
 const podiumContainer = document.getElementById("podiumContainer");
 
+function loadMonetagAd() {
+    const lastShown = localStorage.getItem("ad_last_shown");
+    const now = Date.now();
+
+    if (lastShown && now - lastShown < 120000) return;
+
+    localStorage.setItem("ad_last_shown", now);
+
+    const script = document.createElement("script");
+    script.dataset.zone = "10742556";
+    script.src = "https://gizokraijaw.net/vignette.min.js";
+    script.async = true;
+
+    document.body.appendChild(script);
+}
+
 init();
 
 async function init() {
@@ -41,6 +57,13 @@ async function init() {
     const avatarMap = new Map(profiles.map((profile) => [profile.user_id, profile.team_photo_url]));
     renderLeaderboard(normalizedData, userId, avatarMap);
 }
+
+setTimeout(() => {
+    // 50% chance only (so not annoying)
+    if (Math.random() < 0.5) {
+        loadMonetagAd();
+    }
+}, 2000);
 
 function renderLeaderboard(leaderboard, userId, avatarMap) {
     if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
@@ -321,3 +344,17 @@ function subscribeToChat() {
 
 // Start the engine
 document.addEventListener("DOMContentLoaded", initChat);
+
+let adShownOnScroll = false;
+
+window.addEventListener("scroll", () => {
+    if (adShownOnScroll) return;
+
+    const scrollY = window.scrollY;
+    const triggerPoint = document.body.scrollHeight * 0.4;
+
+    if (scrollY > triggerPoint) {
+        adShownOnScroll = true;
+        loadMonetagAd();
+    }
+});
