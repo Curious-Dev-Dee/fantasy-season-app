@@ -56,14 +56,14 @@ async function init() {
 
     const avatarMap = new Map(profiles.map((profile) => [profile.user_id, profile.team_photo_url]));
     renderLeaderboard(normalizedData, userId, avatarMap);
-}
-
-setTimeout(() => {
-    // 50% chance only (so not annoying)
+    setTimeout(() => {
     if (Math.random() < 0.5) {
         loadMonetagAd();
     }
 }, 2000);
+}
+
+
 
 function renderLeaderboard(leaderboard, userId, avatarMap) {
     if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
@@ -351,9 +351,9 @@ window.addEventListener("scroll", () => {
     if (adShownOnScroll) return;
 
     const scrollY = window.scrollY;
-    const triggerPoint = document.body.scrollHeight * 0.4;
+    const triggerPoint = document.body.scrollHeight * 0.6;
 
-    if (scrollY > triggerPoint) {
+if (scrollY > triggerPoint && !chatPanel.classList.contains("show")) {
         adShownOnScroll = true;
         loadMonetagAd();
     }
