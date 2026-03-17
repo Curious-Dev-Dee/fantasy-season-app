@@ -18,25 +18,28 @@
             --danger: #ef4444;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             background-color: var(--bg);
             color: var(--text);
             font-family: 'Inter', sans-serif;
             margin: 0;
-            padding-bottom: 40px;
-            touch-action: manipulation;
+            padding-bottom: 120px; /* Space for the floating score */
+            overflow-x: hidden;
         }
 
+        /* --- STICKY APP HEADER --- */
         .app-header {
             display: flex;
             align-items: center;
-            padding: 20px;
-            gap: 15px;
+            padding: 12px 16px;
+            gap: 12px;
             position: sticky;
             top: 0;
-            background: rgba(12, 17, 23, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 100;
+            background: rgba(12, 17, 23, 0.9);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
             border-bottom: 1px solid var(--border);
         }
 
@@ -44,92 +47,126 @@
             background: var(--card);
             border: 1px solid var(--border);
             color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
         }
 
-        .container { max-width: 500px; margin: 0 auto; padding: 15px; }
+        .container { width: 100%; max-width: 420px; margin: 0 auto; padding: 12px; }
 
-        /* SCORE DISPLAY */
-        .total-display {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            padding: 30px 20px;
-            border-radius: 24px;
+        /* --- COMPACT TOTAL DISPLAY --- */
+        .score-box {
+            background: linear-gradient(145deg, #1c2128, #111827);
+            padding: 20px;
+            border-radius: 20px;
             text-align: center;
             border: 1px solid var(--neon);
-            box-shadow: 0 10px 30px rgba(154, 224, 0, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
-        .total-label { font-size: 12px; color: var(--neon); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-        .total-val { font-size: 64px; font-weight: 900; margin: 10px 0; color: #fff; }
-        .breakdown-summary { font-size: 13px; color: var(--dim); }
+        .score-box .label { font-size: 10px; color: var(--neon); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+        .score-box .val { font-size: 42px; font-weight: 900; margin: 5px 0; color: #fff; }
+        .score-box .summary { font-size: 11px; color: var(--dim); }
 
-        /* FORM SECTIONS */
-        .section-title { font-size: 14px; font-weight: 800; color: var(--cyan); margin: 25px 0 15px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        /* --- FLOATING BOTTOM SCORE (For when user scrolls) --- */
+        .floating-score {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 380px;
+            background: var(--neon);
+            color: #000;
+            padding: 14px 24px;
+            border-radius: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(154, 224, 0, 0.3);
+            z-index: 2000;
+            font-weight: 800;
+            display: none; /* Shown via JS when scrolling */
+        }
+
+        /* --- SECTION STYLING --- */
+        .section-title { 
+            font-size: 12px; 
+            font-weight: 800; 
+            color: var(--cyan); 
+            margin: 20px 0 10px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         
-        .calc-card {
+        .card {
             background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 16px;
             border: 1px solid var(--border);
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
 
-        .input-group { display: flex; flex-direction: column; gap: 6px; }
-        .input-group label { font-size: 11px; font-weight: 700; color: var(--dim); }
+        .full { grid-column: span 2; }
+
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 10px; font-weight: 700; color: var(--dim); text-transform: uppercase; }
         .input-group input, .input-group select {
             background: #0d1117;
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 12px;
             color: white;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
+            width: 100%;
             outline: none;
         }
         .input-group input:focus { border-color: var(--neon); }
 
-        /* ROLES & BOOSTERS */
-        .chip-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        /* --- UI ELEMENTS --- */
+        .chip-group { display: flex; gap: 8px; }
         .chip {
             flex: 1;
-            padding: 12px;
-            background: var(--card);
+            padding: 10px 5px;
+            background: #0d1117;
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 10px;
             text-align: center;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 800;
             cursor: pointer;
             transition: 0.2s;
+            color: var(--dim);
         }
         .chip.active { background: var(--neon); color: #000; border-color: var(--neon); }
 
-        .full-width { grid-column: span 2; }
-
-        .pom-toggle {
+        .toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            background: rgba(0, 242, 255, 0.05);
-            border-radius: 12px;
-            border: 1px dashed var(--cyan);
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
+        .toggle-row span { font-size: 13px; font-weight: 700; }
 
-        /* HAPTIC ANIMATION */
+        /* Animation */
         .pulse { animation: pulseAnim 0.3s ease-in-out; }
         @keyframes pulseAnim {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
     </style>
@@ -137,33 +174,33 @@
 <body>
 
     <header class="app-header">
-<a href="more.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1 style="margin:0; font-size: 20px;">Points Predictor</h1>
+        <a href="more.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <h1 style="margin:0; font-size: 17px; font-weight: 800;">Points Predictor</h1>
     </header>
 
     <div class="container">
         
-        <div class="total-display" id="mainDisplay">
-            <div class="total-label">Projected Points</div>
-            <div class="total-val" id="totalPoints">0</div>
-            <div class="breakdown-summary" id="breakdownText">Start entering stats to calculate...</div>
+        <div class="score-box" id="mainDisplay">
+            <div class="label">Projected Fantasy Points</div>
+            <div class="val" id="totalPoints">0</div>
+            <div class="summary" id="breakdownText">Enter stats below to begin</div>
         </div>
 
-        <div class="section-title"><i class="fas fa-star"></i> Multipliers & Boosters</div>
-        <div class="calc-card">
-            <div class="input-group full-width">
-                <label>Player Role</label>
+        <div class="section-title"><i class="fas fa-rocket"></i> Multipliers</div>
+        <div class="card">
+            <div class="input-group full">
+                <label>Player Designation</label>
                 <div class="chip-group">
                     <div class="chip active" onclick="setRole('norm', this)">Standard</div>
                     <div class="chip" onclick="setRole('c', this)">Captain (2x)</div>
-                    <div class="chip" onclick="setRole('vc', this)">Vice-Cap (1.5x)</div>
+                    <div class="chip" onclick="setRole('vc', this)">VC (1.5x)</div>
                 </div>
             </div>
 
-            <div class="input-group full-width">
-                <label>Active Booster</label>
+            <div class="input-group full">
+                <label>Match Booster</label>
                 <select id="boosterSelect" onchange="calculate()">
-                    <option value="NONE">No Booster</option>
+                    <option value="NONE">No Active Booster</option>
                     <option value="TOTAL_2X">Total 2X</option>
                     <option value="INDIAN_2X">Indian / Overseas 2X</option>
                     <option value="UNCAPPED_2X">Uncapped 2X</option>
@@ -172,80 +209,96 @@
                 </select>
             </div>
             
-            <div class="input-group full-width">
-                <div class="pom-toggle">
-                    <span style="font-size: 13px; font-weight: 700;">Player of the Match?</span>
+            <div class="full">
+                <div class="toggle-row" style="border-color: var(--cyan);">
+                    <span>Player of the Match?</span>
                     <input type="checkbox" id="isPOM" onchange="calculate()" style="width: 20px; height: 20px;">
                 </div>
             </div>
         </div>
 
-        <div class="section-title"><i class="fas fa-bat-ball"></i> Batting Stats</div>
-        <div class="calc-card">
+        <div class="section-title"><i class="fas fa-bat-ball"></i> Batting</div>
+        <div class="card">
             <div class="input-group">
-                <label>Runs Scored</label>
+                <label>Runs</label>
                 <input type="number" id="runs" placeholder="0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Balls Faced</label>
+                <label>Balls</label>
                 <input type="number" id="balls" placeholder="0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Fours (4s)</label>
+                <label>Fours</label>
                 <input type="number" id="fours" placeholder="0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Sixes (6s)</label>
+                <label>Sixes</label>
                 <input type="number" id="sixes" placeholder="0" oninput="calculate()">
             </div>
-            <div class="input-group full-width">
-                <div class="pom-toggle" style="border: 1px solid var(--border); background: none;">
-                    <span style="font-size: 13px; font-weight: 700; color: var(--danger);">Got Out for Duck? (Non-Bowlers)</span>
+            <div class="full">
+                <div class="toggle-row">
+                    <span style="color: var(--danger)">Out for Duck?</span>
                     <input type="checkbox" id="isDuck" onchange="calculate()" style="width: 20px; height: 20px;">
                 </div>
             </div>
         </div>
 
-        <div class="section-title"><i class="fas fa-bowling-ball"></i> Bowling Stats</div>
-        <div class="calc-card">
+        <div class="section-title"><i class="fas fa-bowling-ball"></i> Bowling</div>
+        <div class="card">
             <div class="input-group">
                 <label>Wickets</label>
                 <input type="number" id="wickets" placeholder="0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Maiden Overs</label>
+                <label>Maidens</label>
                 <input type="number" id="maidens" placeholder="0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Overs Bowled</label>
+                <label>Overs</label>
                 <input type="number" id="overs" step="0.1" placeholder="0.0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Runs Conceded</label>
+                <label>Runs Conc.</label>
                 <input type="number" id="runsConceded" placeholder="0" oninput="calculate()">
             </div>
         </div>
 
-        <div class="section-title"><i class="fas fa-hands"></i> Fielding Stats</div>
-        <div class="calc-card">
+        <div class="section-title"><i class="fas fa-hands"></i> Fielding</div>
+        <div class="card">
             <div class="input-group">
                 <label>Catches</label>
                 <input type="number" id="catches" placeholder="0" oninput="calculate()">
             </div>
             <div class="input-group">
-                <label>Stumpings</label>
+                <label>Stumping</label>
                 <input type="number" id="stumpings" placeholder="0" oninput="calculate()">
             </div>
-            <div class="input-group full-width">
-                <label>Run Outs (Direct or Assisted)</label>
+            <div class="input-group full">
+                <label>Run Outs (Total)</label>
                 <input type="number" id="runouts" placeholder="0" oninput="calculate()">
             </div>
         </div>
 
     </div>
 
+    <div class="floating-score" id="floatBar">
+        <span>TOTAL PREDICTION</span>
+        <span id="floatPoints">0 PTS</span>
+    </div>
+
     <script>
         let currentRole = 'norm';
+
+        // Sticky Bar Logic
+        window.onscroll = function() {
+            const floatBar = document.getElementById('floatBar');
+            const mainDisplay = document.getElementById('mainDisplay');
+            if (window.pageYOffset > mainDisplay.offsetTop + mainDisplay.offsetHeight) {
+                floatBar.style.display = 'flex';
+            } else {
+                floatBar.style.display = 'none';
+            }
+        };
 
         function setRole(role, el) {
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -256,7 +309,7 @@
         }
 
         function triggerHaptic() {
-            if (navigator.vibrate) navigator.vibrate(30);
+            if (navigator.vibrate) navigator.vibrate(40);
             const disp = document.getElementById('mainDisplay');
             disp.classList.remove('pulse');
             void disp.offsetWidth; 
@@ -282,20 +335,20 @@
             let pts = 0;
 
             // 1. Batting
-            pts += runs;
-            pts += (fours * 1) + (sixes * 2);
-            if (runs >= 100) pts += 20;
-            else if (runs >= 75) pts += 15;
-            else if (runs >= 50) pts += 10;
-            else if (runs >= 30) pts += 5;
-            
+            if (runs > 0 || balls > 0) {
+                pts += runs;
+                pts += (fours * 1) + (sixes * 2);
+                if (runs >= 100) pts += 20;
+                else if (runs >= 75) pts += 15;
+                else if (runs >= 50) pts += 10;
+                else if (runs >= 30) pts += 5;
+                pts += (runs - balls); // Strike Rate Points
+            }
             if (runs === 0 && isDuck) pts -= 2;
-            pts += (runs - balls); // Strike Rate Points
 
             // 2. Bowling
             if (wickets > 0) pts += 20 + ((wickets - 1) * 25);
             pts += (maidens * 10);
-
             if (overs >= 2) {
                 const wholeOvers = Math.floor(overs);
                 const extraBalls = Math.round((overs - wholeOvers) * 10);
@@ -307,35 +360,28 @@
             }
 
             // 3. Fielding
-            pts += (catches * 8);
-            pts += (stumpings * 8);
-            pts += (runouts * 8);
+            pts += (catches * 8) + (stumpings * 8) + (runouts * 8);
 
-            // 4. Involvement
-            if (pts !== 0) pts += 4;
-
-            // 5. POM
+            // 4. Involvement & POM
+            if (runs > 0 || wickets > 0 || catches > 0 || stumpings > 0 || runouts > 0) pts += 4;
             if (isPOM) pts += 20;
 
-            // 6. Multipliers
+            // 5. Multipliers
             let multiplier = 1;
             if (currentRole === 'c') multiplier = 2;
             if (currentRole === 'vc') multiplier = 1.5;
 
             let finalScore = pts * multiplier;
 
-            // 7. Boosters
-            if (booster === 'TOTAL_2X') finalScore *= 2;
-            if (booster === 'INDIAN_2X') finalScore *= 2;
-            if (booster === 'UNCAPPED_2X') finalScore *= 2;
-            if (booster === 'MOM_2X' && isPOM) finalScore += (20 * multiplier); // Double the POM portion
-            if (booster === 'CAPTAIN_3X' && currentRole === 'c') {
-                // Remove the 2x and apply 3x
-                finalScore = (finalScore / 2) * 3;
-            }
+            // 6. Boosters
+            if (booster === 'TOTAL_2X' || booster === 'INDIAN_2X' || booster === 'UNCAPPED_2X') finalScore *= 2;
+            if (booster === 'MOM_2X' && isPOM) finalScore += (20 * multiplier);
+            if (booster === 'CAPTAIN_3X' && currentRole === 'c') finalScore = (finalScore / 2) * 3;
 
-            document.getElementById('totalPoints').innerText = Math.round(finalScore);
-            document.getElementById('breakdownText').innerText = `Base: ${pts} pts | Mult: ${multiplier}x ${booster !== 'NONE' ? '| Booster Active' : ''}`;
+            const finalRounded = Math.round(finalScore);
+            document.getElementById('totalPoints').innerText = finalRounded;
+            document.getElementById('floatPoints').innerText = `${finalRounded} PTS`;
+            document.getElementById('breakdownText').innerText = `Base: ${pts} | Multiplier: ${multiplier}x`;
         }
     </script>
 </body>
