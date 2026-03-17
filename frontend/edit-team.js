@@ -278,7 +278,7 @@ function setupListeners() {
         };
     });
 
-    document.getElementById("saveTeamBtn").onclick = async () => {
+document.getElementById("saveTeamBtn").onclick = async () => {
         if (state.saving) return;
         state.saving = true;
         render();
@@ -286,27 +286,31 @@ function setupListeners() {
             // --- BULLETPROOF AUTH CHECK ---
             const authResponse = await supabase.auth.getUser();
             const user = authResponse?.data?.user;
-            const error = authResponse?.error;
+            const authError = authResponse?.error;
             
-            if (error || !user) {
+            if (authError || !user) {
                 throw new Error("Session expired! Please refresh the page to save.");
             }
-            // ------------------------------
 
+            // --- DATABASE PAYLOAD ---
             const { error: saveError } = await supabase.rpc('save_fantasy_team', {
                 p_user_id: user.id,
                 p_tournament_id: activeTournamentId,
-// ... the rest of the function stays exactly the same            p_captain_id: state.captainId,
+                p_captain_id: state.captainId,
                 p_vice_captain_id: state.viceCaptainId,
                 p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
                 p_active_booster: state.activeBooster,
                 p_player_ids: state.selectedPlayers.map(p => p.id)
             });
-            if (error) throw error;
+            
+            // FIXED: Checking the correct error variable
+            if (saveError) throw saveError;
+            
             window.triggerHaptic('success');
             showSuccessModal();
+
       } catch (err) { 
-        window.triggerHaptic('error');
+            window.triggerHaptic('error');
             // --- TRANSLATE NERDY ERRORS TO PLAIN ENGLISH ---
             let errorMsg = err.message;
             if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
@@ -314,9 +318,11 @@ function setupListeners() {
             }
             window.showToast(errorMsg, "error"); 
         }
-        finally { state.saving = false; render(); }
-    };
-}
+        finally { 
+            state.saving = false; 
+            render(); 
+        }
+    };}
 
 /* =========================
    UI HELPERS (Renderers)
