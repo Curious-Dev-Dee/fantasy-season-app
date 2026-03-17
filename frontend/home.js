@@ -26,6 +26,20 @@ const modalPreview = document.getElementById("modalAvatarPreview");
 const viewXiBtn = document.getElementById("viewXiBtn");
 const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
 
+if (viewFullLeaderboardBtn) {
+    viewFullLeaderboardBtn.onclick = (e) => {
+        e.preventDefault();
+
+        const adLink = document.createElement('a');
+        adLink.href = 'leaderboard.html';
+        adLink.style.display = 'none';
+
+        document.body.appendChild(adLink);
+        adLink.click();
+        adLink.remove();
+    };
+}
+
 let countdownInterval;
 let currentUserId = null;
 let existingProfile = null; 
@@ -48,6 +62,12 @@ function loadMonetagAd() {
     script.async = true;
 
     document.body.appendChild(script);
+}
+
+function shouldShowHomeAd() {
+    if (profileModal && profileModal.hasAttribute('data-forced')) return false;
+    if (!existingProfile?.profile_completed) return false;
+    return true;
 }
 /* =========================
    APPLICATION BOOTSTRAP
@@ -101,8 +121,10 @@ function revealApp(hasError = false) {
         return;
     }
 
-    setTimeout(() => {
-    loadMonetagAd();
+setTimeout(() => {
+    if (shouldShowHomeAd()) {
+        loadMonetagAd();
+    }
 }, 1500);
 
     document.body.classList.remove('loading-state');
@@ -367,13 +389,13 @@ async function fetchPrivateLeagueData(userId) {
         viewBtn.onclick = (e) => {
             e.preventDefault();
             
-            // Create a ghost link so Monetag sees it
             const adLink = document.createElement('a');
-            adLink.href = `leaderboard.html?league_id=${m.league_id}`;
-            document.body.appendChild(adLink);
-            
-            // Click the ghost link
-            adLink.click();
+adLink.href = `leaderboard.html?league_id=${m.league_id}`;
+adLink.style.display = 'none';
+
+document.body.appendChild(adLink);
+adLink.click();
+adLink.remove();
         };
     }
 
