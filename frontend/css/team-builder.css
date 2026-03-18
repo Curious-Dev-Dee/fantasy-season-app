@@ -102,13 +102,58 @@ gap:10px;
 
 
 
-.icon-back{
+.icon-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-color:var(--primary-green);
-text-decoration:none;
+  width: 40px;
+  height: 40px;
 
-font-size:24px;
+  border-radius: 12px;
 
+  background: rgba(154, 224, 0, 0.08);
+  border: 1px solid rgba(154, 224, 0, 0.2);
+
+  color: var(--primary-green);
+  text-decoration: none;
+
+  font-size: 20px;
+  font-weight: 900;
+
+  backdrop-filter: blur(6px);
+
+  box-shadow: 
+    0 4px 12px rgba(0,0,0,0.4),
+    0 0 8px rgba(154,224,0,0.15);
+
+  transition: all 0.25s ease;
+}
+
+.icon-back:active {
+  transform: scale(0.92);
+  box-shadow: 
+    0 2px 6px rgba(0,0,0,0.4),
+    0 0 4px rgba(154,224,0,0.2);
+}
+
+.icon-back:hover {
+  background: rgba(154, 224, 0, 0.15);
+  border-color: var(--primary-green);
+}
+
+.icon-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(154,224,0,0.25);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.icon-back:hover::after {
+  opacity: 1;
 }
 
 
