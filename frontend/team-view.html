@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cricket Experts · View Team</title>
 
-  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="css/animations.css?v=1.0">
+  <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/team-view.css?v=1.0">
+  <link rel="stylesheet" href="css/team-view.css">
+
+  <!-- BUG FIX #1: auth-guard.js now handles session — no more manual getSession() -->
+  <script type="module" src="auth-guard.js"></script>
 </head>
 
 <body class="loading-state">
@@ -22,30 +24,31 @@
       <div class="cricket-ball"></div>
       <div class="bowler-pos">🏏</div>
     </div>
-    <div class="loading-text">Players getting ready...</div>
+    <p class="loading-text">Players getting ready…</p>
   </div>
 
   <div class="team-view-app">
 
     <!-- HEADER -->
     <header class="premium-header">
-      <a href="home.html" class="icon-back">
+      <!-- BUG FIX #7: /home clean URL instead of home.html -->
+      <a href="/home" class="icon-back" aria-label="Back to home">
         <i class="fas fa-arrow-left"></i>
       </a>
 
       <div class="header-center">
         <h1 class="main-title" id="viewTitle">View Team</h1>
-        <div id="boosterIndicator" class="booster-indicator-view hidden">🚀 2X BOOSTER ACTIVE</div>
+        <div id="boosterIndicator" class="booster-indicator-view hidden"></div>
         <div id="countdownContainer" class="countdown-text hidden">
-          Starts in: <span id="timer">00h 00m 00s</span>
+          Starts in: <span id="timer">--</span>
         </div>
         <button id="viewHistoryBtn" class="history-trigger">
           <i class="fas fa-history"></i> Match History
         </button>
       </div>
 
-      <!-- Spacer to balance the back button on the left -->
-      <div style="width:40px;"></div>
+      <!-- BUG FIX #8: replaced inline width:40px div with semantic CSS class -->
+      <div class="header-spacer" aria-hidden="true"></div>
     </header>
 
     <!-- XI TOGGLE -->
@@ -58,12 +61,12 @@
     <main class="team-field" id="teamContainer"></main>
     <div id="teamStatus" class="team-status"></div>
 
-    <!-- HISTORY OVERLAY -->
+    <!-- ── HISTORY OVERLAY ─────────────────────────────── -->
     <div id="historyOverlay" class="overlay hidden">
       <div class="overlay-content">
         <div class="overlay-header">
-          <h3>Season History</h3>
-          <button class="close-btn" id="closeHistory">&times;</button>
+          <h3 class="overlay-title">Season History</h3>
+          <button class="close-btn" id="closeHistory" aria-label="Close history">&times;</button>
         </div>
         <div id="historySummary" class="history-summary">
           <div class="history-summary-card">
@@ -79,30 +82,31 @@
       </div>
     </div>
 
-    <!-- BREAKDOWN OVERLAY -->
+    <!-- ── BREAKDOWN OVERLAY ────────────────────────────── -->
     <div id="breakdownOverlay" class="overlay hidden">
       <div class="overlay-content breakdown-view">
         <div class="overlay-header">
-          <button class="back-arrow" id="backToHistory">← Back</button>
-          <h3 id="breakdownTitle">Match Details</h3>
+          <button class="back-arrow" id="backToHistory" aria-label="Back to history">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <h3 class="overlay-title" id="breakdownTitle">Match Details</h3>
         </div>
-        <div id="breakdownBooster" class="booster-indicator-view hidden"
-             style="margin:10px auto; display:table;">
-          🚀 2X BOOSTER USED
-        </div>
+        <!-- BUG FIX #9: margin and display removed from inline style, now uses CSS class -->
+        <div id="breakdownBooster" class="booster-indicator-view breakdown-booster-badge hidden"></div>
         <div class="breakdown-body">
           <div id="breakdownTeamContainer" class="team-field smaller-field"></div>
         </div>
+        <!-- BUG FIX #9: footer now uses structured children styled via CSS -->
         <footer class="breakdown-footer" id="breakdownFooter"></footer>
       </div>
     </div>
 
-    <!-- PLAYER POINT LOG OVERLAY -->
-    <div id="playerPointLogOverlay" class="overlay hidden" style="z-index:4000;">
+    <!-- ── PLAYER POINT LOG OVERLAY ─────────────────────── -->
+    <div id="playerPointLogOverlay" class="overlay overlay-top hidden">
       <div class="overlay-content player-breakdown-popup">
         <div class="overlay-header">
-          <h3 id="pplPlayerName">Player Points</h3>
-          <button class="close-btn" id="closePPL">&times;</button>
+          <h3 class="overlay-title" id="pplPlayerName">Player Points</h3>
+          <button class="close-btn" id="closePPL" aria-label="Close">&times;</button>
         </div>
         <div id="pplContent" class="scroll-area"></div>
       </div>
@@ -110,6 +114,6 @@
 
   </div><!-- end .team-view-app -->
 
-  <script type="module" src="team-view.js?v=2.0"></script>
+  <script type="module" src="team-view.js"></script>
 </body>
 </html>

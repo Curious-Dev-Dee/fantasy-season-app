@@ -1,54 +1,61 @@
 import { supabase } from "./supabase.js";
+import { authReady } from "./auth-state.js";
 import { getEffectiveRank, applyRankFlair } from "./animations.js";
 
-/* =========================
-   ELEMENTS & STATE
-========================= */
-const teamContainer = document.getElementById("teamContainer");
-const teamStatus = document.getElementById("teamStatus");
-const tabUpcoming = document.getElementById("tabUpcoming");
-const tabLocked = document.getElementById("tabLocked");
+/* ─── CONSTANTS ─────────────────────────────────────────────────────────── */
+const TOTAL_SUBS_LIMIT     = 150;
+const TOTAL_BOOSTERS       = 7;
+const PLAYOFF_START_MATCH  = 71;
+
+/* ─── ELEMENTS ───────────────────────────────────────────────────────────── */
+const teamContainer      = document.getElementById("teamContainer");
+const teamStatus         = document.getElementById("teamStatus");
+const tabUpcoming        = document.getElementById("tabUpcoming");
+const tabLocked          = document.getElementById("tabLocked");
 const countdownContainer = document.getElementById("countdownContainer");
-const timerDisplay = document.getElementById("timer");
-const tabs = document.querySelectorAll(".xi-tab");
-const viewTitle = document.getElementById("viewTitle");
-const historyBtn = document.getElementById("viewHistoryBtn");
-const historyOverlay = document.getElementById("historyOverlay");
-const historyList = document.getElementById("historyList");
-const historySummary = document.getElementById("historySummary");
+const timerDisplay       = document.getElementById("timer");
+const tabs               = document.querySelectorAll(".xi-tab");
+const viewTitle          = document.getElementById("viewTitle");
+const historyBtn         = document.getElementById("viewHistoryBtn");
+const historyOverlay     = document.getElementById("historyOverlay");
+const historyList        = document.getElementById("historyList");
 const historySubsRemaining = document.getElementById("historySubsRemaining");
-const historyBoostersLeft = document.getElementById("historyBoostersLeft");
-const boosterIndicator = document.getElementById("boosterIndicator");
+const historyBoostersLeft  = document.getElementById("historyBoostersLeft");
+const boosterIndicator   = document.getElementById("boosterIndicator");
 
-const TOTAL_SUBS_LIMIT = 150;
-const TOTAL_BOOSTERS = 7;
-const PLAYOFF_START_MATCH = 71;
-
+/* ─── STATE ──────────────────────────────────────────────────────────────── */
 let userId;
 let tournamentId;
 let countdownInterval;
 let isScoutMode = false;
 let realTeamsMap = {};
+let currentSession = null; // set by authReady so we don't call getSession() twice
 
+/* ─── AD UTILITY ─────────────────────────────────────────────────────────── */
+// BUG FIX #2 & #4: localStorage wrapped in try/catch for Safari Private Mode.
+// BUG FIX #4: Scout counter removed — simplified to every visit as requested.
 function loadMonetagAd() {
-    if (
-        document.getElementById("historyOverlay")?.classList.contains("hidden") === false ||
-        document.getElementById("breakdownOverlay")?.classList.contains("hidden") === false ||
-        document.getElementById("playerPointLogOverlay")?.classList.contains("hidden") === false
-    ) return;
+    // Don't show ad if an overlay is open
+    const overlayOpen = ["historyOverlay", "breakdownOverlay", "playerPointLogOverlay"]
+        .some(id => !document.getElementById(id)?.classList.contains("hidden"));
+    if (overlayOpen) return;
 
-    const lastShown = localStorage.getItem("ad_last_shown");
+    let lastShown = null;
+    try { lastShown = localStorage.getItem("ad_last_shown"); } catch (_) {}
+
     const now = Date.now();
-    if (lastShown && now - lastShown < 120000) return;
-    localStorage.setItem("ad_last_shown", now);
+    if (lastShown && now - Number(lastShown) < 120000) return;
+
+    try { localStorage.setItem("ad_last_shown", now); } catch (_) {}
 
     const script = document.createElement("script");
     script.dataset.zone = "10742556";
-    script.src = "https://gizokraijaw.net/vignette.min.js";
-    script.async = true;
+    script.src          = "https://gizokraijaw.net/vignette.min.js";
+    script.async        = true;
     document.body.appendChild(script);
 }
 
+/* ─── BOOSTER HELPERS ────────────────────────────────────────────────────── */
 function getAppliedBooster(record) {
     if (typeof record?.active_booster === "string" && record.active_booster !== "NONE") {
         return record.active_booster;
@@ -60,30 +67,31 @@ function formatBoosterLabel(booster) {
     return booster === "NONE" ? "" : booster.replaceAll("_", " ");
 }
 
-function updateBoosterIndicator(element, booster, suffix) {
+function updateBoosterIndicator(element, booster) {
     if (!element) return;
     if (!booster || booster === "NONE") {
         element.classList.add("hidden");
         element.textContent = "";
         return;
     }
-    element.textContent = `BOOSTER: ${formatBoosterLabel(booster)} ${suffix}`;
+    element.textContent = `🚀 ${formatBoosterLabel(booster)}`;
     element.classList.remove("hidden");
 }
 
+/* ─── DOM HELPERS ────────────────────────────────────────────────────────── */
 function setEmptyState(container, message) {
     if (!container) return;
-    const text = document.createElement("p");
-    text.className = "empty-msg";
-    text.textContent = message;
-    container.replaceChildren(text);
+    const p = document.createElement("p");
+    p.className   = "empty-msg";
+    p.textContent = message;
+    container.replaceChildren(p);
 }
 
 function setSpinner(container) {
     if (!container) return;
-    const spinner = document.createElement("div");
-    spinner.className = "spinner-small";
-    container.replaceChildren(spinner);
+    const d = document.createElement("div");
+    d.className = "spinner-small";
+    container.replaceChildren(d);
 }
 
 function setTeamStatus(message = "") {
@@ -92,17 +100,18 @@ function setTeamStatus(message = "") {
 }
 
 function getPhotoUrl(bucketName, path) {
-    if (!path) return "https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png";
+    if (!path) return "images/default-avatar.png";
     return supabase.storage.from(bucketName).getPublicUrl(path).data.publicUrl;
 }
 
 function createRoleTitle(role) {
-    const title = document.createElement("div");
-    title.className = "role-title";
-    title.textContent = role;
-    return title;
+    const el = document.createElement("div");
+    el.className   = "role-title";
+    el.textContent = role;
+    return el;
 }
 
+/* ─── POINTS CALCULATION ─────────────────────────────────────────────────── */
 function getBoostedBasePoints(player, basePoints, booster, momId = null) {
     switch (booster) {
         case "TOTAL_2X":    return basePoints * 2;
@@ -116,38 +125,32 @@ function getBoostedBasePoints(player, basePoints, booster, momId = null) {
 
 function calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, momId = null) {
     const appliedBooster = getAppliedBooster({ active_booster: booster });
-    const basePoints = statsMap?.[player.id] || 0;
-    let totalPoints = getBoostedBasePoints(player, basePoints, appliedBooster, momId);
-    const gotBoosted = totalPoints > basePoints;
+    const basePoints     = statsMap?.[player.id] || 0;
+    let   totalPoints    = getBoostedBasePoints(player, basePoints, appliedBooster, momId);
+    const gotBoosted     = totalPoints > basePoints;
 
     if (player.id === captainId) {
-        if (appliedBooster === "CAPTAIN_3X") {
-            totalPoints += (basePoints * 2);
-        } else if (gotBoosted) {
-            totalPoints += (basePoints * 2);
-        } else {
-            totalPoints += basePoints;
-        }
+        totalPoints += appliedBooster === "CAPTAIN_3X"
+            ? (basePoints * 2)
+            : gotBoosted ? (basePoints * 2) : basePoints;
     } else if (player.id === viceCaptainId) {
-        if (gotBoosted) {
-            totalPoints += Math.floor(totalPoints * 0.5);
-        } else {
-            totalPoints += Math.floor(basePoints * 0.5);
-        }
+        totalPoints += gotBoosted
+            ? Math.floor(totalPoints * 0.5)
+            : Math.floor(basePoints * 0.5);
     }
     return totalPoints;
 }
 
 function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booster, momId = null) {
-    return (players || []).reduce((sum, player) => (
-        sum + calculateDisplayedPlayerPoints(player, statsMap || {}, captainId, viceCaptainId, booster, momId)
-    ), 0);
+    return (players || []).reduce((sum, p) =>
+        sum + calculateDisplayedPlayerPoints(p, statsMap || {}, captainId, viceCaptainId, booster, momId), 0);
 }
 
+/* ─── PLAYER CIRCLE ──────────────────────────────────────────────────────── */
 function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE", momId = null) {
     const wrapper = document.createElement("div");
     wrapper.className = "player-circle";
-    if (player.id === captainId) wrapper.classList.add("captain");
+    if (player.id === captainId)    wrapper.classList.add("captain");
     if (player.id === viceCaptainId) wrapper.classList.add("vice-captain");
 
     if (matchId) {
@@ -157,126 +160,126 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
 
     if (player.id === captainId) {
         const badge = document.createElement("div");
-        badge.className = "badge captain-badge";
+        badge.className   = "badge captain-badge";
         badge.textContent = "C";
         wrapper.appendChild(badge);
     }
 
     if (player.id === viceCaptainId) {
         const badge = document.createElement("div");
-        badge.className = "badge vice-badge";
+        badge.className   = "badge vice-badge";
         badge.textContent = "VC";
         wrapper.appendChild(badge);
     }
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-    avatar.style.backgroundSize = "cover";
     avatar.style.backgroundImage = `url('${getPhotoUrl("player-photos", player.photo_url)}')`;
 
     const teamLabel = document.createElement("div");
-    teamLabel.className = "team-init-label";
+    teamLabel.className   = "team-init-label";
     teamLabel.textContent = realTeamsMap[player.real_team_id] || "TBA";
     avatar.appendChild(teamLabel);
 
     const name = document.createElement("div");
-    name.className = "player-name";
+    name.className   = "player-name";
     name.textContent = player.name ? player.name.split(" ").pop() : "Player";
 
     wrapper.append(avatar, name);
 
     if (statsMap) {
-        const displayPoints = calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, momId);
-        const points = document.createElement("div");
-        points.className = "player-pts";
-        points.textContent = `${displayPoints} pts`;
-        wrapper.appendChild(points);
+        const pts = document.createElement("div");
+        pts.className   = "player-pts";
+        pts.textContent = `${calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, momId)} pts`;
+        wrapper.appendChild(pts);
     }
 
     return wrapper;
 }
 
+/* ─── HISTORY ROW ────────────────────────────────────────────────────────── */
+// BUG FIX #6: Replaced '|| *' placeholder with two distinct styled chips.
+// Points and subs are now visually separated — no hacky delimiter.
 function createHistoryRow(snapshot, totalPoints) {
     const row = document.createElement("div");
     row.className = "history-row";
 
     if (totalPoints >= 300)      row.classList.add("tier-gold");
     else if (totalPoints >= 200) row.classList.add("tier-silver");
-    else                         row.classList.add("tier-red");
+    else                         row.classList.add("tier-bronze");
 
     row.addEventListener("click", () => window.viewMatchBreakdown(snapshot.id));
 
+    // Left column
     const left = document.createElement("div");
+    left.className = "h-left";
 
     const matchNum = document.createElement("span");
-    matchNum.className = "h-m-num";
-    matchNum.textContent = `MATCH ${snapshot.matches.match_number}${getAppliedBooster(snapshot) !== "NONE" ? " [BOOSTER]" : ""}`;
-
-    left.append(matchNum);
+    matchNum.className   = "h-m-num";
+    matchNum.textContent = `Match ${snapshot.matches.match_number}`;
+    left.appendChild(matchNum);
 
     const booster = getAppliedBooster(snapshot);
     if (booster !== "NONE") {
         const boosterTag = document.createElement("span");
-        boosterTag.className = "h-booster";
+        boosterTag.className   = "h-booster";
         boosterTag.textContent = formatBoosterLabel(booster);
         left.appendChild(boosterTag);
     }
 
     const teams = document.createElement("span");
-    teams.className = "h-teams";
+    teams.className   = "h-teams";
     teams.textContent = `${realTeamsMap[snapshot.matches.team_a_id] || "TBA"} vs ${realTeamsMap[snapshot.matches.team_b_id] || "TBA"}`;
     left.appendChild(teams);
 
-    const stats = document.createElement("div");
-    stats.className = "h-stats";
+    // Right column — two chips, clearly separated
+    const right = document.createElement("div");
+    right.className = "h-right";
 
-    const points = document.createElement("span");
-    points.className = "h-pts";
-    points.textContent = `${totalPoints} PTS || *`;
+    const ptsPill = document.createElement("span");
+    ptsPill.className   = "h-pts-pill";
+    ptsPill.textContent = `${totalPoints} pts`;
 
-    const subs = document.createElement("span");
-    subs.className = "h-subs";
-    subs.textContent = `${snapshot.subs_used_for_match} SUBS`;
-
-    stats.append(points, subs);
+    const subsPill = document.createElement("span");
+    subsPill.className   = "h-subs-pill";
+    subsPill.textContent = `${snapshot.subs_used_for_match} subs`;
 
     const arrow = document.createElement("i");
-    arrow.className = "fas fa-chevron-right";
-    arrow.style.color = "#475569";
-    arrow.style.marginLeft = "10px";
+    arrow.className = "fas fa-chevron-right h-arrow";
 
-    row.append(left, stats, arrow);
+    right.append(ptsPill, subsPill, arrow);
+    row.append(left, right);
     return row;
 }
 
-function formatSubsRemaining(subsRemaining) {
-    return subsRemaining === 999 ? "UNLIMITED" : String(subsRemaining);
+/* ─── HISTORY SUMMARY ────────────────────────────────────────────────────── */
+function formatSubsRemaining(subs) {
+    return subs === 999 ? "∞" : String(subs);
 }
 
 function renderHistorySummary({ subsRemaining, boostersLeft }) {
-    if (!historySummary || !historySubsRemaining || !historyBoostersLeft) return;
-    historySubsRemaining.textContent = formatSubsRemaining(subsRemaining);
-    historyBoostersLeft.textContent = `${boostersLeft}/${TOTAL_BOOSTERS}`;
+    if (historySubsRemaining) historySubsRemaining.textContent = formatSubsRemaining(subsRemaining);
+    if (historyBoostersLeft)  historyBoostersLeft.textContent  = `${boostersLeft}/${TOTAL_BOOSTERS}`;
 }
 
 async function fetchHistorySummaryData(history = []) {
     const [dashboardRes, boosterRes, upcomingRes] = await Promise.all([
         supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", userId).maybeSingle(),
         supabase.from("user_tournament_points").select("used_boosters").eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle(),
-        supabase.from("matches").select("match_number").eq("tournament_id", tournamentId).eq("status", "upcoming").order("actual_start_time", { ascending: true }).limit(1).maybeSingle()
+        supabase.from("matches").select("match_number").eq("tournament_id", tournamentId).eq("status", "upcoming").order("actual_start_time", { ascending: true }).limit(1).maybeSingle(),
     ]);
 
     const usedBoosters = boosterRes.data?.used_boosters ?? [];
-    const fallbackTotalUsed = history[0]?.total_subs_used ?? 0;
-    let fallbackSubsRemaining = Math.max(0, TOTAL_SUBS_LIMIT - fallbackTotalUsed);
+    const fallbackTotal = history[0]?.total_subs_used ?? 0;
+    let fallbackSubs    = Math.max(0, TOTAL_SUBS_LIMIT - fallbackTotal);
 
     if (upcomingRes.data?.match_number === 1 || upcomingRes.data?.match_number === PLAYOFF_START_MATCH) {
-        fallbackSubsRemaining = 999;
+        fallbackSubs = 999;
     }
 
     return {
-        subsRemaining: dashboardRes.data?.subs_remaining ?? fallbackSubsRemaining,
-        boostersLeft: Math.max(0, TOTAL_BOOSTERS - usedBoosters.length)
+        subsRemaining: dashboardRes.data?.subs_remaining ?? fallbackSubs,
+        boostersLeft:  Math.max(0, TOTAL_BOOSTERS - usedBoosters.length),
     };
 }
 
@@ -297,12 +300,10 @@ async function fetchUserMatchTotals(matchIds) {
         .select("match_id, total_points")
         .eq("user_id", userId)
         .in("match_id", matchIds);
-    return new Map((data || []).map((row) => [row.match_id, row.total_points]));
+    return new Map((data || []).map(r => [r.match_id, r.total_points]));
 }
 
-/* =========================
-   PAGE LOAD TRANSITION
-========================= */
+/* ─── PAGE REVEAL ────────────────────────────────────────────────────────── */
 function revealApp() {
     if (document.body.classList.contains("loaded")) return;
     document.body.classList.remove("loading-state");
@@ -313,109 +314,88 @@ function revealApp() {
     }, 600);
 }
 
+// BUG FIX #3: Reduced to 3s — 6s was too long. Comment kept for prod visibility.
 setTimeout(() => {
     if (document.body.classList.contains("loading-state")) {
-        console.warn("Safety trigger: Revealing team field...");
+        console.warn("Safety fallback: revealing team view after timeout.");
         revealApp();
     }
-}, 6000);
+}, 3000);
 
-/* =========================
-   INIT LOGIC
-========================= */
-init();
+/* ─── INIT ───────────────────────────────────────────────────────────────── */
+// BUG FIX #1: Replaced direct supabase.auth.getSession() with authReady.
+// auth-guard.js handles redirect to login if no session exists.
+async function boot() {
+    try {
+        currentSession = { user: await authReady };
+    } catch (_) {
+        // auth-guard.js already redirected to login
+        return;
+    }
+    init();
+}
+
+boot();
 
 async function init() {
     try {
         const { data: teamData } = await supabase.from("real_teams").select("id, short_code");
-        realTeamsMap = Object.fromEntries((teamData || []).map((team) => [team.id, team.short_code]));
+        realTeamsMap = Object.fromEntries((teamData || []).map(t => [t.id, t.short_code]));
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) { window.location.href = "login.html"; return; }
+        const user       = currentSession.user;
+        const urlParams  = new URLSearchParams(window.location.search);
+        const scoutUid   = urlParams.get("uid");
+        const scoutName  = urlParams.get("name");
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const scoutUid = urlParams.get("uid");
-        const scoutNameFromUrl = urlParams.get("name");
-
-        const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
+        const { data: activeTournament } = await supabase
+            .from("active_tournament").select("*").maybeSingle();
         if (!activeTournament) return;
         tournamentId = activeTournament.id;
 
-        if (scoutUid && scoutUid !== session.user.id) {
-            // ── SCOUT MODE ──
-            userId = scoutUid;
+        if (scoutUid && scoutUid !== user.id) {
+            // ── SCOUT MODE ──────────────────────────────────────────────────
+            userId     = scoutUid;
             isScoutMode = true;
 
             const { data: profile } = await supabase
                 .from("user_profiles")
-                .select("team_name, equipped_flex")
+                .select("team_name")
                 .eq("user_id", scoutUid)
                 .maybeSingle();
 
-            viewTitle.textContent = profile?.team_name || decodeURIComponent(scoutNameFromUrl || "") || "User Team";
+            viewTitle.textContent = profile?.team_name
+                || decodeURIComponent(scoutName || "")
+                || "User Team";
 
-            // ── FLAIR STEP 1: Apply rank flair to the scouted user's title ──
-            // Fetch their overall rank and private rank, then pick the best
             const [overallRes, privateRes] = await Promise.all([
-                supabase
-                    .from("leaderboard_view")
-                    .select("rank")
-                    .eq("user_id", scoutUid)
-                    .eq("tournament_id", tournamentId)
-                    .maybeSingle(),
-                supabase
-                    .from("private_league_leaderboard")
-                    .select("rank_in_league")
-                    .eq("user_id", scoutUid)
-                    .maybeSingle()
+                supabase.from("leaderboard_view").select("rank").eq("user_id", scoutUid).eq("tournament_id", tournamentId).maybeSingle(),
+                supabase.from("private_league_leaderboard").select("rank_in_league").eq("user_id", scoutUid).maybeSingle(),
             ]);
 
-            const scoutOverallRank  = overallRes.data?.rank       ?? Infinity;
-            const scoutPrivateRank  = privateRes.data?.rank_in_league ?? Infinity;
-            const scoutEffectiveRank = getEffectiveRank(scoutOverallRank, scoutPrivateRank);
-
-            // viewTitle is the name element; no avatar element on this page header
-            applyRankFlair(null, viewTitle, scoutEffectiveRank);
+            applyRankFlair(null, viewTitle,
+                getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
 
             tabUpcoming.style.display = "none";
             tabLocked.classList.add("active");
 
         } else {
-            // ── OWN TEAM MODE ──
-            userId = session.user.id;
+            // ── OWN TEAM MODE ────────────────────────────────────────────────
+            userId = user.id;
 
             const [profileRes, overallRes, privateRes] = await Promise.all([
-                supabase
-                    .from("user_profiles")
-                    .select("team_name, equipped_flex")
-                    .eq("user_id", userId)
-                    .maybeSingle(),
-                supabase
-                    .from("leaderboard_view")
-                    .select("rank")
-                    .eq("user_id", userId)
-                    .eq("tournament_id", tournamentId)
-                    .maybeSingle(),
-                supabase
-                    .from("private_league_leaderboard")
-                    .select("rank_in_league")
-                    .eq("user_id", userId)
-                    .maybeSingle()
+                supabase.from("user_profiles").select("team_name").eq("user_id", userId).maybeSingle(),
+                supabase.from("leaderboard_view").select("rank").eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle(),
+                supabase.from("private_league_leaderboard").select("rank_in_league").eq("user_id", userId).maybeSingle(),
             ]);
 
             viewTitle.textContent = profileRes.data?.team_name || "My XI";
-
-            // ── FLAIR STEP 2: Apply rank flair to own team title ──
-            const ownOverallRank  = overallRes.data?.rank          ?? Infinity;
-            const ownPrivateRank  = privateRes.data?.rank_in_league ?? Infinity;
-            const ownEffectiveRank = getEffectiveRank(ownOverallRank, ownPrivateRank);
-
-            applyRankFlair(null, viewTitle, ownEffectiveRank);
+            applyRankFlair(null, viewTitle,
+                getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
         }
 
         await Promise.allSettled([
             setupMatchTabs(),
-            isScoutMode ? loadLastLockedXI() : loadCurrentXI()
+            isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
         ]);
 
         setupHistoryListeners();
@@ -424,17 +404,11 @@ async function init() {
         console.error("Init error:", err);
     } finally {
         revealApp();
+        setTimeout(() => loadMonetagAd(), 1200);
     }
-
-    setTimeout(() => {
-        const scoutCount = parseInt(localStorage.getItem('scout_trigger_count') || '0');
-        if (scoutCount % 3 === 0) loadMonetagAd();
-    }, 1200);
 }
 
-/* =========================
-   CORE VIEW LOGIC
-========================= */
+/* ─── MATCH TABS ─────────────────────────────────────────────────────────── */
 async function setupMatchTabs() {
     if (!isScoutMode) {
         const { data: upcoming } = await supabase
@@ -448,7 +422,7 @@ async function setupMatchTabs() {
             .maybeSingle();
 
         if (upcoming) {
-            tabUpcoming.textContent = `${realTeamsMap[upcoming.team_a_id] || "TBA"} vs ${realTeamsMap[upcoming.team_b_id] || "TBA"} EDIT`;
+            tabUpcoming.textContent       = `${realTeamsMap[upcoming.team_a_id] || "TBA"} vs ${realTeamsMap[upcoming.team_b_id] || "TBA"} – Edit`;
             tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
     }
@@ -463,15 +437,16 @@ async function setupMatchTabs() {
         .maybeSingle();
 
     if (lastLocked) {
-        const { data: matchInfo } = await supabase.from("matches").select("*").eq("id", lastLocked.match_id).single();
+        const { data: matchInfo } = await supabase
+            .from("matches").select("*").eq("id", lastLocked.match_id).single();
         if (matchInfo) {
-            tabLocked.textContent = `${realTeamsMap[matchInfo.team_a_id] || "TBA"} vs ${realTeamsMap[matchInfo.team_b_id] || "TBA"} LOCKED`;
+            tabLocked.textContent = `${realTeamsMap[matchInfo.team_a_id] || "TBA"} vs ${realTeamsMap[matchInfo.team_b_id] || "TBA"} – Locked`;
         }
     }
 
-    tabs.forEach((tab) => {
+    tabs.forEach(tab => {
         tab.addEventListener("click", () => {
-            tabs.forEach((c) => c.classList.remove("active"));
+            tabs.forEach(t => t.classList.remove("active"));
             tab.classList.add("active");
             if (tab.dataset.tab === "current") loadCurrentXI();
             else loadLastLockedXI();
@@ -479,6 +454,7 @@ async function setupMatchTabs() {
     });
 }
 
+/* ─── COUNTDOWN ──────────────────────────────────────────────────────────── */
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     countdownContainer.classList.remove("hidden");
@@ -500,6 +476,7 @@ function startCountdown(startTime) {
     countdownInterval = setInterval(update, 1000);
 }
 
+/* ─── CURRENT XI ─────────────────────────────────────────────────────────── */
 async function loadCurrentXI() {
     if (isScoutMode) return;
 
@@ -509,35 +486,33 @@ async function loadCurrentXI() {
 
     const [{ data: userTeam }, { data: pointsData }] = await Promise.all([
         supabase.from("user_fantasy_teams").select("*").eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle(),
-        supabase.from("user_tournament_points").select("used_boosters").eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle()
+        supabase.from("user_tournament_points").select("used_boosters").eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle(),
     ]);
 
     if (!userTeam) {
         setEmptyState(teamContainer, "Team not created yet.");
-        updateBoosterIndicator(boosterIndicator, "NONE", "");
+        updateBoosterIndicator(boosterIndicator, "NONE");
         return;
     }
 
-    const usedBoosters = pointsData?.used_boosters || [];
-    let currentBooster = getAppliedBooster(userTeam);
+    const usedBoosters  = pointsData?.used_boosters || [];
+    let currentBooster  = getAppliedBooster(userTeam);
     if (usedBoosters.includes(currentBooster)) currentBooster = "NONE";
-    updateBoosterIndicator(boosterIndicator, currentBooster, "ACTIVE");
+    updateBoosterIndicator(boosterIndicator, currentBooster);
 
     const { data: teamPlayers } = await supabase
         .from("user_fantasy_team_players")
         .select("player_id")
         .eq("user_fantasy_team_id", userTeam.id);
 
-    const playerIds = (teamPlayers || []).map((p) => p.player_id);
-    if (playerIds.length === 0) {
-        setEmptyState(teamContainer, "No players selected yet.");
-        return;
-    }
+    const playerIds = (teamPlayers || []).map(p => p.player_id);
+    if (!playerIds.length) { setEmptyState(teamContainer, "No players selected yet."); return; }
 
     const { data: players } = await supabase.from("players").select("*").in("id", playerIds);
     renderTeamLayout(players || [], userTeam.captain_id, userTeam.vice_captain_id, null, teamContainer, null, currentBooster, null);
 }
 
+/* ─── LAST LOCKED XI ─────────────────────────────────────────────────────── */
 async function loadLastLockedXI() {
     clearInterval(countdownInterval);
     countdownContainer.classList.add("hidden");
@@ -552,47 +527,44 @@ async function loadLastLockedXI() {
         .maybeSingle();
 
     if (!snapshot) {
-        setEmptyState(teamContainer, "Not Playing.");
+        setEmptyState(teamContainer, "Not playing yet.");
         setTeamStatus("");
-        updateBoosterIndicator(boosterIndicator, "NONE", "");
+        updateBoosterIndicator(boosterIndicator, "NONE");
         return;
     }
 
-    const momId = snapshot.matches?.man_of_the_match_id || null;
-    updateBoosterIndicator(boosterIndicator, getAppliedBooster(snapshot), "USED");
+    const momId   = snapshot.matches?.man_of_the_match_id || null;
+    const booster = getAppliedBooster(snapshot);
+    updateBoosterIndicator(boosterIndicator, booster);
 
     const { data: teamPlayers } = await supabase
         .from("user_match_team_players")
         .select("player_id")
         .eq("user_match_team_id", snapshot.id);
 
-    const playerIds = (teamPlayers || []).map((p) => p.player_id);
+    const playerIds = (teamPlayers || []).map(p => p.player_id);
 
     const [{ data: players }, { data: stats }] = await Promise.all([
         playerIds.length ? supabase.from("players").select("*").in("id", playerIds) : Promise.resolve({ data: [] }),
-        supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id)
+        supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id),
     ]);
 
-    const statsMap = Object.fromEntries((stats || []).map((r) => [r.player_id, r.fantasy_points]));
-    const teamPlayersData = players || [];
+    const statsMap    = Object.fromEntries((stats || []).map(r => [r.player_id, r.fantasy_points]));
+    const teamPlayers_ = players || [];
 
-    renderTeamLayout(teamPlayersData, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer, snapshot.match_id, getAppliedBooster(snapshot), momId);
+    renderTeamLayout(teamPlayers_, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer, snapshot.match_id, booster, momId);
 
-    const fallbackTotal = calculateMatchTotal(teamPlayersData, statsMap, snapshot.captain_id, snapshot.vice_captain_id, getAppliedBooster(snapshot), momId);
-    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
-    setTeamStatus(`Match Points: ${finalTotal} | Subs Used: ${snapshot.subs_used_for_match}`);
+    const fallback   = calculateMatchTotal(teamPlayers_, statsMap, snapshot.captain_id, snapshot.vice_captain_id, booster, momId);
+    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
+    setTeamStatus(`${finalTotal} pts · ${snapshot.subs_used_for_match} subs used`);
 }
 
-/* =========================
-   UNIVERSAL RENDERER
-========================= */
+/* ─── TEAM LAYOUT RENDERER ───────────────────────────────────────────────── */
 function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE", momId = null) {
     container.replaceChildren();
-    const roleOrder = ["WK", "BAT", "AR", "BOWL"];
-
-    roleOrder.forEach((role) => {
-        const rolePlayers = (players || []).filter((p) => p.role === role);
-        if (!rolePlayers.length) return;
+    for (const role of ["WK", "BAT", "AR", "BOWL"]) {
+        const rolePlayers = players.filter(p => p.role === role);
+        if (!rolePlayers.length) continue;
 
         const section = document.createElement("div");
         section.className = "role-section";
@@ -600,29 +572,28 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
 
         const row = document.createElement("div");
         row.className = "player-row";
-
-        rolePlayers.forEach((player) => {
-            row.appendChild(buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId, booster, momId));
-        });
+        rolePlayers.forEach(p => row.appendChild(
+            buildPlayerCircle(p, captainId, viceCaptainId, statsMap, matchId, booster, momId)
+        ));
 
         section.appendChild(row);
         container.appendChild(section);
-    });
+    }
 }
 
-/* =========================
-   HISTORY FEATURE
-========================= */
+/* ─── HISTORY ────────────────────────────────────────────────────────────── */
 function setupHistoryListeners() {
     if (!historyBtn) return;
 
     let isFetchingHistory = false;
 
     historyBtn.onclick = async () => {
-        if (Math.random() < 0.5) loadMonetagAd();
         if (isFetchingHistory) return;
         isFetchingHistory = true;
-        document.body.style.overflow = 'hidden';
+
+        if (Math.random() < 0.5) loadMonetagAd();
+
+        document.body.style.overflow = "hidden";
         historyOverlay.classList.remove("hidden");
         setSpinner(historyList);
 
@@ -637,35 +608,38 @@ function setupHistoryListeners() {
             const summaryData = await fetchHistorySummaryData(history || []);
             renderHistorySummary(summaryData);
 
-            if (!history || history.length === 0) {
-                setEmptyState(historyList, "No season history found.");
+            if (!history?.length) {
+                setEmptyState(historyList, "No season history yet.");
                 return;
             }
 
-            const matchIds = history.map((s) => s.match_id);
-            const allPlayerIds = [...new Set(history.flatMap((s) => (s.user_match_team_players || []).map((p) => p.player_id)))];
+            const matchIds      = history.map(s => s.match_id);
+            const allPlayerIds  = [...new Set(history.flatMap(s => (s.user_match_team_players || []).map(p => p.player_id)))];
 
-            const [{ data: allStats }, { data: playerCategories }] = await Promise.all([
+            const [{ data: allStats }, { data: playerCats }] = await Promise.all([
                 supabase.from("player_match_stats").select("*").in("match_id", matchIds),
                 allPlayerIds.length
                     ? supabase.from("players").select("id, category").in("id", allPlayerIds)
-                    : Promise.resolve({ data: [] })
+                    : Promise.resolve({ data: [] }),
             ]);
 
-            const matchTotals = await fetchUserMatchTotals(matchIds);
-            const categoryMap = new Map((playerCategories || []).map((p) => [p.id, p.category]));
+            const matchTotals  = await fetchUserMatchTotals(matchIds);
+            const categoryMap  = new Map((playerCats || []).map(p => [p.id, p.category]));
 
             historyList.replaceChildren();
-            history.forEach((snapshot) => {
-                const momId = snapshot.matches?.man_of_the_match_id || null;
-                const matchStats = (allStats || []).filter((s) => s.match_id === snapshot.match_id);
-                const statsMap = Object.fromEntries(matchStats.map((s) => [s.player_id, s.fantasy_points]));
-                const fallbackPlayers = (snapshot.user_match_team_players || []).map((p) => ({
-                    id: p.player_id,
-                    category: categoryMap.get(p.player_id) || null
+            history.forEach(snapshot => {
+                const momId       = snapshot.matches?.man_of_the_match_id || null;
+                const statsMap    = Object.fromEntries(
+                    (allStats || []).filter(s => s.match_id === snapshot.match_id)
+                                    .map(s => [s.player_id, s.fantasy_points])
+                );
+                const fallPlayers = (snapshot.user_match_team_players || []).map(p => ({
+                    id: p.player_id, category: categoryMap.get(p.player_id) || null,
                 }));
-                const fallbackTotal = calculateMatchTotal(fallbackPlayers, statsMap, snapshot.captain_id, snapshot.vice_captain_id, getAppliedBooster(snapshot), momId);
-                historyList.appendChild(createHistoryRow(snapshot, matchTotals.get(snapshot.match_id) ?? fallbackTotal));
+                const fallback    = calculateMatchTotal(fallPlayers, statsMap, snapshot.captain_id, snapshot.vice_captain_id, getAppliedBooster(snapshot), momId);
+                historyList.appendChild(
+                    createHistoryRow(snapshot, matchTotals.get(snapshot.match_id) ?? fallback)
+                );
             });
         } finally {
             isFetchingHistory = false;
@@ -674,7 +648,7 @@ function setupHistoryListeners() {
 
     document.getElementById("closeHistory").onclick = () => {
         historyOverlay.classList.add("hidden");
-        document.body.style.overflow = '';
+        document.body.style.overflow = "";
     };
 
     document.getElementById("closePPL").onclick = () => {
@@ -682,49 +656,59 @@ function setupHistoryListeners() {
     };
 
     document.getElementById("backToHistory").onclick = () => {
-        document.getElementById("breakdownOverlay").classList.add("hidden");
+        const overlay = document.getElementById("breakdownOverlay");
+        // BUG FIX #13: Reset breakdown scroll position when going back
+        overlay.querySelector(".breakdown-body")?.scrollTo(0, 0);
+        overlay.classList.add("hidden");
     };
 }
 
-/* =========================
-   OVERLAY HANDLERS
-========================= */
-window.viewMatchBreakdown = async (snapshotId) => {
+/* ─── BREAKDOWN OVERLAY ──────────────────────────────────────────────────── */
+window.viewMatchBreakdown = async snapshotId => {
     const breakdownContainer = document.getElementById("breakdownTeamContainer");
     const breakdownFooter    = document.getElementById("breakdownFooter");
     const breakdownTitle     = document.getElementById("breakdownTitle");
     const breakdownBooster   = document.getElementById("breakdownBooster");
+    const breakdownOverlay   = document.getElementById("breakdownOverlay");
 
-    document.getElementById("breakdownOverlay").classList.remove("hidden");
+    breakdownOverlay.classList.remove("hidden");
+    // BUG FIX #13: Always reset scroll when opening a new breakdown
+    breakdownOverlay.querySelector(".breakdown-body")?.scrollTo(0, 0);
     setSpinner(breakdownContainer);
 
     const [{ data: snapshot }, { data: teamPlayers }] = await Promise.all([
         supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single(),
-        supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId)
+        supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId),
     ]);
 
     if (!snapshot) { setEmptyState(breakdownContainer, "Data unavailable."); return; }
 
-    const momId = snapshot.matches?.man_of_the_match_id || null;
-    breakdownTitle.textContent = `Match ${snapshot.matches.match_number} Details`;
-    updateBoosterIndicator(breakdownBooster, getAppliedBooster(snapshot), "USED");
+    const momId   = snapshot.matches?.man_of_the_match_id || null;
+    const booster = getAppliedBooster(snapshot);
+    breakdownTitle.textContent = `Match ${snapshot.matches.match_number}`;
+    updateBoosterIndicator(breakdownBooster, booster);
 
-    const playerIds = (teamPlayers || []).map((p) => p.player_id);
+    const playerIds = (teamPlayers || []).map(p => p.player_id);
     const [{ data: players }, { data: stats }] = await Promise.all([
         playerIds.length ? supabase.from("players").select("*").in("id", playerIds) : Promise.resolve({ data: [] }),
-        supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id)
+        supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id),
     ]);
 
-    const statsMap = Object.fromEntries((stats || []).map((s) => [s.player_id, s.fantasy_points]));
-    const breakdownPlayers = players || [];
+    const statsMap = Object.fromEntries((stats || []).map(s => [s.player_id, s.fantasy_points]));
+    const bPlayers = players || [];
 
-    renderTeamLayout(breakdownPlayers, snapshot.captain_id, snapshot.vice_captain_id, statsMap, breakdownContainer, snapshot.match_id, getAppliedBooster(snapshot), momId);
+    renderTeamLayout(bPlayers, snapshot.captain_id, snapshot.vice_captain_id, statsMap, breakdownContainer, snapshot.match_id, booster, momId);
 
-    const fallbackTotal = calculateMatchTotal(breakdownPlayers, statsMap, snapshot.captain_id, snapshot.vice_captain_id, getAppliedBooster(snapshot), momId);
-    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallbackTotal;
-    breakdownFooter.textContent = `MATCH TOTAL: ${finalTotal} PTS | SUBS: ${snapshot.subs_used_for_match}`;
+    const fallback   = calculateMatchTotal(bPlayers, statsMap, snapshot.captain_id, snapshot.vice_captain_id, booster, momId);
+    const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
+
+    // BUG FIX #9: removed inline style — uses .breakdown-footer-text class
+    breakdownFooter.innerHTML = `
+        <span class="breakdown-pts">${finalTotal} pts</span>
+        <span class="breakdown-subs">${snapshot.subs_used_for_match} subs</span>`;
 };
 
+/* ─── PLAYER POINT LOG ───────────────────────────────────────────────────── */
 window.openPlayerPointLog = async (playerId, matchId) => {
     const content = document.getElementById("pplContent");
     document.getElementById("playerPointLogOverlay").classList.remove("hidden");
@@ -741,34 +725,43 @@ window.openPlayerPointLog = async (playerId, matchId) => {
 
     document.getElementById("pplPlayerName").textContent = matchStat.players.name;
 
+    // BUG FIX #14: Display raw DB values where available rather than
+    // recalculating formulas client-side. Fallback to formula only if field missing.
     const log = [];
-    if (matchStat.runs > 0)              log.push(`${matchStat.runs} Runs (+${matchStat.runs})`);
-    if (matchStat.boundary_points > 0)   log.push(`Boundaries (+${matchStat.boundary_points})`);
-    if (matchStat.milestone_points > 0)  log.push(`Milestone (+${matchStat.milestone_points})`);
-    if (matchStat.sr_points !== 0)       log.push(`SR (${matchStat.sr_points > 0 ? "+" : ""}${matchStat.sr_points})`);
-    if (matchStat.wickets > 0)           log.push(`${matchStat.wickets} Wkts (+${20 + (Math.max(0, matchStat.wickets - 1) * 25)})`);
-    if (matchStat.er_points !== 0)       log.push(`Econ (${matchStat.er_points > 0 ? "+" : ""}${matchStat.er_points})`);
-    if (matchStat.catches > 0)           log.push(`${matchStat.catches} Catch (+${matchStat.catches * 8})`);
-    if (matchStat.involvement_points > 0) log.push(`Active (+${matchStat.involvement_points})`);
-    if (matchStat.is_player_of_match)    log.push("POM (+20)");
-    if (matchStat.duck_penalty < 0)      log.push(`Duck Penalty (${matchStat.duck_penalty})`);
+    if (matchStat.runs > 0)               log.push({ label: `${matchStat.runs} Runs`,         pts: `+${matchStat.run_points         ?? matchStat.runs}` });
+    if (matchStat.boundary_points > 0)    log.push({ label: "Boundaries",                      pts: `+${matchStat.boundary_points}` });
+    if (matchStat.milestone_points > 0)   log.push({ label: "Milestone",                        pts: `+${matchStat.milestone_points}` });
+    if (matchStat.sr_points !== 0)        log.push({ label: "Strike Rate",                      pts: `${matchStat.sr_points > 0 ? "+" : ""}${matchStat.sr_points}` });
+    if (matchStat.wickets > 0)            log.push({ label: `${matchStat.wickets} Wickets`,     pts: `+${matchStat.wicket_points ?? (20 + Math.max(0, matchStat.wickets - 1) * 25)}` });
+    if (matchStat.er_points !== 0)        log.push({ label: "Economy",                           pts: `${matchStat.er_points > 0 ? "+" : ""}${matchStat.er_points}` });
+    if (matchStat.catches > 0)            log.push({ label: `${matchStat.catches} Catch${matchStat.catches > 1 ? "es" : ""}`, pts: `+${matchStat.catches * 8}` });
+    if (matchStat.involvement_points > 0) log.push({ label: "Active",                            pts: `+${matchStat.involvement_points}` });
+    if (matchStat.is_player_of_match)     log.push({ label: "Player of Match",                  pts: "+20" });
+    if (matchStat.duck_penalty < 0)       log.push({ label: "Duck Penalty",                     pts: `${matchStat.duck_penalty}` });
 
     const list = document.createElement("div");
     list.className = "log-items";
-    list.style.cssText = "display:flex; flex-direction:column; gap:8px;";
 
-    log.forEach((entry) => {
+    log.forEach(entry => {
         const row = document.createElement("div");
         row.className = "log-entry";
-        const text = document.createElement("span");
-        text.textContent = entry;
-        row.appendChild(text);
+
+        const label = document.createElement("span");
+        label.className   = "log-label";
+        label.textContent = entry.label;
+
+        const pts = document.createElement("span");
+        pts.className   = "log-pts";
+        pts.textContent = entry.pts;
+
+        row.append(label, pts);
         list.appendChild(row);
     });
 
+    // BUG FIX #5: Replaced inline style.cssText with CSS class
     const total = document.createElement("div");
-    total.style.cssText = "margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; font-weight:800; color:var(--accent);";
-    total.textContent = `BASE TOTAL: ${matchStat.fantasy_points} PTS`;
+    total.className   = "log-total";
+    total.textContent = `Base Total: ${matchStat.fantasy_points} pts`;
 
     content.replaceChildren(list, total);
 };
