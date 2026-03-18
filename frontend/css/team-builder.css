@@ -102,59 +102,6 @@ gap:10px;
 
 
 
-.icon-back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 40px;
-  height: 40px;
-
-  border-radius: 12px;
-
-  background: rgba(154, 224, 0, 0.08);
-  border: 1px solid rgba(154, 224, 0, 0.2);
-
-  color: var(--primary-green);
-  text-decoration: none;
-
-  font-size: 20px;
-  font-weight: 900;
-
-  backdrop-filter: blur(6px);
-
-  box-shadow: 
-    0 4px 12px rgba(0,0,0,0.4),
-    0 0 8px rgba(154,224,0,0.15);
-
-  transition: all 0.25s ease;
-}
-
-.icon-back:active {
-  transform: scale(0.92);
-  box-shadow: 
-    0 2px 6px rgba(0,0,0,0.4),
-    0 0 4px rgba(154,224,0,0.2);
-}
-
-.icon-back:hover {
-  background: rgba(154, 224, 0, 0.15);
-  border-color: var(--primary-green);
-}
-
-.icon-back::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(154,224,0,0.25);
-  opacity: 0;
-  transition: 0.3s;
-}
-
-.icon-back:hover::after {
-  opacity: 1;
-}
 
 
 
@@ -847,31 +794,6 @@ backdrop-filter:blur(4px);
 
 
 
-.dropdown-menu.bottom-sheet{
-
-position:fixed;
-
-bottom:-100%;
-
-left:0;
-
-width:100%;
-
-max-height:70vh;
-
-background:#0f172a;
-
-border-radius:24px 24px 0 0;
-
-z-index:2100;
-
-transition:bottom .4s cubic-bezier(.175,.885,.32,1.275);
-
-padding:20px;
-
-overflow-y:auto;
-
-}
 
 
 
@@ -887,9 +809,6 @@ bottom:0;
    VIEW MODE UTILS
 ========================= */
 
-.hidden{
-display:none!important;
-}
 
 .view-mode{
 display:none;
@@ -1156,57 +1075,6 @@ display:block;
 }
 
 /* --- CENTERED TOAST NOTIFICATIONS --- */
-.toast-container {
-    position: fixed;
-    top: 50%; /* Center vertically */
-    left: 50%; /* Center horizontally */
-    transform: translate(-50%, -50%); /* Perfect middle alignment */
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-    width: 90%; /* Responsive width */
-    max-width: 320px;
-}
-
-.toast {
-    background: #1e293b;
-    color: #fff;
-    padding: 20px;
-    border-radius: 16px;
-    font-size: 14px;
-    font-weight: 700;
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6); /* Heavy shadow for depth */
-    animation: toastPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.toast.error {
-    border-left: 6px solid #ef4444;
-}
-
-/* Updated animation for center entry */
-@keyframes toastPopIn {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.toast.fade-out {
-    transition: all 0.4s ease;
-    opacity: 0 !important;
-    transform: scale(0.9) !important;
-}
-
-@keyframes slideInRight {
-    from { transform: translateX(120%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOutToast {
-    to { transform: translateX(120%); opacity: 0; }
-}
-
 
 /* =========================
    RICH MATCH FILTER CARDS
