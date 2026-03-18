@@ -48,29 +48,32 @@ function loadInPageAd(containerId, zoneId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Prevent duplicate ads
     if (container.hasChildNodes()) return;
 
     const script = document.createElement("script");
-    script.src = `//gizokraijaw.net/${zoneId}`;
+    script.src = "https://nap5k.com/tag.min.js";
     script.async = true;
+    script.dataset.zone = zoneId;
 
     container.appendChild(script);
 }
+
 function loadMonetagAd() {
-    // Prevent spam (show once per session or every 2 mins)
     const lastShown = localStorage.getItem("ad_last_shown");
     const now = Date.now();
 
-    if (lastShown && now - lastShown < 120000) {
-        return; // don't show again within 2 min
-    }
+    if (lastShown && now - lastShown < 120000) return;
 
     localStorage.setItem("ad_last_shown", now);
 
+    // Remove old script if exists
+    const existing = document.getElementById("monetag-vignette");
+    if (existing) existing.remove();
+
     const script = document.createElement("script");
-    script.dataset.zone = "10742556";
+    script.id = "monetag-vignette";
     script.src = "https://gizokraijaw.net/vignette.min.js";
+    script.dataset.zone = "10742556";
     script.async = true;
 
     document.body.appendChild(script);
