@@ -73,6 +73,8 @@ color: var(--accent);
     0 0 8px rgba(154,224,0,0.15);
 
   transition: all 0.25s ease;
+    position: relative; /* 🔥 ADD THIS */
+
 }
 
 .icon-back:active {
