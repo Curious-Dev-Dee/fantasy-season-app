@@ -2,59 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  <title>Leaderboard | Cricket Experts</title>
-<link rel="stylesheet" href="tokens.css">  
-<link rel="stylesheet" href="components.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Leaderboard | Cricket Experts</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0" />  
-<link rel="stylesheet" href="css/leaderboard.css?v=1.0" />
-
-
+  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0">
+  <link rel="stylesheet" href="css/leaderboard.css?v=1.0">
 </head>
+
 <body>
 
-<div class="leaderboard-app page-with-nav">
-  <header class="leaderboard-header">
-    <button class="back-btn" onclick="window.location.href='home.html'"><i class="fas fa-chevron-left"></i></button>
-    <h1>Rankings</h1>
-    <div class="header-icon"><i class="fas fa-medal"></i></div>
-  </header>
+  <!-- MAIN APP -->
+  <div class="leaderboard-app page-with-nav">
 
-  <section class="podium-section" id="podiumContainer">
-      </section>
+    <header class="leaderboard-header">
+      <a href="home.html" class="icon-back">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      <h1>Rankings</h1>
+      <div class="header-icon"><i class="fas fa-medal"></i></div>
+    </header>
 
-  <section class="user-summary-card" id="leaderboardSummary">
-    <div class="spinner-small"></div> Checking your rank...
-  </section>
+    <!-- PODIUM -->
+    <section class="podium-section" id="podiumContainer"></section>
 
-  <main id="leaderboardContainer" class="leaderboard-list">
-    </main>
-</div>
+    <!-- USER RANK SUMMARY -->
+    <section class="user-summary-card" id="leaderboardSummary">
+      <div class="spinner-small"></div> Checking your rank...
+    </section>
 
+    <!-- LEADERBOARD LIST -->
+    <main id="leaderboardContainer" class="leaderboard-list"></main>
 
-<button id="chatFab" class="chat-fab">
+  </div><!-- end .leaderboard-app -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+    <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+    <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
+  </nav>
+
+  <!-- CHAT FAB -->
+  <button id="chatFab" class="chat-fab">
     <i class="fas fa-comment-dots"></i>
     <span id="unreadBadge" class="unread-badge hidden"></span>
-</button>
+  </button>
 
-<div id="chatBackdrop" class="chat-backdrop hidden"></div>
-<div id="chatPanel" class="chat-panel bottom-sheet">
+  <!-- CHAT BACKDROP -->
+  <div id="chatBackdrop" class="chat-backdrop hidden"></div>
+
+  <!-- CHAT PANEL -->
+  <div id="chatPanel" class="chat-panel">
     <div class="chat-header">
-        <h3 id="chatTitle">Global Banter</h3>
-        <button id="closeChatBtn" class="close-chat"><i class="fas fa-times"></i></button>
+      <h3 id="chatTitle">Global Banter</h3>
+      <button id="closeChatBtn" class="close-chat"><i class="fas fa-times"></i></button>
     </div>
-    
     <div id="chatMessages" class="chat-messages">
-        <div class="spinner-small" style="margin: auto;"></div>
+      <div class="spinner-small" style="margin:auto;"></div>
     </div>
-    
     <form id="chatForm" class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Send a message..." autocomplete="off" maxlength="150" required>
-        <button type="submit" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+      <input type="text" id="chatInput" placeholder="Send a message..." autocomplete="off" maxlength="150" required>
+      <button type="submit" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
     </form>
-</div>
+  </div>
 
-<script type="module" src="leaderboard.js?v=1.0"></script>
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module" src="leaderboard.js?v=1.0"></script>
 </body>
 </html>
