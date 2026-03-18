@@ -7,36 +7,36 @@
 :root {
 
   /* --- BRAND COLORS --- */
-  --accent:var(--accent);            /* Your signature neon green */
-  --accent-dim: rgba(154, 224, 0, 0.1);   /* Green tint for backgrounds */
-  --accent-glow: rgba(154, 224, 0, 0.3);  /* Green glow for shadows */
+  --accent: #9AE000;
+  --accent-dim: rgba(154, 224, 0, 0.1);
+  --accent-glow: rgba(154, 224, 0, 0.3);
 
   /* --- BACKGROUNDS --- */
-  --bg-dark: var(--bg-dark);;           /* Page background */
-  --bg-card: var(--bg-card);;           /* Card background */
-  --bg-card-alt: #111827;       /* Slightly darker card (used in some inputs) */
-  --bg-input: var(--bg-dark);;          /* Input field background */
+  --bg-dark: #0c1117;
+  --bg-card: #1e293b;
+  --bg-card-alt: #111827;
+  --bg-input: #0c1117;
 
   /* --- BORDERS --- */
-  --border: var(--border);;            /* Default border color */
-  --border-subtle: rgba(255, 255, 255, 0.08); /* Very subtle border */
+  --border: #334155;
+  --border-subtle: rgba(255, 255, 255, 0.08);
 
   /* --- TEXT --- */
-  --text-primary: #ffffff;      /* Main text */
-  --text-dim: var(--text-dim);;          /* Muted / secondary text */
-  --text-faint: var(--text-faint);;        /* Very muted text */
+  --text-primary: #ffffff;
+  --text-dim: #94a3b8;
+  --text-faint: #64748b;
 
   /* --- SEMANTIC COLORS --- */
-  --red: var(--red);;               /* Danger, errors, negative */
-  --orange: var(--orange);;            /* Warnings */
-  --gold: var(--gold);;              /* Trophies, achievements */
-  --blue: #7cc4ff;              /* Vice captain, info */
+  --red: #ef4444;
+  --orange: #fb923c;
+  --gold: #f59e0b;
+  --blue: #7cc4ff;
 
   /* --- LAYOUT --- */
-  --nav-height: 65px;           /* Bottom nav height — used for padding */
-  --app-max-width: 480px;       /* Max width of the app container */
-  --card-radius: 20px;          /* Default card border radius */
-  --btn-radius: 12px;           /* Default button border radius */
+  --nav-height: 65px;
+  --app-max-width: 480px;
+  --card-radius: 20px;
+  --btn-radius: 12px;
 
   /* --- ANIMATION --- */
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);

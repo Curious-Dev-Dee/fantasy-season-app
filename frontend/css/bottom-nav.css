@@ -10,17 +10,15 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: var(--app-max-width);       /* was hardcoded 480px */
+  max-width: var(--app-max-width);
 
-  /* Glass effect */
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);   /* Safari support */
+  -webkit-backdrop-filter: blur(20px);
 
   display: flex;
   justify-content: space-around;
 
-  /* Extra bottom padding for iPhone home bar */
   padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
 
   border-top: 1px solid var(--border-subtle);
@@ -28,17 +26,16 @@
   z-index: 1000;
 }
 
-/* NAV LINKS */
 .bottom-nav a {
   text-decoration: none;
-  color: var(--text-faint);              /* was hardcoded var(--text-faint); */
+  color: var(--text-faint);
   font-size: 10px;
   font-weight: 600;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  transition: var(--transition);         /* was hardcoded cubic-bezier */
+  transition: var(--transition);
   flex: 1;
   position: relative;
 }
@@ -48,37 +45,27 @@
   transition: transform 0.3s ease;
 }
 
-/* ACTIVE STATE */
 .bottom-nav a.active {
-  color: var(--accent);                  /* was hardcoded #9AE000 */
+  color: var(--accent);
 }
 
-/* Neon glow blob behind active icon */
 .bottom-nav a.active::before {
   content: '';
   position: absolute;
   top: -5px;
   width: 20px;
   height: 20px;
-  background: var(--accent);            /* was hardcoded #9AE000 */
+  background: var(--accent);
   filter: blur(15px);
   opacity: 0.4;
   z-index: -1;
 }
 
-/* Lift the active icon slightly */
 .bottom-nav a.active i {
   transform: translateY(-4px);
-  text-shadow: 0 0 15px var(--accent-glow);  /* was hardcoded rgba */
+  text-shadow: 0 0 15px var(--accent-glow);
 }
 
-/* ------------------------------------------------
-   PAGE PADDING HELPER
-   Add class="page-with-nav" to your page wrapper
-   so content doesn't hide behind the nav
-   ------------------------------------------------ */
 .page-with-nav {
-  /* Uses --nav-height token — change it in tokens.css
-     and this updates everywhere automatically */
   padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));
 }
