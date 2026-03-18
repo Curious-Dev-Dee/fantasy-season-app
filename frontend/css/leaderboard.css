@@ -3,529 +3,465 @@
    Requires: tokens.css + components.css
    ================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
+/* ─── BASE ───────────────────────────────────────── */
 body {
-  margin: 0;
-  font-family: var(--font);
-  background-color: var(--bg-dark);
-  color: var(--text-primary);
+    margin: 0;
+    font-family: var(--font);
+    background: #020617;
+    color: var(--text-primary);
 }
 
 .leaderboard-app {
-  max-width: var(--app-max-width);
-  margin: auto;
-  padding: 20px 16px 100px;
+    max-width: var(--app-max-width);
+    margin: auto;
+    padding: 20px 16px 100px;
 }
 
-/* ------------------------------------------------
-   HEADER
-   ------------------------------------------------ */
+/* BUG FIX #10: spinner-small defined here — was only in team-view.css */
+.spinner-small,
+.summary-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-left-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
 
+/* ─── HEADER ─────────────────────────────────────── */
 .leaderboard-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 2px;
 }
 
-.leaderboard-header h1 {
-  font-size: 20px;
-  font-weight: 800;
-  margin: 0;
-}
-
-.back-btn {
-  background: var(--bg-card);
-  border: none;
-  color: var(--text-primary);
-  width: 35px;
-  height: 35px;
-  border-radius: 10px;
-  cursor: pointer;
+.lb-page-title {
+    font-family: 'Barlow Condensed', var(--font);
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-primary);
 }
 
 .header-icon i {
-  color: var(--gold);
-  font-size: 20px;
+    color: var(--gold);
+    font-size: 20px;
 }
 
-/* ------------------------------------------------
-   PODIUM CONTAINER
-   ------------------------------------------------ */
-
-#podiumContainer {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  padding: 30px 10px 10px;
-  margin-bottom: 20px;
-  position: relative;
-  border-radius: var(--card-radius);
-  background: radial-gradient(circle, #1a2942 0%, #0f172a 100%);
-  overflow: hidden;
+/* ─── PODIUM SECTION ─────────────────────────────── */
+.podium-section {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding: 28px 10px 20px;
+    margin-bottom: 16px;
+    border-radius: var(--card-radius);
+    background: linear-gradient(160deg, #1a2942 0%, #0a1628 100%);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
 }
 
-/* ------------------------------------------------
-   PODIUM CARDS
-   Single clean definition — no more duplicates
-   ------------------------------------------------ */
+/* Faint pitch lines behind podium */
+.podium-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.02) 0px,
+        rgba(255,255,255,0.02) 1px,
+        transparent 1px,
+        transparent 48px
+    );
+    pointer-events: none;
+}
 
+/* ─── PODIUM CARDS ───────────────────────────────── */
 .podium-card {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  cursor: pointer;
-  background: var(--bg-card);
-  border-radius: 16px;
-  padding: 15px 5px;
-  transition: transform 0.2s ease;
-  /* overflow: visible so the glow pseudo-element isn't clipped */
-  overflow: visible;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 14px 8px;
+    transition: transform 0.2s ease;
+    overflow: visible;
+    min-width: 90px;
 }
 
-.podium-card:hover {
-  transform: translateY(-5px);
-}
-
-/* Rank positioning */
-.podium-card.rank-1 { order: 2; transform: translateY(-20px); height: 170px; }
-.podium-card.rank-2 { order: 1; transform: translateY(-8px); }
+.podium-card.rank-1 { order: 2; transform: translateY(-20px); }
+.podium-card.rank-2 { order: 1; transform: translateY(-6px); }
 .podium-card.rank-3 { order: 3; transform: translateY(0); }
 
-.podium-card.rank-1:hover { transform: translateY(-25px); }
-.podium-card.rank-2:hover { transform: translateY(-13px); }
-.podium-card.rank-3:hover { transform: translateY(-5px); }
+.podium-card.rank-1:hover { transform: translateY(-26px); }
+.podium-card.rank-2:hover { transform: translateY(-12px); }
+.podium-card.rank-3:hover { transform: translateY(-6px); }
 
-/* ------------------------------------------------
-   PODIUM GLOW — THE PERFORMANCE FIX
-   
-   OLD (bad): animates box-shadow → causes repaint
-   every frame → jank on Android
-   
-   NEW (good): animates opacity on ::after layer
-   → composited on GPU → silky smooth everywhere
-   ------------------------------------------------ */
-
-/* The glowing halo lives on a pseudo-element */
+/* GPU-composited glow — animates opacity on ::after, not box-shadow */
 .podium-card::after {
-  content: '';
-  position: absolute;
-  inset: -6px;                    /* slightly larger than the card */
-  border-radius: 20px;
-  z-index: -1;
-  opacity: 0.5;
-  /* will-change tells the browser to put this on its own GPU layer */
-  will-change: opacity;
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 20px;
+    z-index: -1;
+    opacity: 0.4;
+    will-change: opacity;
 }
 
-/* Gold glow for rank 1 */
-.podium-card.rank-1::after {
-  background: #ffd700;
-  filter: blur(12px);
-  animation: pulseGlow 2s ease-in-out infinite;
-}
+.podium-card.rank-1::after { background: #ffd700; filter: blur(14px); animation: pulseGlow 2s ease-in-out infinite; }
+.podium-card.rank-2::after { background: #c0c0c0; filter: blur(10px); animation: pulseGlow 2.5s ease-in-out infinite; }
+.podium-card.rank-3::after { background: #cd7f32; filter: blur(10px); animation: pulseGlow 3s ease-in-out infinite; }
 
-/* Silver glow for rank 2 */
-.podium-card.rank-2::after {
-  background: #c0c0c0;
-  filter: blur(10px);
-  animation: pulseGlow 2.5s ease-in-out infinite;
-}
-
-/* Bronze glow for rank 3 */
-.podium-card.rank-3::after {
-  background: #cd7f32;
-  filter: blur(10px);
-  animation: pulseGlow 3s ease-in-out infinite;
-}
-
-/* Only animates opacity — GPU composited, zero repaints */
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.35; }
-  50%       { opacity: 0.75; }
+    0%,100% { opacity: 0.3; }
+    50%      { opacity: 0.7; }
 }
 
-/* ------------------------------------------------
-   PODIUM AVATARS
-   ------------------------------------------------ */
-
+/* ─── PODIUM AVATARS ─────────────────────────────── */
 .podium-avatar {
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  margin-bottom: 12px;
-  /* Border is set per rank below */
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 10px;
 }
 
-.podium-card.rank-1 .podium-avatar {
-  width: 80px;
-  height: 80px;
-  border: 3px solid #ffd700;
-}
+.podium-card.rank-1 .podium-avatar { width: 72px; height: 72px; border: 3px solid #ffd700; }
+.podium-card.rank-2 .podium-avatar { width: 56px; height: 56px; border: 3px solid #c0c0c0; }
+.podium-card.rank-3 .podium-avatar { width: 56px; height: 56px; border: 3px solid #cd7f32; }
 
-.podium-card.rank-2 .podium-avatar {
-  width: 60px;
-  height: 60px;
-  border: 3px solid #c0c0c0;
-}
-
-.podium-card.rank-3 .podium-avatar {
-  width: 60px;
-  height: 60px;
-  border: 3px solid #cd7f32;
-}
-
-/* ------------------------------------------------
-   RANK BADGE (number inside circle on avatar)
-   ------------------------------------------------ */
-
+/* ─── RANK BADGE ─────────────────────────────────── */
 .rank-badge {
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-  z-index: 2;
-  border: 2px solid #0f172a;
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    z-index: 2;
+    border: 2px solid #0a1628;
 }
 
 .podium-card.rank-1 .rank-badge { background: #ffd700; }
 .podium-card.rank-2 .rank-badge { background: #c0c0c0; }
 .podium-card.rank-3 .rank-badge { background: #cd7f32; }
 
-/* ------------------------------------------------
-   PODIUM TEXT
-   ------------------------------------------------ */
-
+/* ─── PODIUM TEXT ────────────────────────────────── */
 .podium-name {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .podium-pts {
-  font-size: 14px;
-  font-weight: 900;
-  color: var(--accent);
+    font-family: 'Barlow Condensed', var(--font);
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--accent);
 }
 
-/* ------------------------------------------------
-   USER SUMMARY CARD
-   ------------------------------------------------ */
-
+/* ─── USER SUMMARY BAR ───────────────────────────── */
 .user-summary-card {
-  background: var(--accent);
-  color: var(--bg-dark);
-  padding: 16px;
-  border-radius: 16px;
-  margin-bottom: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  box-shadow: 0 4px 15px var(--accent-glow);
+    background: var(--accent);
+    color: #000;
+    padding: 14px 18px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 4px 18px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
 }
 
-/* ------------------------------------------------
-   LEADERBOARD LIST ROWS
-   ------------------------------------------------ */
+/* ─── LEADERBOARD LIST ───────────────────────────── */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
 .leader-row {
-  display: flex;
-  align-items: center;
-  background: var(--bg-card);
-  padding: 14px 16px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: var(--transition);
-  border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    padding: 13px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    border: 1px solid var(--border-subtle);
 }
 
-.leader-row:hover {
-  background: var(--border);
-}
+.leader-row:hover { background: rgba(255,255,255,0.07); }
 
-/* Highlight the current user's row */
+/* Current user highlight */
 .leader-row.you {
-  background: var(--accent-dim);
-  border-color: var(--accent);
+    background: var(--accent-dim);
+    border-color: rgba(154,224,0,0.35);
 }
 
-/* Colored rank borders */
-.leader-row.border-orange { border: 2px solid #ff9800; }
-.leader-row.border-yellow { border: 2px solid #ffeb3b; }
-.leader-row.border-red    { border: 2px solid var(--red); }
+/* BUG FIX #12: Consistent token-based rank tiers.
+   4–5: warm gold border. 6–10: muted silver. 11+: dimmed, no punishing red. */
+.leader-row.row-top5  { border: 1.5px solid rgba(245,158,11,0.5); }
+.leader-row.row-top10 { border: 1px solid rgba(148,163,184,0.3); }
+.leader-row.row-rest  { opacity: 0.72; border-color: transparent; }
 
-.l-rank  { font-weight: 900; color: var(--text-dim); width: 40px; }
-.l-team  { flex: 1; font-weight: 700; color: var(--text-primary); }
-.l-pts   { font-weight: 800; color: var(--accent); margin-right: 15px; }
-.l-arrow i { color: var(--text-faint); font-size: 12px; }
+.l-rank  { font-weight: 900; color: var(--text-dim); width: 38px; font-size: 13px; flex-shrink: 0; }
+.l-team  { flex: 1; font-weight: 700; font-size: 14px; color: var(--text-primary); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
+.l-pts   { font-family: 'Barlow Condensed', var(--font); font-weight: 700; font-size: 14px; color: var(--accent); flex-shrink: 0; margin-right: 10px; }
+.l-arrow { color: var(--text-faint); font-size: 11px; flex-shrink: 0; }
 
-/* ------------------------------------------------
-   MATCH HISTORY TIERS
-   Gold sweep animation — GPU safe (animates
-   transform, not box-shadow)
-   ------------------------------------------------ */
+/* ─── TIER SHIMMER (history rows) ────────────────── */
+/* BUG FIX #11: Sweep now animates translateX — genuinely GPU composited.
+   The old version animated 'left' which triggers layout on every frame. */
+.tier-gold   { border: 2px solid #ffd700 !important; position: relative; overflow: hidden; }
+.tier-silver { border: 2px solid #c0c0c0 !important; position: relative; overflow: hidden; }
+.tier-bronze { border: 1px solid rgba(205,127,50,0.3) !important; opacity: 0.82; }
 
-.tier-gold {
-  border: 2px solid #ffd700 !important;
-  position: relative;
-  overflow: hidden;
-}
-
-.tier-silver {
-  border: 1.5px solid #c0c0c0 !important;
-  position: relative;
-  overflow: hidden;
-}
-
-.tier-red {
-  border: 1px solid rgba(239, 68, 68, 0.3) !important;
-  opacity: 0.85;
-}
-
-/* Sweep shimmer — uses transform (GPU safe) */
 .tier-gold::after,
 .tier-silver::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.15),
-    transparent
-  );
-  transform: skewX(-20deg);
-  animation: sweep var(--sweep-dur, 4s) infinite;
-  will-change: transform;           /* GPU composited */
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    transform: skewX(-20deg) translateX(-200%);
+    animation: sweep var(--sweep-dur, 4s) ease-in-out infinite;
+    pointer-events: none;
 }
 
 .tier-silver::after {
-  --sweep-dur: 6s;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.08),
-    transparent
-  );
+    --sweep-dur: 6s;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
 }
 
 @keyframes sweep {
-  0%   { left: -100%; }
-  20%  { left: 120%; }
-  100% { left: 120%; }
+    0%   { transform: skewX(-20deg) translateX(-200%); }
+    20%  { transform: skewX(-20deg) translateX(300%); }
+    100% { transform: skewX(-20deg) translateX(300%); }
 }
 
-/* ------------------------------------------------
-   CHAT FAB (Floating Action Button)
-   ------------------------------------------------ */
-
+/* ─── CHAT FAB ───────────────────────────────────── */
 .chat-fab {
-  position: fixed;
-  bottom: calc(var(--nav-height) + 20px);   /* sits above nav — no magic number */
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #000;
-  border: none;
-  font-size: 24px;
-  box-shadow: 0 4px 15px var(--accent-glow);
-  cursor: pointer;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
+    position: fixed;
+    bottom: calc(var(--nav-height) + 20px);
+    right: 20px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-size: 22px;
+    box-shadow: 0 4px 18px var(--accent-glow);
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
 }
 
-.chat-fab:active {
-  transform: scale(0.9);
-}
+.chat-fab:active { transform: scale(0.9); }
 
 .unread-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  background: var(--red);
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--bg-dark);
+    position: absolute;
+    top: -2px; right: -2px;
+    background: var(--red);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #020617;
 }
 
-/* ------------------------------------------------
-   CHAT PANEL
-   ------------------------------------------------ */
-
+/* ─── CHAT PANEL ─────────────────────────────────── */
 .chat-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 2000;
-  backdrop-filter: blur(4px);
-  transition: opacity 0.3s;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .chat-panel {
-  position: fixed;
-  bottom: -100%;
-  left: 0;
-  width: 100%;
-  height: 75vh;
-  background: #0f172a;
-  border-radius: 24px 24px 0 0;
-  z-index: 2100;
-  display: flex;
-  flex-direction: column;
-  transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    max-width: var(--app-max-width);
+    left: 50%;
+    transform: translateX(-50%);
+    height: 75vh;
+    background: #0c1117;
+    border-radius: 24px 24px 0 0;
+    z-index: 2100;
+    display: flex;
+    flex-direction: column;
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    border-top: 1px solid var(--border-subtle);
 }
 
 .chat-panel.show { bottom: 0; }
 
 .chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
-.chat-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
+.chat-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
 }
 
 .close-chat {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 20px;
-  cursor: pointer;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-dim);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
+.close-chat:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+
 .chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* BUG FIX #6: Proper class for empty-state placeholder */
+.chat-placeholder {
+    color: var(--text-faint);
+    text-align: center;
+    font-size: 13px;
+    margin: auto;
+    padding: 20px 0;
 }
 
 .chat-msg {
-  display: flex;
-  flex-direction: column;
-  max-width: 80%;
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
 }
 
 .chat-msg.me   { align-self: flex-end;   align-items: flex-end; }
 .chat-msg.them { align-self: flex-start; align-items: flex-start; }
 
 .msg-sender {
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-bottom: 4px;
-  font-weight: 700;
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-bottom: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .msg-bubble {
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 13px;
-  line-height: 1.4;
-  word-break: break-word;
-  font-weight: 500;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.45;
+    word-break: break-word;
+    font-weight: 500;
 }
 
 .chat-msg.me   .msg-bubble { background: var(--accent); color: #000; border-bottom-right-radius: 4px; }
 .chat-msg.them .msg-bubble { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
 
 .chat-input-area {
-  display: flex;
-  padding: 16px;
-  gap: 10px;
-  background: var(--bg-dark);
-  border-top: 1px solid var(--border);
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    padding: 14px 16px;
+    gap: 10px;
+    background: rgba(2,6,23,0.8);
+    border-top: 1px solid var(--border);
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    flex-shrink: 0;
 }
 
 .chat-input-area input {
-  flex: 1;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 12px 16px;
-  border-radius: 20px;
-  outline: none;
-  font-size: 14px;
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 11px 16px;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+    font-family: var(--font);
+    transition: border-color 0.2s;
 }
 
-.chat-input-area input:focus {
-  border-color: var(--accent);
-}
+.chat-input-area input:focus { border-color: var(--accent); }
+.chat-input-area input::placeholder { color: var(--text-faint); }
 
 .chat-input-area button {
-  background: var(--accent);
-  border: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  color: #000;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background: var(--accent);
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: #000;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--transition);
 }
 
-.chat-input-area button:disabled {
-  background: var(--border);
-  color: var(--text-dim);
+.chat-input-area button:hover { box-shadow: 0 4px 12px var(--accent-glow); }
+.chat-input-area button:disabled { background: var(--border); color: var(--text-dim); }
+
+/* ─── ACCESSIBILITY ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .podium-card::after,
+    .tier-gold::after,
+    .tier-silver::after { animation: none !important; }
+    .podium-card, .leader-row { transition: none !important; }
 }
-
-/* ------------------------------------------------
-   GURU LIST (Top 100 modal)
-   ------------------------------------------------ */
-
-.guru-list {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-}
-
-.guru-row {
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 12px;
-  border-radius: 12px;
-}
-
-.guru-rank   { font-weight: 900; color: var(--accent); width: 35px; }
-.guru-avatar { width: 36px; height: 36px; border-radius: 50%; margin-right: 12px; border: 1px solid var(--border-subtle); }
-.guru-name   { flex: 1; font-weight: 700; font-size: 14px; }
-.guru-stars  { font-weight: 900; background: var(--accent-dim); color: var(--accent); padding: 4px 8px; border-radius: 8px; }

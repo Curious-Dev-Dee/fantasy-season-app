@@ -3,78 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Leaderboard | Cricket Experts</title>
+  <title>Rankings · Cricket Experts</title>
 
-  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0">
-  <link rel="stylesheet" href="css/animations.css?v=1.0">
-  <link rel="stylesheet" href="css/leaderboard.css?v=1.0">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/leaderboard.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- BUG FIX #1: auth-guard handles session — no more direct getSession() -->
+  <script type="module" src="auth-guard.js"></script>
 </head>
 
 <body>
 
-  <!-- MAIN APP -->
   <div class="leaderboard-app page-with-nav">
 
+    <!-- HEADER -->
     <header class="leaderboard-header">
-      <a href="home.html" class="icon-back">
-        <i class="fas fa-chevron-left"></i>
+      <!-- BUG FIX #9: /home clean URL -->
+      <a href="/home" class="icon-back" aria-label="Back to home">
+        <i class="fas fa-arrow-left"></i>
       </a>
-      <h1>Rankings</h1>
-      <div class="header-icon"><i class="fas fa-medal"></i></div>
+      <h1 class="lb-page-title">Rankings</h1>
+      <div class="header-icon" aria-hidden="true">
+        <i class="fas fa-trophy"></i>
+      </div>
     </header>
 
     <!-- PODIUM -->
-    <section class="podium-section" id="podiumContainer"></section>
+    <section id="podiumContainer" class="podium-section"></section>
 
     <!-- USER RANK SUMMARY -->
-    <section class="user-summary-card" id="leaderboardSummary">
-      <div class="spinner-small"></div> Checking your rank...
+    <section id="leaderboardSummary" class="user-summary-card">
+      <span class="summary-spinner"></span>
+      Checking your rank…
     </section>
 
     <!-- LEADERBOARD LIST -->
     <main id="leaderboardContainer" class="leaderboard-list"></main>
 
-  </div><!-- end .leaderboard-app -->
+  </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- BOTTOM NAV — BUG FIX #9: /home clean URL -->
   <nav class="bottom-nav">
-    <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
     <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
     <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
     <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
   </nav>
 
   <!-- CHAT FAB -->
-  <button id="chatFab" class="chat-fab">
+  <button id="chatFab" class="chat-fab" aria-label="Open chat">
     <i class="fas fa-comment-dots"></i>
-    <span id="unreadBadge" class="unread-badge hidden"></span>
+    <span id="unreadBadge" class="unread-badge hidden" aria-label="Unread messages"></span>
   </button>
 
   <!-- CHAT BACKDROP -->
   <div id="chatBackdrop" class="chat-backdrop hidden"></div>
 
   <!-- CHAT PANEL -->
-  <div id="chatPanel" class="chat-panel">
+  <div id="chatPanel" class="chat-panel" role="dialog" aria-label="Chat">
     <div class="chat-header">
-      <h3 id="chatTitle">Global Banter</h3>
-      <button id="closeChatBtn" class="close-chat"><i class="fas fa-times"></i></button>
+      <h3 id="chatTitle" class="chat-title">Global Banter</h3>
+      <button id="closeChatBtn" class="close-chat" aria-label="Close chat">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
-    <div id="chatMessages" class="chat-messages">
-      <div class="spinner-small" style="margin:auto;"></div>
-    </div>
+    <div id="chatMessages" class="chat-messages"></div>
     <form id="chatForm" class="chat-input-area">
-      <input type="text" id="chatInput" placeholder="Send a message..." autocomplete="off" maxlength="150" required>
-      <button type="submit" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+      <input type="text" id="chatInput"
+             placeholder="Say something…"
+             autocomplete="off"
+             maxlength="150"
+             required>
+      <button type="submit" id="sendChatBtn" aria-label="Send">
+        <i class="fas fa-paper-plane"></i>
+      </button>
     </form>
   </div>
 
   <!-- TOAST -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script type="module" src="leaderboard.js?v=1.0"></script>
+  <script type="module" src="leaderboard.js"></script>
 </body>
 </html>
