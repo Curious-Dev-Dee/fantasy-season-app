@@ -1,13 +1,13 @@
 {
-  "name": "FantasyCric26 Expert",
-  "short_name": "CricExpert",
+  "name": "Cricket Experts",
+  "short_name": "CricExperts",
   "description": "The ultimate fantasy cricket audit tool and leaderboard.",
-  "start_url": "/home.html",
+  "start_url": "/home",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#020617",
   "theme_color": "#9AE000",
-  "id": "/home.html?source=pwa",
+  "id": "/home",
   "icons": [
     {
       "src": "favicon.png",
@@ -22,7 +22,7 @@
       "purpose": "any"
     },
     {
-      "src": "favicon.png",
+      "src": "favicon-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

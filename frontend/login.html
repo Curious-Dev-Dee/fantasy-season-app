@@ -5,49 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cricket Experts | Step into the Arena</title>
 
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
-<link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/auth.css">
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <link rel="icon" type="image/png" href="favicon.png">
-
-<link rel="apple-touch-icon" href="favicon.png">
-
-<link rel="manifest" href="manifest.json">
-
+  <link rel="apple-touch-icon" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#9AE000">
 </head>
 <body>
 
   <div id="authContainer" class="auth-container hidden">
-    <section class="hero">
-      <h1 class="hero-title">Cricket Experts</h1>
-      <p class="hero-tagline">
-        This is not for everyone.
-        <span class="accent">Accept the challenge.</span>
-      </p>
-      <p class="hero-support">
-        Build your XI. Compete on knowledge.<br>
-        Let your cricket decisions speak.
-      </p>
-    </section>
 
-    <section class="auth-card">
-      <p class="card-heading">Step into the arena</p>
+    <!-- Ambient background grid lines (CSS only, no JS) -->
+    <div class="arena-bg" aria-hidden="true">
+      <div class="grid-lines"></div>
+      <div class="glow-orb"></div>
+    </div>
 
-      <button id="googleLoginBtn" class="auth-btn primary">
-        <img src="assets/google.svg" alt="Google" class="google-icon-img"/>
-        <span class="btn-text">Continue with Google</span>
-        <span class="spinner hidden"></span>
-      </button>
+    <main class="auth-inner">
 
-      <p id="authError" class="auth-error"></p>
-    </section>
+      <!-- Brand mark -->
+      <div class="brand">
+        <img src="favicon.png" alt="" class="brand-icon" />
+        <span class="brand-name">Cricket Experts</span>
+      </div>
 
-    <footer class="auth-footer">
-      © 2026 Cricket Experts
-    </footer>
+      <!-- Hero -->
+      <section class="hero">
+        <h1 class="hero-title">
+          <span class="hero-line1">The Arena</span>
+          <span class="hero-line2">Awaits.</span>
+        </h1>
+        <p class="hero-sub">
+          Build your XI. Outscore 10,000+ experts.<br>
+          Your cricket decisions. Your legacy.
+        </p>
+      </section>
+
+      <!-- Auth card -->
+      <section class="auth-card">
+        <button id="googleLoginBtn" class="auth-btn" aria-label="Continue with Google">
+          <img src="assets/google.svg" alt="" class="google-icon" />
+          <span class="btn-text">Continue with Google</span>
+          <span class="spinner hidden" aria-hidden="true"></span>
+        </button>
+
+        <p id="authError" class="auth-error" role="alert" aria-live="polite"></p>
+
+        <p class="auth-terms">
+          By continuing you accept our
+          <a href="/terms" class="terms-link">Terms</a> &
+          <a href="/privacy" class="terms-link">Privacy Policy</a>
+        </p>
+      </section>
+
+    </main>
+
+    <footer class="auth-footer">© 2026 Cricket Experts</footer>
   </div>
 
   <script type="module" src="auth.js"></script>

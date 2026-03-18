@@ -1,29 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cricket Experts | Loading...</title>
-    <script type="module">
-        import { supabase } from "./supabase.js";
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cricket Experts | Loading…</title>
+  <link rel="stylesheet" href="tokens.css">
+  <script type="module">
+    import { supabase } from "./supabase.js";
 
-        async function route() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                // User is logged in, send to Home
-                window.location.replace("/home.html");
-            } else {
-                // User is logged out, send to Login
-                window.location.replace("/login.html");
-            }
-        }
-        route();
-    </script>
-    <style>
-        body { background: var(--bg-dark);; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .loader { width: 40px; height: 40px; border: 3px solid rgba(154, 224, 0, 0.1); border-left-color:var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+    async function route() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        window.location.replace("/home.html");
+      } else {
+        window.location.replace("/login.html");
+      }
+    }
+    route();
+  </script>
+  <style>
+    body {
+      background: #0c1117; /* hardcoded fallback — tokens.css may not load before paint */
+      background: var(--bg-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(154, 224, 0, 0.1);
+      border-left-color: #9AE000;
+      border-left-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-    <div class="loader"></div>
+  <div class="loader"></div>
 </body>
 </html>

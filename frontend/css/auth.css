@@ -1,153 +1,305 @@
 /* ================================================
-   LOGIN.CSS
+   AUTH.CSS — Login Page Only
    Requires: tokens.css loaded before this file
+   NOTE: .hidden and @keyframes fadeInRise are
+   defined in components.css — not duplicated here
    ================================================ */
 
-/* GLOBAL RESET */
+/* ------------------------------------------------
+   FONT OVERRIDE FOR THIS PAGE
+   Barlow Condensed for dramatic headlines
+   ------------------------------------------------ */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600&display=swap');
+
+/* ------------------------------------------------
+   PAGE BASE
+   ------------------------------------------------ */
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: var(--font);
-  background: radial-gradient(circle at top, #0f172a 0%, #020617 65%);
+  background: #020617;
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh; /* dynamic viewport on mobile */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
 }
 
-/* UI ENTRANCE ANIMATION */
+/* ------------------------------------------------
+   ARENA BACKGROUND
+   Subtle pitch grid + accent glow — pure CSS
+   ------------------------------------------------ */
+.arena-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Faint grid lines evoke a cricket pitch */
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(154, 224, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(154, 224, 0, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 20%, transparent 80%);
+}
+
+/* Single soft green glow at top — the stadium floodlight */
+.glow-orb {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse at 50% 30%, rgba(154, 224, 0, 0.18) 0%, transparent 70%);
+}
+
+/* ------------------------------------------------
+   LAYOUT WRAPPER
+   ------------------------------------------------ */
 .auth-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48px 24px 32px;
+  animation: fadeInRise 0.7s ease-out forwards; /* from components.css */
+}
+
+.auth-inner {
   width: 100%;
   max-width: var(--app-max-width);
-  padding: 24px;
-  text-align: center;
-  animation: fadeInRise 0.8s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
-@keyframes fadeInRise {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ------------------------------------------------
+   BRAND MARK
+   ------------------------------------------------ */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* HERO SECTION */
-.hero-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  line-height: 1.15;
-  letter-spacing: -0.5px;
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
-.hero-tagline {
-  font-size: 16px;
-  opacity: 0.85;
-  margin-bottom: 8px;
-}
-
-.hero-tagline .accent {
-  color: var(--accent);   /* was #a3ff12 */
+.brand-name {
+  font-size: 13px;
   font-weight: 600;
-}
-
-.hero-support {
-  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   opacity: 0.6;
-  margin-bottom: 32px;
-  line-height: 1.5;
 }
 
-/* AUTH CARD */
+/* ------------------------------------------------
+   HERO
+   ------------------------------------------------ */
+.hero {
+  /* No margin — gap on .auth-inner handles spacing */
+}
+
+.hero-title {
+  margin: 0 0 16px;
+  line-height: 0.92;
+  letter-spacing: -1px;
+}
+
+/* Two separate lines so we can control size independently */
+.hero-line1 {
+  display: block;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: clamp(52px, 14vw, 80px);
+  color: var(--text-primary);
+}
+
+.hero-line2 {
+  display: block;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: clamp(64px, 18vw, 108px);
+  color: var(--accent);
+  /* Tight tracking gives it a scoreboard feel */
+  letter-spacing: -2px;
+}
+
+.hero-sub {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------
+   AUTH CARD
+   ------------------------------------------------ */
 .auth-card {
-  background: linear-gradient(145deg, rgba(20, 30, 48, 0.9), rgba(12, 20, 36, 0.95));
-  padding: 28px 24px;
-  border-radius: var(--card-radius);
+  width: 100%;
+  max-width: var(--app-max-width);
+  background: rgba(30, 41, 59, 0.6);
   border: 1px solid var(--border-subtle);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* BUTTON STYLES */
+/* ------------------------------------------------
+   GOOGLE BUTTON
+   ------------------------------------------------ */
 .auth-btn {
   width: 100%;
-  height: 48px;
+  height: 52px;
   border-radius: var(--btn-radius);
   border: none;
+  background: var(--accent);
+  color: #000;
+  font-family: var(--font);
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
+  box-shadow: 0 0 0 0 var(--accent-glow);
   transition: var(--transition);
   position: relative;
   overflow: hidden;
 }
 
-.google-icon-img {
-  width: 18px;
-  height: 18px;
-  display: block;
-  object-fit: contain;
-  flex-shrink: 0;
+/* Sheen sweep on hover — pure CSS, no JS */
+.auth-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
 }
 
-.auth-btn.primary {
-  background-color: var(--accent);   /* was #a3ff12 */
-  color: #000;
-  box-shadow: 0 6px 18px var(--accent-glow);
+.auth-btn:hover::before {
+  left: 140%;
 }
 
-.auth-btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px var(--accent-glow);
+.auth-btn:hover {
+  box-shadow: 0 0 32px var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.auth-btn:active {
+  transform: scale(0.97) translateY(0);
+  box-shadow: none;
 }
 
 .auth-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none !important;
+  box-shadow: none !important;
 }
 
-/* SPINNER */
+.auth-btn:disabled::before {
+  display: none;
+}
+
+.google-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+/* ------------------------------------------------
+   SPINNER
+   ------------------------------------------------ */
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #000;
-  border-top: 2px solid transparent;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #000;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-left: 8px;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
 }
 
+/* spin keyframes live in components.css — not repeated here */
 
-
-/* UTILITIES */
-.hidden {
-  display: none !important;
-}
-
-/* ACCESSIBILITY */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-/* MESSAGES */
+/* ------------------------------------------------
+   ERROR STATE
+   ------------------------------------------------ */
 .auth-error {
-  margin-top: 14px;
+  margin: 12px 0 0;
   font-size: 13px;
-  color: var(--red);   /* was #ff4d4d */
+  color: var(--red);
   display: none;
   min-height: 1.2em;
+  line-height: 1.4;
 }
 
+/* ------------------------------------------------
+   TERMS COPY
+   ------------------------------------------------ */
+.auth-terms {
+  margin: 14px 0 0;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.terms-link {
+  color: var(--text-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.terms-link:hover {
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------
+   FOOTER
+   ------------------------------------------------ */
 .auth-footer {
-  margin-top: 40px;
-  font-size: 12px;
-  opacity: 0.4;
+  font-size: 11px;
+  opacity: 0.3;
+  letter-spacing: 0.05em;
+  padding-top: 16px;
+}
+
+/* ------------------------------------------------
+   ACCESSIBILITY
+   ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .glow-orb,
+  .auth-btn::before {
+    display: none;
+  }
+  /* global animation/transition overrides are in components.css */
 }
