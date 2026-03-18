@@ -1,62 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>Cricket Expert · Fun Zone</title>
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
-<link rel="stylesheet" href="bottom-nav.css">
-    <link rel="stylesheet" href="css/prediction.css?v=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cricket Expert · Fun Zone</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
-
-
+  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0">
+  <link rel="stylesheet" href="css/prediction.css?v=1.0">
 </head>
+
 <body>
-<div class="prediction-page">
-    <div class="scroll-content">
-        
-        <header class="fun-header">
-            <div class="header-left">
-                <h1 class="theme-title">Fun Zone 🎯</h1>
-            </div>
-            <div class="score-pill"><span id="userStarCount">0 ⭐</span></div>
-        </header>
 
-        <section class="prediction-container card">
-            <div id="predictionArea">
-                <p style="text-align:center; color:#888;">Loading Match...</p>
-            </div>
-            <div id="postMatchSummary"></div>
-        </section>
+  <div class="prediction-page">
 
-        <div id="podiumSection" class="podium-stack">
-            
-            <div class="podium-box">
-                <div class="mini-label">MATCH HEROES</div>
-                <div id="playerPodium" class="podium-grid"></div>
-            </div>
-            
-            <div class="podium-box">
-                <div class="mini-label">MATCH EXPERTS</div>
-                <div id="userPodium" class="podium-grid"></div>
-            </div>
+    <div class="scroll-content page-with-nav">
 
-            
-            
+      <!-- HEADER -->
+      <header class="fun-header">
+        <div class="header-left">
+          <h1 class="theme-title">Fun Zone 🎯</h1>
         </div>
-        
-    </div>
+        <div class="score-pill">
+          <span id="userStarCount">0 ⭐</span>
+        </div>
+      </header>
 
+      <!-- PREDICTION CARD -->
+      <section class="prediction-container card">
+        <div id="predictionArea">
+          <p style="text-align:center; color: var(--text-dim);">Loading Match...</p>
+        </div>
+        <div id="postMatchSummary"></div>
+      </section>
+
+      <!-- PODIUM SECTION -->
+      <div id="podiumSection" class="podium-stack">
+
+        <div class="podium-box">
+          <div class="mini-label">MATCH HEROES</div>
+          <div id="playerPodium" class="podium-grid"></div>
+        </div>
+
+        <div class="podium-box">
+          <div class="mini-label">MATCH EXPERTS</div>
+          <div id="userPodium" class="podium-grid"></div>
+        </div>
+
+      </div>
+
+    </div><!-- end .scroll-content -->
+
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-        <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-        <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-        <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Fun</span></a>
-        <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
+      <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+      <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+      <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Fun</span></a>
+      <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
     </nav>
-</div>
 
-<script type="module" src="prediction.js?v=1.0"></script>
+  </div><!-- end .prediction-page -->
+
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module" src="prediction.js?v=1.0"></script>
 </body>
 </html>
