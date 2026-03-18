@@ -5,15 +5,15 @@
 :root {
 
 --primary-green:#9be15d;
---danger-red:#ef4444;
+--danger-red:var(--red);;
 
 --bg-dark:#020617;
 --card-bg:#0f172a;
 
---border-color:#1e293b;
+--border-color:var(--bg-card);;
 
 --text-main:#f8fafc;
---text-dim:#94a3b8;
+--text-dim:var(--text-dim);;
 
 --header-height:64px;
 --save-bar-height:90px;
@@ -181,7 +181,7 @@ padding:16px;
 width:100%;
 height:6px;
 
-background:#1e293b;
+background:var(--bg-card);;
 
 border-radius:10px;
 overflow:hidden;
@@ -281,7 +281,7 @@ padding:12px;
 border-radius:12px;
 border:none;
 
-background:#1e293b;
+background:var(--bg-card);;
 
 color:var(--text-dim);
 
@@ -511,7 +511,7 @@ gap:12px;
 
 .player-card{
 
-background:linear-gradient(145deg,#0f172a,#1e293b);
+background:linear-gradient(145deg,#0f172a,var(--bg-card););
 
 border:1px solid var(--border-color);
 
@@ -764,9 +764,9 @@ transition:var(--transition);
 
 .save-btn:disabled{
 
-background:#334155;
+background:var(--border);;
 
-color:#94a3b8;
+color:var(--text-dim);;
 
 cursor:not-allowed;
 
@@ -876,7 +876,7 @@ display:block;
     -webkit-appearance: none;
     width: 22px;
     height: 22px;
-    border: 2px solid #334155;
+    border: 2px solid var(--border);;
     border-radius: 6px;
     background: transparent;
     position: relative;
@@ -930,12 +930,12 @@ display:block;
 }
 
 .dropdown-actions button:first-child {
-    background: #1e293b;
+    background: var(--bg-card);;
     color: var(--text-dim);
 }
 
 .dropdown-actions button:last-child {
-    background: #1e293b;
+    background: var(--bg-card);;
     color: var(--text-dim);
 }
 
@@ -996,7 +996,7 @@ display:block;
 .booster-card {
     flex: 0 0 90px;   /* Very narrow width */
     height: 80px;     /* Small height so it doesn't cover the screen */
-    background: #1e293b;
+    background: var(--bg-card);;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     display: flex;
@@ -1219,7 +1219,7 @@ display:block;
 
 /* Red Warning for Timer */
 .timer-warning {
-    color: #ef4444 !important;
+    color: var(--red); !important;
     animation: pulse-red 1s infinite alternate;
 }
 

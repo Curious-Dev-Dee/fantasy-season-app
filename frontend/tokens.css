@@ -7,29 +7,29 @@
 :root {
 
   /* --- BRAND COLORS --- */
-  --accent: #9AE000;            /* Your signature neon green */
+  --accent:var(--accent);            /* Your signature neon green */
   --accent-dim: rgba(154, 224, 0, 0.1);   /* Green tint for backgrounds */
   --accent-glow: rgba(154, 224, 0, 0.3);  /* Green glow for shadows */
 
   /* --- BACKGROUNDS --- */
-  --bg-dark: #0c1117;           /* Page background */
-  --bg-card: #1e293b;           /* Card background */
+  --bg-dark: var(--bg-dark);;           /* Page background */
+  --bg-card: var(--bg-card);;           /* Card background */
   --bg-card-alt: #111827;       /* Slightly darker card (used in some inputs) */
-  --bg-input: #0c1117;          /* Input field background */
+  --bg-input: var(--bg-dark);;          /* Input field background */
 
   /* --- BORDERS --- */
-  --border: #334155;            /* Default border color */
+  --border: var(--border);;            /* Default border color */
   --border-subtle: rgba(255, 255, 255, 0.08); /* Very subtle border */
 
   /* --- TEXT --- */
   --text-primary: #ffffff;      /* Main text */
-  --text-dim: #94a3b8;          /* Muted / secondary text */
-  --text-faint: #64748b;        /* Very muted text */
+  --text-dim: var(--text-dim);;          /* Muted / secondary text */
+  --text-faint: var(--text-faint);;        /* Very muted text */
 
   /* --- SEMANTIC COLORS --- */
-  --red: #ef4444;               /* Danger, errors, negative */
-  --orange: #fb923c;            /* Warnings */
-  --gold: #f59e0b;              /* Trophies, achievements */
+  --red: var(--red);;               /* Danger, errors, negative */
+  --orange: var(--orange);;            /* Warnings */
+  --gold: var(--gold);;              /* Trophies, achievements */
   --blue: #7cc4ff;              /* Vice captain, info */
 
   /* --- LAYOUT --- */

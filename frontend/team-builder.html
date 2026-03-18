@@ -10,7 +10,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 <title>EDIT TEAM · Cricket Experts</title>
 
 <link rel="stylesheet" href="tokens.css">
-
 <link rel="stylesheet" href="components.css">
 
 
@@ -32,7 +31,7 @@ display:none;
 #loadingOverlay{
 position:fixed;
 inset:0;
-background:#0c1117;
+background:var(--bg-dark);;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -317,12 +316,12 @@ SAVE TEAM
 <div id="toastContainer" class="toast-container"></div>
 
     <div id="customConfirmOverlay" class="filter-backdrop hidden" style="display: flex; align-items: center; justify-content: center; z-index: 9999;">
-        <div style="background: #0f172a; padding: 24px; border-radius: 16px; border: 1px solid #1e293b; width: 90%; max-width: 320px; text-align: center;">
-            <h3 id="confirmTitle" style="color: #9AE000; margin-bottom: 10px;"></h3>
-            <p id="confirmText" style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;"></p>
+        <div style="background: #0f172a; padding: 24px; border-radius: 16px; border: 1px solid var(--bg-card);; width: 90%; max-width: 320px; text-align: center;">
+            <h3 id="confirmTitle" style="color:var(--accent); margin-bottom: 10px;"></h3>
+            <p id="confirmText" style="color: var(--text-dim);; font-size: 13px; margin-bottom: 20px;"></p>
             <div style="display: flex; gap: 10px;">
-                <button id="confirmCancelBtn" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: transparent; color: #fff;">Cancel</button>
-                <button id="confirmApplyBtn" style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: #9AE000; color: #000; font-weight: 800;">Apply</button>
+                <button id="confirmCancelBtn" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border);; background: transparent; color: #fff;">Cancel</button>
+                <button id="confirmApplyBtn" style="flex: 1; padding: 12px; border-radius: 10px; border: none; background:var(--accent); color: #000; font-weight: 800;">Apply</button>
             </div>
         </div>
     </div>

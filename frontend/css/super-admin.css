@@ -1,10 +1,10 @@
 :root {
     --bg-dark: #0f172a;
-    --card-bg: #1e293b;
-    --neon-green: #9AE000;
+    --card-bg: var(--bg-card);;
+    --neon-green:var(--accent);
     --neon-red: #ff4d4d;
     --text-main: #f8fafc;
-    --text-dim: #94a3b8;
+    --text-dim: var(--text-dim);;
 }
 
 body.admin-body {
@@ -20,7 +20,7 @@ body.admin-body {
 .admin-sidebar {
     width: 240px;
     background: #020617;
-    border-right: 1px solid #1e293b;
+    border-right: 1px solid var(--bg-card);;
     padding: 20px;
     position: sticky;
     top: 0;
@@ -80,14 +80,14 @@ body.admin-body {
 .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 
 table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; }
-th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
+th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border);; }
 th { color: var(--neon-green); font-size: 0.85rem; text-transform: uppercase; }
 
 .pts-badge { background: var(--neon-green); color: #000; padding: 4px 10px; border-radius: 4px; font-weight: bold; }
 
 #userSearch {
     background: #020617;
-    border: 1px solid #334155;
+    border: 1px solid var(--border);;
     color: white;
     padding: 12px;
     border-radius: 8px;

@@ -82,7 +82,7 @@ function renderAuditTable(data) {
         const boosterCell = document.createElement("td");
         const bolt = document.createElement("i");
         bolt.className = "fas fa-bolt";
-        bolt.style.color = user.s8_booster_used ? "#9AE000" : "#334155";
+        bolt.style.color = user.s8_booster_used ? "#9AE000" : "var(--border);";
         boosterCell.appendChild(bolt);
 
         const actionCell = document.createElement("td");

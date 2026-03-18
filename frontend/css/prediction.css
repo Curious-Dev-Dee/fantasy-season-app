@@ -1,10 +1,10 @@
 /* --- Root Variables & Base --- */
 :root {
-    --bg-dark: #0c1117;
-    --card-bg: #1e293b;
-    --neon-green: #9AE000;
+    --bg-dark: var(--bg-dark);;
+    --card-bg: var(--bg-card);;
+    --neon-green:var(--accent);
     --neon-cyan: #00f2ff;
-    --text-slate: #94a3b8;
+    --text-slate: var(--text-dim);;
     --border: rgba(255, 255, 255, 0.1);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -96,13 +96,13 @@ body {
 .team-vs-container {
     display: flex; align-items: center; justify-content: space-between;
     background: #020617; border-radius: 16px; padding: 15px;
-    border: 1px solid #334155; position: relative;
+    border: 1px solid var(--border);; position: relative;
 }
 
 .vs-badge {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     background: var(--bg-dark); color: var(--neon-cyan); font-weight: 900;
-    font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #334155; z-index: 2;
+    font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);; z-index: 2;
 }
 
 .team-card {

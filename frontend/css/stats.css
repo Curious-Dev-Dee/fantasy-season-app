@@ -1,7 +1,7 @@
 :root {
-    --bg: #0c1117;
+    --bg: var(--bg-dark);;
     --card: #161b22;
-    --accent: #9AE000;
+    --accent:var(--accent);
     --border: rgba(255, 255, 255, 0.08);
     --text-main: #e6edf3;
     --text-dim: #8b949e;

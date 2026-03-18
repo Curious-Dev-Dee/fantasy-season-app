@@ -25,7 +25,7 @@
 /* 2. Fire Spark (Orange/Red) */
 .flex-fire-spark {
     font-weight: 900 !important;
-    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    background: linear-gradient(90deg, var(--gold);, var(--red););
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
@@ -33,7 +33,7 @@
 
 @keyframes neonPulse {
     from { color: #fff; text-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
-    to { color: #00f2ff; text-shadow: 0 0 2px #fff, 0 0 5px #9AE000; }
+    to { color: #00f2ff; text-shadow: 0 0 2px #fff, 0 0 5pxvar(--accent); }
 }
 
 @keyframes cyberFlicker {

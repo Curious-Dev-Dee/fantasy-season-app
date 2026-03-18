@@ -2,12 +2,12 @@
   --primary-blue: #2563eb;
   --hover-blue: #1d4ed8;
   --primary-green: #9be15d;
-  --danger-red: #ef4444;
+  --danger-red: var(--red);;
   --bg-dark: #0f172a;
-  --card-bg: #1e293b;
-  --border-color: #334155;
+  --card-bg: var(--bg-card);;
+  --border-color: var(--border);;
   --text-main: #e2e8f0;
-  --text-dim: #94a3b8;
+  --text-dim: var(--text-dim);;
 }
 
 /* --- Global Layout --- */
@@ -91,8 +91,8 @@ button:hover {
 }
 
 button:disabled {
-  background: #334155;
-  color: #64748b;
+  background: var(--border);;
+  color: var(--text-faint);;
   cursor: not-allowed;
   transform: none;
 }
@@ -174,7 +174,7 @@ button:disabled {
 }
 
 .status.loading {
-  background: #1e293b;
+  background: var(--bg-card);;
   color: var(--text-dim);
 }
 

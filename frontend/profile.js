@@ -34,7 +34,7 @@ async function loadProfile() {
             // Visual feedback for locked state
             [fullNameInput, teamNameInput].forEach(el => {
                 el.style.background = "rgba(255, 255, 255, 0.05)";
-                el.style.color = "#94a3b8";
+                el.style.color = "var(--text-dim);";
                 el.style.cursor = "not-allowed";
             });
 
@@ -42,7 +42,7 @@ async function loadProfile() {
             const hint = teamNameInput.parentElement.querySelector('.hint-text');
             if (hint) {
                 hint.innerText = "⚠️ Identity locked for the season.";
-                hint.style.color = "#ef4444";
+                hint.style.color = "var(--red);";
                 hint.style.fontWeight = "600";
             }
         }

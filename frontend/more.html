@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Cricket Experts · More</title>
   
-  <link rel="stylesheet" href="tokens.css">
-  <link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="bottom-nav.css">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0" />
   
 
   <style>
     :root {
-      --bg-dark: #0c1117;
-      --card-bg: #1e293b;
+      --bg-dark: var(--bg-dark);;
+      --card-bg: var(--bg-card);;
       --neon-cyan: #00f2ff;
-      --neon-green: #9AE000;
-      --text-slate: #94a3b8;
+      --neon-green:var(--accent);
+      --text-slate: var(--text-dim);;
     }
 
     body {
@@ -62,7 +62,7 @@
 
     .card {
       background: var(--card-bg);
-      border: 1px solid #334155;
+      border: 1px solid var(--border);;
       border-radius: 20px;
       padding: 8px;
       margin-bottom: 24px;
@@ -147,7 +147,7 @@
     .modal-content {
       background: var(--card-bg); width: 100%; max-width: 320px;
       border-radius: 24px; padding: 24px; text-align: center;
-      border: 1px solid #334155; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      border: 1px solid var(--border);; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       animation: scaleUp 0.2s ease-out;
     }
     
@@ -166,8 +166,8 @@
       font-size: 14px; border: none; cursor: pointer; transition: all 0.2s;
     }
     
-    .btn-cancel { background: #0c1117; color: #fff; border: 1px solid #334155 !important; }
-    .btn-cancel:active { background: #334155; }
+    .btn-cancel { background: var(--bg-dark);; color: #fff; border: 1px solid var(--border); !important; }
+    .btn-cancel:active { background: var(--border);; }
     
     .btn-danger { background: #ff4d4d; color: #000; }
     .btn-danger:active { transform: scale(0.96); }

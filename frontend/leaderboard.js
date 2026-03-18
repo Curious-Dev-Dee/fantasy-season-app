@@ -70,7 +70,7 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
 
     // THE FIX: Handle Day 1 elegantly
     if (leaderboard.length === 0) {
-        podiumContainer.innerHTML = '<p style="color:#94a3b8; margin: auto; padding: 20px;">No rankings available yet.</p>';
+        podiumContainer.innerHTML = '<p style="color:var(--text-dim);; margin: auto; padding: 20px;">No rankings available yet.</p>';
         leaderboardContainer.innerHTML = '';
         leaderboardSummary.textContent = "Rankings will appear after Match 1.";
         return;
@@ -286,7 +286,7 @@ async function loadChatHistory() {
         // Reverse so newest is at the bottom
         data.reverse().forEach(msg => renderMessage(msg, false));
     } else {
-        chatMessages.innerHTML = '<p style="color:#64748b; text-align:center; font-size:12px; margin-top:20px;">Be the first to talk trash!</p>';
+        chatMessages.innerHTML = '<p style="color:var(--text-faint);; text-align:center; font-size:12px; margin-top:20px;">Be the first to talk trash!</p>';
     }
 }
 

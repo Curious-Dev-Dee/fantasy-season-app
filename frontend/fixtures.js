@@ -134,7 +134,7 @@ function renderMatches() {
         return `
         <div class="match-card status-${match.status}">
             <div class="card-header">
-                <span style="font-weight: 800; color: #9AE000;">Match #${match.match_number}</span>
+                <span style="font-weight: 800; color:var(--accent);">Match #${match.match_number}</span>
                 <span>${dateStr}</span>
             </div>
             <div class="team-display">
@@ -152,7 +152,7 @@ function renderMatches() {
                     <b>${tB?.short_code || 'TBA'}</b>
                 </div>
             </div>
-            <div style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 10px;">
+            <div style="text-align: center; font-size: 11px; color: var(--text-dim);; margin-top: 10px;">
                 🏟️ ${match.venue || 'Venue TBA'}
             </div>
             <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>

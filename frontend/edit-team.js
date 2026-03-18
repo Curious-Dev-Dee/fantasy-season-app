@@ -700,7 +700,7 @@ function updateHeaderMatch() {
                 <div style="text-align:center;">
                     <p style="margin-bottom:8px;">🔒 <b>TEAM LOCKED</b></p>
                     <p style="font-size:13px;">Match #${match.match_number}: ${teamA} vs ${teamB}</p>
-                    <p style="font-size:11px; margin-top:8px; color: #94a3b8;">
+                    <p style="font-size:11px; margin-top:8px; color: var(--text-dim);;">
                         Any saves now will apply to: <br><b>${nextMatchInfo}</b>
                     </p>
                 </div>

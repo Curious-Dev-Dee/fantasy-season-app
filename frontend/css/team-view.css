@@ -1,9 +1,9 @@
 /* --- 1. CORE VARIABLES & RESET --- */
 :root {
-    --accent: #9AE000;
+    --accent:var(--accent);
     --field-center: #1b5e20;
     --field-edge: #061f17;
-    --card-bg: #1e293b;
+    --card-bg: var(--bg-card);;
     --bg-dark: #0f172a;
     --border-color: rgba(255, 255, 255, 0.1); /* FIXED: Added missing variable */
 }

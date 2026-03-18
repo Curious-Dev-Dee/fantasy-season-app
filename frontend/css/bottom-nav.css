@@ -31,7 +31,7 @@
 /* NAV LINKS */
 .bottom-nav a {
   text-decoration: none;
-  color: var(--text-faint);              /* was hardcoded #64748b */
+  color: var(--text-faint);              /* was hardcoded var(--text-faint); */
   font-size: 10px;
   font-weight: 600;
   display: flex;

@@ -137,7 +137,7 @@ function revealApp(hasError = false) {
         // Change the loading text to show an error and a retry button
         const loadingText = document.querySelector(".loading-text");
         if (loadingText) {
-            loadingText.style.color = "#ef4444"; // Red for error
+            loadingText.style.color = "var(--red);"; // Red for error
             loadingText.innerHTML = `FIELD UNAVAILABLE <br> 
                 <button onclick="location.reload()" style="background:#9AE000; color:#000; border:none; padding:8px 15px; border-radius:8px; margin-top:10px; font-weight:800; cursor:pointer;">RETRY</button>`;
         }
@@ -348,7 +348,7 @@ async function loadLeaderboardPreview() {
         });
     } else {
         // THE FIX: Graceful empty state before Match 1 happens
-        leaderboardContainer.innerHTML = '<p style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px 0; margin: 0;">Rankings will appear after Match 1!</p>';
+        leaderboardContainer.innerHTML = '<p style="color: var(--text-dim);; font-size: 13px; text-align: center; padding: 10px 0; margin: 0;">Rankings will appear after Match 1!</p>';
     }};
 
 async function fetchPrivateLeagueData(userId) {
@@ -681,8 +681,8 @@ if (avatarElement) {
                 modalTeamName.readOnly = true;
                 modalFullName.style.background = "rgba(255, 255, 255, 0.05)";
                 modalTeamName.style.background = "rgba(255, 255, 255, 0.05)";
-                modalFullName.style.color = "#94a3b8";
-                modalTeamName.style.color = "#94a3b8";
+                modalFullName.style.color = "var(--text-dim);";
+                modalTeamName.style.color = "var(--text-dim);";
                 modalTeamName.style.cursor = "not-allowed";
                 
                 // UI FEEDBACK: Change button text and add the locked note
@@ -692,7 +692,7 @@ if (avatarElement) {
                 if (!note) {
                     note = document.createElement("p");
                     note.id = "profileLockNote";
-                    note.style.cssText = "font-size:11px; color:#ef4444; margin-top:12px; text-align:center; font-weight:600;";
+                    note.style.cssText = "font-size:11px; color:var(--red);; margin-top:12px; text-align:center; font-weight:600;";
                     saveProfileBtn.parentNode.insertBefore(note, saveProfileBtn.nextSibling);
                 }
                 note.innerText = "⚠️ Your name & Team name locked for the season.";

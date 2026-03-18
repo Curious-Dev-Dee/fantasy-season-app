@@ -12,7 +12,7 @@
             --danger: #dc2626;
             --bg: #f8fafc;
             --card: #ffffff;
-            --text: #1e293b;
+            --text: var(--bg-card);;
         }
 
         body {
@@ -40,7 +40,7 @@
         }
 
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #64748b; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: var(--text-faint);; }
         
         input, select {
             width: 100%;
@@ -68,7 +68,7 @@
         }
 
         #saveBtn { background: var(--primary); color: white; margin-top: 10px; }
-        #cancelBtn { background: #64748b; color: white; margin-top: 8px; }
+        #cancelBtn { background: var(--text-faint);; color: white; margin-top: 8px; }
 
         /* Player List Styling */
         .search-bar { margin-bottom: 15px; }
@@ -85,7 +85,7 @@
         }
 
         .p-info strong { display: block; font-size: 1rem; }
-        .p-info span { font-size: 0.8rem; color: #64748b; }
+        .p-info span { font-size: 0.8rem; color: var(--text-faint);; }
 
         .p-actions { display: flex; gap: 8px; }
         .edit-btn { background: #e0f2fe; color: var(--primary); padding: 6px 12px; border-radius: 4px; border: none; font-size: 0.8rem; }
@@ -189,7 +189,7 @@
                 </div>
                 <div class="p-actions">
                     <button class="edit-btn" onclick="prepareEdit('${p.id}')">Edit</button>
-                    <button class="del-btn" style="background:#64748b; color:white" onclick="toggleActive('${p.id}', ${p.is_active})">Toggle</button>
+                    <button class="del-btn" style="background:var(--text-faint);; color:white" onclick="toggleActive('${p.id}', ${p.is_active})">Toggle</button>
                     <button class="del-btn" onclick="deletePlayer('${p.id}')">Del</button>
                 </div>
             </div>
