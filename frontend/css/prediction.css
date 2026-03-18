@@ -127,7 +127,6 @@ body {
     z-index: 2000; backdrop-filter: blur(4px);
     display: flex; flex-direction: column; justify-content: flex-end;
 }
-.hidden { display: none !important; }
 
 
 /* --- TOP 100 GURUS LEADERBOARD --- */

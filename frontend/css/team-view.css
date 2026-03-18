@@ -48,60 +48,6 @@ body.loaded .team-view-app {
     z-index: 1000;
 }
 
-.icon-back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 40px;
-  height: 40px;
-
-  border-radius: 12px;
-
-  background: rgba(154, 224, 0, 0.08);
-border: 1px solid rgba(154, 224, 0, 0.2);
-color: var(--accent);
-  text-decoration: none;
-
-  font-size: 20px;
-  font-weight: 900;
-
-  backdrop-filter: blur(6px);
-
-  box-shadow: 
-    0 4px 12px rgba(0,0,0,0.4),
-    0 0 8px rgba(154,224,0,0.15);
-
-  transition: all 0.25s ease;
-    position: relative; /* 🔥 ADD THIS */
-
-}
-
-.icon-back:active {
-  transform: scale(0.92);
-  box-shadow: 
-    0 2px 6px rgba(0,0,0,0.4),
-    0 0 4px rgba(154,224,0,0.2);
-}
-
-.icon-back:hover {
-  background: rgba(154, 224, 0, 0.15);
-  border-color: var(--primary-green);
-}
-
-.icon-back::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(154,224,0,0.25);
-  opacity: 0;
-  transition: 0.3s;
-}
-
-.icon-back:hover::after {
-  opacity: 1;
-}
 
 
 
@@ -169,7 +115,6 @@ color: var(--accent);
 }
 
 /* Helpers */
-.hidden { display: none !important; }
 
 .xi-toggle { display: flex; justify-content: center; gap: 8px; padding: 15px; }
 .xi-tab {
@@ -329,12 +274,7 @@ color: var(--accent);
 .log-entry::before { content: "•"; color: var(--accent); margin-right: 12px; font-weight: 900; }
 
 /* --- 6. UTILITIES & ANIMATIONS --- */
-.hidden { display: none !important; }
-.booster-indicator-view {
-    background: linear-gradient(90deg, #f59e0b, #9AE000);
-    color: #000; padding: 4px 12px; border-radius: 20px;
-    font-size: 10px; font-weight: 900; text-align: center;
-}
+
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 

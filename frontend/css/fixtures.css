@@ -78,7 +78,6 @@ body {
   z-index: 1001;
 }
 
-.hidden { display: none; }
 
 .filter-options { display: flex; flex-wrap: wrap; gap: 8px; }
 
