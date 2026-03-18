@@ -113,11 +113,11 @@ font-size:24px;
 
 
 
-.header-info h1{
-
-font-size:18px;
-font-weight:800;
-
+.header-info h1 {
+  font-size:18px;
+  font-weight:800;
+  color: var(--primary-green);
+  text-shadow: 0 0 8px rgba(154,224,0,0.4);
 }
 
 
