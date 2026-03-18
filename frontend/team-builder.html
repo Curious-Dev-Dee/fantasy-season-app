@@ -1,67 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EDIT TEAM · Cricket Experts</title>
+  <title>Edit Team · Cricket Experts</title>
 
-  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="css/team-builder.css?v=2.0">
-
+  <link rel="stylesheet" href="css/team-builder.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <script type="module" src="auth-guard.js?v=1.0"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <style>
-    /* Loading state — hides app until JS is ready */
-    body.loading-state .app-container {
-      display: none;
-    }
-
-    #loadingOverlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg-dark);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    body:not(.loading-state) #loadingOverlay {
-      display: none;
-    }
-
-    body:not(.loading-state) .app-container {
-      display: flex;
-      animation: fadeIn 0.4s ease-out;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--accent-dim);
-      border-left-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-
+  <script type="module" src="auth-guard.js"></script>
 </head>
 
 <body class="loading-state">
 
   <!-- LOADING -->
   <div id="loadingOverlay">
-    <div class="spinner"></div>
+    <div class="tb-spinner"></div>
   </div>
 
   <div class="app-container">
@@ -69,78 +29,98 @@
     <!-- HEADER -->
     <header class="edit-header">
       <div class="header-left">
-        <a href="/home" class="icon-back">
+        <a href="/home" class="icon-back" aria-label="Back to home">
           <i class="fas fa-arrow-left"></i>
         </a>
         <div class="header-info">
-          <h1>EDIT TEAM</h1>
+          <!-- BUG FIX #16: text-transform in CSS, not hardcoded uppercase in HTML -->
+          <h1 class="header-title">Edit Team</h1>
         </div>
       </div>
       <div class="header-right">
         <div id="upcomingMatchName" class="match-name">Loading...</div>
-        <div id="headerCountdown" class="match-timer">00h 00m 00s</div>
+        <div id="headerCountdown" class="match-timer">--</div>
       </div>
     </header>
 
     <!-- STICKY DASHBOARD -->
     <div class="sticky-controls">
 
+      <!-- PROGRESS + STATS -->
       <div class="premium-progress">
-        <div class="progress-line-container">
+        <div class="progress-track">
           <div id="progressFill" class="progress-fill"></div>
         </div>
         <div class="progress-labels">
-          <div class="dashboard-item">👤 <span id="playerCountLabel">0</span>/11</div>
-          <div class="dashboard-item">✈️ <span id="overseasCountLabel">0/4</span></div>
-          <div class="dashboard-item">💰 <span id="creditCount">0</span></div>
-          <div class="dashboard-item">🚀 <span id="boosterUsedLabel">0/6</span></div>
-          <div class="dashboard-item">🔁 <span id="subsRemainingLabel">FREE</span></div>
+          <div class="dashboard-item">
+            <span class="di-icon">👤</span>
+            <span id="playerCountLabel">0</span><span class="di-max">/11</span>
+          </div>
+          <div class="dashboard-item">
+            <span class="di-icon">✈️</span>
+            <span id="overseasCountLabel">0/4</span>
+          </div>
+          <div class="dashboard-item">
+            <span class="di-icon">💰</span>
+            <span id="creditCount">0</span>
+          </div>
+          <div class="dashboard-item">
+            <span class="di-icon">🚀</span>
+            <span id="boosterUsedLabel">7/7</span>
+          </div>
+          <div class="dashboard-item">
+            <span class="di-icon">🔁</span>
+            <span id="subsRemainingLabel">—</span>
+          </div>
         </div>
       </div>
 
       <!-- VIEW TABS -->
       <div class="view-tabs">
-        <button class="toggle-btn" data-mode="myxi">MY XI</button>
-        <button class="toggle-btn active" data-mode="playerPool">EDIT</button>
+        <button class="toggle-btn" data-mode="myxi">
+          My XI
+        </button>
+        <button class="toggle-btn active" data-mode="playerPool">
+          Edit Squad
+        </button>
       </div>
 
-      <!-- SEARCH + FILTERS -->
+      <!-- SEARCH + ROLE TABS + FILTER PILLS -->
       <div class="search-filter-wrapper">
-        <input type="text" id="playerSearch" placeholder="🔍 Search Kohli, MI, Uncapped, Overseas etc.">
+        <input type="text" id="playerSearch"
+               placeholder="Search name, team, role…"
+               autocomplete="off"
+               spellcheck="false">
 
-        <!-- ROLE TABS -->
         <div class="role-navigation-wrapper">
           <div class="role-tabs-container">
             <div class="role-tab active" data-role="ALL">ALL</div>
-            <div class="role-tab" data-role="WK">WK <span id="count-WK"></span></div>
-            <div class="role-tab" data-role="BAT">BAT <span id="count-BAT"></span></div>
-            <div class="role-tab" data-role="AR">AR <span id="count-AR"></span></div>
-            <div class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL"></span></div>
+            <div class="role-tab" data-role="WK">WK <span id="count-WK">0</span></div>
+            <div class="role-tab" data-role="BAT">BAT <span id="count-BAT">0</span></div>
+            <div class="role-tab" data-role="AR">AR <span id="count-AR">0</span></div>
+            <div class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL">0</span></div>
             <div class="role-slider-bg"></div>
           </div>
         </div>
 
-        <!-- DROPDOWN FILTERS -->
         <div class="dropdown-filters">
-          <button id="matchToggle"  class="pill-filter"><span>Matches</span></button>
-          <button id="teamToggle"   class="pill-filter"><span>Teams</span></button>
-          <button id="creditToggle" class="pill-filter"><span>Credits</span></button>
-          <button id="typeToggle"   class="pill-filter"><span>Type</span></button>
+          <button id="matchToggle"  class="pill-filter">Matches</button>
+          <button id="teamToggle"   class="pill-filter">Teams</button>
+          <button id="creditToggle" class="pill-filter">Credits</button>
+          <button id="typeToggle"   class="pill-filter">Type</button>
         </div>
-
       </div>
+
     </div><!-- end .sticky-controls -->
 
     <!-- MAIN CONTENT -->
     <main class="content-area">
 
-      <!-- MY XI VIEW -->
       <div id="myxi-view" class="view-mode">
         <div id="boosterContainer" class="booster-wrapper hidden"></div>
         <div id="myXIList" class="player-list"></div>
       </div>
 
-      <!-- PLAYER POOL -->
       <div id="playerPool-view" class="view-mode active">
         <div id="playerPoolList" class="player-list"></div>
       </div>
@@ -149,7 +129,7 @@
 
     <!-- SAVE BAR -->
     <div class="save-bar">
-      <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
+      <button id="saveTeamBtn" class="save-btn" disabled>Save Team</button>
     </div>
 
   </div><!-- end .app-container -->
@@ -157,7 +137,7 @@
   <!-- FILTER BACKDROP -->
   <div id="filterBackdrop" class="filter-backdrop hidden"></div>
 
-  <!-- FILTER MENUS -->
+  <!-- FILTER BOTTOM SHEETS -->
   <div id="matchMenu"  class="dropdown-menu bottom-sheet"></div>
   <div id="teamMenu"   class="dropdown-menu bottom-sheet"></div>
   <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
@@ -166,19 +146,18 @@
   <!-- TOAST -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- CONFIRM DIALOG -->
-  <div id="customConfirmOverlay" class="filter-backdrop hidden" style="display:flex; align-items:center; justify-content:center; z-index:9999;">
-    <div style="background: var(--bg-card-alt); padding:24px; border-radius:16px; border:1px solid var(--border); width:90%; max-width:320px; text-align:center;">
-      <h3 id="confirmTitle"  style="color: var(--accent); margin-bottom:10px;"></h3>
-      <p  id="confirmText"   style="color: var(--text-dim); font-size:13px; margin-bottom:20px;"></p>
-      <div style="display:flex; gap:10px;">
-        <button id="confirmCancelBtn" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); background:transparent; color:#fff;">Cancel</button>
-        <button id="confirmApplyBtn"  style="flex:1; padding:12px; border-radius:10px; border:none; background: var(--accent); color:#000; font-weight:800;">Apply</button>
+  <!-- CONFIRM DIALOG — BUG FIX #8: all inline styles moved to team-builder.css -->
+  <div id="customConfirmOverlay" class="confirm-overlay hidden">
+    <div class="confirm-card">
+      <h3 id="confirmTitle"  class="confirm-title"></h3>
+      <p  id="confirmText"   class="confirm-text"></p>
+      <div class="confirm-actions">
+        <button id="confirmCancelBtn" class="btn-cancel-confirm">Cancel</button>
+        <button id="confirmApplyBtn"  class="btn-apply-confirm">Apply</button>
       </div>
     </div>
   </div>
 
-  <script type="module" src="edit-team.js?v=4.0"></script>
-
+  <script type="module" src="edit-team.js"></script>
 </body>
 </html>

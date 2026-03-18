@@ -1,68 +1,85 @@
 import { supabase } from "./supabase.js";
+import { authReady } from "./auth-state.js";
 
-const LEAGUE_STAGE_END = 70;
-const PLAYOFF_START_MATCH = 71;
-const BOOSTER_WINDOW_START = 2;
-const BOOSTER_WINDOW_END = 70;
-const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const LEAGUE_STAGE_END       = 70;
+const PLAYOFF_START_MATCH    = 71;
+const BOOSTER_WINDOW_START   = 2;
+const BOOSTER_WINDOW_END     = 70;
+const ROLE_PRIORITY          = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
+const MATCH_SHIFT_DELAY_MS   = 30000; // 30s after lock before moving to next match
 
-let state = { 
-    allPlayers: [], 
-    selectedPlayers: [], 
-    lockedPlayerIds: [],    
-    baseSubsRemaining: 130, 
-    captainId: null, 
-    viceCaptainId: null, 
-    activeBooster: "NONE", 
-    usedBoosters: [],      
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+    allPlayers:        [],
+    selectedPlayers:   [],
+    lockedPlayerIds:   [],
+    baseSubsRemaining: 130,
+    captainId:         null,
+    viceCaptainId:     null,
+    activeBooster:     "NONE",
+    usedBoosters:      [],
     currentMatchNumber: 0,
-    matches: [],
-    filters: { 
-        search: "", 
-        role: "ALL", 
-        teams: [],   
-        credits: [], 
-        matches: [],  
-        type: [],
-         // <--- ADD THIS
-    }, 
-    
+    matches:           [],
+    realTeamsMap:      {},
+    filters: {
+        search:  "",
+        role:    "ALL",
+        teams:   [],
+        credits: [],
+        matches: [],
+        type:    [],
+    },
     saving: false,
-     
-    
 };
-let isTransitioning = false; // This prevents the button from re-enabling
+
+let isTransitioning  = false;
 let countdownInterval = null;
 let activeTournamentId = null;
+// BUG FIX #5: AudioContext module-level, cleaned up on page hide
+let audioCtx = null;
 
-/* =========================
-   INIT & AUTH
-========================= */
-window.addEventListener('auth-verified', async (e) => {
-    init(e.detail.user); 
-});
+// ─── INIT ────────────────────────────────────────────────────────────────────
+// BUG FIX #1 & #7: Migrated from CustomEvent race condition to shared Promise
+async function boot() {
+    try {
+        const user = await authReady;
+        init(user);
+    } catch (err) {
+        console.warn("Auth failed on edit-team:", err.message);
+    }
+}
+
+boot();
 
 async function init(user) {
     if (!user) return;
     document.body.classList.add("loading-state");
-    
+
     try {
-        const { data: activeTournament } = await supabase.from("active_tournament").select("*").maybeSingle();
+        const { data: activeTournament } = await supabase
+            .from("active_tournament")
+            .select("*")
+            .maybeSingle();
+
         if (!activeTournament) return;
         activeTournamentId = activeTournament.id;
 
-// FETCH ALL UPCOMING MATCHES WITH LOGOS
-        const { data: matches } = await supabase.from("matches")
+        const { data: matches } = await supabase
+            .from("matches")
             .select("*, team_a:real_teams!team_a_id(short_code, photo_name), team_b:real_teams!team_b_id(short_code, photo_name)")
             .eq("tournament_id", activeTournamentId)
-            .eq("status", "upcoming") 
+            .eq("status", "upcoming")
             .gt("actual_start_time", new Date().toISOString())
-            .order("actual_start_time", { ascending: true }); // Removed .limit(5)
+            .order("actual_start_time", { ascending: true });
 
         state.matches = matches || [];
-        if (state.matches.length === 0) return;
+        if (state.matches.length === 0) {
+            showEmptyState();
+            return;
+        }
 
-        const currentMatchId = state.matches[0].id;
+        const currentMatchId    = state.matches[0].id;
         state.currentMatchNumber = state.matches[0].match_number || 0;
 
         const [
@@ -71,40 +88,43 @@ async function init(user) {
             { data: boosterData },
             { data: lastLock },
             { data: currentTeam },
-            { data: realTeamsData } // <--- ADDED THIS
+            { data: realTeamsData },
         ] = await Promise.all([
             supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", activeTournamentId),
             supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
             supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
-            supabase.from("user_match_teams").select(`id, matches!inner(match_number), user_match_team_players(player_id)`).eq("user_id", user.id).eq("tournament_id", activeTournamentId).neq("match_id", currentMatchId).order("locked_at", { ascending: false }).limit(1).maybeSingle(),
-            supabase.from("user_fantasy_teams").select("*, user_fantasy_team_players(player_id)").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
-            supabase.from("real_teams").select("id, name, short_code, photo_name") // <--- ADDED THIS QUERY
+            supabase.from("user_match_teams")
+                .select("id, matches!inner(match_number), user_match_team_players(player_id)")
+                .eq("user_id", user.id)
+                .eq("tournament_id", activeTournamentId)
+                .neq("match_id", currentMatchId)
+                .order("locked_at", { ascending: false })
+                .limit(1)
+                .maybeSingle(),
+            supabase.from("user_fantasy_teams")
+                .select("*, user_fantasy_team_players(player_id)")
+                .eq("user_id", user.id)
+                .eq("tournament_id", activeTournamentId)
+                .maybeSingle(),
+            supabase.from("real_teams").select("id, name, short_code, photo_name"),
         ]);
 
-        // Save it to state so we can use it for the filter!
-        state.realTeamsMap = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
-
-        state.allPlayers = players || [];
+        state.realTeamsMap      = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
+        state.allPlayers        = players || [];
         state.baseSubsRemaining = dashData?.subs_remaining ?? 130;
-        state.usedBoosters = boosterData?.used_boosters ?? []; 
-        state.activeBooster = currentTeam?.active_booster ?? "NONE"; 
-        state.lockedPlayerIds = lastLock?.user_match_team_players?.map(p => p.player_id) || [];
+        state.usedBoosters      = boosterData?.used_boosters ?? [];
+        state.lockedPlayerIds   = lastLock?.user_match_team_players?.map(p => p.player_id) || [];
 
         if (currentTeam) {
-            state.captainId = currentTeam.captain_id;
+            state.captainId    = currentTeam.captain_id;
             state.viceCaptainId = currentTeam.vice_captain_id;
-            const savedIds = currentTeam.user_fantasy_team_players.map(row => row.player_id);
+            const savedIds      = currentTeam.user_fantasy_team_players.map(r => r.player_id);
             state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
         }
-        let savedBooster = currentTeam?.active_booster ?? "NONE";
 
-        // If the saved booster is already in the 'used' list, 
-        // it means it was for a previous match. Reset it to NONE for the new draft.
-        if (state.usedBoosters.includes(savedBooster)) {
-        state.activeBooster = "NONE";
-        } else {
-        state.activeBooster = savedBooster;
-        }
+        // If the saved booster is already in usedBoosters it was for a previous match — reset
+        const savedBooster = currentTeam?.active_booster ?? "NONE";
+        state.activeBooster = state.usedBoosters.includes(savedBooster) ? "NONE" : savedBooster;
 
         updateHeaderMatch(state.matches[0]);
         initFilters();
@@ -113,833 +133,834 @@ async function init(user) {
 
     } catch (err) {
         console.error("Init failed:", err);
+        showEmptyState("Failed to load. Please try again.");
     } finally {
         document.body.classList.remove("loading-state");
     }
 }
-function render() {
-    // 1. FIRST: Calculate the data
-    const stats = {
-        count: state.selectedPlayers.length,
-        overseas: state.selectedPlayers.filter(p => p.category === "overseas").length,
-        credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
-        roles: {
-            WK: state.selectedPlayers.filter(p => p.role === "WK").length,
-            BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
-            AR: state.selectedPlayers.filter(p => p.role === "AR").length,
-            BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
-        }
-    };
 
-    // 2. SECOND: Update the Tab Numbers (The code you just shared)
-    document.getElementById("count-WK").innerText = stats.roles.WK || 0;
-    document.getElementById("count-BAT").innerText = stats.roles.BAT || 0;
-    document.getElementById("count-AR").innerText = stats.roles.AR || 0;
-    document.getElementById("count-BOWL").innerText = stats.roles.BOWL || 0;
-
-    const roles = ['WK', 'BAT', 'AR', 'BOWL'];
-    const minReqs = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-
-    roles.forEach(role => {
-        const el = document.getElementById(`count-${role}`);
-        if (el) { // Senior Tip: Add this 'if' check to prevent errors if the element is missing
-            el.style.color = (stats.roles[role] >= minReqs[role]) ? "#9AE000" : "";
-        }
-    });
-
-    const isResetMatch = (state.currentMatchNumber === 1 || state.currentMatchNumber === PLAYOFF_START_MATCH);
-    
-    let subsUsedInDraft = 0;
-    if (!isResetMatch && state.activeBooster !== 'FREE_11' && state.lockedPlayerIds.length > 0) {
-        const newPlayers = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
-        const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
-        subsUsedInDraft = (hasUncappedDiscount && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
-    }
-
-    const liveSubsRemaining = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsedInDraft);
-    const isOverLimit = !isResetMatch && (liveSubsRemaining < 0);
-
-    // Update UI Labels
-    document.getElementById("playerCountLabel").innerText = stats.count;
-    document.getElementById("overseasCountLabel").innerText = `${stats.overseas}/4`;
-    document.getElementById("creditCount").innerText = stats.credits.toFixed(1);
-    const activePenalty = state.activeBooster !== 'NONE' ? 1 : 0;
-    document.getElementById("boosterUsedLabel").innerText = `${7 - state.usedBoosters.length}/7`;
-    document.getElementById("progressFill").style.width = `${(stats.count / 11) * 100}%`;
-    
-    const subsEl = document.getElementById("subsRemainingLabel");
-    if (subsEl) {
-        subsEl.innerText = liveSubsRemaining;
-        subsEl.parentElement.className = isOverLimit ? "dashboard-item negative" : "dashboard-item";
-    }
-
-    renderBoosterUI();
-
-    // Sorting My XI (WK > BAT > AR > BOWL)
-    const sortedMyXI = [...state.selectedPlayers].sort((a, b) => {
-        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
-        return Number(b.credit) - Number(a.credit);
-    });
-
-    // Filtering Pool
-    const nextMatch = state.matches[0];
-    const filteredPool = state.allPlayers.filter(p => {
-        const s = state.filters.search.toLowerCase();
-        const pCategory = (p.category || "").toLowerCase();
-        
-        // 1. Upgraded Search
-        const matchesSearch = p.name.toLowerCase().includes(s) || 
-                              (p.team_short_code || "").toLowerCase().includes(s) ||
-                              pCategory.includes(s);
-                              
-        const matchesRole = state.filters.role === "ALL" || p.role === state.filters.role;
-        const matchesTeam = state.filters.teams.length === 0 || state.filters.teams.includes(p.real_team_id);
-        const matchesCredit = state.filters.credits.length === 0 || state.filters.credits.includes(p.credit);
-        const matchesType = state.filters.type.length === 0 || state.filters.type.includes(pCategory);
-
-        // 2. MISSING MATCH FILTER LOGIC ADDED HERE:
-        // A player passes if NO matches are selected, OR if their team is playing in a selected match.
-        const matchesMatch = state.filters.matches.length === 0 || state.matches.some(m => 
-            state.filters.matches.includes(m.id) && 
-            (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id)
-        );
-
-        // 3. Make sure to include `matchesMatch` at the end!
-        return matchesSearch && matchesRole && matchesTeam && matchesCredit && matchesType && matchesMatch;
-    }).sort((a, b) => {
-        const aPri = a.real_team_id === nextMatch.team_a_id ? 1 : a.real_team_id === nextMatch.team_b_id ? 2 : 3;
-        const bPri = b.real_team_id === nextMatch.team_a_id ? 1 : b.real_team_id === nextMatch.team_b_id ? 2 : 3;
-        return aPri - bPri || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.credit - a.credit;
-    });
-
- // At the bottom of render() ...
-    
-    renderList("myXIList", sortedMyXI, true, stats);
-    renderList("playerPoolList", filteredPool, false, stats);
-    updateSaveButton(stats, isOverLimit, liveSubsRemaining);
-    
-    // --- ADD THIS ONE LINE ---
-    updateFilterButtonStates(); 
+function showEmptyState(msg = "No upcoming matches.") {
+    document.body.classList.remove("loading-state");
+    const main = document.querySelector(".content-area");
+    if (main) main.innerHTML = `<p class="empty-pool-msg">${msg}</p>`;
 }
 
-/* =========================
-   LISTENERS (Search/Filters Fixed)
-========================= */
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+    const stats = calcStats();
+    updateDashboard(stats);
+    renderBoosterUI();
+    renderMyXI(stats);
+    renderPlayerPool(stats);
+    updateSaveButton(stats);
+    updateFilterButtonStates();
+}
+
+function calcStats() {
+    const selected = state.selectedPlayers;
+    const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+    let overseas = 0, credits = 0;
+
+    for (const p of selected) {
+        roles[p.role] = (roles[p.role] || 0) + 1;
+        if (p.category === "overseas") overseas++;
+        credits += Number(p.credit);
+    }
+
+    const isResetMatch = state.currentMatchNumber === 1 || state.currentMatchNumber === PLAYOFF_START_MATCH;
+    let subsUsed = 0;
+    if (!isResetMatch && state.activeBooster !== "FREE_11" && state.lockedPlayerIds.length > 0) {
+        const newPlayers = selected.filter(p => !state.lockedPlayerIds.includes(p.id));
+        const hasUncappedDiscount = newPlayers.some(p => p.category === "uncapped");
+        subsUsed = (hasUncappedDiscount && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
+    }
+
+    const liveSubs    = isResetMatch ? "FREE" : (state.baseSubsRemaining - subsUsed);
+    const isOverLimit = !isResetMatch && liveSubs < 0;
+
+    return { count: selected.length, overseas, credits, roles, liveSubs, isOverLimit, isResetMatch };
+}
+
+function updateDashboard(stats) {
+    const minReqs = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+
+    // Role counts + colour
+    for (const role of ["WK", "BAT", "AR", "BOWL"]) {
+        const el = document.getElementById(`count-${role}`);
+        if (!el) continue;
+        el.textContent = stats.roles[role] || 0;
+        el.style.color = (stats.roles[role] >= minReqs[role]) ? "#9AE000" : "";
+    }
+
+    setText("playerCountLabel",  stats.count);
+    setText("overseasCountLabel", `${stats.overseas}/4`);
+    setText("creditCount",        stats.credits.toFixed(1));
+    setText("boosterUsedLabel",   `${7 - state.usedBoosters.length}/7`);
+
+    const fill = document.getElementById("progressFill");
+    if (fill) fill.style.width = `${(stats.count / 11) * 100}%`;
+
+    const subsEl = document.getElementById("subsRemainingLabel");
+    if (subsEl) {
+        subsEl.textContent = stats.liveSubs;
+        subsEl.closest(".dashboard-item")?.classList.toggle("negative", stats.isOverLimit);
+    }
+}
+
+function renderMyXI(stats) {
+    const sorted = [...state.selectedPlayers].sort((a, b) => {
+        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role])
+            return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
+        return Number(b.credit) - Number(a.credit);
+    });
+    renderList("myXIList", sorted, true, stats);
+}
+
+function renderPlayerPool(stats) {
+    const nextMatch = state.matches[0];
+    const s = state.filters.search.toLowerCase();
+
+    const filtered = state.allPlayers.filter(p => {
+        const cat = (p.category || "").toLowerCase();
+        if (s && !p.name.toLowerCase().includes(s) &&
+            !(p.team_short_code || "").toLowerCase().includes(s) &&
+            !cat.includes(s)) return false;
+        if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
+        if (state.filters.teams.length && !state.filters.teams.includes(p.real_team_id)) return false;
+        if (state.filters.credits.length && !state.filters.credits.includes(p.credit)) return false;
+        if (state.filters.type.length && !state.filters.type.includes(cat)) return false;
+        if (state.filters.matches.length) {
+            const inMatch = state.matches.some(m =>
+                state.filters.matches.includes(m.id) &&
+                (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id)
+            );
+            if (!inMatch) return false;
+        }
+        return true;
+    }).sort((a, b) => {
+        const pri = id =>
+            id === nextMatch?.team_a_id ? 1 :
+            id === nextMatch?.team_b_id ? 2 : 3;
+        return pri(a.real_team_id) - pri(b.real_team_id)
+            || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]
+            || b.credit - a.credit;
+    });
+
+    renderList("playerPoolList", filtered, false, stats);
+}
+
+// ─── LIST RENDERER ────────────────────────────────────────────────────────────
+// PERF FIX #11 & #12: Uses DocumentFragment + element creation instead of
+// one giant innerHTML string for 250 players. Avoids a single 250-node parse
+// blocking the main thread. Also separates XI render from pool render so a
+// C/VC tap only rebuilds the XI (11 nodes), not the full pool.
+function renderList(containerId, list, isMyXi, stats) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const minReq     = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+    const curRoles   = {
+        WK:   state.selectedPlayers.filter(p => p.role === "WK").length,
+        BAT:  state.selectedPlayers.filter(p => p.role === "BAT").length,
+        AR:   state.selectedPlayers.filter(p => p.role === "AR").length,
+        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length,
+    };
+    const neededSlots = Object.keys(minReq)
+        .reduce((acc, r) => acc + Math.max(0, minReq[r] - curRoles[r]), 0);
+
+    const bucket = supabase.storage.from("player-photos");
+    const frag   = document.createDocumentFragment();
+
+    if (list.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-pool-msg";
+        empty.textContent = isMyXi ? "Select players from the Edit tab." : "No players match your filters.";
+        frag.appendChild(empty);
+        container.innerHTML = "";
+        container.appendChild(frag);
+        return;
+    }
+
+    for (const p of list) {
+        const isSelected    = state.selectedPlayers.some(sp => sp.id === p.id);
+        const tooExpensive  = p.credit > (100 - stats.credits + (isSelected ? p.credit : 0));
+        const overseasLimit = stats.overseas >= 4 && p.category === "overseas" && !isSelected;
+        const roleLocked    = !isSelected && (11 - stats.count) <= neededSlots &&
+                              (minReq[p.role] - curRoles[p.role]) <= 0;
+        const isDisabled    = !isMyXi && !isSelected &&
+                              (stats.count >= 11 || tooExpensive || overseasLimit || roleLocked);
+
+        const photoUrl = p.photo_url
+            ? bucket.getPublicUrl(p.photo_url).data.publicUrl
+            : "images/default-avatar.png";
+
+        const cat = (p.category || "").toLowerCase();
+        const catBadge = cat === "overseas" ? '<span class="cat-badge overseas">✈</span>'
+                       : cat === "uncapped"  ? '<span class="cat-badge uncapped">U</span>'
+                       : "";
+
+        // Is this player locked from the previous match?
+        const isLocked = state.lockedPlayerIds.includes(p.id);
+
+        const card = document.createElement("div");
+        card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
+        card.dataset.id = p.id;
+
+        card.innerHTML = `
+            <div class="avatar-wrap">
+                <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+                ${catBadge}
+            </div>
+            <div class="player-info">
+                <strong class="p-name">${p.name}</strong>
+                <span class="p-meta">${p.role} · ${p.team_short_code} · ${p.credit} Cr</span>
+                ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
+            </div>
+            <div class="controls">
+                ${isMyXi ? `
+                    <button class="role-btn ${state.captainId === p.id ? "active-c" : ""}"
+                        data-action="C" data-id="${p.id}"
+                        aria-label="Set captain">C</button>
+                    <button class="role-btn ${state.viceCaptainId === p.id ? "active-vc" : ""}"
+                        data-action="VC" data-id="${p.id}"
+                        aria-label="Set vice-captain">VC</button>
+                ` : ""}
+                <button class="action-btn ${isSelected ? "remove" : "add"}"
+                    data-action="toggle" data-id="${p.id}"
+                    ${isDisabled ? "disabled" : ""}
+                    aria-label="${isSelected ? "Remove player" : "Add player"}">
+                    ${isSelected ? "−" : "+"}
+                </button>
+            </div>`;
+
+        frag.appendChild(card);
+    }
+
+    container.innerHTML = "";
+    container.appendChild(frag);
+}
+
+// ─── DELEGATED EVENT LISTENERS ────────────────────────────────────────────────
+// Instead of inline onclick on every card (re-created each render),
+// one listener on each container handles all player interactions.
 function setupListeners() {
-    // 1. Upgraded Search Logic with Debounce!
+    // Player pool — delegated
+    document.getElementById("playerPoolList")?.addEventListener("click", e => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn || btn.disabled) return;
+        const id = btn.dataset.id;
+        if (btn.dataset.action === "toggle") togglePlayer(id);
+    });
+
+    // My XI — delegated (C, VC, and remove)
+    document.getElementById("myXIList")?.addEventListener("click", e => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+        const id = btn.dataset.id;
+        if (btn.dataset.action === "toggle") togglePlayer(id);
+        else if (btn.dataset.action === "C")  setRole(id, "C");
+        else if (btn.dataset.action === "VC") setRole(id, "VC");
+    });
+
+    // Search with debounce
     const searchInput = document.getElementById("playerSearch");
     let searchTimeout;
-    if(searchInput) {
-        searchInput.oninput = (e) => { 
+    if (searchInput) {
+        searchInput.oninput = e => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                state.filters.search = e.target.value; 
-                render(); 
-            }, 300); // Waits 300ms before doing the heavy lifting
+                state.filters.search = e.target.value;
+                renderPlayerPool(calcStats());
+                updateFilterButtonStates();
+            }, 250);
         };
     }
 
-    // 2. Dropdown Toggle Logic
+    // Filter dropdowns
     const backdrop = document.getElementById("filterBackdrop");
-    ['match', 'team', 'credit', 'type'].forEach(type => { // <-- Added 'type'
-        const btn = document.getElementById(`${type}Toggle`);
+    for (const type of ["match", "team", "credit", "type"]) {
+        const btn  = document.getElementById(`${type}Toggle`);
         const menu = document.getElementById(`${type}Menu`);
-        if(btn && menu) {
-            btn.onclick = (e) => { 
-                e.stopPropagation(); 
-                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-                menu.classList.add('show');
-                backdrop?.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; 
+        if (btn && menu) {
+            btn.onclick = e => {
+                e.stopPropagation();
+                document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
+                menu.classList.add("show");
+                backdrop?.classList.remove("hidden");
+                document.body.style.overflow = "hidden";
             };
         }
-    });
+    }
 
-    backdrop.onclick = () => {
-        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-        backdrop.classList.add('hidden');
-        document.body.style.overflow = ''; 
-    };
+    if (backdrop) {
+        backdrop.onclick = closeFilters;
+    }
 
-    // 3. Existing View/Role Logic
+    // View tabs (MY XI / EDIT)
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll(".toggle-btn, .view-mode").forEach(el => el.classList.remove("active"));
+            document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
             btn.classList.add("active");
-            document.getElementById(`${btn.dataset.mode}-view`).classList.add("active");
-            const filterWrap = document.querySelector(".search-filter-wrapper");
-            if(filterWrap) filterWrap.style.display = btn.dataset.mode === 'myxi' ? 'none' : 'flex';
+            document.getElementById(`${btn.dataset.mode}-view`)?.classList.add("active");
+            const fw = document.querySelector(".search-filter-wrapper");
+            if (fw) fw.style.display = btn.dataset.mode === "myxi" ? "none" : "flex";
         };
     });
 
+    // Role filter tabs
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
             tab.classList.add("active");
             state.filters.role = tab.dataset.role;
-            render();
+            renderPlayerPool(calcStats());
         };
     });
 
-document.getElementById("saveTeamBtn").onclick = async () => {
-        if (state.saving) return;
-        state.saving = true;
-        render();
-        try {
-            // BACK TO THE OLD WORKING CODE:
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            const { error } = await supabase.rpc('save_fantasy_team', {
-                p_user_id: user.id,
-                p_tournament_id: activeTournamentId,
-                p_captain_id: state.captainId,
-                p_vice_captain_id: state.viceCaptainId,
-                p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
-                p_active_booster: state.activeBooster,
-                p_player_ids: state.selectedPlayers.map(p => p.id)
-            });
-            
-            if (error) throw error;
-            
-            // HAPTIC SUCCESS ADDED HERE
-            window.triggerHaptic('success');
-            showSuccessModal();
+    // Save button
+    document.getElementById("saveTeamBtn")?.addEventListener("click", handleSave);
 
-      } catch (err) { 
-            // HAPTIC ERROR ADDED HERE
-            window.triggerHaptic('error');
-            
-            let errorMsg = err.message;
-            if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
-                errorMsg = "Weak internet! Please tap save again.";
-            }
-            window.showToast(errorMsg, "error"); 
+    // BUG FIX #5: Clean up AudioContext on page hide
+    window.addEventListener("pagehide", () => {
+        if (audioCtx) {
+            audioCtx.close();
+            audioCtx = null;
         }
-        finally { 
-            state.saving = false; 
-            render(); 
-        }
-    };
+        if (countdownInterval) clearInterval(countdownInterval);
+    });
 }
 
-/* =========================
-   UI HELPERS (Renderers)
-========================= */
-function renderList(containerId, list, isMyXi, stats) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-    const currentRoles = {
-        WK: state.selectedPlayers.filter(p => p.role === "WK").length,
-        BAT: state.selectedPlayers.filter(p => p.role === "BAT").length,
-        AR: state.selectedPlayers.filter(p => p.role === "AR").length,
-        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length
-    };
-    const neededSlots = Object.keys(minReq).reduce((acc, r) => acc + Math.max(0, minReq[r] - currentRoles[r]), 0);
+// ─── SAVE ─────────────────────────────────────────────────────────────────────
+async function handleSave() {
+    if (state.saving || isTransitioning) return;
+    state.saving = true;
+    updateSaveButton(calcStats());
 
-    container.innerHTML = list.map(p => {
-        const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
-        const tooExpensive = p.credit > (100 - stats.credits);
-        const overseasLimit = stats.overseas >= 4 && p.category === "overseas";
-        const roleLocked = (11 - stats.count) <= neededSlots && (minReq[p.role] - currentRoles[p.role]) <= 0;
-        const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || overseasLimit || roleLocked);
-        const photoUrl = p.photo_url ? supabase.storage.from('player-photos').getPublicUrl(p.photo_url).data.publicUrl : 'images/default-avatar.png';
-const category = (p.category || "").toLowerCase(); // Safety check
-        return `
-            <div class="player-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'player-faded' : ''}">
-<div class="avatar-container"><img src="${photoUrl}" class="player-avatar" loading="lazy"></div>                <div class="player-info">
-<strong>
-                ${p.name} 
-                ${category === 'overseas' ? '<span class="category-emoji">✈️</span>' : ''}
-                ${category === 'uncapped' ? '<span class="category-emoji">🧢</span>' : ''}
-            </strong>
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error } = await supabase.rpc("save_fantasy_team", {
+            p_user_id:       user.id,
+            p_tournament_id: activeTournamentId,
+            p_captain_id:    state.captainId,
+            p_vice_captain_id: state.viceCaptainId,
+            p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
+            p_active_booster: state.activeBooster,
+            p_player_ids:    state.selectedPlayers.map(p => p.id),
+        });
 
-                    <span>${p.role} • ${p.team_short_code} • ${p.credit} Cr</span>
-                </div>
-                <div class="controls">
-                    ${isMyXi ? `
-                        <button class="cv-btn ${state.captainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'C')">C</button>
-                        <button class="cv-btn ${state.viceCaptainId === p.id ? 'active' : ''}" onclick="setRole('${p.id}', 'VC')">VC</button>
-                    ` : ''}
-                    <button class="action-btn-circle ${isSelected ? 'remove' : 'add'}" ${isDisabled ? 'disabled' : ''} onclick="togglePlayer('${p.id}')">${isSelected ? '−' : '+'}</button>
-                </div>
-            </div>`;
-    }).join('');
-}
+        if (error) throw error;
 
-function renderBoosterUI() {
-    const boosterContainer = document.getElementById("boosterContainer");
-    if (!boosterContainer) return;
+        triggerHaptic("success");
+        showToast("Team saved successfully!", "success");
+        localStorage.setItem("last_action", "team_saved");
 
-    const isBoosterWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START && state.currentMatchNumber <= BOOSTER_WINDOW_END;
-    if (!isBoosterWindow) { 
-        boosterContainer.classList.add("hidden"); 
-        return; 
+        setTimeout(() => {
+            window.location.href = "home.html";
+        }, 1500);
+
+    } catch (err) {
+        triggerHaptic("error");
+        let msg = err.message;
+        if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+            msg = "Weak internet! Please tap save again.";
+        }
+        showToast(msg, "error");
+    } finally {
+        state.saving = false;
+        updateSaveButton(calcStats());
     }
-    
-    boosterContainer.classList.remove("hidden");
-
-    const boosterConfigs = {
-        TOTAL_2X: { name: "Total 2X", icon: "🚀" },
-        INDIAN_2X: { name: "Indian 2X", icon: "🇮🇳" },
-        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" },
-        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
-        CAPTAIN_3X: { name: "Captain 3X",  icon: "👑" },
-        MOM_2X: { name: "MOM 2X", icon: "🏆" },
-        FREE_11: { name: "Free 11", icon: "🆓" }
-    };
-
-    const activePenalty = state.activeBooster !== 'NONE' ? 1 : 0;
-    const boostersLeft = 7 - state.usedBoosters.length - activePenalty;
-
-    let cardsHtml = Object.keys(boosterConfigs).map(key => {
-        const config = boosterConfigs[key];
-        const isUsed = state.usedBoosters.includes(key);
-        const isActive = state.activeBooster === key;
-        
-        let statusClass = "";
-        if (isActive) statusClass = "active";
-        else if (isUsed) statusClass = "used";
-
-        return `
-            <div class="booster-card ${statusClass}" onclick="${isUsed ? '' : `handleBoosterChange('${isActive ? 'NONE' : key}')`}">
-                <div class="booster-icon">${config.icon}</div>
-                <div class="booster-info">
-                    <div class="b-name">${config.name}</div>
-                </div>
-                ${isActive ? '<div class="active-badge">Applied!</div>' : ''}
-                ${isUsed ? '<div class="used-overlay"><span>USED</span></div>' : ''}
-            </div>
-        `;
-    }).join('');
-
-    boosterContainer.innerHTML = `
-        <div class="premium-booster-shelf">
-            <div class="booster-header">
-                <div class="b-title">MATCH BOOSTERS</div>
-                <div class="b-count">${boostersLeft} LEFT</div>
-            </div>
-            <div class="booster-scroll-pane">
-                ${cardsHtml}
-            </div>
-        </div>
-    `;
 }
-/* =========================
-   UTILITIES (Filters/Roles)
-========================= */
-window.togglePlayer = (id) => {
-    window.triggerHaptic('light');
+
+// ─── PLAYER ACTIONS ───────────────────────────────────────────────────────────
+function togglePlayer(id) {
+    triggerHaptic("light");
     const idx = state.selectedPlayers.findIndex(p => p.id === id);
     if (idx > -1) {
         state.selectedPlayers.splice(idx, 1);
-        if (state.captainId === id) state.captainId = null;
+        if (state.captainId === id)    state.captainId = null;
         if (state.viceCaptainId === id) state.viceCaptainId = null;
     } else if (state.selectedPlayers.length < 11) {
         const p = state.allPlayers.find(p => p.id === id);
         if (p) state.selectedPlayers.push(p);
     }
-    render();
-};
-
-window.setRole = (id, type) => {
-    window.triggerHaptic('light');
-    if (type === 'C') { state.captainId = (state.captainId === id) ? null : id; if (state.captainId === state.viceCaptainId) state.viceCaptainId = null; }
-    else { state.viceCaptainId = (state.viceCaptainId === id) ? null : id; if (state.viceCaptainId === state.captainId) state.captainId = null; }
-    render();
-};
-
-window.showToast = (message, type = 'success') => {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    // Use innerHTML so the bold tags and line breaks work!
-    toast.innerHTML = message; 
-
-    container.appendChild(toast);
-
-    // Fade out and remove
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(120%)';
-        toast.style.transition = 'all 0.5s ease';
-        setTimeout(() => toast.remove(), 500);
-    }, 4000); 
-};
-// --- 2. CUSTOM CONFIRM MODAL ---
-window.showConfirm = (title, message) => {
-    return new Promise((resolve) => {
-        const overlay = document.getElementById('customConfirmOverlay');
-        const titleEl = document.getElementById('confirmTitle');
-        const textEl = document.getElementById('confirmText');
-        const btnCancel = document.getElementById('confirmCancelBtn');
-        const btnApply = document.getElementById('confirmApplyBtn');
-
-        if (!overlay) return resolve(true); // Safety fallback
-
-        titleEl.textContent = title;
-        textEl.textContent = message;
-        overlay.classList.remove('hidden');
-
-        const cleanup = () => {
-            overlay.classList.add('hidden');
-            btnCancel.onclick = null;
-            btnApply.onclick = null;
-        };
-
-        btnCancel.onclick = () => { cleanup(); resolve(false); }; // User clicked Cancel
-        btnApply.onclick = () => { cleanup(); resolve(true); };   // User clicked Apply
-    });
-};
-
-// --- 3. UPDATED BOOSTER LOGIC ---
-// Notice the 'async' added here!
-window.handleBoosterChange = async (val) => {
-    if (val === "NONE") { 
-        state.activeBooster = "NONE"; 
-        render(); 
-        return; 
-    }
-
-    // A map to get the pretty name for the UI
-    const boosterNames = {
-        TOTAL_2X: "Total 2X", INDIAN_2X: "Indian 2X", OVERSEAS_2X: "Overseas 2X",
-        UNCAPPED_2X: "Uncapped 2X", CAPTAIN_3X: "Captain 3X", MOM_2X: "MOM 2X", FREE_11: "Free 11"
-    };
-    
-    const prettyName = boosterNames[val] || val;
-
-    // Trigger our custom popup and wait for their answer
-    const isConfirmed = await window.showConfirm(
-        `Apply ${prettyName} Booster?`, 
-        "Note: You can only use this booster once and once the team locks you cannot undo!"
-    );
-
-    // If they clicked Apply, update state and show the toast!
-    if (isConfirmed) {
-        window.triggerHaptic('success');
-        state.activeBooster = val;
-        window.showToast(`${prettyName} Applied Successfully!`, "success");
-        render();
-    }
-    // If they clicked Cancel, the state remains unchanged.
-};
-
-function initFilters() {
-    renderTeamDropdown();
-    const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a,b) => a - b);
-    renderCheckboxDropdown('creditMenu', uniqueCredits, 'credits', (c) => `${c} Cr`);
-renderMatchDropdown();    const playerTypes = [
-        { id: 'uncapped', label: 'Uncapped 🧢' },
-        { id: 'overseas', label: 'Overseas ✈️' }
-    ];
-    renderCheckboxDropdown('typeMenu', playerTypes, 'type', (t) => t.label);
+    // PERF: Only re-render what changed — XI is small, pool needs credit/count recheck
+    const stats = calcStats();
+    updateDashboard(stats);
+    renderMyXI(stats);
+    renderPlayerPool(stats);
+    updateSaveButton(stats);
 }
 
-// Add this helper function anywhere in your UTILITIES section
-window.closeFilters = () => {
-    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-    document.getElementById("filterBackdrop").classList.add('hidden');
-    document.body.style.overflow = ''; 
+function setRole(id, type) {
+    triggerHaptic("light");
+    if (type === "C") {
+        state.captainId = state.captainId === id ? null : id;
+        if (state.captainId === state.viceCaptainId) state.viceCaptainId = null;
+    } else {
+        state.viceCaptainId = state.viceCaptainId === id ? null : id;
+        if (state.viceCaptainId === state.captainId) state.captainId = null;
+    }
+    // PERF: C/VC only changes the XI appearance — pool doesn't need rebuild
+    const stats = calcStats();
+    updateDashboard(stats);
+    renderMyXI(stats);
+    updateSaveButton(stats);
+}
+
+// ─── BOOSTER ──────────────────────────────────────────────────────────────────
+function renderBoosterUI() {
+    const container = document.getElementById("boosterContainer");
+    if (!container) return;
+
+    const inWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START &&
+                     state.currentMatchNumber <= BOOSTER_WINDOW_END;
+    if (!inWindow) { container.classList.add("hidden"); return; }
+    container.classList.remove("hidden");
+
+    const configs = {
+        TOTAL_2X:    { name: "Total 2X",    icon: "🚀" },
+        INDIAN_2X:   { name: "Indian 2X",   icon: "🇮🇳" },
+        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" },
+        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
+        CAPTAIN_3X:  { name: "Captain 3X",  icon: "👑" },
+        MOM_2X:      { name: "MOM 2X",      icon: "🏆" },
+        FREE_11:     { name: "Free 11",      icon: "🆓" },
+    };
+
+    // BUG FIX #6: activePenalty only computed here (was dead code in render())
+    const activePenalty = state.activeBooster !== "NONE" ? 1 : 0;
+    const boostersLeft  = 7 - state.usedBoosters.length - activePenalty;
+
+    const cards = Object.entries(configs).map(([key, cfg]) => {
+        const isUsed   = state.usedBoosters.includes(key);
+        const isActive = state.activeBooster === key;
+        return `
+            <div class="booster-card ${isActive ? "active" : ""} ${isUsed ? "used" : ""}"
+                 ${isUsed ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
+                <div class="booster-icon">${cfg.icon}</div>
+                <div class="b-name">${cfg.name}</div>
+                ${isActive ? '<div class="active-badge">On</div>' : ""}
+                ${isUsed   ? '<div class="used-overlay"><span>USED</span></div>' : ""}
+            </div>`;
+    }).join("");
+
+    container.innerHTML = `
+        <div class="booster-shelf">
+            <div class="booster-header">
+                <span class="b-title">BOOSTERS</span>
+                <span class="b-count">${boostersLeft} left</span>
+            </div>
+            <div class="booster-scroll">${cards}</div>
+        </div>`;
+}
+
+window.handleBoosterChange = async val => {
+    if (val === "NONE") { state.activeBooster = "NONE"; render(); return; }
+
+    const names = {
+        TOTAL_2X: "Total 2X", INDIAN_2X: "Indian 2X", OVERSEAS_2X: "Overseas 2X",
+        UNCAPPED_2X: "Uncapped 2X", CAPTAIN_3X: "Captain 3X", MOM_2X: "MOM 2X", FREE_11: "Free 11",
+    };
+
+    const confirmed = await showConfirm(
+        `Apply ${names[val]}?`,
+        "Once the match locks you cannot undo this. You can only use each booster once."
+    );
+
+    if (confirmed) {
+        triggerHaptic("success");
+        state.activeBooster = val;
+        showToast(`${names[val]} applied!`, "success");
+        render();
+    }
 };
 
-// Replace your existing renderCheckboxDropdown with this updated one:
+// ─── HEADER COUNTDOWN ────────────────────────────────────────────────────────
+function updateHeaderMatch() {
+    if (state.matches.length === 0) {
+        setText("headerCountdown", "NO MATCHES");
+        setText("upcomingMatchName", "Tournament Ended");
+        return;
+    }
+
+    const match  = state.matches[0];
+    const timerEl = document.getElementById("headerCountdown");
+    const saveBtn = document.getElementById("saveTeamBtn");
+    const teamA   = match.team_a?.short_code || "TBA";
+    const teamB   = match.team_b?.short_code || "TBA";
+
+    setText("upcomingMatchName", `${teamA} vs ${teamB}`);
+
+    const target = new Date(match.actual_start_time).getTime();
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
+        const diff = target - Date.now();
+
+        if (diff <= 0) {
+            clearInterval(countdownInterval);
+            isTransitioning = true;
+            if (timerEl) {
+                timerEl.textContent = "LOCKED";
+                timerEl.classList.remove("timer-warning");
+            }
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = "MATCH LOCKED";
+            }
+
+            const nextMatch     = state.matches[1];
+            const nextMatchInfo = nextMatch
+                ? `${nextMatch.team_a?.short_code || "TBA"} vs ${nextMatch.team_b?.short_code || "TBA"}`
+                : "end of tournament";
+
+            // BUG FIX #4: textContent used for trusted parts, not innerHTML
+            // Lock toast uses structured HTML but team names are not user-input
+            showToast(`🔒 Locked! Next: ${nextMatchInfo}`, "error");
+            triggerHaptic("error");
+
+            // BUG FIX: 30 seconds (was 300,000ms with misleading "5 seconds" comment)
+            setTimeout(() => {
+                state.matches.shift();
+                isTransitioning = false;
+                if (state.matches.length > 0) {
+                    state.currentMatchNumber = state.matches[0].match_number;
+                    updateHeaderMatch();
+                    render();
+                } else {
+                    setText("headerCountdown", "NO MATCHES");
+                }
+            }, MATCH_SHIFT_DELAY_MS);
+
+            return;
+        }
+
+        const days    = Math.floor(diff / 86400000);
+        const hours   = Math.floor((diff % 86400000) / 3600000);
+        const minutes = Math.floor((diff % 3600000)  / 60000);
+        const seconds = Math.floor((diff % 60000)    / 1000);
+        const secStr  = seconds < 10 ? `0${seconds}` : `${seconds}`;
+
+        if (timerEl) {
+            timerEl.textContent = days >= 1
+                ? `${days}d ${hours}h ${minutes}m`
+                : `${hours}h ${minutes}m ${secStr}s`;
+        }
+
+        if (timerEl) timerEl.classList.toggle("timer-warning", (diff / 60000) < 15);
+
+    }, 1000);
+}
+
+// ─── SAVE BUTTON STATE ────────────────────────────────────────────────────────
+function updateSaveButton(stats) {
+    const btn = document.getElementById("saveTeamBtn");
+    if (!btn) return;
+
+    if (isTransitioning) {
+        btn.disabled = true;
+        btn.textContent = "MATCH LOCKED";
+        return;
+    }
+
+    const checks = [
+        [state.saving,               "SAVING..."],
+        [stats.count < 11,           `ADD ${11 - stats.count} MORE`],
+        [!state.captainId || !state.viceCaptainId, "SET C & VC"],
+        [stats.roles.WK   < 1,      "NEED A KEEPER"],
+        [stats.roles.BAT  < 3,      "MIN 3 BATTERS"],
+        [stats.roles.AR   < 1,      "NEED ALL-ROUNDER"],
+        [stats.roles.BOWL < 3,      "MIN 3 BOWLERS"],
+        [stats.overseas   > 4,      "MAX 4 OVERSEAS"],
+        [stats.credits    > 100.05, "CREDITS EXCEEDED"],
+        [stats.isOverLimit,         "NOT ENOUGH SUBS"],
+    ];
+
+    for (const [condition, label] of checks) {
+        if (condition) {
+            btn.disabled = true;
+            btn.textContent = label;
+            return;
+        }
+    }
+
+    btn.disabled = false;
+    btn.textContent = "SAVE TEAM";
+}
+
+// ─── FILTERS ──────────────────────────────────────────────────────────────────
+function initFilters() {
+    renderTeamDropdown();
+    renderMatchDropdown();
+
+    const uniqueCredits = [...new Set(state.allPlayers.map(p => p.credit))].sort((a, b) => a - b);
+    renderCheckboxDropdown("creditMenu", uniqueCredits, "credits", c => `${c} Cr`);
+
+    renderCheckboxDropdown("typeMenu",
+        [{ id: "uncapped", label: "Uncapped 🧢" }, { id: "overseas", label: "Overseas ✈️" }],
+        "type",
+        t => t.label
+    );
+}
+
 function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
     const container = document.getElementById(elementId);
-    if(!container) return;
-    
+    if (!container) return;
+
     const listHtml = items.map(item => {
-        const val = item.id || item;
-        return `<label class="filter-item"><span>${labelFn(item)}</span><input type="checkbox" value="${val}" ${state.filters[filterKey].includes(val) ? 'checked' : ''} onchange="toggleFilter('${filterKey}', '${val}', this)"></label>`;
-    }).join('');
-    
-    // Now includes both Clear and Apply buttons!
+        const val = item.id ?? item;
+        return `<label class="filter-item">
+            <span>${labelFn(item)}</span>
+            <input type="checkbox" value="${val}"
+                ${state.filters[filterKey].includes(val) ? "checked" : ""}
+                onchange="toggleFilter('${filterKey}', '${val}', this)">
+        </label>`;
+    }).join("");
+
     container.innerHTML = `
-        <div class="dropdown-content">${listHtml}</div>
+        <div class="dropdown-content">${listHtml || '<p class="empty-pool-msg">No options.</p>'}</div>
         <div class="dropdown-actions">
             <button onclick="clearFilters('${filterKey}')">Clear</button>
             <button onclick="closeFilters()">Apply</button>
-        </div>
-    `;
+        </div>`;
 }
 
-window.toggleFilter = (k, v, el) => { const val = (k === 'credits') ? parseFloat(v) : v; if (el.checked) state.filters[k].push(val); else state.filters[k] = state.filters[k].filter(i => i !== val); render(); };
-window.clearFilters = (k) => { state.filters[k] = []; render(); initFilters(); };
-
 function renderMatchDropdown() {
-    const container = document.getElementById('matchMenu');
-    if(!container) return;
-    
-    const bucket = supabase.storage.from("team-logos");
+    const container = document.getElementById("matchMenu");
+    if (!container) return;
 
+    // BUG FIX #10: Guard against empty matches
+    if (state.matches.length === 0) {
+        container.innerHTML = `
+            <p class="empty-pool-msg" style="padding:20px;text-align:center;">No upcoming matches.</p>
+            <div class="dropdown-actions"><button onclick="closeFilters()">Close</button></div>`;
+        return;
+    }
+
+    const bucket  = supabase.storage.from("team-logos");
     const listHtml = state.matches.map(m => {
         const isSelected = state.filters.matches.includes(m.id);
-        
-        const logoA = m.team_a?.photo_name ? bucket.getPublicUrl(m.team_a.photo_name).data.publicUrl : 'images/default-team.png';
-        const logoB = m.team_b?.photo_name ? bucket.getPublicUrl(m.team_b.photo_name).data.publicUrl : 'images/default-team.png';
-        
-        // Format the Date & Time
-        const dateObj = new Date(m.actual_start_time);
-        const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); // e.g., 22 Mar 2026
-        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); // e.g., 07:30 PM
+        const logoA = m.team_a?.photo_name
+            ? bucket.getPublicUrl(m.team_a.photo_name).data.publicUrl
+            : "images/default-team.png";
+        const logoB = m.team_b?.photo_name
+            ? bucket.getPublicUrl(m.team_b.photo_name).data.publicUrl
+            : "images/default-team.png";
+        const d    = new Date(m.actual_start_time);
+        const date = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+        const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
         return `
-            <div class="match-filter-card ${isSelected ? 'selected' : ''}" onclick="toggleMatchFilterCard('${m.id}', this)">
+            <div class="match-filter-card ${isSelected ? "selected" : ""}"
+                 onclick="toggleMatchFilterCard('${m.id}', this)">
                 <div class="mfc-header">Match #${m.match_number}</div>
                 <div class="mfc-teams">
-                    <div class="mfc-logo" style="background-image: url('${logoA}')"></div>
-                    <div class="mfc-team-name">${m.team_a?.short_code}</div>
-                    <div class="mfc-vs">VS</div>
-                    <div class="mfc-team-name">${m.team_b?.short_code}</div>
-                    <div class="mfc-logo" style="background-image: url('${logoB}')"></div>
+                    <div class="mfc-logo" style="background-image:url('${logoA}')"></div>
+                    <span class="mfc-team-name">${m.team_a?.short_code}</span>
+                    <span class="mfc-vs">VS</span>
+                    <span class="mfc-team-name">${m.team_b?.short_code}</span>
+                    <div class="mfc-logo" style="background-image:url('${logoB}')"></div>
                 </div>
                 <div class="mfc-details">
-                    <div>🏟️ ${m.venue || 'Venue TBA'}</div>
-                    <div><i class="far fa-clock"></i> ${dateStr}, ${timeStr}</div>
+                    <span>🏟️ ${m.venue || "Venue TBA"}</span>
+                    <span>🕐 ${date}, ${time}</span>
                 </div>
-            </div>
-        `;
-    }).join('');
-    
+            </div>`;
+    }).join("");
+
     container.innerHTML = `
         <div class="dropdown-content match-filter-grid">${listHtml}</div>
         <div class="dropdown-actions">
             <button onclick="clearFilters('matches')">Clear</button>
             <button onclick="closeFilters()">Apply</button>
-        </div>
-    `;
+        </div>`;
 }
 
-window.toggleTeamFilterCard = (teamId, element) => {
-    if (state.filters.teams.includes(teamId)) {
-        state.filters.teams = state.filters.teams.filter(id => id !== teamId);
-        element.classList.remove('selected');
-    } else {
-        state.filters.teams.push(teamId);
-        element.classList.add('selected');
-    }
-    render(); // Updates the player list instantly
-};
-
 function renderTeamDropdown() {
-    const container = document.getElementById('teamMenu');
-    if(!container) return;
-    
-    const bucket = supabase.storage.from("team-logos");
+    const container = document.getElementById("teamMenu");
+    if (!container) return;
 
-    // Get the unique team IDs that actually have players in the pool
+    const bucket       = supabase.storage.from("team-logos");
     const uniqueTeamIds = [...new Set(state.allPlayers.map(p => p.real_team_id))];
 
     const listHtml = uniqueTeamIds.map(teamId => {
         const isSelected = state.filters.teams.includes(teamId);
-        const teamInfo = state.realTeamsMap[teamId] || { name: 'Unknown', short_code: 'UNK' };
-        
-        const logoUrl = teamInfo.photo_name ? bucket.getPublicUrl(teamInfo.photo_name).data.publicUrl : 'images/default-team.png';
+        const info       = state.realTeamsMap[teamId] || { name: "Unknown", short_code: "UNK" };
+        const logoUrl    = info.photo_name
+            ? bucket.getPublicUrl(info.photo_name).data.publicUrl
+            : "images/default-team.png";
 
         return `
-            <div class="team-filter-card ${isSelected ? 'selected' : ''}" onclick="toggleTeamFilterCard('${teamId}', this)">
-                <div class="tfc-logo" style="background-image: url('${logoUrl}')"></div>
-                <div class="tfc-name">${teamInfo.name} (${teamInfo.short_code})</div>
-            </div>
-        `;
-    }).join('');
-    
+            <div class="team-filter-card ${isSelected ? "selected" : ""}"
+                 onclick="toggleTeamFilterCard('${teamId}', this)">
+                <div class="tfc-logo" style="background-image:url('${logoUrl}')"></div>
+                <span class="tfc-name">${info.name} (${info.short_code})</span>
+            </div>`;
+    }).join("");
+
     container.innerHTML = `
         <div class="dropdown-content team-filter-grid">${listHtml}</div>
         <div class="dropdown-actions">
             <button onclick="clearFilters('teams')">Clear</button>
             <button onclick="closeFilters()">Apply</button>
-        </div>
-    `;
+        </div>`;
 }
 
-function updateHeaderMatch() {
-    if (state.matches.length === 0) {
-        document.getElementById("headerCountdown").innerText = "NO MATCHES";
-        document.getElementById("upcomingMatchName").innerText = "Tournament Ended";
-        return;
-    }
-
-    const match = state.matches[0];
-    const timerEl = document.getElementById("headerCountdown");
-    const saveBtn = document.getElementById("saveTeamBtn");
-    
-    // Safety check for names
-    const teamA = match.team_a?.short_code || "TBA";
-    const teamB = match.team_b?.short_code || "TBA";
-    document.getElementById("upcomingMatchName").innerText = `${teamA} vs ${teamB}`;
-    
-    const target = new Date(match.actual_start_time).getTime();
-    if (countdownInterval) clearInterval(countdownInterval);
-    
-    countdownInterval = setInterval(() => {
-        const now = Date.now();
-        const diff = target - now;
-        
-        if (diff <= 0) { 
-            clearInterval(countdownInterval);
-            isTransitioning = true; // LOCK THE BUTTONS
-            timerEl.innerText = "LOCKED"; 
-            timerEl.classList.remove("timer-warning");
-
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerText = "MATCH LOCKED";
-            }
-
-            // --- FIND NEXT MATCH FOR THE TOAST ---
-            const nextMatch = state.matches[1];
-            const nextMatchInfo = nextMatch 
-                ? `${nextMatch.team_a?.short_code || 'TBA'} vs ${nextMatch.team_b?.short_code || 'TBA'}` 
-                : "the end of tournament";
-
-            // --- THE TOAST MESSAGE ---
-            const lockMessage = `
-                <div style="text-align:center;">
-                    <p style="margin-bottom:8px;">🔒 <b>TEAM LOCKED</b></p>
-                    <p style="font-size:13px;">Match #${match.match_number}: ${teamA} vs ${teamB}</p>
-                    <p style="font-size:11px; margin-top:8px; color: var(--text-dim);;">
-                        Any saves now will apply to: <br><b>${nextMatchInfo}</b>
-                    </p>
-                </div>
-            `;
-            
-            window.showToast(lockMessage, "error"); 
-            window.triggerHaptic('error');
-
-            // Shift to next match after 5 seconds
-            setTimeout(() => {
-                state.matches.shift();
-                isTransitioning = false; // UNLOCK FOR THE NEXT MATCH
-                if (state.matches.length > 0) {
-                    state.currentMatchNumber = state.matches[0].match_number;
-                    updateHeaderMatch(); 
-                    render(); 
-                } else {
-                    timerEl.innerText = "NO MATCHES";
-                }
-            }, 300000); 
-            return; 
-        }
-        
-        // --- SMART TIME FORMATTING ---
-        const totalMinutes = Math.floor(diff / 60000);
-        const days = Math.floor(diff / 86400000);
-        const hours = Math.floor((diff % 86400000) / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-
-        if (days >= 1) {
-            timerEl.innerText = `${days}d ${hours}h ${minutes}m`;
-        } else {
-            // Pad seconds with a leading zero if below 10
-            const displaySec = seconds < 10 ? `0${seconds}` : seconds;
-            timerEl.innerText = `${hours}h ${minutes}m ${displaySec}s`;
-        }
-
-        // --- RED ALERT (Below 15 Minutes) ---
-        if (totalMinutes < 15) {
-            timerEl.classList.add("timer-warning");
-        } else {
-            timerEl.classList.remove("timer-warning");
-        }
-
-    }, 1000);
-}
-
-function updateSaveButton(stats, isOverLimit, liveSubs) {
-    const btn = document.getElementById("saveTeamBtn");
-    // MASTER OVERRIDE: If match just started, force the button to stay locked
-    if (isTransitioning) {
-        btn.disabled = true;
-        btn.innerText = "MATCH LOCKED";
-        return; 
-    }
-    let btnText = "SAVE TEAM";
-    let isValid = true;
-
-    // 1. Check if we are currently in the middle of a save
-    if (state.saving) {
-        btnText = "SAVING...";
-        isValid = false;
-    } 
-    // 2. Check total player count first (High priority)
-    else if (stats.count < 11) {
-        btnText = `ADD ${11 - stats.count} MORE PLAYERS`;
-        isValid = false;
-    } 
-    // 3. Check for Captain and Vice-Captain
-    else if (!state.captainId || !state.viceCaptainId) {
-        btnText = "SELECT C & VC";
-        isValid = false;
-    } 
-    // 4. Role Requirements (Middle priority)
-    else if (stats.roles.WK < 1) {
-        btnText = "NEED A WICKETKEEPER";
-        isValid = false;
-    } 
-    else if (stats.roles.BAT < 3) {
-        btnText = "NEED MIN 3 BATTERS";
-        isValid = false;
-    } 
-    else if (stats.roles.AR < 1) {
-        btnText = "NEED AN ALL-ROUNDER";
-        isValid = false;
-    } 
-    else if (stats.roles.BOWL < 3) {
-        btnText = "NEED MIN 3 BOWLERS";
-        isValid = false;
-    } 
-    // 5. Constraints (Technical priority)
-    else if (stats.overseas > 4) {
-        btnText = "MAX 4 OVERSEAS ALLOWED";
-        isValid = false;
-    } 
-    else if (stats.credits > 100.1) { // Added a tiny buffer to prevent floating point issues
-        btnText = "CREDITS EXCEEDED";
-        isValid = false;
-    } 
-    else if (isOverLimit) {
-        btnText = "NOT ENOUGH SUBS";
-        isValid = false;
-    }
-
-    // Apply the state to the button
-    btn.disabled = !isValid;
-    btn.innerText = btnText;
-}
-
-function showSuccessModal() {
-    // 1. Show the success toast exactly as you designed it
-    window.showToast("Team Saved Successfully!", "success");
-    
-    // 2. Wait 1.5 seconds so the user can read the success message
-    setTimeout(() => {
-        
-        // THE MAGIC TRICK:
-        // Create an invisible link so Monetag's auto-script can "see" the navigation
-        const adLink = document.createElement('a');
-        adLink.href = 'home.html';
-        
-        // Add it to the page (invisible)
-        adLink.style.display = 'none';
-        document.body.appendChild(adLink);
-        
-        // Click it! 
-        // Monetag will intercept this click, pop the full-screen ad, 
-        // and safely route the user to home.html when they close the ad.
-        localStorage.setItem("last_action", "team_saved");
-
-        window.location.href = 'home.html';
-        }, 1500); 
-}
-
-window.toggleMatchFilterCard = (matchId, element) => {
-    if (state.filters.matches.includes(matchId)) {
-        // If already selected, remove it
-        state.filters.matches = state.filters.matches.filter(id => id !== matchId);
-        element.classList.remove('selected');
-    } else {
-        // If not selected, add it
-        state.filters.matches.push(matchId);
-        element.classList.add('selected');
-    }
-    render(); // Updates the background player list immediately!
+// ─── FILTER UTILITIES ─────────────────────────────────────────────────────────
+window.toggleFilter = (k, v, el) => {
+    const val = k === "credits" ? parseFloat(v) : v;
+    if (el.checked) state.filters[k].push(val);
+    else state.filters[k] = state.filters[k].filter(i => i !== val);
+    renderPlayerPool(calcStats());
+    updateFilterButtonStates();
 };
 
-// --- ADD THIS HELPER FUNCTION AT THE BOTTOM ---
-function updateFilterButtonStates() {
-    // Map the HTML button IDs to their respective arrays in our state
-    const mappings = {
-        'matchToggle': state.filters.matches,
-        'teamToggle': state.filters.teams,
-        'creditToggle': state.filters.credits,
-        'typeToggle': state.filters.type
-    };
+window.clearFilters = k => {
+    state.filters[k] = [];
+    renderPlayerPool(calcStats());
+    updateFilterButtonStates();
+    initFilters();
+};
 
-    for (const [btnId, filterArray] of Object.entries(mappings)) {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            // If there is anything inside the filter array, highlight the button!
-            if (filterArray && filterArray.length > 0) {
-                btn.classList.add('active-filter');
-            } else {
-                btn.classList.remove('active-filter');
-            }
-        }
+window.closeFilters = () => {
+    document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
+    document.getElementById("filterBackdrop")?.classList.add("hidden");
+    document.body.style.overflow = "";
+};
+
+window.toggleTeamFilterCard = (teamId, el) => {
+    if (state.filters.teams.includes(teamId)) {
+        state.filters.teams = state.filters.teams.filter(id => id !== teamId);
+        el.classList.remove("selected");
+    } else {
+        state.filters.teams.push(teamId);
+        el.classList.add("selected");
+    }
+    renderPlayerPool(calcStats());
+    updateFilterButtonStates();
+};
+
+window.toggleMatchFilterCard = (matchId, el) => {
+    if (state.filters.matches.includes(matchId)) {
+        state.filters.matches = state.filters.matches.filter(id => id !== matchId);
+        el.classList.remove("selected");
+    } else {
+        state.filters.matches.push(matchId);
+        el.classList.add("selected");
+    }
+    renderPlayerPool(calcStats());
+    updateFilterButtonStates();
+};
+
+function updateFilterButtonStates() {
+    const map = {
+        matchToggle:  state.filters.matches,
+        teamToggle:   state.filters.teams,
+        creditToggle: state.filters.credits,
+        typeToggle:   state.filters.type,
+    };
+    for (const [id, arr] of Object.entries(map)) {
+        document.getElementById(id)?.classList.toggle("active-filter", arr.length > 0);
     }
 }
 
-// =========================
-//    HAPTIC & AUDIO ENGINE
-// =========================
+// ─── UI HELPERS ───────────────────────────────────────────────────────────────
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
 
-// Leave this empty at first! Don't create the audio engine until they tap.
-let audioCtx = null; 
+// BUG FIX #4: Toast uses textContent for plain strings (no innerHTML injection risk)
+function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
+    const toast = document.createElement("div");
+    toast.className   = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity    = "0";
+        toast.style.transform  = "translateX(120%)";
+        toast.style.transition = "all 0.4s ease";
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+}
 
-window.triggerHaptic = (style = 'light') => {
-    // 1. TRIGGER VIBRATION
+window.showConfirm = (title, message) => {
+    return new Promise(resolve => {
+        const overlay  = document.getElementById("customConfirmOverlay");
+        const titleEl  = document.getElementById("confirmTitle");
+        const textEl   = document.getElementById("confirmText");
+        const btnCancel = document.getElementById("confirmCancelBtn");
+        const btnApply  = document.getElementById("confirmApplyBtn");
+        if (!overlay) return resolve(true);
+
+        // textContent — never innerHTML for user-readable confirm dialogs
+        titleEl.textContent = title;
+        textEl.textContent  = message;
+        overlay.classList.remove("hidden");
+
+        const cleanup = () => {
+            overlay.classList.add("hidden");
+            btnCancel.onclick = null;
+            btnApply.onclick  = null;
+        };
+
+        btnCancel.onclick = () => { cleanup(); resolve(false); };
+        btnApply.onclick  = () => { cleanup(); resolve(true); };
+    });
+};
+
+// ─── HAPTIC & AUDIO ───────────────────────────────────────────────────────────
+function triggerHaptic(style = "light") {
     if (navigator.vibrate) {
-        switch (style) {
-            case 'light': navigator.vibrate(40); break;
-            case 'medium': navigator.vibrate(80); break;
-            case 'success': navigator.vibrate([50, 80, 50]); break;
-            case 'error': navigator.vibrate([80, 50, 80, 50, 80]); break;
-        }
+        const patterns = {
+            light:   [40],
+            medium:  [80],
+            success: [50, 80, 50],
+            error:   [80, 50, 80, 50, 80],
+        };
+        navigator.vibrate(patterns[style] || [40]);
     }
 
-    // 2. TRIGGER AUDIO SYNTHESIS
     try {
-        // Only wake up the audio hardware when they actually interact
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
 
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
 
         switch (style) {
-            case 'light':
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, now);
-                oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
-                gainNode.gain.setValueAtTime(0.05, now); // Low volume
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-                oscillator.start(now);
-                oscillator.stop(now + 0.05);
+            case "light":
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
                 break;
-
-            case 'success':
-                oscillator.type = 'triangle';
-                oscillator.frequency.setValueAtTime(523.25, now); 
-                oscillator.frequency.setValueAtTime(659.25, now + 0.1); 
-                gainNode.gain.setValueAtTime(0.05, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
-                oscillator.start(now);
-                oscillator.stop(now + 0.3);
+            case "success":
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
                 break;
-
-            case 'error':
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(150, now);
-                gainNode.gain.setValueAtTime(0.05, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
-                oscillator.start(now);
-                oscillator.stop(now + 0.2);
+            case "error":
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(150, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
                 break;
         }
-    } catch (err) {
-        // Silently fail if their specific device completely blocks web audio
-        console.log("Audio blocked by device:", err);
-    }
-};
+    } catch (_) { /* device blocks Web Audio — silent fail */ }
+}
+
+// Expose for booster onclick (called from innerHTML)
+window.triggerHaptic = triggerHaptic;
