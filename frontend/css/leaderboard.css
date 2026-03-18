@@ -1,19 +1,27 @@
+/* ================================================
+   LEADERBOARD.CSS
+   Requires: tokens.css + components.css
+   ================================================ */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: #0c1117;
-  color: #fff;
+  font-family: var(--font);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
 }
 
 .leaderboard-app {
-  max-width: 480px;
+  max-width: var(--app-max-width);
   margin: auto;
   padding: 20px 16px 100px;
 }
 
-/* HEADER */
+/* ------------------------------------------------
+   HEADER
+   ------------------------------------------------ */
+
 .leaderboard-header {
   display: flex;
   align-items: center;
@@ -21,463 +29,503 @@ body {
   margin-bottom: 30px;
 }
 
-.leaderboard-header h1 { font-size: 20px; font-weight: 800; margin: 0; }
-.back-btn { background: #1e293b; border: none; color: #fff; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; }
-.header-icon i { color: #f59e0b; font-size: 20px; }
-
-/* PODIUM STYLING */
-.podium-section {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 10px;
-    margin-bottom: 30px;
-    padding-top: 20px;
+.leaderboard-header h1 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
 }
 
-.podium-card {
-    flex: 1;
-    background: #1e293b;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px 5px;
-    position: relative;
-    border: 1px solid #334155;
+.back-btn {
+  background: var(--bg-card);
+  border: none;
+  color: var(--text-primary);
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
-.podium-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    background-color: #0c1117;
-    margin-bottom: 10px;
-    border: 2px solid #334155;
+.header-icon i {
+  color: var(--gold);
+  font-size: 20px;
 }
 
-.rank-badge {
-    position: absolute;
-    top: -12px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-}
+/* ------------------------------------------------
+   PODIUM CONTAINER
+   ------------------------------------------------ */
 
-/* 1st Place specific styling */
-.podium-card.first {
-    height: 160px;
-    background: linear-gradient(180deg, #1e293b 0%, #111827 100%);
-    border-color: #9AE000;
-    box-shadow: 0 0 20px rgba(154, 224, 0, 0.15);
-    z-index: 2;
-}
-.first .podium-avatar { width: 65px; height: 65px; border-color: #9AE000; }
-.first .rank-badge { background: #9AE000; color: #000; width: 30px; height: 30px; top: -15px; }
-
-.podium-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; text-align: center; }
-.podium-pts { font-size: 11px; color: #94a3b8; font-weight: 600; }
-
-/* USER SUMMARY CARD */
-.user-summary-card {
-    background: #9AE000;
-    color: #0c1117;
-    padding: 16px;
-    border-radius: 16px;
-    margin-bottom: 24px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(154, 224, 0, 0.2);
-}
-
-/* LIST STYLING */
-.leader-row {
-    background: #1e293b;
-    padding: 14px 16px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 10px;
-    border: 1px solid #334155;
-    cursor: pointer;
-}
-
-.leader-row.you { border-color: #9AE000; background: rgba(154, 224, 0, 0.05); }
-
-.l-rank { width: 30px; font-weight: 800; color: #94a3b8; font-size: 13px; }
-.l-team { flex: 1; font-weight: 700; font-size: 14px; }
-.l-pts { color: #9AE000; font-weight: 800; font-size: 14px; }
-.l-arrow { color: #475569; }
-
-.spinner-small { width: 15px; height: 15px; border: 2px solid rgba(0,0,0,0.1); border-left-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
-
-/* LEADERBOARD TABLE */
-.leaderboard-card { margin-top: 20px; padding: 15px; }
-.leaderboard-table-wrapper { overflow-x: auto; margin-top: 10px; }
-.mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.mini-table th { text-align: left; color: var(--text-slate); padding-bottom: 10px; border-bottom: 1px solid #334155; }
-.mini-table td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-.team-cell { display: flex; align-items: center; gap: 8px; font-weight: 600; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mini-logo { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--neon-cyan); }
-
-.bold { font-weight: 800; color: var(--neon-cyan); }
-.txt-green { color: var(--neon-green); }
-.txt-red { color: #ff4757; }
-
-/* DISABLE STATE */
-select:disabled { opacity: 0.7; color: var(--text-slate); cursor: not-allowed; border-color: transparent; }
-
-/* =========================
-   RICH ACHIEVEMENT PODIUM
-========================= */
-
-/* The Container gets a subtle glowing energy field */
 #podiumContainer {
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
-    padding: 30px 10px 10px;
-    margin-bottom: 20px;
-    position: relative;
-    border-radius: 20px;
-    background: radial-gradient(circle, #1a2942 0%, #0f172a 100%); /* Subtle central focus */
-    overflow: hidden;
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 30px 10px 10px;
+  margin-bottom: 20px;
+  position: relative;
+  border-radius: var(--card-radius);
+  background: radial-gradient(circle, #1a2942 0%, #0f172a 100%);
+  overflow: hidden;
 }
 
-/* Subtle upward flowing particles background - can be done with a small image or complex keyframes */
-/* Let's keep it simple and powerful with sophisticated glows */
+/* ------------------------------------------------
+   PODIUM CARDS
+   Single clean definition — no more duplicates
+   ------------------------------------------------ */
 
-/* Define Keyframes for the pulsing aura */
-@keyframes pulseAura {
-    0%, 100% {
-        box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.4);
-    }
-    50% {
-        box-shadow: 0 0 25px 10px rgba(255, 255, 255, 0.6);
-    }
-}
-
-@keyframes pulseGoldAura {
-    0%, 100% {
-        box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 35px 15px rgba(255, 215, 0, 0.7);
-    }
-}
-
-/* Ensure the podium cards sit on top of any background and have the hover effect */
 .podium-card {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s;
-    background: #1e293b;
-    border-radius: 16px;
-    padding: 15px 5px;
-    border: 1px solid rgba(255,255,255,0.08);
-}
-.podium-card:hover { transform: translateY(-5px); }
-
-/* Apply order and refine vertical step-down heights */
-/* Rank 1 is centered (order 2), highest, and gets the intense gold aura */
-.podium-card.rank-1 {
-    order: 2;
-    transform: translateY(-20px); /* Enhanced visual separation */
-    height: 170px; /* Slightly taller for dominance */
-    background: linear-gradient(180deg, #1e293b 0%, #0c1117 100%);
-    border-color: #ffd700; /* Gold */
-    animation: pulseGoldAura 2s infinite ease-in-out;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 15px 5px;
+  transition: transform 0.2s ease;
+  /* overflow: visible so the glow pseudo-element isn't clipped */
+  overflow: visible;
 }
 
-/* Rank 2 is on the left (order 1), and slightly lower than Rank 1 */
-.podium-card.rank-2 {
-    order: 1;
-    transform: translateY(-8px); /* Clear step down from Rank 1, slightly higher than Rank 3 */
-    border-color: #e2e8f0; /* Silver */
-    animation: pulseAura 2.5s infinite ease-in-out;
-    /* Redefining aura color inside animation with a subtle overlay color is tricky.
-       A simple pulsing aura for all top 3 is cleaner than separate keyframes for each.
-       Let's stick to simple, powerful pulsing for now. */
+.podium-card:hover {
+  transform: translateY(-5px);
 }
-
-/* Rank 3 is on the right (order 3), lowest overall */
-.podium-card.rank-3 {
-    order: 3;
-    transform: translateY(0px); /* Absolute baseline for the top 3 */
-    border-color: #cd7f32; /* Bronze */
-    animation: pulseAura 3s infinite ease-in-out;
-}
-
-/* --- DYNAMIC NEON AVATAR RINGS (Simplified from old) --- */
-.podium-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    margin-bottom: 12px;
-}
-.podium-card.rank-1 .podium-avatar {
-    width: 80px;
-    height: 80px;
-    border: 3px solid #ffd700; /* Gold */
-    box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.6);
-}
-.podium-card.rank-2 .podium-avatar {
-    border: 3px solid #e2e8f0; /* Silver */
-    box-shadow: 0 0 15px 5px rgba(226, 232, 240, 0.6);
-}
-.podium-card.rank-3 .podium-avatar {
-    border: 3px solid #cd7f32; /* Bronze */
-    box-shadow: 0 0 15px 5px rgba(205, 127, 50, 0.6);
-}
-
-/* Rank text badge refined to be smaller and sit centrally */
-.rank-badge {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    font-size: 11px;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #000;
-    z-index: 2;
-    border: 2px solid #0f172a;
-}
-.podium-card.rank-1 .rank-badge { background: #ffd700; }
-.podium-card.rank-2 .rank-badge { background: #e2e8f0; }
-.podium-card.rank-3 .rank-badge { background: #cd7f32; }
-
-/* Podium text styling remains the same but with enhanced hierarchy */
-.podium-name { font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-.podium-pts { font-size: 14px; font-weight: 900; color: #9AE000; }
-
-/* Ensure the podium cards sit ON TOP of the fireworks */
-.podium-card {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-.podium-card:hover { transform: translateY(-5px); }
 
 /* Rank positioning */
-.podium-card.rank-1 { order: 2; transform: translateY(-15px); }
-.podium-card.rank-2 { order: 1; }
-.podium-card.rank-3 { order: 3; }
+.podium-card.rank-1 { order: 2; transform: translateY(-20px); height: 170px; }
+.podium-card.rank-2 { order: 1; transform: translateY(-8px); }
+.podium-card.rank-3 { order: 3; transform: translateY(0); }
 
-/* --- DYNAMIC NEON AVATAR RINGS --- */
+.podium-card.rank-1:hover { transform: translateY(-25px); }
+.podium-card.rank-2:hover { transform: translateY(-13px); }
+.podium-card.rank-3:hover { transform: translateY(-5px); }
+
+/* ------------------------------------------------
+   PODIUM GLOW — THE PERFORMANCE FIX
+   
+   OLD (bad): animates box-shadow → causes repaint
+   every frame → jank on Android
+   
+   NEW (good): animates opacity on ::after layer
+   → composited on GPU → silky smooth everywhere
+   ------------------------------------------------ */
+
+/* The glowing halo lives on a pseudo-element */
+.podium-card::after {
+  content: '';
+  position: absolute;
+  inset: -6px;                    /* slightly larger than the card */
+  border-radius: 20px;
+  z-index: -1;
+  opacity: 0.5;
+  /* will-change tells the browser to put this on its own GPU layer */
+  will-change: opacity;
+}
+
+/* Gold glow for rank 1 */
+.podium-card.rank-1::after {
+  background: #ffd700;
+  filter: blur(12px);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Silver glow for rank 2 */
+.podium-card.rank-2::after {
+  background: #c0c0c0;
+  filter: blur(10px);
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+/* Bronze glow for rank 3 */
+.podium-card.rank-3::after {
+  background: #cd7f32;
+  filter: blur(10px);
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Only animates opacity — GPU composited, zero repaints */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.75; }
+}
+
+/* ------------------------------------------------
+   PODIUM AVATARS
+   ------------------------------------------------ */
+
 .podium-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    margin-bottom: 12px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 12px;
+  /* Border is set per rank below */
 }
+
 .podium-card.rank-1 .podium-avatar {
-    width: 80px;
-    height: 80px;
-    border: 3px solid #ffd700; /* Gold */
-    box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.6);
+  width: 80px;
+  height: 80px;
+  border: 3px solid #ffd700;
 }
+
 .podium-card.rank-2 .podium-avatar {
-    border: 3px solid #e2e8f0; /* Silver */
-    box-shadow: 0 0 15px 5px rgba(226, 232, 240, 0.6);
+  width: 60px;
+  height: 60px;
+  border: 3px solid #c0c0c0;
 }
+
 .podium-card.rank-3 .podium-avatar {
-    border: 3px solid #cd7f32; /* Bronze */
-    box-shadow: 0 0 15px 5px rgba(205, 127, 50, 0.6);
+  width: 60px;
+  height: 60px;
+  border: 3px solid #cd7f32;
 }
+
+/* ------------------------------------------------
+   RANK BADGE (number inside circle on avatar)
+   ------------------------------------------------ */
 
 .rank-badge {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    font-size: 11px;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #000;
-    z-index: 2;
-    border: 2px solid #0f172a;
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  z-index: 2;
+  border: 2px solid #0f172a;
 }
+
 .podium-card.rank-1 .rank-badge { background: #ffd700; }
-.podium-card.rank-2 .rank-badge { background: #e2e8f0; }
+.podium-card.rank-2 .rank-badge { background: #c0c0c0; }
 .podium-card.rank-3 .rank-badge { background: #cd7f32; }
 
-.podium-name { font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-.podium-pts { font-size: 14px; font-weight: 900; color: #9AE000; }
+/* ------------------------------------------------
+   PODIUM TEXT
+   ------------------------------------------------ */
 
-/* --- LIST ROWS (Ranks 4-100) --- */
+.podium-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.podium-pts {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------
+   USER SUMMARY CARD
+   ------------------------------------------------ */
+
+.user-summary-card {
+  background: var(--accent);
+  color: var(--bg-dark);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+/* ------------------------------------------------
+   LEADERBOARD LIST ROWS
+   ------------------------------------------------ */
+
 .leader-row {
-    display: flex;
-    align-items: center;
-    background: #1e293b;
-    padding: 14px 16px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    /* Default border */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.leader-row:hover { background: #334155; }
-
-/* Highlight the Current User */
-.leader-row.you { background: rgba(154, 224, 0, 0.1); }
-
-/* DYNAMIC COLOR BORDERS */
-.leader-row.border-orange {
-    border: 2px solid #ff9800;
-    box-shadow: inset 2px 0 10px rgba(255, 152, 0, 0.1);
-}
-.leader-row.border-yellow {
-    border: 2px solid #ffeb3b;
-    box-shadow: inset 2px 0 10px rgba(255, 235, 59, 0.1);
-}
-.leader-row.border-red {
-    border: 2px solid #f44336;
-    box-shadow: inset 2px 0 10px rgba(244, 67, 54, 0.1);
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1px solid var(--border-subtle);
 }
 
-.l-rank { font-weight: 900; color: #94a3b8; width: 40px; }
-.l-team { flex: 1; font-weight: 700; color: #fff; }
-.l-pts { font-weight: 800; color: #9AE000; margin-right: 15px; }
-.l-arrow i { color: #64748b; font-size: 12px; }
+.leader-row:hover {
+  background: var(--border);
+}
 
-/* =========================
-   FLOATING CHAT UI
-========================= */
+/* Highlight the current user's row */
+.leader-row.you {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+/* Colored rank borders */
+.leader-row.border-orange { border: 2px solid #ff9800; }
+.leader-row.border-yellow { border: 2px solid #ffeb3b; }
+.leader-row.border-red    { border: 2px solid var(--red); }
+
+.l-rank  { font-weight: 900; color: var(--text-dim); width: 40px; }
+.l-team  { flex: 1; font-weight: 700; color: var(--text-primary); }
+.l-pts   { font-weight: 800; color: var(--accent); margin-right: 15px; }
+.l-arrow i { color: var(--text-faint); font-size: 12px; }
+
+/* ------------------------------------------------
+   MATCH HISTORY TIERS
+   Gold sweep animation — GPU safe (animates
+   transform, not box-shadow)
+   ------------------------------------------------ */
+
+.tier-gold {
+  border: 2px solid #ffd700 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.tier-silver {
+  border: 1.5px solid #c0c0c0 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.tier-red {
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  opacity: 0.85;
+}
+
+/* Sweep shimmer — uses transform (GPU safe) */
+.tier-gold::after,
+.tier-silver::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: sweep var(--sweep-dur, 4s) infinite;
+  will-change: transform;           /* GPU composited */
+}
+
+.tier-silver::after {
+  --sweep-dur: 6s;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+}
+
+@keyframes sweep {
+  0%   { left: -100%; }
+  20%  { left: 120%; }
+  100% { left: 120%; }
+}
+
+/* ------------------------------------------------
+   CHAT FAB (Floating Action Button)
+   ------------------------------------------------ */
+
 .chat-fab {
-    position: fixed;
-    bottom: 85px; /* Sits right above your bottom nav */
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #9AE000;
-    color: #000;
-    border: none;
-    font-size: 24px;
-    box-shadow: 0 4px 15px rgba(154, 224, 0, 0.4);
-    cursor: pointer;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
+  position: fixed;
+  bottom: calc(var(--nav-height) + 20px);   /* sits above nav — no magic number */
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  font-size: 24px;
+  box-shadow: 0 4px 15px var(--accent-glow);
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
 }
-.chat-fab:active { transform: scale(0.9); }
+
+.chat-fab:active {
+  transform: scale(0.9);
+}
 
 .unread-badge {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    background: #ef4444;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid #0c1117;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--red);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-dark);
 }
 
-/* --- CHAT BOTTOM SHEET --- */
+/* ------------------------------------------------
+   CHAT PANEL
+   ------------------------------------------------ */
+
 .chat-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    z-index: 2000; backdrop-filter: blur(4px);
-    transition: opacity 0.3s;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.3s;
 }
 
 .chat-panel {
-    position: fixed; bottom: -100%; left: 0; width: 100%;
-    height: 75vh; background: #0f172a;
-    border-radius: 24px 24px 0 0; z-index: 2100;
-    display: flex; flex-direction: column;
-    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  height: 75vh;
+  background: #0f172a;
+  border-radius: 24px 24px 0 0;
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+  transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
 }
+
 .chat-panel.show { bottom: 0; }
 
 .chat-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 20px; border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
 }
-.chat-header h3 { margin: 0; font-size: 16px; font-weight: 800; color: #fff; }
-.close-chat { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
 
-/* --- MESSAGES AREA --- */
+.chat-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.close-chat {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
+}
+
 .chat-messages {
-    flex: 1; overflow-y: auto; padding: 20px;
-    display: flex; flex-direction: column; gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .chat-msg {
-    display: flex; flex-direction: column; max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
 }
-.chat-msg.me { align-self: flex-end; align-items: flex-end; }
+
+.chat-msg.me   { align-self: flex-end;   align-items: flex-end; }
 .chat-msg.them { align-self: flex-start; align-items: flex-start; }
 
-.msg-sender { font-size: 10px; color: #94a3b8; margin-bottom: 4px; font-weight: 700; }
-.msg-bubble {
-    padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.4;
-    word-break: break-word; font-weight: 500;
-}
-.chat-msg.me .msg-bubble {
-    background: #9AE000; color: #000;
-    border-bottom-right-radius: 4px;
-}
-.chat-msg.them .msg-bubble {
-    background: #1e293b; color: #fff; border: 1px solid #334155;
-    border-bottom-left-radius: 4px;
+.msg-sender {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  font-weight: 700;
 }
 
-/* --- INPUT AREA --- */
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+  font-weight: 500;
+}
+
+.chat-msg.me   .msg-bubble { background: var(--accent); color: #000; border-bottom-right-radius: 4px; }
+.chat-msg.them .msg-bubble { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
 .chat-input-area {
-    display: flex; padding: 16px; gap: 10px; background: #0c1117;
-    border-top: 1px solid #1e293b;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); /* iPhone safe area */
+  display: flex;
+  padding: 16px;
+  gap: 10px;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border);
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
+
 .chat-input-area input {
-    flex: 1; background: #1e293b; border: 1px solid #334155; color: #fff;
-    padding: 12px 16px; border-radius: 20px; outline: none; font-size: 14px;
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
 }
-.chat-input-area input:focus { border-color: #9AE000; }
+
+.chat-input-area input:focus {
+  border-color: var(--accent);
+}
+
 .chat-input-area button {
-    background: #9AE000; border: none; width: 44px; height: 44px;
-    border-radius: 50%; color: #000; font-size: 16px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+  background: var(--accent);
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #000;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.chat-input-area button:disabled { background: #334155; color: #94a3b8; }
+
+.chat-input-area button:disabled {
+  background: var(--border);
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------
+   GURU LIST (Top 100 modal)
+   ------------------------------------------------ */
+
+.guru-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.guru-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.guru-rank   { font-weight: 900; color: var(--accent); width: 35px; }
+.guru-avatar { width: 36px; height: 36px; border-radius: 50%; margin-right: 12px; border: 1px solid var(--border-subtle); }
+.guru-name   { flex: 1; font-weight: 700; font-size: 14px; }
+.guru-stars  { font-weight: 900; background: var(--accent-dim); color: var(--accent); padding: 4px 8px; border-radius: 8px; }
