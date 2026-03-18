@@ -3,71 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cricket Expert · Fun Zone</title>
+  <title>Fun Zone · Cricket Experts</title>
 
-  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0">
-  <link rel="stylesheet" href="css/animations.css?v=1.0">
-  <link rel="stylesheet" href="css/prediction.css?v=1.0">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/prediction.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script type="module" src="auth-guard.js"></script>
 </head>
 
 <body>
+<div class="prediction-page">
 
-  <div class="prediction-page">
+  <div class="scroll-content page-with-nav">
 
-    <div class="scroll-content page-with-nav">
+    <!-- HEADER -->
+    <header class="fun-header">
+      <div>
+        <h1 class="theme-title">Fun Zone</h1>
+        <p class="theme-sub">Predict. Build. Compete.</p>
+      </div>
+      <div class="score-pill">
+        <span id="userStarCount">0 ⭐</span>
+      </div>
+    </header>
 
-      <!-- HEADER -->
-      <header class="fun-header">
-        <div class="header-left">
-          <h1 class="theme-title">Fun Zone 🎯</h1>
-        </div>
-        <div class="score-pill">
-          <span id="userStarCount">0 ⭐</span>
-        </div>
-      </header>
+    <!-- TAB BAR -->
+    <nav class="fun-tabs">
+      <button class="fun-tab active" data-tab="predict" onclick="switchTab('predict')">
+        <i class="fas fa-bolt"></i> Predict
+      </button>
+      <button class="fun-tab" data-tab="allstars" onclick="switchTab('allstars')">
+        <i class="fas fa-star"></i> All Stars
+      </button>
+      <button class="fun-tab" data-tab="daily" onclick="switchTab('daily')">
+        <i class="fas fa-calendar-day"></i> Daily XI
+      </button>
+    </nav>
 
-      <!-- PREDICTION CARD -->
+    <!-- ── PREDICT PANEL ──────────────────────────────── -->
+    <div id="panel-predict" class="tab-panel">
+
       <section class="prediction-container card">
         <div id="predictionArea">
-          <p style="text-align:center; color: var(--text-dim);">Loading Match...</p>
+          <p class="empty-msg">Loading match…</p>
         </div>
         <div id="postMatchSummary"></div>
       </section>
 
-      <!-- PODIUM SECTION -->
-      <div id="podiumSection" class="podium-stack">
-
+      <div class="podium-stack">
         <div class="podium-box">
-          <div class="mini-label">MATCH HEROES</div>
+          <div class="mini-label">Match Heroes</div>
           <div id="playerPodium" class="podium-grid"></div>
         </div>
-
         <div class="podium-box">
-          <div class="mini-label">MATCH EXPERTS</div>
+          <div class="mini-label">Match Experts</div>
           <div id="userPodium" class="podium-grid"></div>
         </div>
-
       </div>
 
-    </div><!-- end .scroll-content -->
+    </div>
 
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav">
-      <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-      <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-      <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Fun</span></a>
-      <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
-    </nav>
+    <!-- ── ALL STARS PANEL ────────────────────────────── -->
+    <div id="panel-allstars" class="tab-panel hidden">
+      <div class="panel-intro">
+        <p class="panel-intro-title">All Stars XI</p>
+        <p class="panel-intro-body">Build your dream XI before Match 1. Lock it once — it earns points all season. No changes allowed after saving.</p>
+      </div>
+    </div>
 
-  </div><!-- end .prediction-page -->
+    <!-- ── DAILY XI PANEL ─────────────────────────────── -->
+    <div id="panel-daily" class="tab-panel hidden">
+      <div class="panel-intro">
+        <p class="panel-intro-title">Daily XI</p>
+        <p class="panel-intro-body">Pick your best 11 from today's two teams. One entry per match. Compete on the Daily Leaderboard and track your Season Average Rank.</p>
+      </div>
+    </div>
 
-  <!-- TOAST -->
-  <div id="toastContainer" class="toast-container"></div>
+  </div><!-- end .scroll-content -->
 
-  <script type="module" src="prediction.js?v=1.0"></script>
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+    <a href="prediction.html" class="active"><i class="fas fa-bolt"></i><span>Fun</span></a>
+    <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
+  </nav>
+
+</div><!-- end .prediction-page -->
+
+<!-- GURU MODAL -->
+<div id="guruModal" class="guru-modal-overlay hidden">
+  <div class="guru-modal">
+    <div class="guru-modal-header">
+      <h3>🏆 Top Prediction Masters</h3>
+      <button id="closeGuruModal" class="close-btn">&times;</button>
+    </div>
+    <div id="guruList" class="guru-list"></div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM DIALOG -->
+<div id="funConfirmOverlay" class="fun-confirm-overlay hidden">
+  <div class="fun-confirm-card">
+    <p id="funConfirmTitle" class="fun-confirm-title"></p>
+    <p id="funConfirmText"  class="fun-confirm-text"></p>
+    <div class="fun-confirm-actions">
+      <button id="funConfirmCancel" class="fun-btn-cancel">Cancel</button>
+      <button id="funConfirmOk"     class="fun-btn-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script type="module" src="prediction.js"></script>
 </body>
 </html>

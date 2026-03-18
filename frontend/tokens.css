@@ -7,39 +7,40 @@
 :root {
 
   /* --- BRAND COLORS --- */
-  --accent: #9AE000;
-  --accent-dim: rgba(154, 224, 0, 0.1);
+  --accent:      #9AE000;
+  --accent-dim:  rgba(154, 224, 0, 0.1);
   --accent-glow: rgba(154, 224, 0, 0.3);
 
   /* --- BACKGROUNDS --- */
-  --bg-dark: #0c1117;
-  --bg-card: #1e293b;
+  --bg-dark:     #0c1117;
+  --bg-card:     #1e293b;
   --bg-card-alt: #111827;
-  --bg-input: #0c1117;
+  --bg-input:    #0c1117;
 
   /* --- BORDERS --- */
-  --border: #334155;
+  --border:        #334155;
   --border-subtle: rgba(255, 255, 255, 0.08);
 
   /* --- TEXT --- */
   --text-primary: #ffffff;
-  --text-dim: #94a3b8;
-  --text-faint: #64748b;
+  --text-dim:     #94a3b8;
+  --text-faint:   #64748b;
 
   /* --- SEMANTIC COLORS --- */
-  --red: #ef4444;
+  --red:    #ef4444;
   --orange: #fb923c;
-  --gold: #f59e0b;
-  --blue: #7cc4ff;
+  --gold:   #f59e0b;
+  --blue:   #7cc4ff;
+  --cyan:   #00f2ff;   /* prediction page accent — added to tokens */
 
   /* --- LAYOUT --- */
-  --nav-height: 65px;
+  --nav-height:    65px;
   --app-max-width: 480px;
-  --card-radius: 20px;
-  --btn-radius: 12px;
+  --card-radius:   20px;
+  --btn-radius:    12px;
 
   /* --- ANIMATION --- */
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition:        all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   /* --- FONT --- */
