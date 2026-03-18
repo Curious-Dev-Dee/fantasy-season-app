@@ -1,92 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>Cricket Experts · View Team</title>
-<link rel="stylesheet" href="tokens.css">    
-<link rel="stylesheet" href="components.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cricket Experts · View Team</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/team-view.css?v=1.0" />
-
-    
+  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/team-view.css?v=1.0">
 </head>
+
 <body class="loading-state">
 
-<div id="loadingOverlay">
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay">
     <div class="cricket-loader-wrap">
-        <div class="pitch-line"></div>
-        <div class="cricket-ball"></div>
-        <div class="bowler-pos">🏏</div>
+      <div class="pitch-line"></div>
+      <div class="cricket-ball"></div>
+      <div class="bowler-pos">🏏</div>
     </div>
     <div class="loading-text">Players getting ready...</div>
-</div>
+  </div>
 
-<div class="team-view-app">
+  <div class="team-view-app">
+
+    <!-- HEADER -->
     <header class="premium-header">
+      <a href="home.html" class="icon-back">
+        <i class="fas fa-arrow-left"></i>
+      </a>
 
-        <a href="home.html" class="icon-back">
-      <i class="fas fa-arrow-left"></i> </a>
-        <div class="header-center">
-            <h1 class="main-title" id="viewTitle">View Team</h1>
-            <div id="boosterIndicator" class="booster-indicator-view hidden">🚀 2X BOOSTER ACTIVE</div>
-            <div id="countdownContainer" class="countdown-text hidden">Starts in: <span id="timer">00h 00m 00s</span></div>
-            <button id="viewHistoryBtn" class="history-trigger"><i class="fas fa-history"></i> Match History</button>
+      <div class="header-center">
+        <h1 class="main-title" id="viewTitle">View Team</h1>
+        <div id="boosterIndicator" class="booster-indicator-view hidden">🚀 2X BOOSTER ACTIVE</div>
+        <div id="countdownContainer" class="countdown-text hidden">
+          Starts in: <span id="timer">00h 00m 00s</span>
         </div>
-        <div style="width: 40px;"></div>
+        <button id="viewHistoryBtn" class="history-trigger">
+          <i class="fas fa-history"></i> Match History
+        </button>
+      </div>
+
+      <!-- Spacer to balance the back button on the left -->
+      <div style="width:40px;"></div>
     </header>
 
+    <!-- XI TOGGLE -->
     <div class="xi-toggle">
-        <button class="xi-tab active" id="tabUpcoming" data-tab="current">Upcoming XI</button>
-        <button class="xi-tab" id="tabLocked" data-tab="locked">Last Match</button>
+      <button class="xi-tab active" id="tabUpcoming" data-tab="current">Upcoming XI</button>
+      <button class="xi-tab" id="tabLocked" data-tab="locked">Last Match</button>
     </div>
 
+    <!-- TEAM FIELD -->
     <main class="team-field" id="teamContainer"></main>
     <div id="teamStatus" class="team-status"></div>
-    
+
+    <!-- HISTORY OVERLAY -->
     <div id="historyOverlay" class="overlay hidden">
-        <div class="overlay-content">
-            <div class="overlay-header">
-                <h3>Season History</h3>
-                <button class="close-btn" id="closeHistory">&times;</button>
-            </div>
-            <div id="historySummary" class="history-summary">
-                <div class="history-summary-card">
-                    <span class="history-summary-label">Subs Left</span>
-                    <span class="history-summary-value" id="historySubsRemaining">--</span>
-                </div>
-                <div class="history-summary-card">
-                    <span class="history-summary-label">Boosters Left</span>
-                    <span class="history-summary-value" id="historyBoostersLeft">--</span>
-                </div>
-            </div>
-            <div id="historyList" class="scroll-area"></div>
+      <div class="overlay-content">
+        <div class="overlay-header">
+          <h3>Season History</h3>
+          <button class="close-btn" id="closeHistory">&times;</button>
         </div>
+        <div id="historySummary" class="history-summary">
+          <div class="history-summary-card">
+            <span class="history-summary-label">Subs Left</span>
+            <span class="history-summary-value" id="historySubsRemaining">--</span>
+          </div>
+          <div class="history-summary-card">
+            <span class="history-summary-label">Boosters Left</span>
+            <span class="history-summary-value" id="historyBoostersLeft">--</span>
+          </div>
+        </div>
+        <div id="historyList" class="scroll-area"></div>
+      </div>
     </div>
 
+    <!-- BREAKDOWN OVERLAY -->
     <div id="breakdownOverlay" class="overlay hidden">
-        <div class="overlay-content breakdown-view">
-            <div class="overlay-header">
-                <button class="back-arrow" id="backToHistory">← Back</button>
-                <h3 id="breakdownTitle">Match Details</h3>
-            </div>
-            <div id="breakdownBooster" class="booster-indicator-view hidden" style="margin: 10px auto; display: table;">🚀 2X BOOSTER USED</div>
-            <div class="breakdown-body"><div id="breakdownTeamContainer" class="team-field smaller-field"></div></div>
-            <footer class="breakdown-footer" id="breakdownFooter"></footer>
+      <div class="overlay-content breakdown-view">
+        <div class="overlay-header">
+          <button class="back-arrow" id="backToHistory">← Back</button>
+          <h3 id="breakdownTitle">Match Details</h3>
         </div>
+        <div id="breakdownBooster" class="booster-indicator-view hidden"
+             style="margin:10px auto; display:table;">
+          🚀 2X BOOSTER USED
+        </div>
+        <div class="breakdown-body">
+          <div id="breakdownTeamContainer" class="team-field smaller-field"></div>
+        </div>
+        <footer class="breakdown-footer" id="breakdownFooter"></footer>
+      </div>
     </div>
 
-    <div id="playerPointLogOverlay" class="overlay hidden" style="z-index: 4000;">
-        <div class="overlay-content player-breakdown-popup">
-            <div class="overlay-header">
-                <h3 id="pplPlayerName">Player Points</h3>
-                <button class="close-btn" id="closePPL">&times;</button>
-            </div>
-            <div id="pplContent" class="scroll-area"></div>
+    <!-- PLAYER POINT LOG OVERLAY -->
+    <div id="playerPointLogOverlay" class="overlay hidden" style="z-index:4000;">
+      <div class="overlay-content player-breakdown-popup">
+        <div class="overlay-header">
+          <h3 id="pplPlayerName">Player Points</h3>
+          <button class="close-btn" id="closePPL">&times;</button>
         </div>
+        <div id="pplContent" class="scroll-area"></div>
+      </div>
     </div>
-</div>
 
-<script type="module" src="team-view.js?v=1.0"></script>
+  </div><!-- end .team-view-app -->
+
+  <script type="module" src="team-view.js?v=2.0"></script>
 </body>
 </html>

@@ -1,337 +1,568 @@
-/* --- 1. CORE VARIABLES & RESET --- */
+/* ================================================
+   TEAM-VIEW.CSS
+   Requires: tokens.css + components.css
+   ================================================ */
+
+/* =========================
+   LOCAL VARIABLES
+   Only page-specific values live here —
+   everything else uses tokens.css
+========================= */
+
 :root {
-    --accent:var(--accent);
-    --field-center: #1b5e20;
-    --field-edge: #061f17;
-    --card-bg: var(--bg-card);;
-    --bg-dark: #0f172a;
-    --border-color: rgba(255, 255, 255, 0.1); /* FIXED: Added missing variable */
+  --field-center: #1b5e20;
+  --field-edge:   #061f17;
 }
+
+/* =========================
+   BASE
+========================= */
 
 body, html {
-    margin: 0; padding: 0;
-    background: #000;
-    font-family: 'Inter', -apple-system, sans-serif;
-    color: #fff;
-    overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  font-family: var(--font);
+  color: var(--text-primary);
+  overflow-x: hidden;
 }
 
+/* =========================
+   CRICKET FIELD BACKGROUND
+========================= */
+
 .team-view-app {
-    /* Adding 'Mowing Lines' to the grass */
-    background: 
-        repeating-linear-gradient(
-            90deg,
-            rgba(0, 0, 0, 0.03) 0px,
-            rgba(0, 0, 0, 0.03) 40px,
-            transparent 40px,
-            transparent 80px
-        ),
-        radial-gradient(circle at center, var(--field-center) 0%, #0b3d2e 65%, var(--field-edge) 100%);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.03) 0px,
+      rgba(0, 0, 0, 0.03) 40px,
+      transparent 40px,
+      transparent 80px
+    ),
+    radial-gradient(circle at center, var(--field-center) 0%, #0b3d2e 65%, var(--field-edge) 100%);
 }
 
 body.loaded .team-view-app {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* --- 2. PREMIUM HEADER & TABS --- */
+/* =========================
+   HEADER
+========================= */
+
 .premium-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start; /* Allows center to expand vertically */
-    padding: 16px 15px 12px; 
-    background: rgba(0,0,0,0.3); 
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 15px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-
-
-
-/* --- THE CENTER STACK --- */
 .header-center {
-    display: flex;
-    flex-direction: column; /* Stacks items vertically */
-    align-items: center;    /* Centers them horizontally */
-    justify-content: center;
-    flex: 1;
-    gap: 6px;               /* Clean spacing between elements */
-    padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 6px;
+  padding: 0 10px;
 }
 
-.main-title { 
-    font-size: 18px; 
-    font-weight: 800; 
-    margin: 0; 
-    text-align: center; 
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.main-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .booster-indicator-view {
-    background: var(--accent);
-    color: #000; 
-    padding: 3px 10px; 
-    border-radius: 12px;
-    font-size: 10px; 
-    font-weight: 900; 
-    text-align: center;
-    text-transform: uppercase;
-    box-shadow: 0 0 10px rgba(154, 224, 0, 0.3);
+  background: var(--accent);
+  color: #000;
+  padding: 3px 10px;
+  border-radius: var(--btn-radius);
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .countdown-text {
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 800;
-    background: rgba(154, 224, 0, 0.05);
-    padding: 2px 8px;
-    border-radius: 6px;
-    border: 1px solid rgba(154, 224, 0, 0.1);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 800;
+  background: var(--accent-dim);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(154, 224, 0, 0.1);
 }
 
 .history-trigger {
-    background: rgba(154, 224, 0, 0.1); 
-    color: var(--accent); 
-    border: 1px solid rgba(154, 224, 0, 0.3);
-    padding: 6px 14px; 
-    border-radius: 20px; 
-    font-size: 10px; 
-    font-weight: 800;
-    cursor: pointer; 
-    text-transform: uppercase;
-    display: inline-flex; 
-    align-items: center; 
-    gap: 6px;
-    transition: all 0.2s ease;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(154, 224, 0, 0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
 }
 
 .history-trigger:active {
-    background: rgba(154, 224, 0, 0.2);
-    transform: scale(0.96);
+  background: rgba(154, 224, 0, 0.2);
+  transform: scale(0.96);
 }
 
-/* Helpers */
+/* =========================
+   XI TOGGLE TABS
+========================= */
 
-.xi-toggle { display: flex; justify-content: center; gap: 8px; padding: 15px; }
+.xi-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px;
+}
+
 .xi-tab {
-    padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.05); color: #8b949e; font-size: 12px; font-weight: 700; cursor: pointer;
+  padding: 10px 14px;
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
 }
-.xi-tab.active { background: var(--accent); color: #000; border: none; }
 
-/* --- 3. PLAYER FIELD & CIRCLES --- */
-.team-field { flex: 1; padding: 10px; }
+.xi-tab.active {
+  background: var(--accent);
+  color: #000;
+  border: none;
+}
+
+/* =========================
+   PLAYER FIELD
+========================= */
+
+.team-field {
+  flex: 1;
+  padding: 10px;
+}
+
 .team-status {
-    min-height: 24px;
-    padding: 0 18px 18px;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  min-height: 24px;
+  padding: 0 18px 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.role-section { margin-bottom: 25px; }
-.role-title { 
-    text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 2px; margin-bottom: 12px; color: rgba(255,255,255,0.7);
+.role-section {
+  margin-bottom: 25px;
 }
 
-.player-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
-.player-circle { width: 80px; text-align: center; position: relative; transition: 0.1s; }
-.player-circle:active { transform: scale(0.95); }
-
-.avatar { 
-    width: 55px; height: 55px; border-radius: 50%; margin: 0 auto 6px; 
-    background: #0f2f22 url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png') no-repeat center;
-    background-size: cover; border: 2px solid rgba(255,255,255,0.3); position: relative;
+.role-title {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.player-circle.captain .avatar { border-color: var(--accent); box-shadow: 0 0 15px rgba(154, 224, 0, 0.4); }
-.player-circle.vice-captain .avatar { border-color: #7cc4ff; box-shadow: 0 0 15px rgba(124, 196, 255, 0.4); }
+/* =========================
+   PLAYER CIRCLES
+========================= */
+
+.player-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.player-circle {
+  width: 80px;
+  text-align: center;
+  position: relative;
+  transition: 0.1s;
+}
+
+.player-circle:active {
+  transform: scale(0.95);
+}
+
+.avatar {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  background: #0f2f22 url('https://www.gstatic.com/images/branding/product/2x/avatar_anonymous_dark_72dp.png') no-repeat center;
+  background-size: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.player-circle.captain    .avatar { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+.player-circle.vice-captain .avatar { border-color: var(--blue);  box-shadow: 0 0 15px rgba(124, 196, 255, 0.4); }
 
 .team-init-label {
-    position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
-    background: #111; color: #fff; font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 800;
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  font-size: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
 }
 
-.player-name { font-size: 10px; font-weight: 600; color: #fff; margin-top: 4px; text-shadow: 0 1px 3px #000; }
-.player-pts { font-size: 11px; color: var(--accent); font-weight: 800; }
+.player-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  margin-top: 4px;
+  text-shadow: 0 1px 3px #000;
+}
+
+.player-pts {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* =========================
+   CAPTAIN / VICE BADGES
+========================= */
 
 .badge {
-    position: absolute; top: -6px; left: 4px; width: 20px; height: 20px;
-    border-radius: 50%; font-size: 10px; font-weight: 900;
-    display: flex; align-items: center; justify-content: center; color: #000; z-index: 10;
+  position: absolute;
+  top: -6px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  z-index: 10;
 }
-.captain-badge { background: var(--accent); }
-.vice-badge { background: #7cc4ff; }
 
-/* --- 4. OVERLAYS & MODALS --- */
+.captain-badge { background: var(--accent); }
+.vice-badge    { background: var(--blue); }
+
+/* =========================
+   OVERLAYS
+========================= */
+
 .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(15px); z-index: 3000; display: flex; align-items: flex-end;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
+  z-index: 3000;
+  display: flex;
+  align-items: flex-end;
 }
 
 .overlay-content {
-    background: var(--bg-dark); width: 100%; max-width: 420px; height: 90vh;
-    margin: 0 auto; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; 
-    border-top: 1px solid var(--border-color); overflow: hidden;
-    animation: slideUp 0.3s ease-out;
+  background: var(--bg-dark);
+  width: 100%;
+  max-width: 420px;
+  height: 90vh;
+  margin: 0 auto;
+  border-radius: 24px 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-subtle);
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
 }
 
 .overlay-header {
-    padding: 20px; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--border-color);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .breakdown-body {
-    flex: 1; overflow-y: auto; padding: 10px;
-    background: radial-gradient(circle at center, var(--field-center) 0%, var(--field-edge) 100%);
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: radial-gradient(circle at center, var(--field-center) 0%, var(--field-edge) 100%);
 }
 
 .breakdown-footer {
-    padding: 25px; background: var(--card-bg); text-align: center;
-    font-size: 14px; font-weight: 800; color: var(--accent);
-    border-top: 1px solid var(--border-color);
+  padding: 25px;
+  background: var(--bg-card);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  border-top: 1px solid var(--border-subtle);
 }
 
-/* --- 5. LISTS & LOGS --- */
+/* =========================
+   HISTORY LIST
+========================= */
+
 .history-summary {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    padding: 16px 15px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 15px 0;
 }
 
 .history-summary-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .history-summary-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: rgba(255,255,255,0.65);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .history-summary-value {
-    font-size: 18px;
-    font-weight: 900;
-    color: var(--accent);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
 }
 
-.scroll-area { flex: 1; overflow-y: auto; padding: 15px; }
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
 .history-row {
-    background: var(--card-bg); padding: 16px; border-radius: 16px;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; border: 1px solid var(--border-color); cursor: pointer;
+  background: var(--bg-card);
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
 }
 
 .history-row > div:first-child {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .h-m-num,
-.h-teams {
-    display: block;
-}
+.h-teams { display: block; }
 
 .h-booster {
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: rgba(154, 224, 0, 0.12);
-    border: 1px solid rgba(154, 224, 0, 0.4);
-    color: var(--accent);
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(154, 224, 0, 0.4);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .log-entry {
-    width: 100%; padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    display: flex; align-items: center;
-    font-size: 14px; color: #e2e8f0;
+  width: 100%;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #e2e8f0;
 }
-.log-entry::before { content: "•"; color: var(--accent); margin-right: 12px; font-weight: 900; }
 
-/* --- 6. UTILITIES & ANIMATIONS --- */
+.log-entry::before {
+  content: "•";
+  color: var(--accent);
+  margin-right: 12px;
+  font-weight: 900;
+}
 
+/* =========================
+   LOADING OVERLAY
+========================= */
 
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-/* LOADER OVERLAY */
 #loadingOverlay {
-    position: fixed; inset: 0; background: var(--bg-dark);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 9999; transition: opacity 0.6s ease;
+  position: fixed;
+  inset: 0;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.6s ease;
 }
 
-body.loaded #loadingOverlay { opacity: 0; pointer-events: none; }
+body.loaded #loadingOverlay {
+  opacity: 0;
+  pointer-events: none;
+}
 
-/* --- TIERED MATCH HISTORY --- */
+/* Reuse cricket loader from home page */
+.cricket-loader-wrap {
+  position: relative;
+  width: 240px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+}
 
-/* 🏆 GOLD (300+) - Radiant Sun */
+.pitch-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(154, 224, 0, 0.4) 50%,
+    transparent 100%);
+}
+
+.bowler-pos {
+  position: absolute;
+  left: -35px;
+  font-size: 28px;
+  filter: drop-shadow(0 0 5px rgba(154, 224, 0, 0.3));
+  opacity: 0.6;
+}
+
+.cricket-ball {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 35% 35%, #ff4d4d, #990000);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(255, 77, 77, 0.6);
+  left: 0;
+  will-change: transform;
+  animation: bowlingDelivery 1.8s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
+.loading-text {
+  margin-top: 30px;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  animation: pulseText 1s infinite alternate;
+}
+
+@keyframes bowlingDelivery {
+  0%   { left: 0;     transform: translateY(0) scale(1); }
+  48%  {              transform: translateY(0) scale(1); }
+  50%  { left: 120px; transform: translateY(-2px) scale(1.1); }
+  100% { left: 240px; transform: translateY(-25px) rotate(1080deg) scale(0.7); opacity: 0; }
+}
+
+@keyframes pulseText {
+  from { opacity: 0.3; letter-spacing: 4px; }
+  to   { opacity: 1;   letter-spacing: 6px; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* =========================
+   TIERED MATCH HISTORY
+   GPU-safe sweep (animates transform not left)
+========================= */
+
 .tier-gold {
-    border: 2px solid #FFD700 !important;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-    position: relative;
-    overflow: hidden;
-}
-.tier-gold::after {
-    content: '';
-    position: absolute;
-    top: -50%; left: -100%;
-    width: 200%; height: 200%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transform: rotate(30deg);
-    animation: sweep 4s infinite;
+  border: 2px solid #ffd700 !important;
+  position: relative;
+  overflow: hidden;
 }
 
-/* 🥈 SILVER (200-299) - Metallic Chrome */
 .tier-silver {
-    border: 1.5px solid #C0C0C0 !important;
-    box-shadow: 0 0 10px rgba(192, 192, 192, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-.tier-silver::after {
-    content: '';
-    position: absolute;
-    top: -50%; left: -100%;
-    width: 200%; height: 200%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: rotate(30deg);
-    animation: sweep 6s infinite; /* Slower, more subtle sweep */
+  border: 1.5px solid #c0c0c0 !important;
+  position: relative;
+  overflow: hidden;
 }
 
-/* 🔴 RED (Below 200) - Dimmed Slate/Red */
 .tier-red {
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
-    opacity: 0.85; /* Slightly fade out weaker matches */
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  opacity: 0.85;
 }
 
-/* --- THE SWEEP ANIMATION --- */
+/* Sweep shimmer — transform is GPU composited */
+.tier-gold::after,
+.tier-silver::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: sweep var(--sweep-dur, 4s) infinite;
+  will-change: transform;
+}
+
+.tier-silver::after {
+  --sweep-dur: 6s;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+}
+
 @keyframes sweep {
-    0% { left: -100%; }
-    20% { left: 100%; }
-    100% { left: 100%; }
+  0%   { left: -60%; }
+  20%  { left: 120%; }
+  100% { left: 120%; }
 }
