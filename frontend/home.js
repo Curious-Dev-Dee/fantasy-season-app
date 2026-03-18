@@ -50,18 +50,26 @@ function loadInPageAd(containerId, zoneId) {
 
     if (container.hasChildNodes()) return;
 
+    // Create wrapper
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.minHeight = "80px";
+
+    container.appendChild(wrapper);
+
     const script = document.createElement("script");
     script.src = "https://nap5k.com/tag.min.js";
     script.async = true;
     script.dataset.zone = zoneId;
 
-    container.appendChild(script);
+    wrapper.appendChild(script);
 }
 
 function loadMonetagAd() {
     const lastShown = localStorage.getItem("ad_last_shown");
     const now = Date.now();
 
+    // ⛔ Limit: once every 2 minutes
     if (lastShown && now - lastShown < 120000) return;
 
     localStorage.setItem("ad_last_shown", now);
@@ -140,20 +148,11 @@ document.body.classList.remove('loading-state');
 document.body.classList.add('loaded');
 
 // 🔥 VIGNETTE (instant after UI ready)
-const lastAction = localStorage.getItem("last_action");
-if (lastAction === "team_saved") {
+if (existingProfile?.profile_completed) {
     loadMonetagAd();
-    localStorage.removeItem("last_action");
 }
 
-// 🟢 In-page ads after 1 sec
-setTimeout(() => {
-    loadInPageAd("adAfterMatch", "10746396");
-    loadInPageAd("adAfterLeague", "10742541");
-}, 1000);
 }
-
-
 
 /* =========================
    DASHBOARD INITIALIZATION
