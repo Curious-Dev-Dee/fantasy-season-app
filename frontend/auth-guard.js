@@ -1,27 +1,27 @@
 import { supabase } from "./supabase.js";
+import { resolveAuth, rejectAuth } from "./auth-state.js";
 
 async function protectPage() {
-  const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-  if (error || !session) {
-    console.warn("Auth Guard: No session found. Redirecting to login...");
-    window.location.replace("login.html"); 
-    return;
-  }
+    if (error || !session) {
+        console.warn("Auth Guard: No session found. Redirecting to login...");
+        rejectAuth(new Error("No session"));
+        window.location.replace("login.html");
+        return;
+    }
 
-  // ❌ DELETED the document.body.classList.remove("loading-state") from here!
-  // home.js will handle revealing the UI once data is ready.
-  
-  const event = new CustomEvent('auth-verified', { 
-    detail: { user: session.user } 
-  });
-  window.dispatchEvent(event);
+    // Resolve the shared Promise — home.js is awaiting this.
+    // If home.js awaits authReady before this line runs, it waits.
+    // If home.js awaits after this line runs, it resolves instantly.
+    // Either way, no race condition.
+    resolveAuth(session.user);
 }
 
 protectPage();
 
 supabase.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT") {
-    window.location.replace("login.html");
-  }
+    if (event === "SIGNED_OUT") {
+        window.location.replace("login.html");
+    }
 });

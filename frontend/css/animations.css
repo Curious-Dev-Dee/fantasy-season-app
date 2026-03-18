@@ -1,149 +1,97 @@
 /* ================================================
    ANIMATIONS.CSS — Rank Flair System
    Requires: tokens.css loaded before this file
-
-   HOW THE RANK IS DECIDED (implement in JS):
-   ─────────────────────────────────────────────
-   const effectiveRank = Math.min(
-     overallRank  ?? Infinity,
-     privateRank  ?? Infinity
-   );
-   // Best rank across both leagues wins.
-   // If user is rank 5 overall but rank 2 private → silver.
-   // If not in top 3 in either league → no effect.
-
-   HOW TO APPLY (call this after ranks are loaded):
-   ─────────────────────────────────────────────
-   function applyRankFlair(avatarEl, nameEl, effectiveRank) {
-     if (effectiveRank === 1) {
-       avatarEl?.classList.add('rank-avatar-1');
-       nameEl?.classList.add('rank-name-1');
-     } else if (effectiveRank === 2) {
-       avatarEl?.classList.add('rank-avatar-2');
-       nameEl?.classList.add('rank-name-2');
-     } else if (effectiveRank === 3) {
-       avatarEl?.classList.add('rank-avatar-3');
-       nameEl?.classList.add('rank-name-3');
-     }
-   }
-
-   WHERE TO USE:
-   ─────────────────────────────────────────────
-   home.html        → user's own avatar + team name
-                    → top 3 names in mini leaderboard cards
-   leaderboard.html → podium avatars + names
-                    → chat message sender names
-   team-view.html   → team name when scouting another user
-   prediction.html  → top 3 in Match Experts podium
    ================================================ */
-
 
 /* ================================================
    AVATAR FRAMES
-   Add to any avatar element (img, div with bg)
    ================================================ */
 
-/* 🥇 Rank 1 — Gold */
 .rank-avatar-1 {
-  border: 3px solid #ffd700 !important;
-  box-shadow: 0 0 14px rgba(255, 215, 0, 0.55);
-  animation: pulse-gold 2s ease-in-out infinite;
-  will-change: box-shadow;
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.55);
+    animation: pulse-gold 2s ease-in-out infinite;
+    /* BUG FIX: removed will-change: box-shadow —
+       box-shadow is not GPU-composited so it wastes
+       memory without any performance gain */
 }
 
-/* 🥈 Rank 2 — Silver */
 .rank-avatar-2 {
-  border: 3px solid #c0c0c0 !important;
-  box-shadow: 0 0 12px rgba(192, 192, 192, 0.45);
-  animation: pulse-silver 2.5s ease-in-out infinite;
-  will-change: box-shadow;
+    border: 3px solid #c0c0c0 !important;
+    box-shadow: 0 0 12px rgba(192, 192, 192, 0.45);
+    animation: pulse-silver 2.5s ease-in-out infinite;
 }
 
-/* 🥉 Rank 3 — Bronze */
 .rank-avatar-3 {
-  border: 3px solid #cd7f32 !important;
-  box-shadow: 0 0 12px rgba(205, 127, 50, 0.45);
-  animation: pulse-bronze 3s ease-in-out infinite;
-  will-change: box-shadow;
+    border: 3px solid #cd7f32 !important;
+    box-shadow: 0 0 12px rgba(205, 127, 50, 0.45);
+    animation: pulse-bronze 3s ease-in-out infinite;
 }
-
 
 /* ================================================
    TEAM NAME FLAIR
-   Add to any text element showing a team name
    ================================================ */
 
-/* 🥇 Rank 1 — Gold shimmer */
 .rank-name-1 {
-  color: #ffd700 !important;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
-  animation: shimmer-gold 2s ease-in-out infinite alternate;
-  will-change: opacity;
+    color: #ffd700 !important;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    animation: shimmer-gold 2s ease-in-out infinite alternate;
 }
 
-/* 🥈 Rank 2 — Silver shimmer */
 .rank-name-2 {
-  color: #d4d4d4 !important;
-  text-shadow: 0 0 6px rgba(192, 192, 192, 0.4);
-  animation: shimmer-silver 2.5s ease-in-out infinite alternate;
-  will-change: opacity;
+    color: #d4d4d4 !important;
+    text-shadow: 0 0 6px rgba(192, 192, 192, 0.4);
+    animation: shimmer-silver 2.5s ease-in-out infinite alternate;
 }
 
-/* 🥉 Rank 3 — Bronze shimmer */
 .rank-name-3 {
-  color: #cd7f32 !important;
-  text-shadow: 0 0 6px rgba(205, 127, 50, 0.4);
-  animation: shimmer-bronze 3s ease-in-out infinite alternate;
-  will-change: opacity;
+    color: #cd7f32 !important;
+    text-shadow: 0 0 6px rgba(205, 127, 50, 0.4);
+    animation: shimmer-bronze 3s ease-in-out infinite alternate;
 }
-
 
 /* ================================================
    KEYFRAMES
-   Animates opacity only — GPU composited,
-   zero layout repaints, smooth on all devices
+   opacity and box-shadow only — no layout repaints
    ================================================ */
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
-  50%       { box-shadow: 0 0 22px rgba(255, 215, 0, 0.75); }
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+    50%       { box-shadow: 0 0 22px rgba(255, 215, 0, 0.75); }
 }
 
 @keyframes pulse-silver {
-  0%, 100% { box-shadow: 0 0 8px rgba(192, 192, 192, 0.3); }
-  50%       { box-shadow: 0 0 18px rgba(192, 192, 192, 0.6); }
+    0%, 100% { box-shadow: 0 0 8px rgba(192, 192, 192, 0.3); }
+    50%       { box-shadow: 0 0 18px rgba(192, 192, 192, 0.6); }
 }
 
 @keyframes pulse-bronze {
-  0%, 100% { box-shadow: 0 0 8px rgba(205, 127, 50, 0.3); }
-  50%       { box-shadow: 0 0 16px rgba(205, 127, 50, 0.6); }
+    0%, 100% { box-shadow: 0 0 8px rgba(205, 127, 50, 0.3); }
+    50%       { box-shadow: 0 0 16px rgba(205, 127, 50, 0.6); }
 }
 
 @keyframes shimmer-gold {
-  from { opacity: 0.85; text-shadow: 0 0 4px rgba(255, 215, 0, 0.4); }
-  to   { opacity: 1;    text-shadow: 0 0 12px rgba(255, 215, 0, 0.7); }
+    from { opacity: 0.85; text-shadow: 0 0 4px rgba(255, 215, 0, 0.4); }
+    to   { opacity: 1;    text-shadow: 0 0 12px rgba(255, 215, 0, 0.7); }
 }
 
 @keyframes shimmer-silver {
-  from { opacity: 0.8; }
-  to   { opacity: 1;   text-shadow: 0 0 10px rgba(192, 192, 192, 0.5); }
+    from { opacity: 0.8; }
+    to   { opacity: 1;   text-shadow: 0 0 10px rgba(192, 192, 192, 0.5); }
 }
 
 @keyframes shimmer-bronze {
-  from { opacity: 0.8; }
-  to   { opacity: 1;   text-shadow: 0 0 8px rgba(205, 127, 50, 0.5); }
+    from { opacity: 0.8; }
+    to   { opacity: 1;   text-shadow: 0 0 8px rgba(205, 127, 50, 0.5); }
 }
-
 
 /* ================================================
    ACCESSIBILITY
-   All animations turn off automatically when
-   user has "reduce motion" enabled on their device
    ================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .rank-avatar-1, .rank-avatar-2, .rank-avatar-3,
-  .rank-name-1,   .rank-name-2,   .rank-name-3 {
-    animation: none !important;
-  }
+    .rank-avatar-1, .rank-avatar-2, .rank-avatar-3,
+    .rank-name-1,   .rank-name-2,   .rank-name-3 {
+        animation: none !important;
+    }
 }
