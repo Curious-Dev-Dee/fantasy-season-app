@@ -852,3 +852,133 @@ body {
     from { transform: translateY(100%); }
     to   { transform: translateY(0); }
 }
+
+/* ─── PITCH CARD (All Stars locked view) ─────────────────────────────── */
+.pitch-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 14px;
+}
+.pitch-card-title {
+    font-family: 'Barlow Condensed', var(--font);
+    font-size: 22px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gold);
+}
+.pitch-card-sub {
+    font-size: 11px;
+    color: var(--text-faint);
+}
+.pitch-season-pts {
+    text-align: center;
+    font-family: 'Barlow Condensed', var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(154,224,0,0.2);
+    border-radius: 20px;
+    padding: 8px 18px;
+    margin-bottom: 18px;
+}
+.pitch-field {
+    background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 60px),
+        linear-gradient(180deg, #0d3320 0%, #1a5c38 50%, #0d3320 100%);
+    border-radius: 16px;
+    padding: 16px 8px;
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+.pitch-row-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+.pitch-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.pitch-row-label {
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+    margin: 0;
+    text-align: center;
+}
+.pitch-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    position: relative;
+    width: 58px;
+}
+.pitch-circle.cap  .pitch-avatar { border-color: var(--gold);  box-shadow: 0 0 10px rgba(245,158,11,0.5); }
+.pitch-circle.vc   .pitch-avatar { border-color: var(--blue);  box-shadow: 0 0 8px rgba(124,196,255,0.4); }
+.pitch-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #0a1f12 center/cover;
+    border: 2px solid rgba(255,255,255,0.25);
+    flex-shrink: 0;
+}
+.pitch-badge {
+    position: absolute;
+    top: -5px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    z-index: 2;
+}
+.pitch-badge-c  { background: var(--gold); }
+.pitch-badge-vc { background: var(--blue); }
+.pitch-name {
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 56px;
+}
+.pitch-team {
+    font-size: 8px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ─── ALL STARS DEADLINE WARN ────────────────────────────────────────── */
+.as-deadline-warn {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 12px;
+}
