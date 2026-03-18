@@ -566,6 +566,16 @@ if (saveProfileBtn) {
 
         } catch (err) {
             console.error("Save error:", err.message);
+
+            // DB trigger fires when registration is full or manually closed
+            if (err.message?.includes("USER_LIMIT_REACHED") ||
+                err.message?.includes("REGISTRATION_CLOSED")) {
+                import("./registration-guard.js").then(({ showRegistrationClosed }) => {
+                    showRegistrationClosed("full");
+                });
+                return;
+            }
+
             window.showToast("Failed to save: " + err.message, "error");
         } finally {
             saveProfileBtn.disabled = false;
