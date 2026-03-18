@@ -2,69 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />  <title>Fixtures | Cricket Experts</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Fixtures | Cricket Experts</title>
+
+  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
-
-  <link rel="stylesheet" href="css/fixtures.css?v=1.0" />
-  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0">
+  <link rel="stylesheet" href="css/fixtures.css?v=1.0">
 
   <link rel="icon" type="image/png" href="favicon.png">
-
-<link rel="apple-touch-icon" href="favicon.png">
-
-<link rel="manifest" href="manifest.json">
-
+  <link rel="apple-touch-icon" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
 </head>
+
 <body>
 
-<div class="fixtures-app page-with-nav">
-  <header class="fixtures-header">
-    <button class="back-btn" onclick="window.location.href='home.html'"><i class="fas fa-chevron-left"></i></button>
-    <div class="header-title">
+  <div class="fixtures-app page-with-nav">
+
+    <!-- HEADER -->
+    <header class="fixtures-header">
+      <a href="home.html" class="icon-back">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      <div class="header-title">
         <h1>Match Center</h1>
         <p id="matchCountSummaryText">Loading schedule...</p>
-    </div>
-  </header>
-
-  <section class="filters-section">
-    <div class="filter-bar">
-      <div class="filter-dropdown">
-        <button class="filter-btn" id="statusBtn">
-          <span>Status</span> <i class="fas fa-chevron-down"></i>
-        </button>
-        <div class="dropdown-panel hidden" id="statusPanel">
-          <div id="statusFilters" class="filter-options"></div>
-        </div>
       </div>
+    </header>
 
-      <div class="filter-dropdown">
-        <button class="filter-btn" id="teamBtn">
-          <span>Teams</span> <i class="fas fa-chevron-down"></i>
-        </button>
-        <div class="dropdown-panel hidden" id="teamPanel">
-          <div id="teamFilters" class="filter-options"></div>
+    <!-- FILTERS -->
+    <section class="filters-section">
+      <div class="filter-bar">
+
+        <div class="filter-dropdown">
+          <button class="filter-btn" id="statusBtn">
+            <span>Status</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-panel hidden" id="statusPanel">
+            <div id="statusFilters" class="filter-options"></div>
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <main id="matchesContainer" class="matches-container">
-    <div class="loading-state">
+        <div class="filter-dropdown">
+          <button class="filter-btn" id="teamBtn">
+            <span>Teams</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-panel hidden" id="teamPanel">
+            <div id="teamFilters" class="filter-options"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MATCHES -->
+    <main id="matchesContainer" class="matches-container">
+      <div class="loading-state">
         <i class="fas fa-circle-notch fa-spin"></i>
         <p>Syncing match data...</p>
-    </div>
-  </main>
-</div>
+      </div>
+    </main>
 
-<nav class="bottom-nav">
-  <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-  <a href="fixtures.html" class="active"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
-  <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
-</nav>
+  </div><!-- end .fixtures-app -->
 
-<script type="module" src="fixtures.js?v=1.0"></script>
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="fixtures.html" class="active"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+    <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+    <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
+  </nav>
+
+  <script type="module" src="fixtures.js?v=1.0"></script>
 </body>
 </html>
