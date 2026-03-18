@@ -11,10 +11,9 @@ const spinner       = googleBtn?.querySelector(".spinner");
 const errorEl       = document.getElementById("authError");
 
 /* ── REGISTRATION GUARD ──────────────────────────────────────────────────
-   Runs before showing the login UI to any visitor who isn't already
-   logged in. Existing users hit onAuthStateChange first and get
-   redirected before this check ever runs — so this only affects
-   genuinely new visitors coming in from the blog.
+   Runs before showing the login UI to any visitor who is not already
+   logged in. Existing users are redirected by onAuthStateChange before
+   this ever runs — it only affects genuinely new visitors from the blog.
 ─────────────────────────────────────────────────────────────────────── */
 async function checkAndReveal() {
     const status = await checkRegistrationOpen();
@@ -22,21 +21,20 @@ async function checkAndReveal() {
         showRegistrationClosed(status.reason);
         return;
     }
-    // Spots available — reveal login form normally
     authContainer?.classList.remove("hidden");
 }
 
 /* ── AUTH STATE ──────────────────────────────────────────────────────────
    onAuthStateChange fires on every page load with the current session.
-   Session exists → already registered → redirect immediately.
-   No session → run registration check before showing the login form.
+   BUG FIX: was redirecting to /home.html — changed to /home (clean URL).
+   Vercel serves pages at clean URLs; /home.html may route differently
+   and was causing the post-login redirect to land on fixtures.
 ─────────────────────────────────────────────────────────────────────── */
 supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
-        // Already logged in — skip the registration check entirely
-        window.location.replace("/home.html");
+        // BUG FIX: /home not /home.html
+        window.location.replace("/home");
     } else {
-        // Not logged in — check if registration is still open before revealing UI
         checkAndReveal();
     }
 });
@@ -65,8 +63,7 @@ function clearError() {
 async function signInWithGoogle() {
     clearError();
 
-    // Second check right at the moment the button is clicked — in case the
-    // last spot was taken between page load and button press
+    // Second check at button-press time — in case last spot was just taken
     const status = await checkRegistrationOpen();
     if (!status.open) {
         showRegistrationClosed(status.reason);
@@ -79,12 +76,15 @@ async function signInWithGoogle() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/home.html`,
+                // BUG FIX: /home not /home.html
+                // This must also match the redirect URL in your
+                // Supabase Dashboard → Authentication → URL Configuration → Redirect URLs
+                // Add both: https://yourdomain.com/home and https://yourdomain.com/home.html
+                redirectTo: `${window.location.origin}/home`,
             },
         });
 
         if (error) throw error;
-        // Successful OAuth triggers a browser redirect — no setLoading(false) needed
 
     } catch (err) {
         console.error("Auth error:", err);
