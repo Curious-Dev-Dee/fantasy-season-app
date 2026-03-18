@@ -1,11 +1,16 @@
+/* ================================================
+   LOGIN.CSS
+   Requires: tokens.css loaded before this file
+   ================================================ */
+
 /* GLOBAL RESET */
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font);
   background: radial-gradient(circle at top, #0f172a 0%, #020617 65%);
-  color: #ffffff;
+  color: var(--text-primary);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -16,7 +21,7 @@ body {
 /* UI ENTRANCE ANIMATION */
 .auth-container {
   width: 100%;
-  max-width: 420px;
+  max-width: var(--app-max-width);
   padding: 24px;
   text-align: center;
   animation: fadeInRise 0.8s ease-out forwards;
@@ -24,21 +29,42 @@ body {
 
 @keyframes fadeInRise {
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* HERO SECTION */
-.hero-title { font-size: 36px; font-weight: 700; margin-bottom: 12px; line-height: 1.15; letter-spacing: -0.5px; }
-.hero-tagline { font-size: 16px; opacity: 0.85; margin-bottom: 8px; }
-.hero-tagline .accent { color: #a3ff12; font-weight: 600; }
-.hero-support { font-size: 14px; opacity: 0.6; margin-bottom: 32px; line-height: 1.5; }
+.hero-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.hero-tagline {
+  font-size: 16px;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+
+.hero-tagline .accent {
+  color: var(--accent);   /* was #a3ff12 */
+  font-weight: 600;
+}
+
+.hero-support {
+  font-size: 14px;
+  opacity: 0.6;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
 
 /* AUTH CARD */
 .auth-card {
   background: linear-gradient(145deg, rgba(20, 30, 48, 0.9), rgba(12, 20, 36, 0.95));
   padding: 28px 24px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--border-subtle);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
@@ -46,7 +72,7 @@ body {
 .auth-btn {
   width: 100%;
   height: 48px;
-  border-radius: 14px;
+  border-radius: var(--btn-radius);
   border: none;
   font-weight: 600;
   font-size: 15px;
@@ -54,25 +80,38 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px; /* Space between the G and the text */
-  transition: all 0.2s ease;
+  gap: 12px;
+  transition: var(--transition);
   position: relative;
-  overflow: hidden; /* Prevents giant icons from spilling out */
+  overflow: hidden;
 }
 
-/* THE FIX: Specifically target the Google G */
 .google-icon-img {
-  width: 18px;  /* Professional standard size */
-  height: 18px; 
+  width: 18px;
+  height: 18px;
   display: block;
-  object-fit: contain; /* Ensures the G doesn't look squashed */
-  flex-shrink: 0;      /* Prevents the text from squishing the icon */
+  object-fit: contain;
+  flex-shrink: 0;
 }
-  
-.auth-btn.primary { background-color: #a3ff12; color: #000; box-shadow: 0 6px 18px rgba(163, 255, 18, 0.25); }
-.auth-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(163, 255, 18, 0.4); }
-.auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
+.auth-btn.primary {
+  background-color: var(--accent);   /* was #a3ff12 */
+  color: #000;
+  box-shadow: 0 6px 18px var(--accent-glow);
+}
+
+.auth-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px var(--accent-glow);
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* SPINNER */
 .spinner {
   width: 18px;
   height: 18px;
@@ -83,12 +122,16 @@ body {
   margin-left: 8px;
 }
 
-/* CRITICAL UTILITY CLASS */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* UTILITIES */
 .hidden {
   display: none !important;
 }
 
-/* Accessibility */
+/* ACCESSIBILITY */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
@@ -96,5 +139,17 @@ body {
   }
 }
 
-.auth-error { margin-top: 14px; font-size: 13px; color: #ff4d4d; display: none; min-height: 1.2em; }
-.auth-footer { margin-top: 40px; font-size: 12px; opacity: 0.4; }
+/* MESSAGES */
+.auth-error {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--red);   /* was #ff4d4d */
+  display: none;
+  min-height: 1.2em;
+}
+
+.auth-footer {
+  margin-top: 40px;
+  font-size: 12px;
+  opacity: 0.4;
+}

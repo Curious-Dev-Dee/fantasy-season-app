@@ -1,40 +1,44 @@
-/* =========================
-   PREMIUM GLASS BOTTOM NAV
-========================= */
+/* ================================================
+   BOTTOM-NAV.CSS
+   Requires: tokens.css loaded before this file
+   Used on: every page except login
+   ================================================ */
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px; /* Matches your app-container width */
-  
-  /* The Glass Effect */
-  background: rgba(15, 23, 42, 0.75); /* Semi-transparent navy */
-  backdrop-filter: blur(20px);        /* This creates the 'Frosty' look */
-  -webkit-backdrop-filter: blur(20px); /* For Safari support */
-  
+  max-width: var(--app-max-width);       /* was hardcoded 480px */
+
+  /* Glass effect */
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);   /* Safari support */
+
   display: flex;
   justify-content: space-around;
-  
-  /* Spacing: Added extra bottom padding for modern iPhones/Androids */
-  padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); 
-  
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  /* Extra bottom padding for iPhone home bar */
+  padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+
+  border-top: 1px solid var(--border-subtle);
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
   z-index: 1000;
 }
 
+/* NAV LINKS */
 .bottom-nav a {
   text-decoration: none;
-  color: #64748b; /* More muted when inactive */
+  color: var(--text-faint);              /* was hardcoded #64748b */
   font-size: 10px;
   font-weight: 600;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);         /* was hardcoded cubic-bezier */
   flex: 1;
   position: relative;
 }
@@ -44,30 +48,37 @@
   transition: transform 0.3s ease;
 }
 
-/* --- THE ACTIVE STATE --- */
+/* ACTIVE STATE */
 .bottom-nav a.active {
-  color: #9AE000; /* Your signature Neon Green */
+  color: var(--accent);                  /* was hardcoded #9AE000 */
 }
 
-/* Subtle Neon Glow behind the active icon */
+/* Neon glow blob behind active icon */
 .bottom-nav a.active::before {
   content: '';
   position: absolute;
   top: -5px;
   width: 20px;
   height: 20px;
-  background: #9AE000;
+  background: var(--accent);            /* was hardcoded #9AE000 */
   filter: blur(15px);
   opacity: 0.4;
   z-index: -1;
 }
 
+/* Lift the active icon slightly */
 .bottom-nav a.active i {
-  transform: translateY(-4px); /* Gently lift the icon */
-  text-shadow: 0 0 15px rgba(154, 224, 0, 0.6);
+  transform: translateY(-4px);
+  text-shadow: 0 0 15px var(--accent-glow);  /* was hardcoded rgba */
 }
 
-/* Spacing fix for the content above so it doesn't get hidden */
+/* ------------------------------------------------
+   PAGE PADDING HELPER
+   Add class="page-with-nav" to your page wrapper
+   so content doesn't hide behind the nav
+   ------------------------------------------------ */
 .page-with-nav {
-  padding-bottom: calc(85px + env(safe-area-inset-bottom)) !important;
+  /* Uses --nav-height token — change it in tokens.css
+     and this updates everywhere automatically */
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));
 }
