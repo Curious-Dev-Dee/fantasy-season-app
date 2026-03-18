@@ -59,9 +59,8 @@ body.loaded .team-view-app {
   border-radius: 12px;
 
   background: rgba(154, 224, 0, 0.08);
-  border: 1px solid rgba(154, 224, 0, 0.2);
-
-  color: var(--primary-green);
+border: 1px solid rgba(154, 224, 0, 0.2);
+color: var(--accent);
   text-decoration: none;
 
   font-size: 20px;
