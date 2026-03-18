@@ -2,235 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cricket Experts | Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Match Centre · Cricket Experts</title>
 
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="css/bottom-nav.css">
-  <link rel="stylesheet" href="css/animations.css">
-  <link rel="stylesheet" href="css/home.css">
-  <link rel="stylesheet" href="css/notifications.css">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="stylesheet" href="css/fixtures.css">
 
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#9AE000">
+  <link rel="icon"             type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon"                  href="favicon.png">
+  <link rel="manifest"                          href="manifest.json">
 
-  <script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>
   <script type="module" src="auth-guard.js"></script>
 </head>
 
-<body class="loading-state">
-
-<!-- LOADING OVERLAY -->
-<div id="loadingOverlay">
-  <div class="cricket-loader-wrap">
-    <div class="pitch-line"></div>
-    <div class="cricket-ball"></div>
-    <div class="bowler-pos">🏏</div>
-  </div>
-  <p class="loading-text">ANALYZING PITCH...</p>
-</div>
-
-<div class="app-container page-with-nav">
+<body>
+<div class="fixtures-page page-with-nav">
 
   <!-- HEADER -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="header-logo-dot"></div>
-      <h1 id="tournamentName" class="header-tournament">Tournament</h1>
-    </div>
-    <div class="notif-trigger" id="notifTrigger">
-      <i class="fas fa-bell"></i>
-      <span id="notifBadge" class="notif-badge hidden">0</span>
-      <div id="notifPanel" class="notif-panel hidden">
-        <div class="notif-header">
-          <h3>Alerts</h3>
-          <button class="btn-mark-read" id="markAllRead">Mark all read</button>
-        </div>
-        <div id="notifList" class="notif-list">
-          <div class="empty-notif">Checking for updates...</div>
-        </div>
-      </div>
+  <header class="fixtures-header">
+    <a href="/home" class="icon-back" aria-label="Back to home">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    <div class="header-titles">
+      <h1 class="fixtures-title">Match Centre</h1>
+      <p id="matchCountSummaryText" class="fixtures-sub">Loading…</p>
     </div>
   </header>
 
-  <!-- USER CARD — profile + stats unified -->
-  <section class="card user-card">
-    <div class="user-card-top">
-      <div class="team-avatar" id="teamAvatar"></div>
-      <div class="user-meta">
-        <p class="welcome-text" id="welcomeText">Welcome back, Expert</p>
-        <p class="team-subtitle" id="userTeamName">Set your team name</p>
-      </div>
+  <!-- STICKY FILTER SECTION -->
+  <section class="filters-section" aria-label="Match filters">
+
+    <!-- Status pills -->
+    <div class="filter-group">
+      <span class="filter-label">Status</span>
+      <div id="statusFilters" class="pill-row" role="group" aria-label="Filter by status"></div>
     </div>
 
-    <!-- Stats row inside the user card — scoreboard style -->
-    <div class="stats-row">
-      <div class="stat-cell">
-        <span class="stat-val" id="userScore">0</span>
-        <span class="stat-lbl">Score</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-val accent" id="userRank">--</span>
-        <span class="stat-lbl">Rank</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-val" id="subsRemaining">0</span>
-        <span class="stat-lbl">Subs</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-val" id="boosterStatus">1</span>
-        <span class="stat-lbl">Boost</span>
-      </div>
+    <!-- Team pills — scrollable row -->
+    <div class="filter-group">
+      <span class="filter-label">Teams</span>
+      <div id="teamFilters" class="pill-row pill-row-scroll" role="group" aria-label="Filter by team"></div>
     </div>
+
   </section>
 
-  <!-- NEXT MATCH CARD -->
-  <section class="card match-card">
-    <div class="match-card-header">
-      <span class="match-badge">NEXT MATCH</span>
-      <p id="matchVenue" class="match-venue">🏟️ Venue TBA</p>
+  <!-- MATCHES -->
+  <main id="matchesContainer" class="matches-list">
+    <div class="loading-state">
+      <i class="fas fa-circle-notch fa-spin"></i>
+      <p>Syncing match data…</p>
     </div>
+  </main>
 
-    <div class="match-vs-row">
-      <div id="teamALogo" class="team-logo"></div>
-      <div class="match-center">
-        <h2 class="match-teams" id="matchTeams">-- vs --</h2>
-        <p class="match-time neon-green" id="matchTime">
-          <i class="far fa-clock"></i> Loading...
-        </p>
-      </div>
-      <div id="teamBLogo" class="team-logo"></div>
-    </div>
-
-    <div class="match-actions">
-      <button class="btn-secondary" id="viewXiBtn">VIEW TEAM</button>
-      <button class="btn-primary" id="editXiBtn">EDIT TEAM</button>
-    </div>
-    <p class="btn-hint">Locks at match start time</p>
-  </section>
-
-  <!-- PRIVATE LEAGUE CARD -->
-  <section class="card league-card hidden" id="privateLeagueCard">
-    <div class="league-header">
-      <div class="league-header-left">
-        <span class="card-eyebrow">My League</span>
-        <h3 class="league-name" id="privateLeagueName">—</h3>
-        <p class="league-code-row">
-          Code: <span id="privateInviteCode" class="league-code">--</span>
-        </p>
-      </div>
-      <div class="league-header-right">
-        <span class="card-eyebrow">Your Rank</span>
-        <span id="privateLeagueRank" class="league-rank">#--</span>
-      </div>
-    </div>
-
-    <div id="privateLeagueContent">
-      <div id="privateLeaderboardContainer">
-        <p class="loading-inline">Fetching standings...</p>
-      </div>
-      <button class="btn-view-all" id="viewPrivateLeaderboard">
-        Full Leaderboard <i class="fas fa-chevron-right"></i>
-      </button>
-    </div>
-
-    <div id="noLeagueState" class="hidden no-league-state">
-      <p class="no-league-text">You haven't joined a private league yet.</p>
-      <div class="no-league-actions">
-        <button id="homeCreateLeagueBtn" class="btn-primary">Create</button>
-        <button id="homeJoinLeagueBtn"   class="btn-secondary">Join</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- TOP EXPERTS LEADERBOARD -->
-  <section class="card leaderboard-card">
-    <div class="lb-header">
-      <div class="lb-header-left">
-        <span class="card-eyebrow">Overall Standings</span>
-        <h3 class="lb-title">Top Experts</h3>
-      </div>
-      <div class="lb-header-right">
-        <span class="card-eyebrow">Your Rank</span>
-        <span id="overallUserRank" class="lb-user-rank">#--</span>
-      </div>
-    </div>
-
-    <div id="leaderboardContainer">
-      <p class="loading-inline">Updating rankings...</p>
-    </div>
-
-    <button class="btn-view-all" id="viewFullLeaderboard">
-      Full Leaderboard <i class="fas fa-chevron-right"></i>
-    </button>
-  </section>
-
-</div><!-- end .app-container -->
-
-<!-- PROFILE MODAL -->
-<div id="profileModal" class="modal hidden">
-  <div class="modal-content">
-    <h2 class="modal-title">Complete Profile</h2>
-    <button class="close-modal" id="closeProfileModal">&times;</button>
-
-    <div class="avatar-upload-wrap">
-      <div id="modalAvatarPreview" class="avatar-preview"></div>
-      <label for="avatarInput" class="avatar-edit-btn" aria-label="Change photo">
-        <i class="fas fa-camera"></i>
-      </label>
-      <input type="file" id="avatarInput" accept="image/*" class="hidden" />
-    </div>
-
-    <div class="input-group">
-      <label for="modalFullName">Your Name</label>
-      <input type="text" id="modalFullName" placeholder="e.g. Satyaranjan Sahoo" autocomplete="name" />
-    </div>
-    <div class="input-group">
-      <label for="modalTeamName">Team Name</label>
-      <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" autocomplete="off" />
-    </div>
-
-    <button id="saveProfileBtn" class="btn-primary full-width">Save & Start</button>
-  </div>
 </div>
-
-<!-- CUSTOM PROMPT MODAL -->
-<div id="customPromptOverlay" class="modal hidden" style="z-index:9999;">
-  <div class="modal-content prompt-modal">
-    <h3 id="promptTitle" class="prompt-title">Enter Value</h3>
-    <input type="text" id="promptInput" class="prompt-input" placeholder="...">
-    <div class="prompt-actions">
-      <button id="promptCancel"  class="btn-secondary">Cancel</button>
-      <button id="promptConfirm" class="btn-primary">Confirm</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST CONTAINER -->
-<div id="toastContainer" class="toast-container"></div>
-
-<div id="notificationPrompt" class="hidden"></div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <a href="home.html" class="active"><i class="fas fa-house"></i><span>Home</span></a>
-  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+  <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="fixtures.html" class="active"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
   <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
   <a href="more.html"><i class="fas fa-bars"></i><span>More</span></a>
 </nav>
 
-<script type="module" src="home.js"></script>
+<!-- TOAST -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script type="module" src="fixtures.js"></script>
 </body>
 </html>

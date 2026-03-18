@@ -1,53 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>Player Analytics - Cricket Experts</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Player Analytics · Cricket Experts</title>
 
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
-<link rel="stylesheet" href="bottom-nav.css">
-<link rel="stylesheet" href="css/stats.css?v=1.0" />
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- BUG FIX: was href="bottom-nav.css" (wrong path, 404 in prod) -->
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="stylesheet" href="css/stats.css">
 
+  <script type="module" src="auth-guard.js"></script>
 </head>
+
 <body class="page-with-nav">
+<div class="stats-page">
 
-    <div class="stats-wrapper">
-        <header class="premium-header">
-            <button onclick="window.location.href='more.html'" class="icon-btn">←</button>
-            <div class="header-text">
-                <h1>Player Analytics</h1>
-                <p>Live Performance Tracking</p>
-            </div>
-        </header>
-
-        <section class="search-section">
-            <div class="search-bar">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="playerSearch" placeholder="Search elite players...">
-            </div>
-            
-            <div class="filter-row">
-                <select id="teamFilter" class="premium-select">
-                    <option value="">All Teams</option>
-                </select>
-                <select id="matchFilter" class="premium-select">
-                    <option value="">All Matches</option>
-                </select>
-            </div>
-        </section>
-
-        <div id="loadingOverlay" class="premium-loader">
-            <div class="spinner"></div>
-            <span>Analyzing stats...</span>
-        </div>
-        
-        <div id="statsContainer" class="stats-grid">
-            </div>
+  <!-- HEADER -->
+  <header class="stats-header">
+    <!-- BUG FIX: was href="more.html" — using /home clean URL pattern -->
+    <a href="more.html" class="icon-back" aria-label="Back">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    <div class="header-text">
+      <h1 class="stats-title">Player Analytics</h1>
+      <p class="stats-sub">Season performance tracker</p>
     </div>
+  </header>
 
+  <!-- SEARCH + FILTERS -->
+  <section class="search-section">
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input
+        type="text"
+        id="playerSearch"
+        placeholder="Search players…"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      />
+    </div>
+    <div class="filter-row">
+      <select id="teamFilter"  class="stats-select">
+        <option value="">All Teams</option>
+      </select>
+      <select id="matchFilter" class="stats-select">
+        <option value="">All Matches</option>
+      </select>
+    </div>
+  </section>
 
+  <!-- LOADER -->
+  <div id="loadingOverlay" class="stats-loader">
+    <div class="spinner"></div>
+    <span>Analysing stats…</span>
+  </div>
 
-    <script type="module" src="stats.js?v=1.0"></script>
+  <!-- STATS GRID -->
+  <div id="statsContainer" class="stats-container"></div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+  <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
+</nav>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script type="module" src="stats.js"></script>
 </body>
 </html>

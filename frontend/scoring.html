@@ -1,66 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scorebook · Cricket Experts</title>
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
-<link rel="stylesheet" href="bottom-nav.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Scorebook · Cricket Experts</title>
 
-    <style>
-        :root {
-            --accent:var(--accent);
-            --bg-dark: var(--bg-dark);;
-            --card-bg: #111827;
-            --border: #1f2937;
-            --text-dim: #9ca3af;
-        }
-        body { margin: 0; font-family: sans-serif; background: var(--bg-dark); color: #fff; padding-bottom: 90px; }
-        .container { max-width: 420px; margin: 0 auto; padding: 20px; }
-        .back-link { color: var(--accent); text-decoration: none; font-size: 14px; display: block; margin-bottom: 15px; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 15px; }
-        h2 { color: var(--accent); font-size: 18px; margin-top: 0; display: flex; align-items: center; gap: 8px; }
-        .rule-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .rule-row:last-child { border-bottom: none; }
-        .pts { font-weight: 800; color: var(--accent); }
-        .bonus { color: #00f2ff; font-size: 11px; font-weight: 700; }
-    </style>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- BUG FIX: was href="bottom-nav.css" — correct path -->
+  <link rel="stylesheet" href="css/bottom-nav.css">
+
+  <style>
+    /*
+     * BUG FIX: Removed :root block with circular references and wrong overrides:
+     *   --accent: var(--accent)    → circular, resolves to nothing
+     *   --bg-dark: var(--bg-dark);; → double semicolon
+     *   --border: #1f2937          → overrides global token from tokens.css
+     * All colours now come from tokens.css correctly.
+     */
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      padding-bottom: 90px;
+    }
+
+    .container { max-width: 420px; margin: 0 auto; padding: 20px; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .page-title { font-size: 24px; font-weight: 800; margin: 0 0 20px; }
+
+    /* var(--bg-card-alt) replaces hardcoded #111827 */
+    .card {
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .card h2 {
+      color: var(--accent);
+      font-size: 16px;
+      font-weight: 800;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .rule-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .rule-row:last-child { border-bottom: none; }
+
+    .pts     { font-weight: 800; color: var(--accent); }
+    .pts-neg { font-weight: 800; color: var(--red); }
+    .pts-dyn { font-weight: 800; color: var(--cyan); font-size: 11px; }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <a href="more.html" class="back-link">← Back</a>
-        <h1>Scorebook 📜</h1>
+<div class="container">
 
-        <div class="card">
-            <h2>🏏 Batting</h2>
-            <div class="rule-row"><span>Per Run</span><span class="pts">+1</span></div>
-            <div class="rule-row"><span>Boundary Bonus (4/6)</span><span class="pts">+1 / +2</span></div>
-            <div class="rule-row"><span>S/R Bonus (Runs - Balls)</span><span class="bonus">DYNAMIC</span></div>
-            <div class="rule-row"><span>Duck (Non-Bowlers)</span><span class="pts" style="color:#ff4d4d">-2</span></div>
-        </div>
+  <a href="more.html" class="back-link">
+    <i class="fas fa-chevron-left"></i> Back
+  </a>
 
-        <div class="card">
-            <h2>☝️ Bowling</h2>
-            <div class="rule-row"><span>Wicket (Excl. Runout)</span><span class="pts">+20</span></div>
-            <div class="rule-row"><span>2nd+ Wicket Bonus</span><span class="pts">+25</span></div>
-            <div class="rule-row"><span>Maiden Over</span><span class="pts">+10</span></div>
-            <div class="rule-row"><span>Economy (Min 2 Overs)</span><span class="bonus">UP TO +8</span></div>
-        </div>
+  <h1 class="page-title">Scorebook 📜</h1>
 
-        <div class="card">
-            <h2>🤲 Fielding & Other</h2>
-            <div class="rule-row"><span>Catch / Stumping / Runout</span><span class="pts">+8</span></div>
-            <div class="rule-row"><span>Involvement Bonus</span><span class="pts">+4</span></div>
-            <div class="rule-row"><span>Player of the Match</span><span class="pts">+20</span></div>
-        </div>
-    </div>
+  <div class="card">
+    <h2>🏏 Batting</h2>
+    <div class="rule-row"><span>Per Run</span>                      <span class="pts">+1</span></div>
+    <div class="rule-row"><span>Boundary Bonus (4s)</span>          <span class="pts">+1</span></div>
+    <div class="rule-row"><span>Six Bonus (6s)</span>               <span class="pts">+2</span></div>
+    <div class="rule-row"><span>S/R Bonus (Runs − Balls)</span>     <span class="pts-dyn">DYNAMIC</span></div>
+    <div class="rule-row"><span>Milestone 30/50/75/100</span>       <span class="pts">+5/10/15/20</span></div>
+    <div class="rule-row"><span>Duck (Non-Bowlers)</span>           <span class="pts-neg">−2</span></div>
+  </div>
 
-    <nav class="bottom-nav">
-        <a href="home.html">Home</a>
-        <a href="fixtures.html">Fixtures</a>
-        <a href="prediction.html">Prediction</a>
-        <a href="more.html" class="active">More</a>
-    </nav>
+  <div class="card">
+    <h2>☝️ Bowling</h2>
+    <div class="rule-row"><span>1st Wicket</span>                   <span class="pts">+20</span></div>
+    <div class="rule-row"><span>Each Additional Wicket</span>       <span class="pts">+25</span></div>
+    <div class="rule-row"><span>Maiden Over</span>                  <span class="pts">+10</span></div>
+    <div class="rule-row"><span>Economy ≤ 6.0 (min 2 ov)</span>   <span class="pts">+8</span></div>
+    <div class="rule-row"><span>Economy 6.1 – 9.0</span>           <span class="pts">+4</span></div>
+    <div class="rule-row"><span>Economy &gt; 9.0</span>            <span class="pts-neg">−4</span></div>
+  </div>
+
+  <div class="card">
+    <h2>🤲 Fielding &amp; Other</h2>
+    <div class="rule-row"><span>Catch / Stumping / Run Out</span>   <span class="pts">+8</span></div>
+    <div class="rule-row"><span>Involvement Bonus</span>            <span class="pts">+4</span></div>
+    <div class="rule-row"><span>Player of the Match</span>          <span class="pts">+20</span></div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ Multipliers</h2>
+    <div class="rule-row"><span>Captain (C)</span>                  <span class="pts">× 2.0</span></div>
+    <div class="rule-row"><span>Vice-Captain (VC)</span>            <span class="pts">× 1.5</span></div>
+  </div>
+
+</div>
+
+<!-- BUG FIX: was missing icons and active state on every link -->
+<nav class="bottom-nav">
+  <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+  <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
+</nav>
+
 </body>
 </html>

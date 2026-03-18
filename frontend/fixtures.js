@@ -1,164 +1,269 @@
 import { supabase } from "./supabase.js";
+import { authReady } from "./auth-state.js";
 
-const matchesContainer = document.getElementById("matchesContainer");
-const statusFiltersContainer = document.getElementById("statusFilters");
-const teamFiltersContainer = document.getElementById("teamFilters");
+/* ─── DOM REFS ───────────────────────────────────────────────────────────── */
+const matchesContainer      = document.getElementById("matchesContainer");
 const matchCountSummaryText = document.getElementById("matchCountSummaryText");
+const statusFiltersEl       = document.getElementById("statusFilters");
+const teamFiltersEl         = document.getElementById("teamFilters");
 
-const statusBtn = document.getElementById("statusBtn");
-const teamBtn = document.getElementById("teamBtn");
-const statusPanel = document.getElementById("statusPanel");
-const teamPanel = document.getElementById("teamPanel");
-
-let allMatches = [];
-let allTeams = [];
+/* ─── STATE ──────────────────────────────────────────────────────────────── */
+let allMatches       = [];
+let allTeams         = [];
 let selectedStatuses = new Set(["all"]);
-let selectedTeams = new Set();
+let selectedTeams    = new Set();
+
+/* ─── INIT ───────────────────────────────────────────────────────────────── */
+async function init() {
+    // BUG FIX: authReady replaces direct getSession() call
+    try { await authReady; } catch (_) { return; }
+    await loadData();
+    renderStatusFilters();
+    renderTeamFilters();
+    renderMatches();
+}
 
 init();
 
-async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { window.location.href = "login.html"; return; }
-
-  // Toggle Dropdowns
-  statusBtn.onclick = (e) => { e.stopPropagation(); statusPanel.classList.toggle("hidden"); teamPanel.classList.add("hidden"); };
-  teamBtn.onclick = (e) => { e.stopPropagation(); teamPanel.classList.toggle("hidden"); statusPanel.classList.add("hidden"); };
-  
-  // --- ADD THESE TWO LINES ---
-  statusPanel.onclick = (e) => e.stopPropagation();
-  teamPanel.onclick = (e) => e.stopPropagation();
-
-  document.onclick = () => { statusPanel.classList.add("hidden"); teamPanel.classList.add("hidden"); };
-
-  await loadData();
-  renderStatusFilters();
-  renderTeamFilters();
-  renderMatches();
-}
-
+/* ─── DATA ───────────────────────────────────────────────────────────────── */
 async function loadData() {
-  const { data: activeTournament } = await supabase.from("active_tournament").select("*").single();
-  if (!activeTournament) return;
+    // BUG FIX: .maybeSingle() — won't throw if no active tournament
+    const { data: activeTournament } = await supabase
+        .from("active_tournament").select("*").maybeSingle();
 
-  const [mRes, tRes] = await Promise.all([
-    supabase.from("matches").select("*").eq("tournament_id", activeTournament.id).order("actual_start_time", { ascending: true }),
-    supabase.from("real_teams").select("*").eq("tournament_id", activeTournament.id)
-  ]);
-
-  allMatches = mRes.data || [];
-  allTeams = tRes.data || [];
-}
-
-function renderStatusFilters() {
-  const statuses = ["all", "upcoming", "locked", "abandoned"];
-  statusFiltersContainer.innerHTML = statuses.map(s => `
-    <div class="filter-chip ${selectedStatuses.has(s) ? 'active' : ''}" data-status="${s}">
-      ${s === 'all' ? 'All Status' : s.toUpperCase()}
-    </div>
-  `).join('');
-
-  statusFiltersContainer.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.onclick = () => {
-      const s = chip.dataset.status;
-      if (s === "all") selectedStatuses = new Set(["all"]);
-      else {
-        selectedStatuses.delete("all");
-        selectedStatuses.has(s) ? selectedStatuses.delete(s) : selectedStatuses.add(s);
-        if (selectedStatuses.size === 0) selectedStatuses.add("all");
-      }
-      renderStatusFilters();
-      renderMatches();
-    };
-  });
-}
-
-function renderTeamFilters() {
-  teamFiltersContainer.innerHTML = allTeams.map(t => `
-    <div class="filter-chip ${selectedTeams.has(t.id) ? 'active' : ''}" data-id="${t.id}">
-      ${t.short_code}
-    </div>
-  `).join('');
-
-  teamFiltersContainer.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.onclick = () => {
-      const id = chip.dataset.id;
-      selectedTeams.has(id) ? selectedTeams.delete(id) : selectedTeams.add(id);
-      renderTeamFilters();
-      renderMatches();
-    };
-  });
-}
-
-function renderMatches() {
-    matchesContainer.innerHTML = "";
-    
-    const filtered = allMatches.filter(m => {
-        const sMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
-        const tMatch = selectedTeams.size === 0 || selectedTeams.has(m.team_a_id) || selectedTeams.has(m.team_b_id);
-        return sMatch && tMatch;
-    });
-
-    matchCountSummaryText.innerText = `Showing ${filtered.length} matches`;
-
-    if (!filtered.length) {
-        matchesContainer.innerHTML = `<div class="loading-state"><p>No matches matches this filter.</p></div>`;
+    if (!activeTournament) {
+        matchesContainer.innerHTML = "";
+        matchesContainer.appendChild(buildEmptyNode("No active tournament."));
         return;
     }
 
-    // Sort: Upcoming first (soonest to latest), then Locked, then Completed (latest to oldest)
+    const [mRes, tRes] = await Promise.all([
+        supabase.from("matches")
+            .select("*")
+            .eq("tournament_id", activeTournament.id)
+            .order("actual_start_time", { ascending: true }),
+        supabase.from("real_teams")
+            .select("*")
+            .eq("tournament_id", activeTournament.id)
+            .order("short_code", { ascending: true }),
+    ]);
+
+    allMatches = mRes.data || [];
+    allTeams   = tRes.data || [];
+}
+
+/* ─── FILTERS ────────────────────────────────────────────────────────────── */
+function renderStatusFilters() {
+    statusFiltersEl.replaceChildren();
+    const statuses = ["all", "upcoming", "locked", "abandoned"];
+    const labels   = { all: "All", upcoming: "Upcoming", locked: "Locked", abandoned: "Abandoned" };
+
+    statuses.forEach(s => {
+        const chip       = document.createElement("button");
+        chip.className   = `pill-filter ${selectedStatuses.has(s) ? "active" : ""}`;
+        chip.textContent = labels[s];
+        chip.onclick = () => {
+            if (s === "all") {
+                selectedStatuses = new Set(["all"]);
+            } else {
+                selectedStatuses.delete("all");
+                selectedStatuses.has(s) ? selectedStatuses.delete(s) : selectedStatuses.add(s);
+                if (selectedStatuses.size === 0) selectedStatuses.add("all");
+            }
+            renderStatusFilters();
+            renderMatches();
+        };
+        statusFiltersEl.appendChild(chip);
+    });
+}
+
+function renderTeamFilters() {
+    teamFiltersEl.replaceChildren();
+    allTeams.forEach(t => {
+        const chip       = document.createElement("button");
+        chip.className   = `pill-filter ${selectedTeams.has(t.id) ? "active" : ""}`;
+        chip.textContent = t.short_code;   // safe: short_code is a code string
+        chip.onclick = () => {
+            selectedTeams.has(t.id) ? selectedTeams.delete(t.id) : selectedTeams.add(t.id);
+            renderTeamFilters();
+            renderMatches();
+        };
+        teamFiltersEl.appendChild(chip);
+    });
+}
+
+/* ─── RENDER MATCHES ─────────────────────────────────────────────────────── */
+function renderMatches() {
+    matchesContainer.replaceChildren();
+
+    const filtered = allMatches.filter(m => {
+        const sMatch = selectedStatuses.has("all") || selectedStatuses.has(m.status);
+        const tMatch = selectedTeams.size === 0
+            || selectedTeams.has(m.team_a_id)
+            || selectedTeams.has(m.team_b_id);
+        return sMatch && tMatch;
+    });
+
+    if (matchCountSummaryText) {
+        matchCountSummaryText.textContent =
+            `${filtered.length} match${filtered.length !== 1 ? "es" : ""}`;
+    }
+
+    if (!filtered.length) {
+        matchesContainer.appendChild(buildEmptyNode("No matches match this filter."));
+        return;
+    }
+
+    // Sort: upcoming soonest first, then locked/abandoned most recent first
+    const ORDER = { upcoming: 1, locked: 2, abandoned: 3 };
     const sorted = [...filtered].sort((a, b) => {
-        const order = { 'upcoming': 1, 'locked': 2, 'abandoned': 3 };
-        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
-        
-        // If same status, upcoming sorts ascending (next match first)
-        if (a.status === 'upcoming') return new Date(a.actual_start_time) - new Date(b.actual_start_time);
-        // Others sort descending (most recent results first)
+        if (ORDER[a.status] !== ORDER[b.status]) return ORDER[a.status] - ORDER[b.status];
+        if (a.status === "upcoming") return new Date(a.actual_start_time) - new Date(b.actual_start_time);
         return new Date(b.actual_start_time) - new Date(a.actual_start_time);
     });
 
-    // Map the array to an array of HTML strings, then join them and inject ONCE
-    const htmlString = sorted.map(match => {
-        const tA = allTeams.find(t => t.id === match.team_a_id);
-        const tB = allTeams.find(t => t.id === match.team_b_id);
-        
-        const getLogoUrl = (team) => team?.photo_name ? supabase.storage.from('team-logos').getPublicUrl(team.photo_name).data.publicUrl : null;
+    // Render in two groups
+    const upcoming = sorted.filter(m => m.status === "upcoming");
+    const results  = sorted.filter(m => m.status !== "upcoming");
 
-        const logoA = getLogoUrl(tA);
-        const logoB = getLogoUrl(tB);
+    if (upcoming.length) {
+        matchesContainer.appendChild(buildGroupHeader("Upcoming"));
+        upcoming.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
+    }
+    if (results.length) {
+        matchesContainer.appendChild(buildGroupHeader("Results"));
+        results.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
+    }
+}
 
-        const dateStr = new Date(match.actual_start_time).toLocaleString('en-IN', { 
-            day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' 
-        });
+/* ─── MATCH CARD ─────────────────────────────────────────────────────────── */
+function buildMatchCard(match) {
+    const tA     = allTeams.find(t => t.id === match.team_a_id);
+    const tB     = allTeams.find(t => t.id === match.team_b_id);
+    const logoA  = getLogoUrl(tA);
+    const logoB  = getLogoUrl(tB);
 
-        return `
-        <div class="match-card status-${match.status}">
-            <div class="card-header">
-                <span style="font-weight: 800; color:var(--accent);">Match #${match.match_number}</span>
-                <span>${dateStr}</span>
-            </div>
-            <div class="team-display">
-                <div class="team-slot">
-                    <div class="team-logo" style="${logoA ? `background-image:url('${logoA}')` : ''}">
-                        ${!logoA ? (tA?.short_code || '?') : ''}
-                    </div>
-                    <b>${tA?.short_code || 'TBA'}</b>
-                </div>
-                <div class="vs-badge">VS</div>
-                <div class="team-slot">
-                    <div class="team-logo" style="${logoB ? `background-image:url('${logoB}')` : ''}">
-                        ${!logoB ? (tB?.short_code || '?') : ''}
-                    </div>
-                    <b>${tB?.short_code || 'TBA'}</b>
-                </div>
-            </div>
-            <div style="text-align: center; font-size: 11px; color: var(--text-dim);; margin-top: 10px;">
-                🏟️ ${match.venue || 'Venue TBA'}
-            </div>
-            <div class="status-tag tag-${match.status}">${match.status.toUpperCase()}</div>
-        </div>`;
-    }).join('');
+    const dateStr = new Date(match.actual_start_time).toLocaleString("en-IN", {
+        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+    });
 
-    // Inject to DOM exactly once
-    matchesContainer.innerHTML = htmlString;
+    // Card
+    const card     = document.createElement("article");
+    card.className = `match-card status-${match.status}`;
+
+    // Top accent bar — avoids border-left + border-radius conflict
+    const bar      = document.createElement("div");
+    bar.className  = "match-accent-bar";
+    card.appendChild(bar);
+
+    // Inner padding wrapper
+    const inner    = document.createElement("div");
+    inner.className = "match-inner";
+
+    // ── Meta row ──
+    const meta     = document.createElement("div");
+    meta.className = "match-meta";
+
+    const num      = document.createElement("span");
+    num.className  = "match-num";
+    num.textContent = `M#${match.match_number}`;
+
+    const dateEl   = document.createElement("span");
+    dateEl.className = "match-date";
+    dateEl.textContent = dateStr;
+
+    meta.append(num, dateEl);
+
+    // ── Teams row ──
+    const teamsRow = document.createElement("div");
+    teamsRow.className = "match-teams";
+
+    teamsRow.appendChild(buildTeamSlot(tA, logoA));
+
+    const vs       = document.createElement("div");
+    vs.className   = "match-vs";
+    vs.textContent = "VS";
+    teamsRow.appendChild(vs);
+
+    teamsRow.appendChild(buildTeamSlot(tB, logoB));
+
+    // ── Venue ──
+    const venue    = document.createElement("div");
+    venue.className = "match-venue";
+
+    const icon     = document.createElement("i");
+    icon.className = "fas fa-map-marker-alt";
+
+    const venueText = document.createElement("span");
+    // BUG FIX: textContent (not innerHTML) — venue is user-entered DB data
+    venueText.textContent = match.venue ? escapeHtml(match.venue) : "Venue TBA";
+
+    venue.append(icon, venueText);
+
+    // ── Status chip ──
+    const chip     = document.createElement("span");
+    chip.className = `status-chip chip-${match.status}`;
+    chip.textContent = match.status.toUpperCase();
+
+    inner.append(meta, teamsRow, venue, chip);
+    card.appendChild(inner);
+    return card;
+}
+
+function buildTeamSlot(team, logoUrl) {
+    const slot     = document.createElement("div");
+    slot.className = "team-slot";
+
+    const logo     = document.createElement("div");
+    logo.className = "team-logo-circle";
+
+    if (logoUrl) {
+        logo.style.backgroundImage = `url('${logoUrl}')`;
+    } else {
+        logo.textContent = team?.short_code?.slice(0, 3) || "?";
+    }
+
+    const name     = document.createElement("span");
+    name.className = "team-name";
+    name.textContent = team?.short_code || "TBA";   // safe: integer/code from DB
+
+    slot.append(logo, name);
+    return slot;
+}
+
+/* ─── HELPERS ────────────────────────────────────────────────────────────── */
+function getLogoUrl(team) {
+    return team?.photo_name
+        ? supabase.storage.from("team-logos").getPublicUrl(team.photo_name).data.publicUrl
+        : null;
+}
+
+function buildGroupHeader(text) {
+    const el       = document.createElement("h2");
+    el.className   = "group-header";
+    el.textContent = text;
+    return el;
+}
+
+function buildEmptyNode(text) {
+    const wrap     = document.createElement("div");
+    wrap.className = "empty-state";
+
+    const icon     = document.createElement("i");
+    icon.className = "fas fa-calendar-times";
+
+    const p        = document.createElement("p");
+    p.textContent  = text;
+
+    wrap.append(icon, p);
+    return wrap;
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replaceAll("&",  "&amp;")
+        .replaceAll("<",  "&lt;")
+        .replaceAll(">",  "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'",  "&#39;");
 }

@@ -1,320 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>Guide & Scoring | FantasyCric26</title>
-<link rel="stylesheet" href="tokens.css">   
-<link rel="stylesheet" href="components.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>How to Play · Cricket Experts</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: var(--bg-dark);;
-            --card: #161b22;
-            --neon:var(--accent);
-            --cyan: #00f2ff;
-            --text: #e6edf3;
-            --dim: #8b949e;
-            --border: rgba(255, 255, 255, 0.08);
-            --danger: var(--red);;
-        }
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            line-height: 1.6;
-            -webkit-tap-highlight-color: transparent;
-        }
+  <style>
+    /*
+     * BUG FIX: Removed :root block with circular references:
+     *   --bg: var(--bg-dark);;     → double semicolon
+     *   --accent: var(--accent);   → circular, resolves to nothing
+     *   --neon: var(--accent);     → creates alias, unnecessary
+     *   --danger: var(--red);;     → double semicolon
+     *   --card: #161b22            → hardcoded, now var(--bg-card-alt)
+     *   --border: rgba(...)        → overrides global token
+     * All now resolved from tokens.css.
+     *
+     * Local --cyan alias kept as a CSS custom property since it's used
+     * extensively on this page and isn't in tokens.css.
+     * (Note: --cyan IS now in tokens.css from the prediction page fix,
+     * so we can just use var(--cyan) directly.)
+     */
 
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* --- PREMIUM HEADER --- */
-        .app-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding-top: 10px; /* Safe space for top screen edge */
-        }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font);
+      margin: 0;
+      line-height: 1.6;
+      touch-action: manipulation;
+    }
 
-        .back-btn {
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 100px;
+    }
 
-        .back-btn:active {
-            transform: scale(0.9);
-            background: rgba(255,255,255,0.1);
-        }
+    /* HEADER */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      padding-top: 10px;
+    }
 
-        .app-header h1 {
-            margin: 0;
-            font-size: 22px;
-            color: #fff;
-            font-weight: 800;
-        }
+    .back-btn {
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            line-height: 1.6;
-            -webkit-tap-highlight-color: transparent;
-            /* --- PREVENTS iOS ZOOMING --- */
-            touch-action: manipulation; 
-        }
+    .back-btn:active { transform: scale(0.9); }
 
-        /* --- PREMIUM HEADER --- */
-        .app-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding-top: 10px; /* Safe space for top screen edge */
-        }
+    .app-header h1 { margin: 0; font-size: 22px; color: var(--text-primary); font-weight: 800; }
 
-        .back-btn {
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+    /* TABS */
+    .tabs {
+      display: flex;
+      position: sticky;
+      top: 0;
+      background: var(--bg-dark);
+      z-index: 100;
+      padding: 10px 0;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
 
-        .back-btn:active {
-            transform: scale(0.9);
-            background: rgba(255,255,255,0.1);
-        }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      padding: 12px 5px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      transition: 0.3s;
+    }
 
-        .app-header h1 {
-            margin: 0;
-            font-size: 22px;
-            color: #fff;
-            font-weight: 800;
-        }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom: 3px solid var(--accent);
+    }
 
-        /* TABS */
-        .tabs { 
-            display: flex; 
-            position: sticky; 
-            top: 0; 
-            background: var(--bg); 
-            z-index: 100;
-            padding: 10px 0;
-            gap: 5px; 
-            margin-bottom: 20px; 
-            border-bottom: 1px solid var(--border); 
-        }
-        .tab-btn {
-            flex: 1;
-            background: none; border: none; color: var(--dim);
-            padding: 12px 5px; cursor: pointer; font-weight: 800;
-            text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; transition: 0.3s;
-        }
-        .tab-btn.active { color: var(--neon); border-bottom: 3px solid var(--neon); }
+    /* SECTIONS */
+    .guide-section { display: none; }
+    .guide-section.active { display: block; animation: fadeIn 0.4s ease-out; }
 
-        /* SECTION STYLING */
-        .guide-section { display: none; }
-        .guide-section.active { display: block; animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    /* CARD — var(--bg-card-alt) instead of hardcoded #161b22 */
+    .card {
+      background: linear-gradient(145deg, var(--bg-card), var(--bg-card-alt));
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-subtle);
+    }
 
-        .card { 
-            background: linear-gradient(145deg, #1c2128, #161b22); 
-            border-radius: 20px; padding: 24px; margin-bottom: 20px; 
-            border: 1px solid var(--border); 
-        }
-        
-        h2 { color: var(--neon); font-size: 1.1rem; margin-top: 0; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        p { font-size: 0.95rem; color: var(--dim); }
-        
-        ul { padding-left: 20px; margin: 15px 0; }
-        li { margin-bottom: 8px; font-size: 0.9rem; }
+    h2 {
+      color: var(--accent);
+      font-size: 1.1rem;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-        /* SCORING TABLES */
-        .point-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        .point-table td { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .val { color: var(--neon); font-weight: 800; text-align: right; }
+    p    { font-size: 0.95rem; color: var(--text-faint); }
+    ul   { padding-left: 20px; margin: 15px 0; }
+    li   { margin-bottom: 8px; font-size: 0.9rem; }
 
-        /* BOOSTER & RESET BOXES */
-        .highlight-box { 
-            border: 1px dashed var(--neon); padding: 15px; border-radius: 14px; 
-            background: rgba(154, 224, 0, 0.04); margin: 15px 0;
-        }
-        .highlight-box strong { color: var(--neon); }
+    /* SCORING TABLES */
+    .point-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    .point-table td { padding: 12px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.9rem; }
+    .val { color: var(--accent); font-weight: 800; text-align: right; }
 
-        .booster-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .booster-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; font-size: 0.8rem; border: 1px solid var(--border); }
-        .booster-item b { color: var(--cyan); display: block; margin-bottom: 4px; font-size: 0.85rem; }
+    /* HIGHLIGHT BOX */
+    .highlight-box {
+      border: 1px dashed var(--accent);
+      padding: 15px;
+      border-radius: 14px;
+      background: var(--accent-dim);
+      margin: 15px 0;
+    }
+    .highlight-box strong { color: var(--accent); }
 
-        /* FAQ */
-        .faq-item { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .faq-q { 
-            background: rgba(255,255,255,0.02); padding: 15px; font-weight: 700; 
-            font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-        }
-        .faq-a { padding: 15px; color: var(--dim); font-size: 0.85rem; display: none; background: var(--bg-dark);; border-top: 1px solid var(--border); }
-        .faq-item.active .faq-a { display: block; }
-        .faq-item.active .fa-chevron-down { transform: rotate(180deg); color: var(--neon); }
+    /* BOOSTER LIST */
+    .booster-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
 
-        .formula { background: #000; padding: 10px; border-radius: 8px; text-align: center; color: var(--neon); font-family: monospace; margin: 10px 0; }
-    </style>
+    .booster-item {
+      background: rgba(255,255,255,0.03);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .booster-item b {
+      color: var(--cyan);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+    }
+
+    /* FORMULA */
+    .formula {
+      background: #000;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      color: var(--accent);
+      font-family: monospace;
+      margin: 10px 0;
+    }
+
+    /* FAQ */
+    .faq-item {
+      margin-bottom: 10px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .faq-q {
+      background: rgba(255,255,255,0.02);
+      padding: 15px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-a {
+      padding: 15px;
+      color: var(--text-faint);
+      font-size: 0.85rem;
+      display: none;
+      background: var(--bg-dark);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .faq-item.active .faq-a               { display: block; }
+    .faq-item.active .fa-chevron-down      { transform: rotate(180deg); color: var(--accent); }
+  </style>
 </head>
+
 <body>
-
 <div class="container">
-    
-<header class="app-header">
-        <button class="back-btn" onclick="window.location.href='more.html'">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <h1>How to Play</h1>
-    </header>
 
+  <header class="app-header">
+    <button class="back-btn" onclick="window.location.href='more.html'">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <h1>How to Play</h1>
+  </header>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('rules', this)">Rules</button>
-        <button class="tab-btn" onclick="showTab('scoring', this)">Scoring</button>
-        <button class="tab-btn" onclick="showTab('boosters', this)">Boosters</button>
-        <button class="tab-btn" onclick="showTab('faq', this)">FAQs</button>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('rules',    this)">Rules</button>
+    <button class="tab-btn"        onclick="showTab('scoring',  this)">Scoring</button>
+    <button class="tab-btn"        onclick="showTab('boosters', this)">Boosters</button>
+    <button class="tab-btn"        onclick="showTab('faq',      this)">FAQs</button>
+  </div>
+
+  <!-- RULES -->
+  <section id="rules" class="guide-section active">
+    <div class="card">
+      <h2><i class="fas fa-users-cog"></i> Squad Building</h2>
+      <p>Pick your 11-player squad with a <strong>100 Credit</strong> budget:</p>
+      <ul>
+        <li><strong>WK:</strong> 1 Wicketkeeper</li>
+        <li><strong>BAT:</strong> 3–6 Batters</li>
+        <li><strong>AR:</strong> 1–4 All-Rounders</li>
+        <li><strong>BOWL:</strong> 3–6 Bowlers</li>
+        <li><strong>Overseas:</strong> Max 4</li>
+      </ul>
     </div>
 
-    <section id="rules" class="guide-section active">
-        <div class="card">
-            <h2><i class="fas fa-users-cog"></i> Squad Building</h2>
-            <p>Pick your 11-player squad with a <strong>100 Credit</strong> budget:</p>
-            <ul>
-                <li><strong>WK:</strong> 1 (Wicketkeeper)</li>
-                <li><strong>BAT:</strong> 3 - 6 (Batsmen)</li>
-                <li><strong>AR:</strong> 1 - 4 (All-Rounders)</li>
-                <li><strong>BOWL:</strong> 3 - 6 (Bowlers)</li>
-                <li><strong>Overseas:</strong> Max 4</li>
-            </ul>
-        </div>
+    <div class="card">
+      <h2><i class="fas fa-exchange-alt"></i> Transfer Strategy</h2>
+      <p>Manage your subs carefully across the season:</p>
+      <table class="point-table">
+        <tr><td>League Stage (Matches 2–70)</td> <td class="val">130 Subs</td></tr>
+        <tr><td>Playoffs (Matches 72–74)</td>    <td class="val">10 Subs</td></tr>
+      </table>
+      <div class="highlight-box">
+        <p><strong>⚡ RESET WINDOWS:</strong> Matches <strong>#1</strong> (Season Start) and <strong>#71</strong> (Playoff Start) allow <strong>Unlimited Free Subs</strong>.</p>
+      </div>
+      <p><small>*1 free uncapped sub per match · Earn +1 free sub per 10 correct predictions in the Fun Zone!</small></p>
+    </div>
+  </section>
 
-        <div class="card">
-            <h2><i class="fas fa-exchange-alt"></i> Transfer Strategy</h2>
-            <p>Manage your subs carefully across the season:</p>
-            <table class="point-table">
-                <tr><td>League Stage (Matches 2-70)</td><td class="val">130 Subs</td></tr>
-                <tr><td>Playoffs (Matches 72-74)</td><td class="val">10 Subs</td></tr>
-            </table>
-            
-            <div class="highlight-box">
-                <p><strong>⚡ RESET WINDOWS:</strong> Matches <strong>#1</strong> (Season Start) and <strong>#71</strong> (Playoff Start) allow <strong>Unlimited Free Subs</strong>.</p>
-            </div>
-            <p><small>*1 Free uncapped per match & Earn +1 Free Sub for every 10 correct match predictions in the Fun Zone!</small></p>
-        </div>
-    </section>
+  <!-- SCORING -->
+  <section id="scoring" class="guide-section">
+    <div class="card">
+      <h2><i class="fas fa-baseball-bat-ball"></i> Batting</h2>
+      <table class="point-table">
+        <tr><td>Every Run</td>                          <td class="val">+1</td></tr>
+        <tr><td>Boundary Bonus (4s)</td>               <td class="val">+1</td></tr>
+        <tr><td>Six Bonus (6s)</td>                    <td class="val">+2</td></tr>
+        <tr><td>Milestone 30 / 50 / 75 / 100</td>      <td class="val">+5/10/15/20</td></tr>
+        <tr><td>Duck Penalty (Non-Bowlers)</td>         <td class="val">−2</td></tr>
+      </table>
+      <p><strong>Strike Rate Points:</strong></p>
+      <div class="formula">Points = Runs − Balls Faced</div>
+    </div>
 
-    <section id="boosters" class="guide-section">
-        <div class="card">
-            <h2><i class="fas fa-rocket"></i> Match Boosters</h2>
-            <p>Use these 7 unique power-ups once each during the League Stage (Match 2-70):</p>
-            
-            <div class="booster-list">
-                <div class="booster-item"><b>TOTAL 2X</b> 2x points for your whole team.</div>
-                <div class="booster-item"><b>INDIAN 2X</b> 2x points for all Indian players.</div>
-                <div class="booster-item"><b>CAPTAIN 3X</b> Triple (3x) points for Captain.</div>
-                <div class="booster-item"><b>OVERSEAS 2X</b> 2x points for Overseas players.</div>
-                <div class="booster-item"><b>UNCAPPED 2X</b> 2x points for Uncapped players.</div>
-                <div class="booster-item"><b>FREE 11</b> Unlimited transfers for 1 match.</div>
-                <div class="booster-item"><b>MOM 2X</b> 2x points for Man of the Match.</div>
-            </div>
-            <p><small>*One booster can be used per match. Each booster can only be used once.</small></p>
-        </div>
-    </section>
+    <div class="card">
+      <h2><i class="fas fa-circle-dot"></i> Bowling</h2>
+      <table class="point-table">
+        <tr><td>1st Wicket</td>               <td class="val">+20</td></tr>
+        <tr><td>Each Additional Wicket</td>   <td class="val">+25</td></tr>
+        <tr><td>Maiden Over</td>              <td class="val">+10</td></tr>
+      </table>
+      <p><strong>Economy Rate Points (min 2 overs):</strong></p>
+      <table class="point-table">
+        <tr><td>ER ≤ 6.0</td>          <td class="val">+8</td></tr>
+        <tr><td>ER 6.1 – 9.0</td>      <td class="val">+4</td></tr>
+        <tr><td>ER &gt; 9.0</td>       <td class="val">−4</td></tr>
+      </table>
+    </div>
 
-    <section id="scoring" class="guide-section">
-        <div class="card">
-            <h2><i class="fas fa-bat-ball"></i> Batting</h2>
-            <table class="point-table">
-                <tr><td>Every Run</td><td class="val">+1</td></tr>
-                <tr><td>Boundary Bonus (4s)</td><td class="val">+1</td></tr>
-                <tr><td>Sixer Bonus (6s)</td><td class="val">+2</td></tr>
-                <tr><td>Milestone (30 / 50 / 75 / 100)</td><td class="val">+5/10/15/20</td></tr>
-                <tr><td>Duck Penalty (Excludes Bowlers)</td><td class="val">-2</td></tr>
-            </table>
-            <p><strong>Strike Rate (SR) Points:</strong></p>
-            <div class="formula">Points = Runs - Balls Faced</div>
-        </div>
+    <div class="card">
+      <h2><i class="fas fa-hands"></i> Fielding &amp; Multipliers</h2>
+      <table class="point-table">
+        <tr><td>Catch / Stumping / Run Out</td> <td class="val">+8</td></tr>
+        <tr><td>Involvement Bonus</td>           <td class="val">+4</td></tr>
+        <tr><td>Player of the Match</td>         <td class="val">+20</td></tr>
+        <tr><td>Captain (C)</td>                 <td class="val">×2.0</td></tr>
+        <tr><td>Vice-Captain (VC)</td>           <td class="val">×1.5</td></tr>
+      </table>
+    </div>
+  </section>
 
-        <div class="card">
-            <h2><i class="fas fa-bowling-ball"></i> Bowling</h2>
-            <table class="point-table">
-                <tr><td>1st Wicket</td><td class="val">+20</td></tr>
-                <tr><td>Every Additional Wicket</td><td class="val">+25</td></tr>
-                <tr><td>Maiden Over</td><td class="val">+10</td></tr>
-            </table>
-            <p><strong>Economy Rate (ER) Points:</strong></p>
-            <table class="point-table">
-                <tr><td>ER &lt;= 6.0</td><td class="val">+8</td></tr>
-                <tr><td>ER &gt; 6.0 to 9.0</td><td class="val">+4</td></tr>
-                <tr><td>ER &gt; 9.0</td><td class="val">-4</td></tr>
-            </table>
-        </div>
+  <!-- BOOSTERS -->
+  <section id="boosters" class="guide-section">
+    <div class="card">
+      <h2><i class="fas fa-rocket"></i> Match Boosters</h2>
+      <p>Use these 7 unique power-ups once each during the League Stage (Matches 2–70):</p>
+      <div class="booster-list">
+        <div class="booster-item"><b>TOTAL 2X</b>     2× points for your whole team.</div>
+        <div class="booster-item"><b>INDIAN 2X</b>    2× points for all Indian players.</div>
+        <div class="booster-item"><b>CAPTAIN 3X</b>   Triple (3×) points for Captain.</div>
+        <div class="booster-item"><b>OVERSEAS 2X</b>  2× points for Overseas players.</div>
+        <div class="booster-item"><b>UNCAPPED 2X</b>  2× points for Uncapped players.</div>
+        <div class="booster-item"><b>FREE 11</b>      Unlimited transfers for 1 match.</div>
+        <div class="booster-item"><b>MOM 2X</b>       2× points for Man of the Match.</div>
+      </div>
+      <p><small>*One booster per match · Each booster can only be used once per season.</small></p>
+    </div>
+  </section>
 
-        <div class="card">
-            <h2><i class="fas fa-hands"></i> Multipliers</h2>
-            <table class="point-table">
-                <tr><td>Captain (C)</td><td class="val">2.0x</td></tr>
-                <tr><td>Vice-Captain (VC)</td><td class="val">1.5x</td></tr>
-                <tr><td>Involvement Bonus</td><td class="val">+4</td></tr>
-                <tr><td>Catch / Stumping / Run Out</td><td class="val">+8</td></tr>
-            </table>
-        </div>
-    </section>
+  <!-- FAQs -->
+  <section id="faq" class="guide-section">
+    <div class="faq-item">
+      <div class="faq-q">What are Fun Zone Stars? <i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">For every correct match prediction you earn 1 Star. Collect 10 Stars to automatically receive 1 Free Substitution added to your account!</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How does "Free 11" work? <i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">When you activate the Free 11 booster, any substitutions you make for that specific match cost 0 subs. Perfect for heavy rotation!</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">When do teams lock? <i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Teams lock exactly at the match start time. If the match is delayed, the timer updates automatically.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What is All Stars XI? <i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">All Stars is a separate season-long team you build once before Match 1. It earns points every match but you can never change it after it locks. Check the Fun Zone tab!</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What is Daily XI? <i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Daily XI lets you pick 11 players from only the two teams playing today. One entry per match, locked after saving. Compete on the Daily Leaderboard and track your Season Average Rank.</div>
+    </div>
+  </section>
 
-    <section id="faq" class="guide-section">
-        <div class="faq-item">
-            <div class="faq-q">What are Fun Zone Stars? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">For every correct match prediction, you earn 1 Star. Collect 10 Stars to automatically receive 1 Free Substitution added to your account!</div>
-        </div>
-        <div class="faq-item">
-            <div class="faq-q">How does "Free 11" work? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">When you activate the Free 11 booster, any substitutions you make for that specific match will cost 0 subs. Perfect for heavy rotation!</div>
-        </div>
-        <div class="faq-item">
-            <div class="faq-q">When do teams lock? <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-a">Teams lock exactly at the match start time. If the match is delayed, the timer updates automatically.</div>
-        </div>
-    </section>
 </div>
 
 <script>
-function showTab(tabId, btnElement) {
-        document.querySelectorAll('.guide-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btnElement.classList.add('active'); // FIXED! Safely targets the clicked button
-    }
-    document.querySelectorAll('.faq-q').forEach(q => {
-        q.addEventListener('click', () => {
-            q.parentElement.classList.toggle('active');
-        });
-    });
-</script>
+  function showTab(tabId, btn) {
+    document.querySelectorAll(".guide-section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    btn.classList.add("active");
+  }
 
+  document.querySelectorAll(".faq-q").forEach(q => {
+    q.addEventListener("click", () => q.parentElement.classList.toggle("active"));
+  });
+</script>
 </body>
 </html>
