@@ -1,0 +1,236 @@
+/* ================================================
+   COMPONENTS.CSS — Shared UI Pieces
+   Requires: tokens.css loaded before this file
+   Used on: every page except login
+   ================================================ */
+
+
+/* ------------------------------------------------
+   UTILITY
+   ------------------------------------------------ */
+
+/* The single definition of .hidden for the whole app */
+.hidden {
+  display: none !important;
+}
+
+
+/* ------------------------------------------------
+   ANIMATIONS
+   ------------------------------------------------ */
+
+/* Spinner used on login button AND leaderboard */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Slide up — used by modals and bottom sheets */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* Fade in + rise — used by page load transitions */
+@keyframes fadeInRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ------------------------------------------------
+   BACK BUTTON
+   The .icon-back button used on edit team,
+   team view, leaderboard, prediction pages
+   ------------------------------------------------ */
+
+.icon-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--btn-radius);
+  background: var(--accent-dim);
+  border: 1px solid rgba(154, 224, 0, 0.2);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 900;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: var(--transition);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.icon-back:active {
+  transform: scale(0.92);
+}
+
+.icon-back:hover {
+  background: rgba(154, 224, 0, 0.15);
+  border-color: var(--accent);
+}
+
+/* Glow ring on hover */
+.icon-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--btn-radius);
+  box-shadow: 0 0 12px var(--accent-glow);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.icon-back:hover::after {
+  opacity: 1;
+}
+
+
+/* ------------------------------------------------
+   TOAST NOTIFICATIONS
+   Consistent position: top-center of screen
+   Works on all pages
+   ------------------------------------------------ */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);    /* centered horizontally */
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  width: 90%;
+  max-width: 340px;
+}
+
+.toast {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 14px 20px;
+  border-radius: var(--btn-radius);
+  font-size: 13px;
+  font-weight: 700;
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: toastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.toast.error {
+  border-left-color: var(--red);
+}
+
+.toast.warning {
+  border-left-color: var(--orange);
+}
+
+.toast.fade-out {
+  transition: all 0.3s ease;
+  opacity: 0 !important;
+  transform: scale(0.92) !important;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
+/* ------------------------------------------------
+   MODAL BACKDROP
+   The dark blurred overlay behind modals
+   ------------------------------------------------ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 17, 23, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* The white card that sits on top of the backdrop */
+.modal-card {
+  position: relative;
+  background: var(--bg-card);
+  width: 88%;
+  max-width: 380px;
+  border-radius: var(--card-radius);
+  padding: 30px;
+  border: 1px solid var(--border);
+  animation: fadeInRise 0.3s ease-out forwards;
+}
+
+/* Close button inside any modal */
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 1;
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+
+/* ------------------------------------------------
+   BOTTOM SHEET
+   The panel that slides up from the bottom
+   Used for filters, dropdowns, chat
+   ------------------------------------------------ */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  max-height: 75vh;
+  background: var(--bg-card-alt);
+  border-radius: 24px 24px 0 0;
+  z-index: 2100;
+  transition: bottom 0.4s var(--transition-bounce);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.bottom-sheet.open {
+  bottom: 0;
+}
+
+
+/* ------------------------------------------------
+   ACCESSIBILITY
+   Respects user's "reduce motion" system setting
+   ------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

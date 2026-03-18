@@ -252,43 +252,6 @@ body {
     font-size: 12px;
 }
 
-/* --- MODAL STYLING --- */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(12, 17, 23, 0.85); /* Slightly darker */
-    backdrop-filter: blur(8px); /* This creates the premium feel */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-
-}
-
-.modal-content {
-    position: relative;
-    background: #1e293b;
-    width: 85%;
-    max-width: 380px;
-    border-radius: 24px;
-    padding: 30px;
-    border: 1px solid #334155;
-}
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 28px;
-    color: #94a3b8;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close-modal:hover {
-    color: #fff;
-}
 
 
 
@@ -352,7 +315,6 @@ body {
 }
 
 .full-width { width: 100%; }
-.hidden { display: none !important; }
 
 /* Styling for the Delay Hint */
 .delay-badge {
@@ -417,30 +379,7 @@ body.loaded .app-container {
     transform: translateY(0);
 }
 
-/* Professional Fade for the Overlay */
-#loadingOverlay {
-    position: fixed;
-    inset: 0;
-    background: #0c1117;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999; /* Ensure it stays on top */
-    transition: opacity 0.4s ease, visibility 0.4s;
-}
 
-/* Hide the overlay smoothly when loaded */
-body.loaded #loadingOverlay {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none; /* Allows users to click things 'through' the hidden overlay */
-}
-
-#privateInviteCode:hover {
-    text-decoration: underline;
-    opacity: 0.8;
-}
 
 /* --- CRICKET LOADING ANIMATION --- */
 #loadingOverlay {
@@ -541,47 +480,7 @@ body.loaded #loadingOverlay {
     to { opacity: 1; letter-spacing: 6px; }
 }
 
-/* --- TOAST NOTIFICATIONS --- */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
 
-.toast {
-    background: #1e293b;
-    color: #fff;
-    padding: 14px 20px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 700;
-    border-left: 4px solid var(--accent, #9AE000);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    animation: slideInRight 0.3s ease forwards;
-    min-width: 250px;
-}
-
-.toast.error {
-    border-left-color: #ef4444; /* Red for errors */
-}
-
-.toast.fade-out {
-    animation: fadeOutToast 0.3s ease forwards;
-}
-
-@keyframes slideInRight {
-    from { transform: translateX(120%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOutToast {
-    to { transform: translateX(120%); opacity: 0; }
-}
 
 /* --- CUSTOM PROMPT MODAL --- */
 .prompt-modal {
