@@ -44,7 +44,19 @@ let countdownInterval;
 let currentUserId = null;
 let existingProfile = null; 
 
+function loadInPageAd(containerId, zoneId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
+    // Prevent duplicate ads
+    if (container.hasChildNodes()) return;
+
+    const script = document.createElement("script");
+    script.src = `//gizokraijaw.net/${zoneId}`;
+    script.async = true;
+
+    container.appendChild(script);
+}
 function loadMonetagAd() {
     // Prevent spam (show once per session or every 2 mins)
     const lastShown = localStorage.getItem("ad_last_shown");
@@ -122,12 +134,6 @@ function revealApp(hasError = false) {
     }
 
 setTimeout(() => {
-    if (shouldShowHomeAd()) {
-        loadMonetagAd();
-    }
-}, 1500);
-
-setTimeout(() => {
     const lastAction = localStorage.getItem("last_action");
 
     if (lastAction === "team_saved") {
@@ -136,13 +142,15 @@ setTimeout(() => {
     }
 }, 1500);
 
-    document.body.classList.remove('loading-state');
-    document.body.classList.add('loaded');
-    
-    setTimeout(() => {
-        const overlay = document.getElementById("loadingOverlay");
-        if (overlay) overlay.style.display = 'none';
-    }, 600); 
+document.body.classList.remove('loading-state');
+
+document.body.classList.add('loaded');
+
+// Load ads AFTER UI is visible
+setTimeout(() => {
+    loadInPageAd("adAfterMatch", "10746396");
+    loadInPageAd("adAfterLeague", "10742541");
+}, 500);
 }
 
 
