@@ -4,35 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Cricket Experts · More</title>
-  
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
-<link rel="stylesheet" href="bottom-nav.css">
 
+  <!-- LOAD ORDER: tokens first, then shared, then page-specific -->
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <link rel="stylesheet" href="css/bottom-nav.css?v=1.0">
 
   <style>
-    :root {
-      --bg-dark: var(--bg-dark);;
-      --card-bg: var(--bg-card);;
-      --neon-cyan: #00f2ff;
-      --neon-green:var(--accent);
-      --text-slate: var(--text-dim);;
-    }
+    /* ------------------------------------------------
+       MORE.CSS — inline since this page has no
+       separate CSS file
+       Requires: tokens.css + components.css loaded above
+    ------------------------------------------------ */
 
     body {
       background-color: var(--bg-dark);
-      color: #ffffff;
+      color: var(--text-primary);
       margin: 0;
-      font-family: 'Inter', -apple-system, sans-serif;
+      font-family: var(--font);
       overflow-x: hidden;
     }
 
     .app-container {
-      max-width: 420px;
+      max-width: var(--app-max-width);
       margin: 0 auto;
-      padding: 24px 16px 100px; /* Extra padding for bottom nav */
+      padding: 24px 16px 100px;
       min-height: 100vh;
       box-sizing: border-box;
     }
@@ -46,29 +43,31 @@
       font-size: 26px;
       font-weight: 800;
       margin: 0;
-      color: #fff;
+      color: var(--text-primary);
     }
 
-    /* MENU SECTIONS */
+    /* SECTION TITLES */
     .section-title {
       font-size: 11px;
       font-weight: 800;
-      color: var(--text-slate);
+      color: var(--text-dim);
       letter-spacing: 1px;
       margin-bottom: 12px;
       text-transform: uppercase;
       padding-left: 5px;
     }
 
+    /* CARDS */
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);;
-      border-radius: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
       padding: 8px;
       margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
+    /* MENU LIST */
     .menu-list {
       display: flex;
       flex-direction: column;
@@ -83,12 +82,12 @@
       background: transparent;
       border-radius: 14px;
       text-decoration: none;
-      color: #fff;
-      transition: all 0.2s ease;
+      color: var(--text-primary);
+      transition: var(--transition);
     }
 
     .menu-item:active {
-      background: rgba(154, 224, 0, 0.1);
+      background: var(--accent-dim);
       transform: scale(0.98);
     }
 
@@ -100,7 +99,7 @@
 
     .menu-item .icon-box i {
       font-size: 18px;
-      color: var(--neon-cyan);
+      color: #00f2ff;        /* cyan — this page's accent, intentionally kept */
       width: 24px;
       text-align: center;
     }
@@ -111,22 +110,20 @@
     }
 
     .menu-item .arrow {
-      color: var(--text-slate);
+      color: var(--text-dim);
       font-size: 16px;
     }
 
-    /* SPECIAL BUTTONS */
-    .logout-btn {
-      color: #ff4d4d !important;
-    }
-
+    /* LOGOUT BUTTON */
+    .logout-btn,
     .logout-btn i {
-      color: #ff4d4d !important;
+      color: var(--red) !important;
     }
 
+    /* ADMIN BADGE */
     .admin-badge {
       font-size: 9px;
-      background: var(--neon-cyan);
+      background: #00f2ff;
       color: #000;
       padding: 2px 6px;
       border-radius: 4px;
@@ -134,174 +131,240 @@
       margin-left: 8px;
     }
 
-    /* --- NATIVE MODAL CSS --- */
-    .hidden { display: none !important; }
-    
+    /* ------------------------------------------------
+       LOGOUT MODAL
+    ------------------------------------------------ */
+
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(5px); z-index: 3000;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px; animation: fadeIn 0.2s ease-out;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease-out;
     }
-    
+
     .modal-content {
-      background: var(--card-bg); width: 100%; max-width: 320px;
-      border-radius: 24px; padding: 24px; text-align: center;
-      border: 1px solid var(--border);; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 320px;
+      border-radius: 24px;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       animation: scaleUp 0.2s ease-out;
     }
-    
+
     .modal-icon {
-      width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 77, 77, 0.1);
-      color: #ff4d4d; font-size: 20px; display: flex; align-items: center; justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 77, 77, 0.1);
+      color: var(--red);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin: 0 auto 16px;
     }
-    
-    .modal-content h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
-    .modal-content p { margin: 0 0 24px; font-size: 13px; color: var(--text-slate); line-height: 1.4; }
-    
-    .modal-actions { display: flex; gap: 12px; }
-    .modal-actions button {
-      flex: 1; padding: 14px; border-radius: 14px; font-weight: 800;
-      font-size: 14px; border: none; cursor: pointer; transition: all 0.2s;
+
+    .modal-content h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 800;
     }
-    
-    .btn-cancel { background: var(--bg-dark);; color: #fff; border: 1px solid var(--border); !important; }
-    .btn-cancel:active { background: var(--border);; }
-    
-    .btn-danger { background: #ff4d4d; color: #000; }
-    .btn-danger:active { transform: scale(0.96); }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-content p {
+      margin: 0 0 24px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
 
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    /* Cancel button — border must be inside the rule, not after it */
+    .btn-cancel {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      border: 1px solid var(--border) !important;
+    }
+
+    .btn-cancel:active {
+      background: var(--border);
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: #000;
+    }
+
+    .btn-danger:active {
+      transform: scale(0.96);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes scaleUp {
+      from { transform: scale(0.95); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
   </style>
 </head>
 
 <body>
 
-<div class="app-container">
+  <div class="app-container">
 
-  <header class="app-header">
-    <h1>More</h1>
-  </header>
+    <header class="app-header">
+      <h1>More</h1>
+    </header>
 
-<div class="section-title">Game Features</div>
-  <section class="card">
-    <div class="menu-list">
+    <!-- GAME FEATURES -->
+    <div class="section-title">Game Features</div>
+    <section class="card">
+      <div class="menu-list">
 
-      <a href="calc.html?v=1.1" class="menu-item">
-        <div class="icon-box">
-          <i class="fas fa-calculator"></i>
-          <span class="label">Points Predictor</span>
-        </div>
-        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
-      </a>
-      
-      <a href="stats.html" class="menu-item">
-        <div class="icon-box">
-          <i class="fas fa-chart-bar"></i>
-          <span class="label">Player Stats & History</span>
-        </div>
-        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
-      </a>
+        <a href="calc.html?v=1.1" class="menu-item">
+          <div class="icon-box">
+            <i class="fas fa-calculator"></i>
+            <span class="label">Points Predictor</span>
+          </div>
+          <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </a>
 
-      <a href="how-to-play.html" class="menu-item">
-        <div class="icon-box">
-          <i class="fas fa-book-open"></i>
-          <span class="label">How to Play</span>
-        </div>
-        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
-      </a>
+        <a href="stats.html" class="menu-item">
+          <div class="icon-box">
+            <i class="fas fa-chart-bar"></i>
+            <span class="label">Player Stats & History</span>
+          </div>
+          <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </a>
 
-    </div>
-  </section>
+        <a href="how-to-play.html" class="menu-item">
+          <div class="icon-box">
+            <i class="fas fa-book-open"></i>
+            <span class="label">How to Play</span>
+          </div>
+          <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </a>
 
-  <div class="section-title">Help & Support</div>
-  <section class="card">
-    <div class="menu-list">
-      <a href="mailto:satyaranjansahoo@gmail.com" class="menu-item">
-        <div class="icon-box">
-          <i class="fas fa-envelope-open-text"></i>
-          <span class="label">Contact Admin <span class="admin-badge">SUPPORT</span></span>
-        </div>
-        <span class="arrow"><i class="fas fa-chevron-right"></i></span>
-      </a>
-    </div>
-  </section>
+      </div>
+    </section>
 
-  <div class="section-title">Account Settings</div>
-  <section class="card">
-    <div class="menu-list">
-      <a href="#" id="logoutBtn" class="menu-item logout-btn">
-        <div class="icon-box">
-          <i class="fas fa-sign-out-alt"></i>
-          <span class="label">Sign Out</span>
-        </div>
-      </a>
-    </div>
-  </section>
+    <!-- HELP & SUPPORT -->
+    <div class="section-title">Help & Support</div>
+    <section class="card">
+      <div class="menu-list">
+        <a href="mailto:satyaranjansahoo@gmail.com" class="menu-item">
+          <div class="icon-box">
+            <i class="fas fa-envelope-open-text"></i>
+            <span class="label">Contact Admin <span class="admin-badge">SUPPORT</span></span>
+          </div>
+          <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </a>
+      </div>
+    </section>
 
-</div>
+    <!-- ACCOUNT -->
+    <div class="section-title">Account Settings</div>
+    <section class="card">
+      <div class="menu-list">
+        <a href="#" id="logoutBtn" class="menu-item logout-btn">
+          <div class="icon-box">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="label">Sign Out</span>
+          </div>
+        </a>
+      </div>
+    </section>
 
-<div id="logoutOverlay" class="modal-overlay hidden">
+  </div><!-- end .app-container -->
+
+  <!-- LOGOUT MODAL -->
+  <div id="logoutOverlay" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-icon"><i class="fas fa-sign-out-alt"></i></div>
       <h3>Sign Out</h3>
       <p>Are you sure you want to leave the pavilion?</p>
       <div class="modal-actions">
-        <button id="cancelLogout" class="btn-cancel">Cancel</button>
+        <button id="cancelLogout"  class="btn-cancel">Cancel</button>
         <button id="confirmLogout" class="btn-danger">Sign Out</button>
       </div>
     </div>
   </div>
 
-<nav class="bottom-nav">
-  <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
-  <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
-  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
-  <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
-</nav>
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
 
-<script type="module">
-  import { supabase } from "./supabase.js?v=1.0";
-  
-  const logoutBtn = document.getElementById('logoutBtn');
-  const logoutOverlay = document.getElementById('logoutOverlay');
-  const cancelLogout = document.getElementById('cancelLogout');
-  const confirmLogout = document.getElementById('confirmLogout');
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="home.html"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+    <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+    <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
+  </nav>
 
-  // Show Modal
-  logoutBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    logoutOverlay.classList.remove('hidden');
-  });
+  <script type="module">
+    import { supabase } from "./supabase.js?v=1.0";
 
-  // Hide Modal
-  cancelLogout.addEventListener('click', () => {
-    logoutOverlay.classList.add('hidden');
-  });
+    const logoutBtn     = document.getElementById('logoutBtn');
+    const logoutOverlay = document.getElementById('logoutOverlay');
+    const cancelLogout  = document.getElementById('cancelLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
 
-  // Execute Logout
-  confirmLogout.addEventListener('click', async () => {
-    confirmLogout.textContent = "Signing out...";
-    confirmLogout.style.opacity = "0.7";
-    confirmLogout.style.pointerEvents = "none";
-    
-    const { error } = await supabase.auth.signOut();
-    
-    if (!error) {
-      window.location.href = "login.html";
-    } else {
-      // Revert button if network fails
-      confirmLogout.textContent = "Sign Out";
-      confirmLogout.style.opacity = "1";
-      confirmLogout.style.pointerEvents = "auto";
+    // Show modal
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      logoutOverlay.classList.remove('hidden');
+    });
+
+    // Hide modal
+    cancelLogout.addEventListener('click', () => {
       logoutOverlay.classList.add('hidden');
-      alert("Weak internet! Please try again."); // Fallback error
-    }
-  });
-</script>
+    });
+
+    // Execute logout
+    confirmLogout.addEventListener('click', async () => {
+      confirmLogout.textContent = "Signing out...";
+      confirmLogout.style.opacity = "0.7";
+      confirmLogout.style.pointerEvents = "none";
+
+      const { error } = await supabase.auth.signOut();
+
+      if (!error) {
+        window.location.href = "login.html";
+      } else {
+        confirmLogout.textContent = "Sign Out";
+        confirmLogout.style.opacity = "1";
+        confirmLogout.style.pointerEvents = "auto";
+        logoutOverlay.classList.add('hidden');
+        alert("Weak internet! Please try again.");
+      }
+    });
+  </script>
 
 </body>
 </html>
