@@ -111,8 +111,6 @@ function revealApp(hasError = false) {
    DASHBOARD INIT
 ══════════════════════════════════════════════════════ */
 async function startDashboard(userId) {
-    // BUG FIX: initNotificationHub wrapped in try/catch.
-    // If it throws, we don't want an unhandled rejection killing the dashboard.
     try { initNotificationHub(userId); } catch (e) {
         console.warn("Notification hub error:", e);
     }
@@ -207,8 +205,6 @@ async function fetchHomeData(userId) {
                 matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
             }
 
-            // BUG FIX: venue was injected with innerHTML — XSS risk if a venue name
-            // contained special characters. Now uses textContent for DB-sourced data.
             const venueEl = document.getElementById("matchVenue");
             if (venueEl) {
                 venueEl.textContent = "";
@@ -216,6 +212,7 @@ async function fetchHomeData(userId) {
                 emojiSpan.textContent = "🏟️ ";
                 const venueText       = document.createElement("span");
                 venueText.textContent = match.venue || "Venue TBA";
+                venueEl.title = match.venue || "Venue TBA"; // shows full name on hover/long press
                 venueEl.append(emojiSpan, venueText);
             }
 
@@ -253,6 +250,93 @@ async function fetchHomeData(userId) {
             );
         }
     }
+
+    // Initialise push notifications AFTER profile is loaded and completed.
+    // Only runs for users who have completed their profile.
+    // Won't show the popup if they already subscribed or denied.
+    if (profile?.profile_completed) {
+        initPushNotifications(userId);
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   ONESIGNAL PUSH NOTIFICATION INIT
+   ── Runs once after profile loads
+   ── Shows browser permission popup if not yet decided
+   ── Saves onesignal_id to user_profiles on subscribe
+   ── Silent if already subscribed or denied
+══════════════════════════════════════════════════════ */
+async function initPushNotifications(userId) {
+    try {
+        // OneSignalSDK.page.js loads the global window.OneSignalDeferred queue.
+        // We push our init into that queue so it runs when the SDK is ready.
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+        window.OneSignalDeferred.push(async (OneSignal) => {
+            await OneSignal.init({
+                appId:                        "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+                serviceWorkerPath:            "/onesignalsdkworker.js",
+                serviceWorkerParam:           { scope: "/" },
+                notifyButton:                 { enable: false },  // we don't want the floating bell widget
+                promptOptions: {
+                    slidedown: {
+                        prompts: [{
+                            type:                "push",
+                            autoPrompt:          true,
+                            text: {
+                                actionMessage:   "Get notified when your team locks, points update and match alerts.",
+                                acceptButton:    "Allow",
+                                cancelButton:    "Later",
+                            },
+                            delay: {
+                                pageViews:       1,   // show on first visit
+                                timeDelay:       3,   // wait 3 seconds after page load
+                            },
+                        }],
+                    },
+                },
+            });
+
+            // Listen for the moment a user subscribes
+            // Save their OneSignal player ID to user_profiles
+            OneSignal.User.PushSubscription.addEventListener("change", async (event) => {
+                if (!event.current.isSubscribed) return;
+
+                const playerId = event.current.id;
+                if (!playerId) return;
+
+                console.log("OneSignal subscribed, saving player ID:", playerId);
+
+                const { error } = await supabase
+                    .from("user_profiles")
+                    .update({ onesignal_id: playerId })
+                    .eq("user_id", userId);
+
+                if (error) {
+                    console.error("Failed to save onesignal_id:", error.message);
+                } else {
+                    console.log("onesignal_id saved to user_profiles");
+                }
+            });
+
+            // Also check on init if they're already subscribed but
+            // onesignal_id isn't saved yet (e.g. existing users)
+            const subscription = OneSignal.User.PushSubscription;
+            if (subscription.isSubscribed && subscription.id) {
+                const existing = existingProfile?.onesignal_id;
+                if (!existing || existing !== subscription.id) {
+                    await supabase
+                        .from("user_profiles")
+                        .update({ onesignal_id: subscription.id })
+                        .eq("user_id", userId);
+                }
+            }
+        });
+
+    } catch (err) {
+        // Never crash the app over push notification errors
+        console.warn("Push notification init failed:", err.message);
+    }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -275,9 +359,6 @@ async function loadLeaderboardPreview() {
 
     if (!leaderboardContainer) return;
 
-    // BUG FIX: separate network error from a genuinely empty leaderboard.
-    // Both cases previously showed "Rankings appear after Match 1!" which is
-    // misleading if it's actually a connection failure.
     if (error) {
         leaderboardContainer.innerHTML =
             `<p class="empty-state-text">Could not load rankings. Check your connection.</p>`;
@@ -427,14 +508,12 @@ function startCountdown(startTime) {
             clearInterval(countdownInterval);
             if (matchTimeElement) matchTimeElement.textContent = "Match Live";
             if (editButton) {
-                editButton.disabled          = true;
-                editButton.style.opacity     = "0.5";
+                editButton.disabled            = true;
+                editButton.style.opacity       = "0.5";
                 editButton.style.pointerEvents = "none";
-                editButton.textContent       = "LOCKED";
+                editButton.textContent         = "LOCKED";
             }
 
-            // BUG FIX: only reload if the page is actually visible.
-            // Previously fired even when the user was on a different tab.
             setTimeout(() => {
                 if (document.visibilityState !== "visible") return;
                 if (!profileModal?.hasAttribute("data-forced") &&
@@ -466,8 +545,6 @@ function startCountdown(startTime) {
     countdownInterval = setInterval(update, 1000);
 }
 
-// BUG FIX: clear the interval when user navigates away so it doesn't
-// keep running in the background consuming resources.
 window.addEventListener("pagehide", () => {
     if (countdownInterval) clearInterval(countdownInterval);
 });
@@ -547,10 +624,6 @@ if (saveProfileBtn) {
                 updatePayload.profile_completed = true;
             }
 
-            // BUG FIX: original code did .upsert(payload).eq("user_id", ...).
-            // .eq() has no effect on upsert — it doesn't filter which row is targeted.
-            // Correct pattern: include user_id in the payload and specify onConflict
-            // so Supabase knows to update the existing row rather than insert a new one.
             const { error: updateError } = await supabase
                 .from("user_profiles")
                 .upsert(

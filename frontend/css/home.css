@@ -211,6 +211,8 @@ body.loaded .app-container {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    gap: 8px;
+    min-width: 0; /* allows flex children to shrink */
 }
 
 .match-badge {
@@ -223,6 +225,7 @@ body.loaded .app-container {
     padding: 4px 10px;
     border-radius: 6px;
     border: 1px solid rgba(154, 224, 0, 0.2);
+    flex-shrink: 0; /* ADD THIS — badge never shrinks or wraps */
 }
 
 .match-venue {
@@ -231,6 +234,11 @@ body.loaded .app-container {
     margin: 0;
     font-weight: 600;
     letter-spacing: 0.3px;
+    /* FIX: truncate long venue names with ellipsis */
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .match-vs-row {
