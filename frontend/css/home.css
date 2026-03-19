@@ -23,16 +23,10 @@ body {
 .app-container {
     width: 100%;
     max-width: var(--app-max-width);
-    padding: 20px 16px 100px;
-    opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+padding: 20px 16px calc(100px + env(safe-area-inset-bottom, 0px));
+
 }
 
-body.loaded .app-container {
-    opacity: 1;
-    transform: translateY(0);
-}
 
 /* ─── CARD BASE ─────────────────────────────────── */
 .card {

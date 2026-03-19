@@ -195,7 +195,7 @@ async function fetchHomeData(userId) {
         if (dash.subs_remaining === 999) {
             if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "#9AE000"; }
         } else {
-            if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 150; subsElement.style.color = ""; }
+            if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 145; subsElement.style.color = ""; }
         }
 
         if (dash.upcoming_match) {
@@ -725,7 +725,7 @@ if (editButton) {
             profileModal?.classList.remove("hidden");
             return;
         }
-        window.location.href = "team-builder.html";
+        window.location.href = "/team-builder";
     };
 }
 
