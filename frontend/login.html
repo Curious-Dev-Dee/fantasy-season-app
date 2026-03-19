@@ -12,6 +12,9 @@
   <meta property="og:title" content="Cricket Experts — IPL 2026 Fantasy Cricket">
   <meta property="og:description" content="Season-long strategy, 7 boosters, All Stars XI, daily match previews and IPL news.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cricketexperts.in/">
+  <meta property="og:image" content="https://cricketexperts.in/og-image.png">
+  <link rel="canonical" href="https://cricketexperts.in/">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,13 +52,11 @@
       color: var(--white);
       font-family: var(--FB);
       overflow-x: hidden;
-      /* space for sticky CTA */
       padding-bottom: 78px;
     }
 
     a { text-decoration: none; color: inherit; }
 
-    /* grain */
     body::before {
       content: '';
       position: fixed; inset: 0;
@@ -65,11 +66,6 @@
       z-index: 0;
     }
 
-    /* ══════════════════════════════════════
-       TOP NAV — FIX: two-row layout on mobile
-       Row 1: brand | sign-in button
-       Row 2: scrollable nav links
-    ══════════════════════════════════════ */
     .top-nav {
       position: sticky; top: 0; z-index: 900;
       background: rgba(2,6,23,0.92);
@@ -77,7 +73,6 @@
       border-bottom: 1px solid var(--bdr);
     }
 
-    /* Row 1 */
     .nav-row1 {
       display: flex;
       align-items: center;
@@ -107,7 +102,6 @@
 
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-    /* FIX: Sign In button in row 1 — wired to Google OAuth via JS */
     .nav-signin-btn {
       font-family: var(--FD);
       font-size: 12px;
@@ -121,13 +115,11 @@
       cursor: pointer;
       white-space: nowrap;
       transition: background 0.2s;
-      /* prevent disabled state while page loads */
     }
 
     .nav-signin-btn:hover:not(:disabled) { background: var(--g-dim); }
     .nav-signin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Row 2 — scrollable links, never wraps */
     .nav-row2 {
       display: flex;
       align-items: center;
@@ -152,12 +144,9 @@
       transition: color 0.2s, background 0.2s;
     }
 
-    .nav-row2 a:hover  { color: var(--white); background: rgba(255,255,255,0.05); }
-    .nav-row2 a.on    { color: var(--g); }
+    .nav-row2 a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+    .nav-row2 a.on   { color: var(--g); }
 
-    /* ══════════════════════════════════════
-       HERO
-    ══════════════════════════════════════ */
     .hero {
       position: relative; z-index: 1;
       padding: 52px 22px 44px;
@@ -218,7 +207,6 @@
       margin: 0 auto 24px;
     }
 
-    /* Spots bar */
     .spots-row {
       display: inline-flex;
       align-items: center;
@@ -252,7 +240,6 @@
       color: var(--gold);
     }
 
-    /* Hero stats */
     .hero-stats {
       display: flex;
       justify-content: center;
@@ -266,9 +253,6 @@
     .hstat-l { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
     .hstat-div { width: 1px; height: 30px; background: var(--bdr); }
 
-    /* ══════════════════════════════════════
-       FREE CONTENT BELT
-    ══════════════════════════════════════ */
     .belt {
       position: relative; z-index: 1;
       background: linear-gradient(135deg, #091424 0%, #0c1c30 100%);
@@ -329,7 +313,6 @@
       gap: 10px;
     }
 
-    /* FIX: Content cards are now clickable links to separate pages */
     .bcard {
       background: rgba(255,255,255,0.03);
       border: 1px solid var(--bdr);
@@ -377,9 +360,6 @@
       display: inline-block;
     }
 
-    /* ══════════════════════════════════════
-       SECTIONS
-    ══════════════════════════════════════ */
     .sec {
       position: relative; z-index: 1;
       padding: 42px 22px;
@@ -415,7 +395,6 @@
 
     hr.div { border: none; border-top: 1px solid var(--bdr); max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
 
-    /* Feature list */
     .feat-list { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
 
     .feat {
@@ -482,7 +461,6 @@
       border-radius: 5px;
     }
 
-    /* Prize banner */
     .prize-banner {
       background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(154,224,0,0.06));
       border: 1px solid rgba(245,158,11,0.25);
@@ -507,7 +485,6 @@
 
     .prize-banner p { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-    /* Why grid */
     .why-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -526,7 +503,6 @@
     .why-big { font-family: var(--FD); font-size: 28px; font-weight: 900; color: var(--g); line-height: 1; margin-bottom: 4px; }
     .why-lbl { font-size: 10px; color: var(--muted); line-height: 1.4; }
 
-    /* Steps */
     .steps { margin-top: 24px; display: flex; flex-direction: column; gap: 0; position: relative; }
 
     .steps::before {
@@ -558,9 +534,6 @@
     .step-t h4 { font-family: var(--FD); font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
     .step-t p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
-    /* ══════════════════════════════════════
-       FOOTER
-    ══════════════════════════════════════ */
     footer {
       position: relative; z-index: 1;
       padding: 28px 22px;
@@ -574,9 +547,7 @@
     .foot-links a:hover { color: var(--white); }
     .foot-copy { font-size: 11px; color: var(--dim); }
 
-    /* ══════════════════════════════════════
-       STICKY CTA BAR
-    ══════════════════════════════════════ */
+    /* FIX: CTA bar starts hidden — revealed after registration check passes */
     .cta-bar {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -589,13 +560,21 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .cta-bar.hidden {
+      opacity: 0;
+      transform: translateY(100%);
+      pointer-events: none;
     }
 
     .cta-copy { flex: 1; min-width: 0; }
     .cta-head { font-family: var(--FD); font-size: 15px; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cta-sub  { font-size: 11px; color: var(--dim); }
 
-    /* Shared button style used for BOTH the bottom CTA and the nav Sign In */
     .google-btn {
       display: inline-flex;
       align-items: center;
@@ -659,7 +638,6 @@
       text-align: center;
     }
 
-    /* Fade-up animation */
     .fu { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
     .fu.vis { opacity: 1; transform: translateY(0); }
     .fu:nth-child(2) { transition-delay: 0.07s; }
@@ -674,28 +652,22 @@
 
 <!-- ══ NAV ══════════════════════════════════════════════════════════ -->
 <nav class="top-nav" aria-label="Site navigation">
-  <!-- Row 1: brand + sign in -->
   <div class="nav-row1">
     <div class="nav-brand">
       <div class="brand-dot"></div>
       Cricket Experts
     </div>
-    <!--
-      FIX: This button now triggers Google OAuth directly.
-      The JS below handles the loading state and wires it to doLogin().
-    -->
     <button class="nav-signin-btn" id="navSignInBtn" aria-label="Sign in with Google">
       Sign In
     </button>
   </div>
 
-  <!-- Row 2: scrollable content links -->
+  <!-- Row 2: fixtures removed — auth-protected page, unauthenticated users get redirect-looped -->
   <div class="nav-row2">
-    <a href="#features"        class="on">Features</a>
+    <a href="#features"            class="on">Features</a>
     <a href="fantasy-preview.html">Fantasy Previews</a>
     <a href="match-preview.html">Match Previews</a>
     <a href="team-news.html">Team News</a>
-    <a href="fixtures.html">Fixtures</a>
     <a href="#how">How It Works</a>
     <a href="#about">Why Us</a>
     <a href="terms.html">Terms</a>
@@ -708,7 +680,7 @@
 
   <div class="hero-pill">
     <div class="pill-dot"></div>
-    IPL 2026 · Season in Progress
+    IPL 2026 · Season Starts Mar 28
   </div>
 
   <h1 id="h1">
@@ -729,7 +701,7 @@
   </div>
 
   <div class="hero-stats">
-    <div class="hstat"><div class="hstat-n">74</div><div class="hstat-l">Matches</div></div>
+    <div class="hstat"><div class="hstat-n">84</div><div class="hstat-l">Matches</div></div>
     <div class="hstat-div"></div>
     <div class="hstat"><div class="hstat-n">7</div><div class="hstat-l">Boosters</div></div>
     <div class="hstat-div"></div>
@@ -751,7 +723,6 @@
       Even if our game reaches capacity, we publish daily fantasy tips, match previews, probable XIs and team news — updated before every match, completely free.
     </p>
     <div class="belt-grid">
-      <!-- FIX: Each card is now a link to its own page -->
       <a href="fantasy-preview.html" class="bcard fu">
         <div class="bcard-ico"><i class="fas fa-chess-knight"></i></div>
         <div>
@@ -776,12 +747,13 @@
           <span class="bcard-arrow">Read more →</span>
         </div>
       </a>
-      <a href="fixtures.html" class="bcard fu">
-        <div class="bcard-ico"><i class="fas fa-calendar-check"></i></div>
+      <!-- fixtures replaced — that page requires login, would confuse unauthenticated visitors -->
+      <a href="#how" class="bcard fu">
+        <div class="bcard-ico"><i class="fas fa-play-circle"></i></div>
         <div>
-          <h4>Full Fixtures</h4>
-          <p>Complete IPL 2026 schedule with venues, timings and live status.</p>
-          <span class="bcard-arrow">View schedule →</span>
+          <h4>How It Works</h4>
+          <p>Up and running in 60 seconds — see exactly how the game works.</p>
+          <span class="bcard-arrow">See how →</span>
         </div>
       </a>
     </div>
@@ -794,7 +766,7 @@
 <section class="sec" id="features" aria-labelledby="feat-h">
   <span class="eyebrow">Inside the Game</span>
   <h2 class="sec-title" id="feat-h">Built for<br>Serious Managers</h2>
-  <p class="sec-body">Not a casual pick-and-forget app. Every feature rewards thinking ahead, tracking form and making decisions that compound across 74 matches.</p>
+  <p class="sec-body">Not a casual pick-and-forget app. Every feature rewards thinking ahead, tracking form and making decisions that compound across 84 matches.</p>
 
   <div class="feat-list">
 
@@ -802,8 +774,8 @@
       <div class="feat-ico">🏏</div>
       <div class="feat-body">
         <h3>Season-Long Team Strategy</h3>
-        <p>Pick 11 players within 100 credits. Manage 130 substitutions across the league stage — each one a real cost. Unlimited free windows at Match 1 and Match 71 to rebuild.</p>
-        <span class="feat-tag">74 matches · 130 subs</span>
+        <p>Pick 11 players within 100 credits. Manage 145 substitutions across the league stage — each one a real cost. Unlimited free windows at Match 1 and Match 81 to rebuild.</p>
+        <span class="feat-tag">84 matches · 145 subs</span>
       </div>
     </div>
 
@@ -825,7 +797,6 @@
       </div>
     </div>
 
-    <!-- FIX: Added Private Leagues + Leaderboard with chat -->
     <div class="feat fu">
       <div class="feat-ico">🏆</div>
       <div class="feat-body">
@@ -846,7 +817,6 @@
 
   </div>
 
-  <!-- FIX: Prize banner — compete free + prizes announced soon -->
   <div class="prize-banner">
     <div class="prize-ico">🎁</div>
     <div>
@@ -903,20 +873,15 @@
   <span class="eyebrow">Why Cricket Experts</span>
   <h2 class="sec-title" id="why-h">Depth That<br>Other Platforms<br>Don't Have</h2>
   <p class="sec-body">
-    Weekly fantasy resets every time. Cricket Experts runs the full IPL season. Your sub budget, your booster choices and your All Stars pick follow you across all 74 matches. Smart play across the full season wins — not just one lucky gameweek.
+    Weekly fantasy resets every time. Cricket Experts runs the full IPL season. Your sub budget, your booster choices and your All Stars pick follow you across all 84 matches. Smart play across the full season wins — not just one lucky gameweek.
   </p>
 
   <div class="why-grid">
     <div class="why-cell fu"><div class="why-big">100</div><div class="why-lbl">Credit budget per team</div></div>
-    <div class="why-cell fu"><div class="why-big">130</div><div class="why-lbl">Subs in the league stage</div></div>
+    <div class="why-cell fu"><div class="why-big">145</div><div class="why-lbl">Subs in the league stage</div></div>
     <div class="why-cell fu"><div class="why-big">7</div><div class="why-lbl">One-use power boosters</div></div>
     <div class="why-cell fu"><div class="why-big">3</div><div class="why-lbl">Fun Zone game modes</div></div>
-    <div class="why-cell fu"><div class="why-big">74</div><div class="why-lbl">Matches in the season</div></div>
-    <!--
-      FIX: Replaced "0 ads in app" with honest copy.
-      We do show minimal ads but UX is the priority.
-      The edit team page is ad-free.
-    -->
+    <div class="why-cell fu"><div class="why-big">84</div><div class="why-lbl">Matches in the season</div></div>
     <div class="why-cell fu"><div class="why-big">UX</div><div class="why-lbl">First — minimal non-intrusive ads</div></div>
   </div>
 </section>
@@ -932,14 +897,13 @@
     <a href="fantasy-preview.html">Fantasy Previews</a>
     <a href="match-preview.html">Match Previews</a>
     <a href="team-news.html">Team News</a>
-    <a href="fixtures.html">Fixtures</a>
-    <a href="mailto:satyaranjansahoo@gmail.com">Contact</a>
+    <a href="mailto:hello@cricketexperts.in">Contact</a>
   </div>
   <p class="foot-copy">© 2026 Cricket Experts · Fan-made fantasy platform · Not affiliated with BCCI or IPL · For entertainment only.</p>
 </footer>
 
-<!-- ══ STICKY CTA BAR ══════════════════════════════════════════════ -->
-<div class="cta-bar">
+<!-- ══ STICKY CTA BAR — starts hidden, revealed after registration check ══ -->
+<div class="cta-bar hidden" id="ctaBar">
   <div class="cta-copy">
     <div class="cta-head" id="ctaHead">Join the League</div>
     <div class="cta-sub"  id="ctaSub">IPL 2026 · Free to play</div>
@@ -966,15 +930,20 @@
       if (session) window.location.replace("/home");
   });
 
-  /* ── Shared auth state for all buttons ─────────────────────────── */
+  /* ── DOM refs ───────────────────────────────────────────────────── */
+  const ctaBar    = document.getElementById("ctaBar");
   const bottomBtn = document.getElementById("googleLoginBtn");
   const navBtn    = document.getElementById("navSignInBtn");
   const btxt      = bottomBtn?.querySelector(".btn-text");
   const bspin     = document.getElementById("spinIco");
   const errEl     = document.getElementById("authError");
 
+  /* ── Reveal CTA bar after registration check ────────────────────── */
+  function revealCTA() {
+      ctaBar?.classList.remove("hidden");
+  }
+
   function setLoading(on) {
-      // Disable both buttons simultaneously
       if (bottomBtn) bottomBtn.disabled = on;
       if (navBtn)    navBtn.disabled    = on;
       if (btxt)  btxt.textContent = on ? "Connecting…" : "Play Now";
@@ -1003,12 +972,10 @@
           const { error } = await supabase.auth.signInWithOAuth({
               provider: "google",
               options: {
-                  // Must be in your Supabase Dashboard → Auth → Redirect URLs
                   redirectTo: `${window.location.origin}/home`,
               },
           });
           if (error) throw error;
-          // OAuth triggers a browser redirect — no setLoading(false) needed
 
       } catch (err) {
           setLoading(false);
@@ -1017,34 +984,28 @@
       }
   }
 
-  /* ── Wire both buttons to the same function ─────────────────────── */
   bottomBtn?.addEventListener("click", doLogin);
   navBtn?.addEventListener("click", doLogin);
 
-  /* ── Spot counter ───────────────────────────────────────────────── */
+  /* ── Spot counter — parallel queries ────────────────────────────── */
   async function initSpots() {
       const fill  = document.getElementById("spotsFill");
       const label = document.getElementById("spotsLabel");
 
       try {
-          const { data: rows } = await supabase
-              .from("app_config")
-              .select("key, value")
-              .in("key", ["max_users", "registration_open"]);
+          const [configRes, countRes] = await Promise.all([
+              supabase.from("app_config").select("key, value").in("key", ["max_users", "registration_open"]),
+              supabase.from("user_profiles").select("*", { count: "exact", head: true }),
+          ]);
 
-          const cfg     = Object.fromEntries((rows || []).map(r => [r.key, r.value]));
-          const max     = parseInt(cfg.max_users  || "200", 10);
-          const regOpen = cfg.registration_open   !== "false";
+          const cfg     = Object.fromEntries((configRes.data || []).map(r => [r.key, r.value]));
+          const max     = parseInt(cfg.max_users || "200", 10);
+          const regOpen = cfg.registration_open !== "false";
+          const used    = countRes.count || 0;
+          const pct     = Math.min(100, Math.round((used / max) * 100));
+          const left    = max - used;
 
-          const { count } = await supabase
-              .from("user_profiles")
-              .select("*", { count: "exact", head: true });
-
-          const used = count || 0;
-          const pct  = Math.min(100, Math.round((used / max) * 100));
-          const left = max - used;
-
-          if (fill)  fill.style.width = `${pct}%`;
+          if (fill) fill.style.width = `${pct}%`;
 
           if (!regOpen || left <= 0) {
               if (label) label.textContent = "Currently full — free content open to all";
@@ -1054,10 +1015,14 @@
           } else {
               if (label) label.textContent = `${left} of ${max} spots available`;
           }
+
       } catch {
           const row = document.querySelector(".spots-row");
           if (row) row.style.display = "none";
       }
+
+      // Always reveal CTA after check — setClosedMode rewires buttons first if needed
+      revealCTA();
   }
 
   function setClosedMode() {
@@ -1066,7 +1031,6 @@
       if (head) head.textContent = "Game Full — Free Content Available";
       if (sub)  sub.textContent  = "Daily previews, tips and IPL news";
 
-      // Bottom button → scroll to free content
       if (bottomBtn) {
           bottomBtn.removeEventListener("click", doLogin);
           bottomBtn.innerHTML = "Read Our Blog →";
@@ -1074,7 +1038,6 @@
               document.getElementById("free-zone")?.scrollIntoView({ behavior: "smooth" });
       }
 
-      // Nav sign-in → same
       if (navBtn) {
           navBtn.removeEventListener("click", doLogin);
           navBtn.textContent = "Free Content";
