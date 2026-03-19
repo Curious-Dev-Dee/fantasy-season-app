@@ -3,10 +3,10 @@
    Requires: tokens.css + components.css + bottom-nav.css
    ================================================ */
 
-/* ─── FONT ─────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
-
 /* ─── BASE ─────────────────────────────────────── */
+/* NOTE: Barlow Condensed + Inter are loaded via <link> in home.html.
+   The @import that was here is removed — it was redundant and
+   render-blocking (browser must fetch CSS before discovering the font). */
 * { box-sizing: border-box; }
 
 body {

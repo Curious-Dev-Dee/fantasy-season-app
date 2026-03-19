@@ -3,53 +3,49 @@ import { authReady } from "./auth-state.js";
 import { initNotificationHub } from "./notifications.js";
 import { getEffectiveRank, applyRankFlair } from "./animations.js";
 
-let activeTournamentId   = null;
-let currentUserId        = null;
-let existingProfile      = null;
-let countdownInterval    = null;
+let activeTournamentId      = null;
+let currentUserId           = null;
+let existingProfile         = null;
+let countdownInterval       = null;
 let currentUserOverallRank  = Infinity;
 let currentUserPrivateRank  = Infinity;
 
 /* ── ELEMENTS ── */
-const tournamentTitle      = document.getElementById("tournamentName");
-const avatarElement        = document.getElementById("teamAvatar");
-const welcomeText          = document.getElementById("welcomeText");
-const teamNameElement      = document.getElementById("userTeamName");
-const scoreElement         = document.getElementById("userScore");
-const rankElement          = document.getElementById("userRank");
-const subsElement          = document.getElementById("subsRemaining");
-const matchTeamsElement    = document.getElementById("matchTeams");
-const matchTimeElement     = document.getElementById("matchTime");
-const leaderboardContainer = document.getElementById("leaderboardContainer");
-const editButton           = document.getElementById("editXiBtn");
-const boosterStatusEl      = document.getElementById("boosterStatus");
-const profileModal         = document.getElementById("profileModal");
-const saveProfileBtn       = document.getElementById("saveProfileBtn");
-const modalFullName        = document.getElementById("modalFullName");
-const modalTeamName        = document.getElementById("modalTeamName");
-const avatarInput          = document.getElementById("avatarInput");
-const modalPreview         = document.getElementById("modalAvatarPreview");
-const viewXiBtn            = document.getElementById("viewXiBtn");
+const tournamentTitle        = document.getElementById("tournamentName");
+const avatarElement          = document.getElementById("teamAvatar");
+const welcomeText            = document.getElementById("welcomeText");
+const teamNameElement        = document.getElementById("userTeamName");
+const scoreElement           = document.getElementById("userScore");
+const rankElement            = document.getElementById("userRank");
+const subsElement            = document.getElementById("subsRemaining");
+const matchTeamsElement      = document.getElementById("matchTeams");
+const matchTimeElement       = document.getElementById("matchTime");
+const leaderboardContainer   = document.getElementById("leaderboardContainer");
+const editButton             = document.getElementById("editXiBtn");
+const boosterStatusEl        = document.getElementById("boosterStatus");
+const profileModal           = document.getElementById("profileModal");
+const saveProfileBtn         = document.getElementById("saveProfileBtn");
+const modalFullName          = document.getElementById("modalFullName");
+const modalTeamName          = document.getElementById("modalTeamName");
+const avatarInput            = document.getElementById("avatarInput");
+const modalPreview           = document.getElementById("modalAvatarPreview");
+const viewXiBtn              = document.getElementById("viewXiBtn");
 const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
 
-/* ── VIEW LEADERBOARD BUTTON ──
-   Replaced fake <a> click pattern with direct navigation */
 if (viewFullLeaderboardBtn) {
-    viewFullLeaderboardBtn.onclick = () => {
-        window.location.href = "leaderboard.html";
-    };
+    viewFullLeaderboardBtn.onclick = () => { window.location.href = "leaderboard.html"; };
 }
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    AD UTILITIES
-========================= */
+══════════════════════════════════════════════════════ */
 function loadInPageAd(containerId, zoneId) {
     const container = document.getElementById(containerId);
     if (!container || container.hasChildNodes()) return;
     const wrapper = document.createElement("div");
     wrapper.style.cssText = "position:relative;min-height:80px;";
     container.appendChild(wrapper);
-    const script = document.createElement("script");
+    const script        = document.createElement("script");
     script.src          = "https://nap5k.com/tag.min.js";
     script.async        = true;
     script.dataset.zone = zoneId;
@@ -57,23 +53,14 @@ function loadInPageAd(containerId, zoneId) {
 }
 
 function loadMonetagAd() {
-    /* BUG FIX: localStorage throws in Safari Private Mode.
-       Use a module-level variable as fallback. */
     let lastShown = null;
-    try {
-        lastShown = localStorage.getItem("ad_last_shown");
-    } catch (_) { /* Safari private mode — skip throttle check */ }
-
+    try { lastShown = localStorage.getItem("ad_last_shown"); } catch (_) {}
     const now = Date.now();
     if (lastShown && now - Number(lastShown) < 120000) return;
-
-    try {
-        localStorage.setItem("ad_last_shown", now);
-    } catch (_) { /* ignore */ }
-
+    try { localStorage.setItem("ad_last_shown", now); } catch (_) {}
     const existing = document.getElementById("monetag-vignette");
     if (existing) existing.remove();
-    const script = document.createElement("script");
+    const script        = document.createElement("script");
     script.id           = "monetag-vignette";
     script.src          = "https://gizokraijaw.net/vignette.min.js";
     script.dataset.zone = "10742556";
@@ -87,80 +74,71 @@ function shouldShowHomeAd() {
     return true;
 }
 
-/* =========================
-   APPLICATION BOOTSTRAP
-   Uses shared authReady Promise — no race condition
-========================= */
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
 async function initApp() {
     try {
         const user = await authReady;
         currentUserId = user.id;
         startDashboard(currentUserId);
     } catch (err) {
-        // auth-guard.js already redirected to login — nothing to do here
         console.warn("Auth failed:", err.message);
     }
 }
 
 initApp();
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    PAGE LOAD TRANSITION
-========================= */
+══════════════════════════════════════════════════════ */
 function revealApp(hasError = false) {
     if (hasError) {
         const loadingText = document.querySelector(".loading-text");
         if (loadingText) {
             loadingText.style.color = "var(--red)";
-            loadingText.innerHTML = `FIELD UNAVAILABLE<br>
+            loadingText.innerHTML   = `FIELD UNAVAILABLE<br>
                 <button onclick="location.reload()" style="background:#9AE000;color:#000;border:none;padding:8px 15px;border-radius:8px;margin-top:10px;font-weight:800;cursor:pointer;">RETRY</button>`;
         }
         return;
     }
     document.body.classList.remove("loading-state");
     document.body.classList.add("loaded");
-    if (shouldShowHomeAd()) {
-        loadMonetagAd();
-    }
+    if (shouldShowHomeAd()) loadMonetagAd();
 }
 
-/* =========================
-   DASHBOARD INITIALIZATION
-========================= */
+/* ══════════════════════════════════════════════════════
+   DASHBOARD INIT
+══════════════════════════════════════════════════════ */
 async function startDashboard(userId) {
-    initNotificationHub(userId);
+    // BUG FIX: initNotificationHub wrapped in try/catch.
+    // If it throws, we don't want an unhandled rejection killing the dashboard.
+    try { initNotificationHub(userId); } catch (e) {
+        console.warn("Notification hub error:", e);
+    }
+
     setupHomeLeagueListeners(userId);
 
     try {
         const { data: activeT } = await supabase
-            .from("active_tournament")
-            .select("*")
-            .maybeSingle();
+            .from("active_tournament").select("*").maybeSingle();
 
         if (activeT) {
             activeTournamentId = activeT.id;
             if (tournamentTitle) tournamentTitle.textContent = activeT.name;
         }
 
-        /* BUG FIX: Check each allSettled result individually.
-           allSettled never rejects so the outer catch never fires
-           if a sub-fetch fails — we must inspect statuses. */
         const [homeResult, lbResult, leagueResult] = await Promise.allSettled([
             fetchHomeData(userId),
             loadLeaderboardPreview(),
             fetchPrivateLeagueData(userId),
         ]);
 
-        const anyFailed = [homeResult, lbResult, leagueResult]
-            .some(r => r.status === "rejected");
-
-        if (anyFailed) {
+        if ([homeResult, lbResult, leagueResult].some(r => r.status === "rejected")) {
             console.warn("One or more dashboard fetches failed:",
                 homeResult.reason, lbResult.reason, leagueResult.reason);
         }
 
-        // Reveal app regardless — partial data is better than a forever-spinner.
-        // If the critical fetch (homeResult) failed, show error state.
         revealApp(homeResult.status === "rejected");
 
     } catch (err) {
@@ -169,15 +147,12 @@ async function startDashboard(userId) {
     }
 }
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    CORE DATA FETCH
-========================= */
+══════════════════════════════════════════════════════ */
 async function fetchHomeData(userId) {
     const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
+        .from("user_profiles").select("*").eq("user_id", userId).maybeSingle();
 
     existingProfile = profile;
 
@@ -190,32 +165,21 @@ async function fetchHomeData(userId) {
         }
     }
 
-    const firstName = profile?.full_name
-        ? profile.full_name.split(" ")[0]
-        : "Expert";
-    if (welcomeText) welcomeText.textContent = `Welcome back, ${firstName}!`;
+    const firstName = profile?.full_name ? profile.full_name.split(" ")[0] : "Expert";
+    if (welcomeText)     welcomeText.textContent     = `Welcome back, ${firstName}!`;
     if (teamNameElement) teamNameElement.textContent = profile?.team_name || "Set your team name";
 
     if (profile?.team_photo_url) {
         const { data: imgData } = supabase.storage
-            .from("team-avatars")
-            .getPublicUrl(profile.team_photo_url);
+            .from("team-avatars").getPublicUrl(profile.team_photo_url);
         if (avatarElement) avatarElement.style.backgroundImage = `url(${imgData.publicUrl})`;
     }
 
     const [{ data: dash }, { data: boosterData }] = await Promise.all([
-        supabase
-            .from("home_dashboard_view")
-            .select("*")
-            .eq("user_id", userId)
-            .maybeSingle(),
+        supabase.from("home_dashboard_view").select("*").eq("user_id", userId).maybeSingle(),
         activeTournamentId
-            ? supabase
-                .from("user_tournament_points")
-                .select("used_boosters")
-                .eq("user_id", userId)
-                .eq("tournament_id", activeTournamentId)
-                .maybeSingle()
+            ? supabase.from("user_tournament_points").select("used_boosters")
+                .eq("user_id", userId).eq("tournament_id", activeTournamentId).maybeSingle()
             : Promise.resolve({ data: null }),
     ]);
 
@@ -231,24 +195,29 @@ async function fetchHomeData(userId) {
         currentUserOverallRank = dash.user_rank || Infinity;
 
         if (dash.subs_remaining === 999) {
-            if (subsElement) {
-                subsElement.textContent  = "∞";
-                subsElement.style.color  = "#9AE000";
-            }
+            if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "#9AE000"; }
         } else {
-            if (subsElement) {
-                subsElement.textContent = dash.subs_remaining ?? 150;
-                subsElement.style.color = "";
-            }
+            if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 150; subsElement.style.color = ""; }
         }
 
         if (dash.upcoming_match) {
             const match = dash.upcoming_match;
-            if (matchTeamsElement) matchTeamsElement.textContent =
-                `${match.team_a_code} vs ${match.team_b_code}`;
 
+            if (matchTeamsElement) {
+                matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
+            }
+
+            // BUG FIX: venue was injected with innerHTML — XSS risk if a venue name
+            // contained special characters. Now uses textContent for DB-sourced data.
             const venueEl = document.getElementById("matchVenue");
-            if (venueEl) venueEl.innerHTML = `🏟️ ${match.venue || "Venue TBA"}`;
+            if (venueEl) {
+                venueEl.textContent = "";
+                const emojiSpan       = document.createElement("span");
+                emojiSpan.textContent = "🏟️ ";
+                const venueText       = document.createElement("span");
+                venueText.textContent = match.venue || "Venue TBA";
+                venueEl.append(emojiSpan, venueText);
+            }
 
             const bucket   = supabase.storage.from("team-logos");
             const logoAUrl = match.team_a_logo
@@ -262,18 +231,19 @@ async function fetchHomeData(userId) {
             const teamBLogo = document.getElementById("teamBLogo");
             if (teamALogo) {
                 teamALogo.style.backgroundImage = `url('${logoAUrl}')`;
-                teamALogo.style.display = "block";
+                teamALogo.style.display         = "block";
             }
             if (teamBLogo) {
                 teamBLogo.style.backgroundImage = `url('${logoBUrl}')`;
-                teamBLogo.style.display = "block";
+                teamBLogo.style.display         = "block";
             }
 
             startCountdown(match.actual_start_time);
+
         } else {
             if (matchTeamsElement) matchTeamsElement.textContent = "No Upcoming Matches";
             const venueEl = document.getElementById("matchVenue");
-            if (venueEl) venueEl.innerHTML = "";
+            if (venueEl) venueEl.textContent = "";
             if (matchTimeElement) matchTimeElement.textContent = "Check back soon!";
         }
 
@@ -285,19 +255,19 @@ async function fetchHomeData(userId) {
     }
 }
 
-/* =========================
-   APPLY OWN FLAIR
-========================= */
+/* ══════════════════════════════════════════════════════
+   FLAIR
+══════════════════════════════════════════════════════ */
 function applyOwnFlair() {
     const effectiveRank = getEffectiveRank(currentUserOverallRank, currentUserPrivateRank);
     applyRankFlair(avatarElement, teamNameElement, effectiveRank);
 }
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    LEADERBOARD PREVIEW
-========================= */
+══════════════════════════════════════════════════════ */
 async function loadLeaderboardPreview() {
-    const { data: lb } = await supabase
+    const { data: lb, error } = await supabase
         .from("leaderboard_view")
         .select("team_name, total_points, rank, user_id")
         .order("rank", { ascending: true })
@@ -305,22 +275,38 @@ async function loadLeaderboardPreview() {
 
     if (!leaderboardContainer) return;
 
+    // BUG FIX: separate network error from a genuinely empty leaderboard.
+    // Both cases previously showed "Rankings appear after Match 1!" which is
+    // misleading if it's actually a connection failure.
+    if (error) {
+        leaderboardContainer.innerHTML =
+            `<p class="empty-state-text">Could not load rankings. Check your connection.</p>`;
+        return;
+    }
+
     if (lb && lb.length > 0) {
         leaderboardContainer.innerHTML = "";
         lb.forEach(row => {
-            const rowDiv = document.createElement("div");
+            const rowDiv     = document.createElement("div");
             rowDiv.className = "leader-row";
-            rowDiv.onclick = () => {
+            rowDiv.onclick   = () => {
                 const name = encodeURIComponent(row.team_name || "Expert");
                 window.location.href = `team-view.html?uid=${row.user_id}&name=${name}`;
             };
-            rowDiv.innerHTML = `
-                <span>#${row.rank} <strong class="team-name-text"></strong></span>
-                <span class="pts-pill">${row.total_points} pts</span>
-            `;
-            const nameEl = rowDiv.querySelector(".team-name-text");
-            nameEl.textContent = row.team_name || "Expert";
-            if (row.rank <= 3) applyRankFlair(null, nameEl, row.rank);
+
+            const rankSpan     = document.createElement("span");
+            const rankTxt      = document.createTextNode(`#${row.rank} `);
+            const nameStrong   = document.createElement("strong");
+            nameStrong.className   = "team-name-text";
+            nameStrong.textContent = row.team_name || "Expert";
+            rankSpan.append(rankTxt, nameStrong);
+
+            const ptsPill      = document.createElement("span");
+            ptsPill.className  = "pts-pill";
+            ptsPill.textContent = `${row.total_points} pts`;
+
+            rowDiv.append(rankSpan, ptsPill);
+            if (row.rank <= 3) applyRankFlair(null, nameStrong, row.rank);
             leaderboardContainer.appendChild(rowDiv);
         });
     } else {
@@ -329,9 +315,9 @@ async function loadLeaderboardPreview() {
     }
 }
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    PRIVATE LEAGUE DATA
-========================= */
+══════════════════════════════════════════════════════ */
 async function fetchPrivateLeagueData(userId) {
     const card         = document.getElementById("privateLeagueCard");
     const leagueNameEl = document.getElementById("privateLeagueName");
@@ -365,23 +351,19 @@ async function fetchPrivateLeagueData(userId) {
     if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
 
     if (inviteCodeEl) {
-        inviteCodeEl.textContent = m.leagues.invite_code;
+        inviteCodeEl.textContent  = m.leagues.invite_code;
         inviteCodeEl.style.cursor = "pointer";
-        inviteCodeEl.title = "Tap to copy";
-        inviteCodeEl.onclick = () => {
+        inviteCodeEl.title        = "Tap to copy";
+        inviteCodeEl.onclick      = () => {
             navigator.clipboard.writeText(m.leagues.invite_code);
             const original = inviteCodeEl.textContent;
             inviteCodeEl.textContent = "COPIED!";
             inviteCodeEl.style.color = "#9AE000";
-            setTimeout(() => {
-                inviteCodeEl.textContent = original;
-                inviteCodeEl.style.color = "";
-            }, 2000);
+            setTimeout(() => { inviteCodeEl.textContent = original; inviteCodeEl.style.color = ""; }, 2000);
         };
     }
 
     if (viewBtn) {
-        // Replaced fake <a> click with direct navigation
         viewBtn.onclick = () => {
             window.location.href = `leaderboard.html?league_id=${m.league_id}`;
         };
@@ -397,24 +379,31 @@ async function fetchPrivateLeagueData(userId) {
     if (lb && containerEl) {
         containerEl.innerHTML = "";
         lb.forEach(row => {
-            const rowDiv = document.createElement("div");
+            const rowDiv     = document.createElement("div");
             rowDiv.className = "leader-row";
-            rowDiv.onclick = () => {
+            rowDiv.onclick   = () => {
                 const name = encodeURIComponent(row.team_name || "Expert");
                 window.location.href = `team-view.html?uid=${row.user_id}&name=${name}`;
             };
-            rowDiv.innerHTML = `
-                <span>#${row.rank_in_league} <strong class="team-name-text"></strong></span>
-                <span class="pts-pill">${row.total_points} pts</span>
-            `;
-            const nameEl = rowDiv.querySelector(".team-name-text");
-            nameEl.textContent = row.team_name || "Expert";
-            if (row.rank_in_league <= 3) applyRankFlair(null, nameEl, row.rank_in_league);
+
+            const rankSpan     = document.createElement("span");
+            const rankTxt      = document.createTextNode(`#${row.rank_in_league} `);
+            const nameStrong   = document.createElement("strong");
+            nameStrong.className   = "team-name-text";
+            nameStrong.textContent = row.team_name || "Expert";
+            rankSpan.append(rankTxt, nameStrong);
+
+            const ptsPill      = document.createElement("span");
+            ptsPill.className  = "pts-pill";
+            ptsPill.textContent = `${row.total_points} pts`;
+
+            rowDiv.append(rankSpan, ptsPill);
+            if (row.rank_in_league <= 3) applyRankFlair(null, nameStrong, row.rank_in_league);
             containerEl.appendChild(rowDiv);
         });
 
-        const userRow   = lb.find(r => r.user_id === userId);
-        const rankSpan  = document.getElementById("privateLeagueRank");
+        const userRow  = lb.find(r => r.user_id === userId);
+        const rankSpan = document.getElementById("privateLeagueRank");
         if (rankSpan && userRow) rankSpan.textContent = `#${userRow.rank_in_league}`;
         currentUserPrivateRank = userRow?.rank_in_league ?? Infinity;
     } else {
@@ -424,27 +413,30 @@ async function fetchPrivateLeagueData(userId) {
     applyOwnFlair();
 }
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    COUNTDOWN
-========================= */
+══════════════════════════════════════════════════════ */
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     const matchTime = new Date(startTime).getTime();
 
     const update = () => {
         const dist = matchTime - Date.now();
+
         if (dist <= 0) {
             clearInterval(countdownInterval);
             if (matchTimeElement) matchTimeElement.textContent = "Match Live";
             if (editButton) {
-                editButton.disabled = true;
-                editButton.style.opacity = "0.5";
+                editButton.disabled          = true;
+                editButton.style.opacity     = "0.5";
                 editButton.style.pointerEvents = "none";
-                editButton.textContent = "LOCKED";
+                editButton.textContent       = "LOCKED";
             }
-            /* BUG FIX: Don't auto-reload if the profile modal is open
-               — that would wipe unsaved profile changes mid-edit. */
+
+            // BUG FIX: only reload if the page is actually visible.
+            // Previously fired even when the user was on a different tab.
             setTimeout(() => {
+                if (document.visibilityState !== "visible") return;
                 if (!profileModal?.hasAttribute("data-forced") &&
                     profileModal?.classList.contains("hidden")) {
                     window.location.reload();
@@ -474,9 +466,15 @@ function startCountdown(startTime) {
     countdownInterval = setInterval(update, 1000);
 }
 
-/* =========================
+// BUG FIX: clear the interval when user navigates away so it doesn't
+// keep running in the background consuming resources.
+window.addEventListener("pagehide", () => {
+    if (countdownInterval) clearInterval(countdownInterval);
+});
+
+/* ══════════════════════════════════════════════════════
    HOME LEAGUE ACTIONS
-========================= */
+══════════════════════════════════════════════════════ */
 function setupHomeLeagueListeners(userId) {
     const createBtn = document.getElementById("homeCreateLeagueBtn");
     const joinBtn   = document.getElementById("homeJoinLeagueBtn");
@@ -489,8 +487,7 @@ function setupHomeLeagueListeners(userId) {
         const { data: league, error } = await supabase
             .from("leagues")
             .insert([{ name, invite_code: inviteCode, owner_id: userId }])
-            .select()
-            .single();
+            .select().single();
         if (error) return window.showToast("Error creating league: " + error.message, "error");
         await supabase.from("league_members").insert([{ league_id: league.id, user_id: userId }]);
         window.showToast("League created! Share your code.", "success");
@@ -501,44 +498,40 @@ function setupHomeLeagueListeners(userId) {
         const code = await window.showCustomPrompt("Join League", "Enter invite code...");
         if (!code) return;
         const { data: league } = await supabase
-            .from("leagues")
-            .select("id")
-            .eq("invite_code", code.toUpperCase())
-            .maybeSingle();
+            .from("leagues").select("id")
+            .eq("invite_code", code.toUpperCase()).maybeSingle();
         if (!league) return window.showToast("Invalid code. Double-check it.", "error");
         const { error } = await supabase
-            .from("league_members")
-            .insert([{ league_id: league.id, user_id: userId }]);
+            .from("league_members").insert([{ league_id: league.id, user_id: userId }]);
         if (error) return window.showToast("Already in this league or join failed.", "error");
         window.showToast("Joined league successfully!", "success");
         fetchPrivateLeagueData(userId);
     };
 }
 
-/* =========================
-   PROFILE SAVE LOGIC
-========================= */
+/* ══════════════════════════════════════════════════════
+   PROFILE SAVE
+══════════════════════════════════════════════════════ */
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
         if (!modalFullName || !modalTeamName || !profileModal) return;
-        const fullName  = modalFullName.value.trim();
-        const teamName  = modalTeamName.value.trim();
-        const file      = avatarInput?.files[0];
+        const fullName    = modalFullName.value.trim();
+        const teamName    = modalTeamName.value.trim();
+        const file        = avatarInput?.files[0];
         const isFirstTime = !existingProfile || !existingProfile.profile_completed;
 
         if (isFirstTime && (!fullName || !teamName)) {
-            // BUG FIX: replaced alert() with showToast
             window.showToast("Please enter your name and team name to continue.", "error");
             return;
         }
 
-        saveProfileBtn.disabled = true;
+        saveProfileBtn.disabled    = true;
         saveProfileBtn.textContent = "SAVING...";
 
         try {
             let photoPath = existingProfile?.team_photo_url;
             if (file) {
-                const fileExt = file.name.split(".").pop();
+                const fileExt  = file.name.split(".").pop();
                 const fileName = `${currentUserId}/avatar.${fileExt}`;
                 const { error: uploadError } = await supabase.storage
                     .from("team-avatars")
@@ -549,15 +542,21 @@ if (saveProfileBtn) {
 
             const updatePayload = { team_photo_url: photoPath };
             if (isFirstTime) {
-                updatePayload.full_name          = fullName;
-                updatePayload.team_name          = teamName;
-                updatePayload.profile_completed  = true;
+                updatePayload.full_name         = fullName;
+                updatePayload.team_name         = teamName;
+                updatePayload.profile_completed = true;
             }
 
+            // BUG FIX: original code did .upsert(payload).eq("user_id", ...).
+            // .eq() has no effect on upsert — it doesn't filter which row is targeted.
+            // Correct pattern: include user_id in the payload and specify onConflict
+            // so Supabase knows to update the existing row rather than insert a new one.
             const { error: updateError } = await supabase
                 .from("user_profiles")
-                .upsert(updatePayload)
-                .eq("user_id", currentUserId);
+                .upsert(
+                    { user_id: currentUserId, ...updatePayload },
+                    { onConflict: "user_id" }
+                );
             if (updateError) throw updateError;
 
             window.showToast("Profile saved!", "success");
@@ -567,7 +566,6 @@ if (saveProfileBtn) {
         } catch (err) {
             console.error("Save error:", err.message);
 
-            // DB trigger fires when registration is full or manually closed
             if (err.message?.includes("USER_LIMIT_REACHED") ||
                 err.message?.includes("REGISTRATION_CLOSED")) {
                 import("./registration-guard.js").then(({ showRegistrationClosed }) => {
@@ -577,8 +575,9 @@ if (saveProfileBtn) {
             }
 
             window.showToast("Failed to save: " + err.message, "error");
+
         } finally {
-            saveProfileBtn.disabled = false;
+            saveProfileBtn.disabled    = false;
             saveProfileBtn.textContent = isFirstTime ? "Save & Start" : "Update Photo";
         }
     };
@@ -588,7 +587,7 @@ if (avatarInput) {
     avatarInput.onchange = () => {
         const file = avatarInput.files[0];
         if (file && modalPreview) {
-            const reader = new FileReader();
+            const reader  = new FileReader();
             reader.onload = (e) => {
                 modalPreview.style.backgroundImage    = `url(${e.target.result})`;
                 modalPreview.style.backgroundSize     = "cover";
@@ -599,13 +598,10 @@ if (avatarInput) {
     };
 }
 
-/* BUG FIX: closeBtn.onclick was defined twice in the original.
-   Consolidated into a single handler here. */
 const closeBtn = document.getElementById("closeProfileModal");
 if (closeBtn) {
     closeBtn.onclick = () => {
         if (profileModal?.hasAttribute("data-forced")) {
-            // BUG FIX: replaced alert() with showToast
             window.showToast("Please complete your profile to continue.", "warning");
             return;
         }
@@ -613,9 +609,9 @@ if (closeBtn) {
     };
 }
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    UI EVENTS
-========================= */
+══════════════════════════════════════════════════════ */
 if (avatarElement) {
     avatarElement.onclick = () => {
         if (!profileModal || !modalFullName || !modalTeamName) return;
@@ -635,8 +631,8 @@ if (avatarElement) {
 
             let note = document.getElementById("profileLockNote");
             if (!note) {
-                note = document.createElement("p");
-                note.id = "profileLockNote";
+                note           = document.createElement("p");
+                note.id        = "profileLockNote";
                 note.style.cssText = "font-size:11px;color:var(--red);margin-top:12px;text-align:center;font-weight:600;";
                 saveProfileBtn?.parentNode?.insertBefore(note, saveProfileBtn.nextSibling);
             }
@@ -652,7 +648,6 @@ if (avatarElement) {
 if (editButton) {
     editButton.onclick = () => {
         if (!existingProfile?.profile_completed) {
-            // BUG FIX: replaced alert() with showToast
             window.showToast("Complete your profile first!", "warning");
             profileModal?.classList.remove("hidden");
             return;
@@ -663,9 +658,7 @@ if (editButton) {
 
 if (viewXiBtn) {
     viewXiBtn.onclick = () => {
-        if (!existingProfile?.team_name ||
-            existingProfile.team_name === "Set your team name") {
-            // BUG FIX: replaced alert() with showToast
+        if (!existingProfile?.team_name || existingProfile.team_name === "Set your team name") {
             window.showToast("Set your team name in your profile first!", "warning");
             profileModal?.classList.remove("hidden");
         } else {
@@ -682,15 +675,15 @@ window.addEventListener("click", (e) => {
     }
 });
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    TOAST
-========================= */
+══════════════════════════════════════════════════════ */
 window.showToast = (message, type = "success") => {
     const container = document.getElementById("toastContainer");
     if (!container) return;
-    const toast = document.createElement("div");
-    toast.className   = `toast ${type}`;
-    toast.textContent = message;
+    const toast         = document.createElement("div");
+    toast.className     = `toast ${type}`;
+    toast.textContent   = message;
     container.appendChild(toast);
     setTimeout(() => {
         toast.classList.add("fade-out");
@@ -698,9 +691,9 @@ window.showToast = (message, type = "success") => {
     }, 3000);
 };
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    CUSTOM PROMPT
-========================= */
+══════════════════════════════════════════════════════ */
 window.showCustomPrompt = (title, placeholder) => {
     return new Promise((resolve) => {
         const overlay    = document.getElementById("customPromptOverlay");
@@ -710,9 +703,9 @@ window.showCustomPrompt = (title, placeholder) => {
         const btnConfirm = document.getElementById("promptConfirm");
         if (!overlay) return resolve(null);
 
-        titleEl.textContent    = title;
-        inputEl.placeholder    = placeholder;
-        inputEl.value          = "";
+        titleEl.textContent  = title;
+        inputEl.placeholder  = placeholder;
+        inputEl.value        = "";
         overlay.classList.remove("hidden");
         inputEl.focus();
 
@@ -727,8 +720,8 @@ window.showCustomPrompt = (title, placeholder) => {
     });
 };
 
-/* =========================
+/* ══════════════════════════════════════════════════════
    NETWORK STATUS
-========================= */
+══════════════════════════════════════════════════════ */
 window.addEventListener("offline", () => window.showToast("You are offline.", "error"));
 window.addEventListener("online",  () => window.showToast("Back online!", "success"));
