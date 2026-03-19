@@ -233,4 +233,188 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}/* ------------------------------------------------
+   MODAL — full-screen fixed overlay
+   Used for profile setup, custom prompt, etc.
+   Add this block to components.css
+   ------------------------------------------------ */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(2, 6, 23, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  /* Prevents page scroll while modal is open */
+  overflow: hidden;
+}
+
+.modal.hidden {
+  display: none !important;
+}
+
+.modal-content {
+  background: #0d1625;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: fadeInRise 0.25s ease-out forwards;
+}
+
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #f0f4f8;
+  margin-bottom: 20px;
+}
+
+.close-modal {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #475569;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.close-modal:hover { color: #f0f4f8; }
+
+/* Avatar upload inside modal */
+.avatar-upload-wrap {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 22px;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #1f2937;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid #9AE000;
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #9AE000;
+  color: #000;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.avatar-edit-btn:hover { transform: scale(1.1); }
+
+/* Input groups inside modal */
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #475569;
+  margin-bottom: 7px;
+}
+
+.input-group input {
+  width: 100%;
+  background: #020617;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f0f4f8;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #9AE000;
+  box-shadow: 0 0 0 3px rgba(154, 224, 0, 0.08);
+}
+
+.input-group input::placeholder { color: #374151; }
+
+/* Prompt modal specific */
+.prompt-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prompt-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #9AE000;
+  text-align: center;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.prompt-input {
+  background: #020617;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f0f4f8;
+  padding: 13px 16px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.prompt-input:focus {
+  border-color: #9AE000;
+  box-shadow: 0 0 0 3px rgba(154, 224, 0, 0.08);
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.prompt-actions .btn-primary,
+.prompt-actions .btn-secondary {
+  flex: 1;
+  font-size: 13px;
+  padding: 13px;
 }

@@ -1,32 +1,32 @@
-import { supabase }   from "./supabase.js";
-import { authReady }  from "./auth-state.js";
+import { supabase } from "./supabase.js";
 
 let currentUserId = null;
 
-/* ── INIT ──────────────────────────────────────────── */
+/* ── INIT ─────────────────────────────────────────────────────────────────
+   auth-guard.js already verified the session before this module runs.
+   We use getSession() directly — no authReady needed, no race condition.
+─────────────────────────────────────────────────────────────────────────── */
 (async () => {
-    try {
-        const user    = await authReady;
-        currentUserId = user.id;
-        await loadProfile();
-    } catch (_) {
-        // auth-guard.js already redirected to /login
-    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return; // auth-guard.js handles redirect
+    currentUserId = session.user.id;
+    await loadProfile();
 })();
 
-/* ── LOAD PROFILE ──────────────────────────────────── */
+/* ── LOAD PROFILE ──────────────────────────────────────────────────────── */
 async function loadProfile() {
-    const { data: p } = await supabase
+    const { data: p, error } = await supabase
         .from("user_profiles")
-        .select("full_name, team_name, team_photo_url, created_at")
+        .select("full_name, team_name, team_photo_url, joined_at")
         .eq("user_id", currentUserId)
-        .single();
+        .maybeSingle();
 
-    // Hide loader, show content
+    // Hide loader, show content regardless
     document.getElementById("profLoading")?.classList.add("hidden");
     document.getElementById("profContent")?.classList.remove("hidden");
 
-    if (!p) return;
+    if (error) { console.error("Profile fetch error:", error.message); return; }
+    if (!p)    { console.warn("No profile row found for user:", currentUserId); return; }
 
     // Avatar
     if (p.team_photo_url) {
@@ -41,7 +41,6 @@ async function loadProfile() {
         }
     }
 
-    // Header info
     const fullName = p.full_name || "—";
     const teamName = p.team_name || "—";
 
@@ -50,16 +49,15 @@ async function loadProfile() {
     setText("profNameVal", fullName);
     setText("profTeamVal", teamName);
 
-    // Joined date
-    if (p.created_at) {
-        const d = new Date(p.created_at).toLocaleDateString("en-IN", {
+    if (p.joined_at) {
+        const d = new Date(p.joined_at).toLocaleDateString("en-IN", {
             day: "numeric", month: "long", year: "numeric"
         });
         setText("profJoined", d);
     }
 }
 
-/* ── PHOTO CHANGE ──────────────────────────────────── */
+/* ── PHOTO CHANGE ──────────────────────────────────────────────────────── */
 document.getElementById("profChangePhotoBtn")?.addEventListener("click", () => {
     document.getElementById("profAvatarInput")?.click();
 });
@@ -69,8 +67,6 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
     if (!file || !currentUserId) return;
 
     const btn = document.getElementById("profChangePhotoBtn");
-    const statusEl = document.getElementById("profPhotoStatus");
-
     btn.disabled    = true;
     btn.textContent = "Uploading…";
     showStatus("", "");
@@ -82,7 +78,6 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
         const { error: uploadErr } = await supabase.storage
             .from("team-avatars")
             .upload(fileName, file, { cacheControl: "3600", upsert: true });
-
         if (uploadErr) throw uploadErr;
 
         const photoPath = `${fileName}?t=${Date.now()}`;
@@ -91,14 +86,12 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
             .from("user_profiles")
             .update({ team_photo_url: photoPath })
             .eq("user_id", currentUserId);
-
         if (updateErr) throw updateErr;
 
-        // Update avatar preview immediately — no reload needed
+        // Update avatar preview immediately without reload
         const { data: img } = supabase.storage
             .from("team-avatars")
             .getPublicUrl(photoPath);
-
         const av = document.getElementById("profAvatar");
         if (av) {
             av.style.backgroundImage    = `url('${img.publicUrl}')`;
@@ -117,13 +110,13 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
     }
 });
 
-/* ── SIGN OUT ──────────────────────────────────────── */
+/* ── SIGN OUT ──────────────────────────────────────────────────────────── */
 document.getElementById("profSignOutBtn")?.addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
 });
 
-/* ── HELPERS ───────────────────────────────────────── */
+/* ── HELPERS ───────────────────────────────────────────────────────────── */
 function setText(id, val) {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
