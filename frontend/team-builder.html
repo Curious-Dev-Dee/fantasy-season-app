@@ -127,12 +127,14 @@
 
     </main>
 
-    <!-- SAVE BAR -->
-    <div class="save-bar">
-      <button id="saveTeamBtn" class="save-btn" disabled>Save Team</button>
-    </div>
-
   </div><!-- end .app-container -->
+
+  <!-- SAVE BAR — outside .app-container so position:fixed works correctly.
+       The animation on .app-container creates a stacking context that traps
+       fixed children inside it. Moving it outside fixes this. -->
+  <div class="save-bar">
+    <button id="saveTeamBtn" class="save-btn" disabled>Save Team</button>
+  </div>
 
   <!-- FILTER BACKDROP -->
   <div id="filterBackdrop" class="filter-backdrop hidden"></div>

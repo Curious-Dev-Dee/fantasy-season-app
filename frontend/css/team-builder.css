@@ -51,7 +51,9 @@ body.loading-state .app-container { display: none !important; }
     display: flex;
     flex-direction: column;
     background: #020617;
-    animation: fadeInRise 0.35s ease-out forwards;
+    /* REMOVED: animation: fadeInRise — CSS animations create a stacking context
+       that traps position:fixed children (save bar) inside the container.
+       The page content fades in via body.loaded on home.js; not needed here. */
 }
 
 /* ─── HEADER ─────────────────────────────────────── */
