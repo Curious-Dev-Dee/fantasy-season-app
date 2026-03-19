@@ -1,143 +1,140 @@
-import { supabase } from "./supabase.js";
+import { supabase }   from "./supabase.js";
+import { authReady }  from "./auth-state.js";
 
-const avatarDisplay = document.getElementById("avatarDisplay");
-const avatarInput = document.getElementById("avatarInput");
-const fullNameInput = document.getElementById("fullNameInput");
-const teamNameInput = document.getElementById("teamNameInput");
-const saveBtn = document.getElementById("saveProfileBtn");
-const saveStatus = document.getElementById("saveStatus");
+let currentUserId = null;
 
-let currentUserId;
+/* ── INIT ──────────────────────────────────────────── */
+(async () => {
+    try {
+        const user    = await authReady;
+        currentUserId = user.id;
+        await loadProfile();
+    } catch (_) {
+        // auth-guard.js already redirected to /login
+    }
+})();
 
-// 1. Initial Load
-window.addEventListener('auth-verified', async (e) => {
-    currentUserId = e.detail.user.id;
-    loadProfile();
-});
-
-/* =========================
-    PROFILE & PHOTO LOGIC
-========================= */
-
+/* ── LOAD PROFILE ──────────────────────────────────── */
 async function loadProfile() {
-    const { data: p } = await supabase.from('user_profiles').select('*').eq('user_id', currentUserId).single();
-    
-    if (p) {
-        fullNameInput.value = p.full_name || "";
-        teamNameInput.value = p.team_name || "";
-        
-        // 1. LOCK STATE: Disable editing if profile is already completed
-        if (p.profile_completed) {
-            fullNameInput.readOnly = true;
-            teamNameInput.readOnly = true;
-            
-            // Visual feedback for locked state
-            [fullNameInput, teamNameInput].forEach(el => {
-                el.style.background = "rgba(255, 255, 255, 0.05)";
-                el.style.color = "var(--text-dim);";
-                el.style.cursor = "not-allowed";
-            });
+    const { data: p } = await supabase
+        .from("user_profiles")
+        .select("full_name, team_name, team_photo_url, created_at")
+        .eq("user_id", currentUserId)
+        .single();
 
-            // Update hint text to warn user
-            const hint = teamNameInput.parentElement.querySelector('.hint-text');
-            if (hint) {
-                hint.innerText = "⚠️ Identity locked for the season.";
-                hint.style.color = "var(--red);";
-                hint.style.fontWeight = "600";
-            }
-        }
+    // Hide loader, show content
+    document.getElementById("profLoading")?.classList.add("hidden");
+    document.getElementById("profContent")?.classList.remove("hidden");
 
-        // 2. AVATAR LOADING: Fix for the "Dark Circle"
-        if (p.team_photo_url) {
-            const { data } = supabase.storage.from('team-avatars').getPublicUrl(p.team_photo_url);
-            avatarDisplay.style.backgroundImage = `url('${data.publicUrl}')`;
-            avatarDisplay.style.backgroundSize = "cover";
-            avatarDisplay.style.backgroundPosition = "center";
+    if (!p) return;
+
+    // Avatar
+    if (p.team_photo_url) {
+        const { data: img } = supabase.storage
+            .from("team-avatars")
+            .getPublicUrl(p.team_photo_url);
+        const av = document.getElementById("profAvatar");
+        if (av) {
+            av.style.backgroundImage    = `url('${img.publicUrl}')`;
+            av.style.backgroundSize     = "cover";
+            av.style.backgroundPosition = "center";
         }
+    }
+
+    // Header info
+    const fullName = p.full_name || "—";
+    const teamName = p.team_name || "—";
+
+    setText("profName",    fullName);
+    setText("profTeam",    teamName);
+    setText("profNameVal", fullName);
+    setText("profTeamVal", teamName);
+
+    // Joined date
+    if (p.created_at) {
+        const d = new Date(p.created_at).toLocaleDateString("en-IN", {
+            day: "numeric", month: "long", year: "numeric"
+        });
+        setText("profJoined", d);
     }
 }
 
-// 2. Photo Upload Trigger
-document.getElementById("changePhotoBtn").onclick = () => avatarInput.click();
+/* ── PHOTO CHANGE ──────────────────────────────────── */
+document.getElementById("profChangePhotoBtn")?.addEventListener("click", () => {
+    document.getElementById("profAvatarInput")?.click();
+});
 
-avatarInput.onchange = async () => {
-    const file = avatarInput.files[0];
-    if (!file) return;
+document.getElementById("profAvatarInput")?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUserId) return;
 
-    // Use Date.now() to prevent browser caching of old photos
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${currentUserId}-${Date.now()}.${fileExt}`;
+    const btn = document.getElementById("profChangePhotoBtn");
+    const statusEl = document.getElementById("profPhotoStatus");
 
-    const { error: uploadError } = await supabase.storage
-        .from('team-avatars')
-        .upload(fileName, file, { upsert: true });
-    
-    if (!uploadError) {
-        // Update only the photo URL to avoid trigger conflicts with locked names
-        await supabase.from('user_profiles')
-            .update({ team_photo_url: fileName })
-            .eq('user_id', currentUserId);
-            
-        alert("Photo updated successfully!");
-        location.reload();
-    } else {
-        console.error("Upload error:", uploadError.message);
-        alert("Failed to upload photo.");
-    }
-};
-
-// 3. Save Text Data
-saveBtn.onclick = async () => {
-    saveBtn.disabled = true;
-    saveBtn.innerText = "SAVING...";
+    btn.disabled    = true;
+    btn.textContent = "Uploading…";
+    showStatus("", "");
 
     try {
-        // Re-fetch profile to check completion status
-        const { data: p } = await supabase.from('user_profiles').select('profile_completed').eq('user_id', currentUserId).single();
-        const isFirstTime = !p || !p.profile_completed;
+        const ext      = file.name.split(".").pop();
+        const fileName = `${currentUserId}/avatar.${ext}`;
 
-        // SMART PAYLOAD: Only include name/team if it's the first time
-        let updatePayload = {};
-        
-        if (isFirstTime) {
-            updatePayload = {
-                full_name: fullNameInput.value.trim(),
-                team_name: teamNameInput.value.trim(),
-                profile_completed: true
-            };
-            
-            if (!updatePayload.full_name || !updatePayload.team_name) {
-                throw new Error("Name and Team Name are required!");
-            }
-        } else {
-            // If already completed, this button basically just confirms any other fields 
-            // (like State/Contact) if you have them. If not, we just update the timestamp.
-            updatePayload = { joined_at: p.joined_at }; // Nop update to avoid trigger
+        const { error: uploadErr } = await supabase.storage
+            .from("team-avatars")
+            .upload(fileName, file, { cacheControl: "3600", upsert: true });
+
+        if (uploadErr) throw uploadErr;
+
+        const photoPath = `${fileName}?t=${Date.now()}`;
+
+        const { error: updateErr } = await supabase
+            .from("user_profiles")
+            .update({ team_photo_url: photoPath })
+            .eq("user_id", currentUserId);
+
+        if (updateErr) throw updateErr;
+
+        // Update avatar preview immediately — no reload needed
+        const { data: img } = supabase.storage
+            .from("team-avatars")
+            .getPublicUrl(photoPath);
+
+        const av = document.getElementById("profAvatar");
+        if (av) {
+            av.style.backgroundImage    = `url('${img.publicUrl}')`;
+            av.style.backgroundSize     = "cover";
+            av.style.backgroundPosition = "center";
         }
 
-        const { error: updateError } = await supabase.from('user_profiles')
-            .update(updatePayload)
-            .eq('user_id', currentUserId);
-
-        if (updateError) throw updateError;
-
-        saveStatus.classList.remove("hidden");
-        setTimeout(() => {
-            saveStatus.classList.add("hidden");
-            if (isFirstTime) location.reload();
-        }, 3000);
+        showStatus("Photo updated ✅", "success");
 
     } catch (err) {
-        console.error("Save error:", err.message);
-        alert(err.message || "Failed to save changes. Identity cannot be modified once set.");
+        console.error("Photo upload failed:", err.message);
+        showStatus("Upload failed — try again", "error");
     } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = "SAVE CHANGES";
+        btn.disabled    = false;
+        btn.textContent = "📷 Change Profile Photo";
     }
-};
+});
 
-// Logout logic
-document.getElementById("logoutBtn").onclick = async () => {
+/* ── SIGN OUT ──────────────────────────────────────── */
+document.getElementById("profSignOutBtn")?.addEventListener("click", async () => {
     await supabase.auth.signOut();
-    window.location.href = "login.html";
-};
+    window.location.href = "/login";
+});
+
+/* ── HELPERS ───────────────────────────────────────── */
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
+function showStatus(msg, type) {
+    const el = document.getElementById("profPhotoStatus");
+    if (!el) return;
+    if (!msg) { el.classList.add("hidden"); return; }
+    el.textContent = msg;
+    el.className   = `prof-status ${type}`;
+    el.classList.remove("hidden");
+    setTimeout(() => el.classList.add("hidden"), 4000);
+}

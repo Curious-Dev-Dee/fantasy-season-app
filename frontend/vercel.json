@@ -4,11 +4,12 @@
       "source": "/onesignal-scripts/:path*",
       "destination": "https://cdn.onesignal.com/sdks/web/v16/:path*"
     },
-    { "source": "/",            "destination": "/index.html" },
-    { "source": "/login",       "destination": "/login.html" },
-    { "source": "/home",        "destination": "/home.html" },
-    { "source": "/admin-blog",  "destination": "/admin-blog.html" },
-    { "source": "/(.*)",        "destination": "/$1" }
+    { "source": "/",             "destination": "/index.html" },
+    { "source": "/login",        "destination": "/login.html" },
+    { "source": "/home",         "destination": "/home.html" },
+    { "source": "/admin-blog",   "destination": "/admin-blog.html" },
+    { "source": "/team-builder", "destination": "/team-builder.html" },
+    { "source": "/(.*)",         "destination": "/$1" }
   ],
   "headers": [
     {

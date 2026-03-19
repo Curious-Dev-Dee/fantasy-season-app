@@ -395,8 +395,7 @@ function buildStatChips(m) {
 
 async function loadPredictionCard() {
     // Fetch user's star count + streak + recent winners in parallel
-    const [pointsRes, streakRes, winnersRes, predictionCountRes] = await Promise.allSettled([
-        supabase.from("user_tournament_points")
+const [pointsRes, streakRes, winnersRes] = await Promise.allSettled([        supabase.from("user_tournament_points")
             .select("prediction_stars")
             .eq("user_id", currentUserId)
             .eq("tournament_id", currentTournamentId)
@@ -411,11 +410,7 @@ async function loadPredictionCard() {
             .eq("tournament_id", currentTournamentId)
             .gte("prediction_stars", 10)
             .order("prediction_stars", { ascending: false })
-            .limit(5),
-        supabase.from("user_predictions")
-            .select("predicted_winner_id", { count: "exact" })
-            .eq("match_id", "placeholder") // replaced below after match fetch
-            .limit(1),
+            .limit(5)
     ]);
 
     const stars    = pointsRes.value?.data?.prediction_stars || 0;

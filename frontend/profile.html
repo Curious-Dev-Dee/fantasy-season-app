@@ -2,58 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  <title>Cricket Experts · Account</title>
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="components.css">
-<link rel="stylesheet" href="bottom-nav.css">
-<link rel="stylesheet" href="css/profile.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Cricket Experts · Account</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="stylesheet" href="css/profile.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
   <script type="module" src="auth-guard.js"></script>
 </head>
 <body>
-  <div class="app">
-    <header class="app-header">
-      <button class="back-btn" onclick="history.back()">←</button>
-      <h1 class="tournament-name">Account</h1>
+
+  <div class="prof-wrap">
+
+    <!-- HEADER -->
+    <header class="prof-header">
+      <button class="prof-back" onclick="history.back()">←</button>
+      <h1 class="prof-title">Account</h1>
       <span></span>
     </header>
 
-    <main class="content">
-      <section class="card profile-card">
-        <div class="profile-avatar">
-          <div class="team-avatar large" id="avatarDisplay"></div>
-          <button class="link-btn" id="changePhotoBtn">Change photo</button>
-          <input type="file" id="avatarInput" accept="image/*" style="display:none" />
-          <p id="saveStatus" class="save-status hidden">Changes saved ✅</p>
+    <!-- LOADING STATE -->
+    <div id="profLoading" class="prof-loading">
+      <div class="prof-spinner"></div>
+    </div>
+
+    <!-- CONTENT — hidden until loaded -->
+    <main id="profContent" class="prof-content hidden">
+
+      <!-- AVATAR SECTION -->
+      <section class="prof-card">
+        <div class="prof-avatar-section">
+          <div class="prof-avatar" id="profAvatar"></div>
+          <div class="prof-avatar-info">
+            <div class="prof-name" id="profName">—</div>
+            <div class="prof-team" id="profTeam">—</div>
+          </div>
         </div>
 
-        <div class="field">
-          <label>Display name</label>
-          <input type="text" id="fullNameInput" placeholder="Your name" />
-        </div>
-
-        <div class="field">
-          <label>Team name</label>
-          <input type="text" id="teamNameInput" placeholder="Your team identity" />
-          <p class="hint-text">You can change your team name once during the season.</p>
-        </div>
-
-        <div class="field">
-          <label>Contact number</label>
-          <input type="tel" id="contactInput" placeholder="+91…" />
-        </div>
-
-        <div class="field">
-          <label>State</label>
-          <input type="text" id="stateInput" placeholder="Your state" />
-        </div>
-
-        <button id="saveProfileBtn" class="save-main-btn">SAVE CHANGES</button>
-        
-        <button id="logoutBtn" class="link-btn subtle" style="margin-top: 20px; width: 100%; color: var(--red);;">Sign Out</button>
+        <!-- Photo upload — hidden file input triggered by button -->
+        <input type="file" id="profAvatarInput" accept="image/*" class="hidden">
+        <button class="prof-photo-btn" id="profChangePhotoBtn">
+          📷 Change Profile Photo
+        </button>
+        <div id="profPhotoStatus" class="prof-status hidden"></div>
       </section>
+
+      <!-- LOCKED INFO -->
+      <section class="prof-card">
+        <div class="prof-lock-notice">
+          <span class="prof-lock-icon">🔒</span>
+          <div>
+            <div class="prof-lock-title">Identity Locked for the Season</div>
+            <div class="prof-lock-sub">Name and team name cannot be changed once set.</div>
+          </div>
+        </div>
+
+        <div class="prof-field">
+          <label class="prof-label">Display Name</label>
+          <div class="prof-value" id="profNameVal">—</div>
+        </div>
+
+        <div class="prof-field">
+          <label class="prof-label">Team Name</label>
+          <div class="prof-value" id="profTeamVal">—</div>
+        </div>
+
+        <div class="prof-field">
+          <label class="prof-label">Member Since</label>
+          <div class="prof-value" id="profJoined">—</div>
+        </div>
+      </section>
+
+      <!-- SIGN OUT -->
+      <section class="prof-card">
+        <button class="prof-signout-btn" id="profSignOutBtn">Sign Out</button>
+      </section>
+
     </main>
+
   </div>
-  
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+    <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
+    <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+    <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
+  </nav>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script type="module" src="profile.js"></script>
 </body>
 </html>

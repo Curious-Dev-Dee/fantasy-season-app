@@ -39,19 +39,6 @@ if (viewFullLeaderboardBtn) {
 /* ══════════════════════════════════════════════════════
    AD UTILITIES
 ══════════════════════════════════════════════════════ */
-function loadInPageAd(containerId, zoneId) {
-    const container = document.getElementById(containerId);
-    if (!container || container.hasChildNodes()) return;
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText = "position:relative;min-height:80px;";
-    container.appendChild(wrapper);
-    const script        = document.createElement("script");
-    script.src          = "https://nap5k.com/tag.min.js";
-    script.async        = true;
-    script.dataset.zone = zoneId;
-    wrapper.appendChild(script);
-}
-
 function loadMonetagAd() {
     let lastShown = null;
     try { lastShown = localStorage.getItem("ad_last_shown"); } catch (_) {}
@@ -154,6 +141,7 @@ async function fetchHomeData(userId) {
 
     existingProfile = profile;
 
+    // Force profile modal if first time — name + team required
     if (!profile || !profile.profile_completed) {
         if (profileModal) {
             profileModal.classList.remove("hidden");
@@ -212,7 +200,7 @@ async function fetchHomeData(userId) {
                 emojiSpan.textContent = "🏟️ ";
                 const venueText       = document.createElement("span");
                 venueText.textContent = match.venue || "Venue TBA";
-                venueEl.title = match.venue || "Venue TBA"; // shows full name on hover/long press
+                venueEl.title = match.venue || "Venue TBA";
                 venueEl.append(emojiSpan, venueText);
             }
 
@@ -251,9 +239,6 @@ async function fetchHomeData(userId) {
         }
     }
 
-    // Initialise push notifications AFTER profile is loaded and completed.
-    // Only runs for users who have completed their profile.
-    // Won't show the popup if they already subscribed or denied.
     if (profile?.profile_completed) {
         initPushNotifications(userId);
     }
@@ -261,72 +246,47 @@ async function fetchHomeData(userId) {
 
 /* ══════════════════════════════════════════════════════
    ONESIGNAL PUSH NOTIFICATION INIT
-   ── Runs once after profile loads
-   ── Shows browser permission popup if not yet decided
-   ── Saves onesignal_id to user_profiles on subscribe
-   ── Silent if already subscribed or denied
 ══════════════════════════════════════════════════════ */
 async function initPushNotifications(userId) {
     try {
-        // OneSignalSDK.page.js loads the global window.OneSignalDeferred queue.
-        // We push our init into that queue so it runs when the SDK is ready.
         window.OneSignalDeferred = window.OneSignalDeferred || [];
 
         window.OneSignalDeferred.push(async (OneSignal) => {
             await OneSignal.init({
-                appId:                        "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
-                serviceWorkerPath:            "/onesignalsdkworker.js",
-                serviceWorkerParam:           { scope: "/" },
-                notifyButton:                 { enable: false },  // we don't want the floating bell widget
+                appId:             "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+                serviceWorkerPath: "/onesignalsdkworker.js",
+                serviceWorkerParam: { scope: "/" },
+                notifyButton:      { enable: false },
                 promptOptions: {
                     slidedown: {
                         prompts: [{
-                            type:                "push",
-                            autoPrompt:          true,
+                            type:       "push",
+                            autoPrompt: true,
                             text: {
-                                actionMessage:   "Get notified when your team locks, points update and match alerts.",
-                                acceptButton:    "Allow",
-                                cancelButton:    "Later",
+                                actionMessage: "Get notified when your team locks, points update and match alerts.",
+                                acceptButton:  "Allow",
+                                cancelButton:  "Later",
                             },
-                            delay: {
-                                pageViews:       1,   // show on first visit
-                                timeDelay:       3,   // wait 3 seconds after page load
-                            },
+                            delay: { pageViews: 1, timeDelay: 3 },
                         }],
                     },
                 },
             });
 
-            // Listen for the moment a user subscribes
-            // Save their OneSignal player ID to user_profiles
             OneSignal.User.PushSubscription.addEventListener("change", async (event) => {
                 if (!event.current.isSubscribed) return;
-
                 const playerId = event.current.id;
                 if (!playerId) return;
-
-                console.log("OneSignal subscribed, saving player ID:", playerId);
-
-                const { error } = await supabase
-                    .from("user_profiles")
+                await supabase.from("user_profiles")
                     .update({ onesignal_id: playerId })
                     .eq("user_id", userId);
-
-                if (error) {
-                    console.error("Failed to save onesignal_id:", error.message);
-                } else {
-                    console.log("onesignal_id saved to user_profiles");
-                }
             });
 
-            // Also check on init if they're already subscribed but
-            // onesignal_id isn't saved yet (e.g. existing users)
             const subscription = OneSignal.User.PushSubscription;
             if (subscription.isSubscribed && subscription.id) {
                 const existing = existingProfile?.onesignal_id;
                 if (!existing || existing !== subscription.id) {
-                    await supabase
-                        .from("user_profiles")
+                    await supabase.from("user_profiles")
                         .update({ onesignal_id: subscription.id })
                         .eq("user_id", userId);
                 }
@@ -334,7 +294,6 @@ async function initPushNotifications(userId) {
         });
 
     } catch (err) {
-        // Never crash the app over push notification errors
         console.warn("Push notification init failed:", err.message);
     }
 }
@@ -375,9 +334,9 @@ async function loadLeaderboardPreview() {
                 window.location.href = `team-view.html?uid=${row.user_id}&name=${name}`;
             };
 
-            const rankSpan     = document.createElement("span");
-            const rankTxt      = document.createTextNode(`#${row.rank} `);
-            const nameStrong   = document.createElement("strong");
+            const rankSpan   = document.createElement("span");
+            const rankTxt    = document.createTextNode(`#${row.rank} `);
+            const nameStrong = document.createElement("strong");
             nameStrong.className   = "team-name-text";
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
@@ -467,9 +426,9 @@ async function fetchPrivateLeagueData(userId) {
                 window.location.href = `team-view.html?uid=${row.user_id}&name=${name}`;
             };
 
-            const rankSpan     = document.createElement("span");
-            const rankTxt      = document.createTextNode(`#${row.rank_in_league} `);
-            const nameStrong   = document.createElement("strong");
+            const rankSpan   = document.createElement("span");
+            const rankTxt    = document.createTextNode(`#${row.rank_in_league} `);
+            const nameStrong = document.createElement("strong");
             nameStrong.className   = "team-name-text";
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
@@ -587,16 +546,21 @@ function setupHomeLeagueListeners(userId) {
 }
 
 /* ══════════════════════════════════════════════════════
-   PROFILE SAVE
+   FIRST-TIME PROFILE MODAL (forced on new users)
+   ── Full name + team name required
+   ── Avatar optional
+   ── Locked forever after save
 ══════════════════════════════════════════════════════ */
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
         if (!modalFullName || !modalTeamName || !profileModal) return;
-        const fullName    = modalFullName.value.trim();
-        const teamName    = modalTeamName.value.trim();
-        const file        = avatarInput?.files[0];
+
+        const fullName = modalFullName.value.trim();
+        const teamName = modalTeamName.value.trim();
+        const file     = avatarInput?.files[0];
         const isFirstTime = !existingProfile || !existingProfile.profile_completed;
 
+        // Name + team mandatory on first time
         if (isFirstTime && (!fullName || !teamName)) {
             window.showToast("Please enter your name and team name to continue.", "error");
             return;
@@ -607,6 +571,8 @@ if (saveProfileBtn) {
 
         try {
             let photoPath = existingProfile?.team_photo_url;
+
+            // Upload avatar if selected (optional)
             if (file) {
                 const fileExt  = file.name.split(".").pop();
                 const fileName = `${currentUserId}/avatar.${fileExt}`;
@@ -617,6 +583,7 @@ if (saveProfileBtn) {
                 photoPath = `${fileName}?t=${Date.now()}`;
             }
 
+            // Build payload — name + team only set on first time, never again
             const updatePayload = { team_photo_url: photoPath };
             if (isFirstTime) {
                 updatePayload.full_name         = fullName;
@@ -656,6 +623,7 @@ if (saveProfileBtn) {
     };
 }
 
+// Avatar file input — preview in modal
 if (avatarInput) {
     avatarInput.onchange = () => {
         const file = avatarInput.files[0];
@@ -671,6 +639,7 @@ if (avatarInput) {
     };
 }
 
+// Close button — only works if not forced
 const closeBtn = document.getElementById("closeProfileModal");
 if (closeBtn) {
     closeBtn.onclick = () => {
@@ -683,41 +652,24 @@ if (closeBtn) {
 }
 
 /* ══════════════════════════════════════════════════════
-   UI EVENTS
+   AVATAR TAP — goes to profile page (photo change)
+   No modal reopening — cleaner UX
 ══════════════════════════════════════════════════════ */
 if (avatarElement) {
     avatarElement.onclick = () => {
-        if (!profileModal || !modalFullName || !modalTeamName) return;
-        const isEditing = existingProfile?.profile_completed;
-
-        if (existingProfile) {
-            modalFullName.value = existingProfile.full_name || "";
-            modalTeamName.value = existingProfile.team_name || "";
+        // If profile not completed yet, show the forced modal instead
+        if (!existingProfile?.profile_completed) {
+            profileModal?.classList.remove("hidden");
+            return;
         }
-
-        if (isEditing) {
-            modalFullName.readOnly  = true;
-            modalTeamName.readOnly  = true;
-            modalFullName.style.cssText = "background:rgba(255,255,255,0.05);color:var(--text-dim);";
-            modalTeamName.style.cssText = "background:rgba(255,255,255,0.05);color:var(--text-dim);cursor:not-allowed;";
-            if (saveProfileBtn) saveProfileBtn.textContent = "UPDATE PHOTO";
-
-            let note = document.getElementById("profileLockNote");
-            if (!note) {
-                note           = document.createElement("p");
-                note.id        = "profileLockNote";
-                note.style.cssText = "font-size:11px;color:var(--red);margin-top:12px;text-align:center;font-weight:600;";
-                saveProfileBtn?.parentNode?.insertBefore(note, saveProfileBtn.nextSibling);
-            }
-            note.textContent = "⚠️ Name & team locked for the season.";
-        } else {
-            if (saveProfileBtn) saveProfileBtn.textContent = "SAVE & START";
-        }
-
-        profileModal.classList.remove("hidden");
+        // Profile completed — go to account page to change photo
+        window.location.href = "profile.html";
     };
 }
 
+/* ══════════════════════════════════════════════════════
+   EDIT TEAM BUTTON
+══════════════════════════════════════════════════════ */
 if (editButton) {
     editButton.onclick = () => {
         if (!existingProfile?.profile_completed) {
@@ -729,18 +681,22 @@ if (editButton) {
     };
 }
 
+/* ══════════════════════════════════════════════════════
+   VIEW TEAM BUTTON
+══════════════════════════════════════════════════════ */
 if (viewXiBtn) {
     viewXiBtn.onclick = () => {
-        if (!existingProfile?.team_name || existingProfile.team_name === "Set your team name") {
-            window.showToast("Set your team name in your profile first!", "warning");
+        if (!existingProfile?.profile_completed) {
+            window.showToast("Complete your profile first!", "warning");
             profileModal?.classList.remove("hidden");
-        } else {
-            const name = encodeURIComponent(existingProfile.team_name);
-            window.location.href = `team-view.html?uid=${currentUserId}&name=${name}`;
+            return;
         }
+        const name = encodeURIComponent(existingProfile.team_name);
+        window.location.href = `team-view.html?uid=${currentUserId}&name=${name}`;
     };
 }
 
+// Close modal on backdrop click
 window.addEventListener("click", (e) => {
     if (profileModal && e.target === profileModal &&
         !profileModal.hasAttribute("data-forced")) {
