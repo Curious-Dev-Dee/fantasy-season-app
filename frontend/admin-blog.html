@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Cricket Experts · Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --g:#9AE000;--g-dim:rgba(154,224,0,0.09);--ink:#020617;
+      --card:#0d1625;--bdr:rgba(255,255,255,0.08);--muted:#94a3b8;
+      --red:#ef4444;--gold:#f59e0b;--FD:'Barlow Condensed',sans-serif;
+      --FB:'Inter',sans-serif;
+    }
+    body{background:var(--ink);color:#f0f4f8;font-family:var(--FB);min-height:100vh;padding:0 0 40px}
+    a{text-decoration:none;color:inherit}
+
+    /* AUTH SCREEN */
+    #authScreen{
+      min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:32px 24px;text-align:center;
+    }
+    .auth-logo{font-family:var(--FD);font-size:28px;font-weight:900;color:var(--g);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+    .auth-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
+    .auth-card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:28px 24px;width:100%;max-width:340px}
+    .auth-card h2{font-family:var(--FD);font-size:22px;font-weight:800;text-transform:uppercase;margin-bottom:6px}
+    .auth-card p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+    .google-btn{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      background:var(--g);color:#000;border:none;border-radius:12px;
+      padding:13px 20px;font-family:var(--FD);font-size:15px;font-weight:900;
+      text-transform:uppercase;letter-spacing:0.3px;cursor:pointer;width:100%;
+      transition:opacity 0.2s;
+    }
+    .google-btn:hover{opacity:0.9}
+    .google-btn:disabled{opacity:0.5;cursor:not-allowed}
+    .g-badge{
+      width:20px;height:20px;background:#fff;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:900;color:#4285F4;flex-shrink:0;
+    }
+    #authError{margin-top:14px;font-size:12px;color:var(--red);display:none}
+
+    /* ACCESS DENIED */
+    #deniedScreen{
+      min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:32px 24px;text-align:center;
+    }
+    #deniedScreen h2{font-family:var(--FD);font-size:26px;font-weight:900;color:var(--red);text-transform:uppercase;margin-bottom:12px}
+    #deniedScreen p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+    .sign-out-btn{
+      background:transparent;border:1px solid var(--bdr);color:var(--muted);
+      padding:10px 20px;border-radius:10px;font-family:var(--FB);font-size:13px;
+      cursor:pointer;transition:border-color 0.2s;
+    }
+    .sign-out-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff}
+
+    /* ADMIN APP */
+    #adminApp{display:none}
+
+    .top-bar{
+      background:rgba(2,6,23,0.95);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--bdr);padding:0 16px;
+      display:flex;align-items:center;justify-content:space-between;
+      height:52px;position:sticky;top:0;z-index:100;
+    }
+    .top-bar-brand{font-family:var(--FD);font-size:17px;font-weight:900;color:var(--g);text-transform:uppercase;letter-spacing:1px}
+    .top-bar-right{display:flex;align-items:center;gap:10px}
+    .user-pill{font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:20px;border:1px solid var(--bdr)}
+    .sign-out-sm{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--FB)}
+    .sign-out-sm:hover{color:#fff}
+
+    /* TABS */
+    .tabs{display:flex;border-bottom:1px solid var(--bdr);background:var(--ink)}
+    .tab-btn{
+      flex:1;padding:12px 8px;background:transparent;border:none;
+      color:var(--muted);font-family:var(--FB);font-size:12px;font-weight:600;
+      cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;
+      text-transform:uppercase;letter-spacing:0.3px;
+    }
+    .tab-btn.active{color:var(--g);border-bottom-color:var(--g)}
+
+    /* WRITE PANEL */
+    #writePanel{padding:16px}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+    .field input,.field select,.field textarea{
+      width:100%;background:var(--card);border:1px solid var(--bdr);
+      color:#f0f4f8;padding:12px 14px;border-radius:12px;
+      font-family:var(--FB);font-size:14px;outline:none;
+      transition:border-color 0.2s;
+    }
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g)}
+    .field textarea{min-height:280px;resize:vertical;line-height:1.7}
+    .field select option{background:#0d1625}
+    .field input::placeholder,.field textarea::placeholder{color:rgba(148,163,184,0.5)}
+
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    /* Emoji picker */
+    .emoji-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .emoji-opt{
+      width:36px;height:36px;border-radius:8px;border:1px solid var(--bdr);
+      background:var(--card);font-size:18px;cursor:pointer;display:flex;
+      align-items:center;justify-content:center;transition:border-color 0.2s;
+    }
+    .emoji-opt.sel{border-color:var(--g);background:var(--g-dim)}
+
+    /* Content toolbar */
+    .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .tb-btn{
+      background:rgba(255,255,255,0.05);border:1px solid var(--bdr);
+      color:var(--muted);padding:5px 10px;border-radius:7px;
+      font-size:11px;font-weight:600;cursor:pointer;font-family:var(--FB);
+      transition:all 0.15s;white-space:nowrap;
+    }
+    .tb-btn:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+    /* Char count */
+    .char-count{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
+    .char-count.warn{color:var(--gold)}
+    .char-count.over{color:var(--red)}
+
+    /* Publish button */
+    .publish-bar{
+      position:sticky;bottom:0;background:rgba(2,6,23,0.97);
+      backdrop-filter:blur(16px);border-top:1px solid var(--bdr);
+      padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    }
+    .publish-btn{
+      width:100%;background:var(--g);color:#000;border:none;
+      border-radius:12px;padding:15px;font-family:var(--FD);
+      font-size:16px;font-weight:900;text-transform:uppercase;
+      letter-spacing:0.5px;cursor:pointer;transition:opacity 0.2s;
+    }
+    .publish-btn:hover:not(:disabled){opacity:0.9}
+    .publish-btn:disabled{background:rgba(255,255,255,0.1);color:var(--muted);cursor:not-allowed}
+
+    /* POSTS PANEL */
+    #postsPanel{padding:16px}
+    .posts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .posts-header h2{font-family:var(--FD);font-size:20px;font-weight:800;text-transform:uppercase;color:var(--g)}
+    .refresh-btn{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--FB)}
+
+    .post-card{
+      background:var(--card);border:1px solid var(--bdr);border-radius:14px;
+      padding:14px;margin-bottom:10px;
+    }
+    .post-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+    .post-emoji{font-size:22px;flex-shrink:0;margin-top:2px}
+    .post-meta{flex:1;min-width:0}
+    .post-title{font-size:14px;font-weight:700;color:#f0f4f8;margin-bottom:3px;line-height:1.3}
+    .post-info{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .cat-badge{
+      font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;
+      padding:2px 7px;border-radius:5px;background:var(--g-dim);color:var(--g);
+      border:1px solid rgba(154,224,0,0.2);white-space:nowrap;
+    }
+    .post-date{font-size:10px;color:var(--muted)}
+    .post-excerpt{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+    .post-actions{display:flex;gap:8px}
+    .action-btn{
+      flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;
+      font-family:var(--FB);cursor:pointer;border:1px solid var(--bdr);
+      background:transparent;color:var(--muted);transition:all 0.15s;text-transform:uppercase;
+    }
+    .action-btn:hover{background:rgba(255,255,255,0.06);color:#fff}
+    .action-btn.del{border-color:rgba(239,68,68,0.3);color:var(--red)}
+    .action-btn.del:hover{background:rgba(239,68,68,0.08)}
+    .action-btn.toggle-pub{border-color:rgba(245,158,11,0.3);color:var(--gold)}
+
+    .empty-state{text-align:center;padding:48px 0;color:var(--muted);font-size:13px}
+
+    /* TOAST */
+    #toast{
+      position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);
+      background:#1e293b;border:1px solid var(--bdr);color:#f0f4f8;
+      padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;
+      z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;
+    }
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #toast.success{border-color:rgba(154,224,0,0.4);color:var(--g)}
+    #toast.error{border-color:rgba(239,68,68,0.4);color:var(--red)}
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div class="auth-logo">Cricket Experts</div>
+  <div class="auth-sub">Admin Portal</div>
+  <div class="auth-card">
+    <h2>Sign In</h2>
+    <p>Use your authorised Google account to access the content management panel.</p>
+    <button class="google-btn" id="signInBtn">
+      <span class="g-badge">G</span>
+      Continue with Google
+    </button>
+    <div id="authError"></div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED -->
+<div id="deniedScreen" class="hidden">
+  <h2>Access Denied</h2>
+  <p>This account is not authorised to access the admin panel.<br>Please sign in with the authorised account.</p>
+  <button class="sign-out-btn" id="deniedSignOut">Sign Out & Try Again</button>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+
+  <div class="top-bar">
+    <div class="top-bar-brand">CE Admin</div>
+    <div class="top-bar-right">
+      <span class="user-pill" id="userEmail"></span>
+      <button class="sign-out-sm" id="signOutBtn">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabWrite" onclick="showTab('write')">✍️ Write</button>
+    <button class="tab-btn" id="tabPosts" onclick="showTab('posts')">📋 Posts</button>
+  </div>
+
+  <!-- WRITE PANEL -->
+  <div id="writePanel">
+
+    <div class="field">
+      <label>Category</label>
+      <select id="category">
+        <option value="fantasy-preview">🏏 Fantasy Preview</option>
+        <option value="match-preview">🔭 Match Preview</option>
+        <option value="team-news">📰 Team News</option>
+        <option value="post-match-review">📊 Post Match Review</option>
+        <option value="player-spotlight">⭐ Player Spotlight</option>
+        <option value="ipl-news">🚨 IPL News</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Article Title</label>
+      <input type="text" id="title" placeholder="e.g. RCB vs MI Preview: Kohli's Return to Wankhede" maxlength="120"/>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>Match (optional)</label>
+        <input type="text" id="matchLabel" placeholder="e.g. M#1 · Mar 28"/>
+      </div>
+      <div class="field">
+        <label>Cover Icon</label>
+        <div class="emoji-row" id="emojiPicker">
+          <div class="emoji-opt sel" data-e="🏏">🏏</div>
+          <div class="emoji-opt" data-e="🔭">🔭</div>
+          <div class="emoji-opt" data-e="📰">📰</div>
+          <div class="emoji-opt" data-e="📊">📊</div>
+          <div class="emoji-opt" data-e="⭐">⭐</div>
+          <div class="emoji-opt" data-e="🚨">🚨</div>
+          <div class="emoji-opt" data-e="🎯">🎯</div>
+          <div class="emoji-opt" data-e="👑">👑</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Excerpt <span style="font-weight:400;text-transform:none">(shown in card previews — 1-2 sentences)</span></label>
+      <textarea id="excerpt" rows="2" placeholder="Quick summary that appears on the listing page and in Google results..." maxlength="200"></textarea>
+      <div class="char-count" id="excerptCount">0 / 200</div>
+    </div>
+
+    <div class="field">
+      <label>Full Article</label>
+      <div class="toolbar">
+        <button class="tb-btn" onclick="insertTag('## ','')">H2</button>
+        <button class="tb-btn" onclick="insertTag('### ','')">H3</button>
+        <button class="tb-btn" onclick="insertTag('**','**')">Bold</button>
+        <button class="tb-btn" onclick="insertTag('*','*')">Italic</button>
+        <button class="tb-btn" onclick="insertTag('\n- ','')">• List</button>
+        <button class="tb-btn" onclick="insertTag('\n\n---\n\n','')">Divider</button>
+        <button class="tb-btn" onclick="insertTag('> ','')">Quote</button>
+        <button class="tb-btn" onclick="insertTag('\n\n','')">New Para</button>
+      </div>
+      <textarea id="content" placeholder="Write the full article here. Use the buttons above to format — H2 for section headings, Bold for key names, bullet list for XI picks etc.
+
+## Section Heading
+
+Your paragraph text goes here. **Player Name** scored brilliantly.
+
+- Pick 1
+- Pick 2
+- Pick 3"></textarea>
+      <div class="char-count" id="contentCount">0 chars</div>
+    </div>
+
+  </div>
+
+  <div class="publish-bar">
+    <button class="publish-btn" id="publishBtn" onclick="publishPost()">
+      Publish Article
+    </button>
+  </div>
+
+  <!-- POSTS PANEL -->
+  <div id="postsPanel" class="hidden">
+    <div class="posts-header">
+      <h2>All Posts</h2>
+      <button class="refresh-btn" onclick="loadPosts()">Refresh</button>
+    </div>
+    <div id="postsList"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+  "https://tuvqgcosbweljslbfgqc.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
+);
+
+const ADMIN_EMAIL = "smrutisahoo995@gmail.com";
+
+/* ── Auth ─────────────────────────────────────────────────────── */
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (!session) { showScreen("auth"); return; }
+  const email = session.user.email;
+  if (email !== ADMIN_EMAIL) { showScreen("denied"); return; }
+  document.getElementById("userEmail").textContent = email.split("@")[0];
+  showScreen("app");
+  await loadPosts();
+});
+
+document.getElementById("signInBtn").onclick = async () => {
+  document.getElementById("signInBtn").disabled = true;
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.href }
+  });
+  if (error) {
+    document.getElementById("authError").textContent = error.message;
+    document.getElementById("authError").style.display = "block";
+    document.getElementById("signInBtn").disabled = false;
+  }
+};
+
+const signOut = async () => {
+  await supabase.auth.signOut();
+  showScreen("auth");
+};
+
+document.getElementById("signOutBtn").onclick     = signOut;
+document.getElementById("deniedSignOut").onclick  = signOut;
+
+function showScreen(s) {
+  document.getElementById("authScreen").style.display  = s === "auth"   ? "flex"  : "none";
+  document.getElementById("deniedScreen").classList.toggle("hidden", s !== "denied");
+  document.getElementById("adminApp").style.display    = s === "app"    ? "block" : "none";
+}
+
+/* ── Tab switching ────────────────────────────────────────────── */
+window.showTab = (tab) => {
+  document.getElementById("writePanel").classList.toggle("hidden", tab !== "write");
+  document.getElementById("postsPanel").classList.toggle("hidden", tab !== "posts");
+  document.getElementById("tabWrite").classList.toggle("active", tab === "write");
+  document.getElementById("tabPosts").classList.toggle("active", tab === "posts");
+  if (tab === "posts") loadPosts();
+};
+
+/* ── Emoji picker ─────────────────────────────────────────────── */
+let selectedEmoji = "🏏";
+document.getElementById("emojiPicker").addEventListener("click", e => {
+  const opt = e.target.closest(".emoji-opt");
+  if (!opt) return;
+  document.querySelectorAll(".emoji-opt").forEach(o => o.classList.remove("sel"));
+  opt.classList.add("sel");
+  selectedEmoji = opt.dataset.e;
+});
+
+/* ── Char counts ──────────────────────────────────────────────── */
+document.getElementById("excerpt").addEventListener("input", function() {
+  const n = this.value.length;
+  const el = document.getElementById("excerptCount");
+  el.textContent = `${n} / 200`;
+  el.className = "char-count" + (n > 180 ? " warn" : "") + (n >= 200 ? " over" : "");
+});
+
+document.getElementById("content").addEventListener("input", function() {
+  const n = this.value.length;
+  document.getElementById("contentCount").textContent = `${n.toLocaleString()} chars`;
+});
+
+/* ── Toolbar ──────────────────────────────────────────────────── */
+window.insertTag = (before, after) => {
+  const ta = document.getElementById("content");
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const selected = ta.value.substring(s, e);
+  const replacement = before + selected + after;
+  ta.value = ta.value.substring(0, s) + replacement + ta.value.substring(e);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = s + before.length + selected.length + after.length;
+  ta.dispatchEvent(new Event("input"));
+};
+
+/* ── Slug generator ───────────────────────────────────────────── */
+function makeSlug(title) {
+  return title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .substring(0, 80)
+    + "-" + Date.now().toString(36);
+}
+
+/* ── Publish ──────────────────────────────────────────────────── */
+window.publishPost = async () => {
+  const title    = document.getElementById("title").value.trim();
+  const excerpt  = document.getElementById("excerpt").value.trim();
+  const content  = document.getElementById("content").value.trim();
+  const category = document.getElementById("category").value;
+  const matchLabel = document.getElementById("matchLabel").value.trim();
+
+  if (!title)   { showToast("Title is required", "error"); return; }
+  if (!excerpt) { showToast("Excerpt is required", "error"); return; }
+  if (!content || content.length < 100) { showToast("Content too short — write at least 100 characters", "error"); return; }
+
+  const btn = document.getElementById("publishBtn");
+  btn.disabled = true;
+  btn.textContent = "Publishing…";
+
+  const slug = makeSlug(title);
+
+  const { error } = await supabase.from("blog_posts").insert([{
+    slug, title, excerpt, content, category,
+    match_label: matchLabel || null,
+    cover_emoji: selectedEmoji,
+    published: true,
+  }]);
+
+  btn.disabled = false;
+  btn.textContent = "Publish Article";
+
+  if (error) {
+    showToast("Failed: " + error.message, "error");
+    return;
+  }
+
+  showToast("Published! ✅", "success");
+
+  // Clear form
+  document.getElementById("title").value      = "";
+  document.getElementById("excerpt").value    = "";
+  document.getElementById("content").value    = "";
+  document.getElementById("matchLabel").value = "";
+  document.getElementById("excerptCount").textContent = "0 / 200";
+  document.getElementById("contentCount").textContent = "0 chars";
+};
+
+/* ── Load posts ───────────────────────────────────────────────── */
+window.loadPosts = async () => {
+  const list = document.getElementById("postsList");
+  list.innerHTML = `<div class="empty-state">Loading…</div>`;
+
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("id, title, excerpt, category, cover_emoji, published, created_at, slug")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error || !data?.length) {
+    list.innerHTML = `<div class="empty-state">No posts yet. Write your first one!</div>`;
+    return;
+  }
+
+  const catLabels = {
+    "fantasy-preview": "Fantasy Preview",
+    "match-preview": "Match Preview",
+    "team-news": "Team News",
+    "post-match-review": "Post Match Review",
+    "player-spotlight": "Player Spotlight",
+    "ipl-news": "IPL News",
+  };
+
+  list.innerHTML = "";
+  data.forEach(post => {
+    const card = document.createElement("div");
+    card.className = "post-card";
+    card.innerHTML = `
+      <div class="post-card-top">
+        <div class="post-emoji">${post.cover_emoji}</div>
+        <div class="post-meta">
+          <div class="post-title">${post.title}</div>
+          <div class="post-info">
+            <span class="cat-badge">${catLabels[post.category] || post.category}</span>
+            <span class="post-date">${new Date(post.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span>
+            ${!post.published ? '<span style="font-size:10px;color:var(--gold)">DRAFT</span>' : ''}
+          </div>
+        </div>
+      </div>
+      <div class="post-excerpt">${post.excerpt}</div>
+      <div class="post-actions">
+        <button class="action-btn" onclick="viewPost('${post.slug}','${post.category}')">View</button>
+        <button class="action-btn toggle-pub" onclick="togglePublish('${post.id}',${post.published})">${post.published ? "Unpublish" : "Publish"}</button>
+        <button class="action-btn del" onclick="deletePost('${post.id}')">Delete</button>
+      </div>`;
+    list.appendChild(card);
+  });
+};
+
+window.viewPost = (slug, category) => {
+  window.open(`/blog-post.html?slug=${slug}`, "_blank");
+};
+
+window.togglePublish = async (id, current) => {
+  const { error } = await supabase
+    .from("blog_posts")
+    .update({ published: !current })
+    .eq("id", id);
+  if (error) { showToast("Failed: " + error.message, "error"); return; }
+  showToast(current ? "Post unpublished" : "Post published", "success");
+  loadPosts();
+};
+
+window.deletePost = async (id) => {
+  if (!confirm("Delete this post permanently?")) return;
+  const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+  if (error) { showToast("Failed: " + error.message, "error"); return; }
+  showToast("Deleted", "success");
+  loadPosts();
+};
+
+/* ── Toast ────────────────────────────────────────────────────── */
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  setTimeout(() => { t.className = ""; }, 3000);
+}
+</script>
+</body>
+</html>
