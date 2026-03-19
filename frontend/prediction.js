@@ -6,9 +6,9 @@ import { applyRankFlair } from "./animations.js";
 const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 
 /* ─── MODULE STATE ───────────────────────────────────────────────────────── */
-let currentUserId      = null;
+let currentUserId       = null;
 let currentTournamentId = null;
-let currentMatchId     = null;
+let currentMatchId      = null;
 
 /* ─── INIT ───────────────────────────────────────────────────────────────── */
 async function init() {
@@ -43,7 +43,6 @@ window.switchTab = function(tab) {
         panel.classList.toggle("hidden", panel.id !== `panel-${tab}`);
     });
     location.hash = tab;
-
     if (tab === "allstars") loadAllStarsPanel();
     if (tab === "daily")    loadDailyPanel();
 };
@@ -57,8 +56,8 @@ function showToast(message, type = "success") {
     toast.textContent = message;
     container.appendChild(toast);
     setTimeout(() => {
-        toast.style.opacity    = "0";
-        toast.style.transform  = "translateX(120%)";
+        toast.style.opacity   = "0";
+        toast.style.transform = "translateX(120%)";
         toast.style.transition = "all 0.4s ease";
         setTimeout(() => toast.remove(), 400);
     }, 3500);
@@ -72,13 +71,10 @@ function showConfirm(title, message) {
         const textEl    = document.getElementById("funConfirmText");
         const btnOk     = document.getElementById("funConfirmOk");
         const btnCancel = document.getElementById("funConfirmCancel");
-
         if (!overlay) return resolve(false);
-
         titleEl.textContent = title;
         textEl.textContent  = message;
         overlay.classList.remove("hidden");
-
         const cleanup = () => overlay.classList.add("hidden");
         btnOk.onclick     = () => { cleanup(); resolve(true); };
         btnCancel.onclick = () => { cleanup(); resolve(false); };
@@ -91,22 +87,325 @@ function showPanelSpinner(panelId) {
     if (panel) panel.innerHTML = `<div class="panel-spinner"></div>`;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOTTOM SHEET — shared scout/detail view
+═══════════════════════════════════════════════════════════════════════════ */
+
+function openBottomSheet(contentFn) {
+    // Remove any existing sheet
+    document.getElementById("funBottomSheet")?.remove();
+
+    const overlay       = document.createElement("div");
+    overlay.id          = "funBottomSheet";
+    overlay.className   = "fun-sheet-overlay";
+    overlay.onclick     = (e) => { if (e.target === overlay) closeBottomSheet(); };
+
+    const sheet         = document.createElement("div");
+    sheet.className     = "fun-sheet";
+
+    const handle        = document.createElement("div");
+    handle.className    = "fun-sheet-handle";
+
+    const closeBtn      = document.createElement("button");
+    closeBtn.className  = "fun-sheet-close";
+    closeBtn.textContent = "✕";
+    closeBtn.onclick    = closeBottomSheet;
+
+    const body          = document.createElement("div");
+    body.className      = "fun-sheet-body";
+    body.innerHTML      = `<div class="sheet-spinner"></div>`;
+
+    sheet.append(handle, closeBtn, body);
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+
+    // Animate in
+    requestAnimationFrame(() => overlay.classList.add("open"));
+
+    // Populate content async
+    contentFn(body);
+}
+
+function closeBottomSheet() {
+    const overlay = document.getElementById("funBottomSheet");
+    if (!overlay) return;
+    overlay.classList.remove("open");
+    setTimeout(() => overlay.remove(), 320);
+}
+
+/* ─── Player detail sheet ─────────────────────────────────────────────── */
+async function openPlayerDetail(playerId, matchId) {
+    openBottomSheet(async (body) => {
+        const { data: stats } = await supabase
+            .from("player_match_stats")
+            .select(`
+                *,
+                player:players!inner(name, role, photo_url, team:real_teams!inner(short_code))
+            `)
+            .eq("player_id", playerId)
+            .eq("match_id", matchId)
+            .maybeSingle();
+
+        body.innerHTML = "";
+
+        if (!stats) {
+            const p = document.createElement("p");
+            p.className   = "sheet-empty";
+            p.textContent = "No stats found for this player.";
+            body.appendChild(p);
+            return;
+        }
+
+        const p = stats.player;
+        const photo = p?.photo_url
+            ? supabase.storage.from("player-photos").getPublicUrl(p.photo_url).data.publicUrl
+            : "images/default-avatar.png";
+
+        // Header
+        const hdr       = document.createElement("div");
+        hdr.className   = "sheet-player-hdr";
+
+        const av        = document.createElement("div");
+        av.className    = "sheet-avatar";
+        av.style.backgroundImage = `url('${photo}')`;
+
+        const info      = document.createElement("div");
+        const nameEl    = document.createElement("div");
+        nameEl.className   = "sheet-player-name";
+        nameEl.textContent = p?.name || "Unknown";
+
+        const metaEl    = document.createElement("div");
+        metaEl.className   = "sheet-player-meta";
+        metaEl.textContent = `${p?.role || "—"} · ${p?.team?.short_code || "TBA"}`;
+
+        const ptsEl     = document.createElement("div");
+        ptsEl.className   = "sheet-player-pts";
+        ptsEl.textContent = `${stats.fantasy_points} pts this match`;
+
+        info.append(nameEl, metaEl, ptsEl);
+        hdr.append(av, info);
+        body.appendChild(hdr);
+
+        // Stat chips
+        const chipsWrap     = document.createElement("div");
+        chipsWrap.className = "sheet-chips-wrap";
+
+        const chipsLabel       = document.createElement("p");
+        chipsLabel.className   = "sheet-section-label";
+        chipsLabel.textContent = "Points Breakdown";
+        chipsWrap.appendChild(chipsLabel);
+
+        const grid       = document.createElement("div");
+        grid.className   = "sheet-chips-grid";
+
+        const chips = buildStatChips(stats);
+        if (chips.length) {
+            chips.forEach(c => grid.appendChild(c));
+        } else {
+            const c       = document.createElement("span");
+            c.className   = "stat-tag empty";
+            c.textContent = "Played — no scorable actions";
+            grid.appendChild(c);
+        }
+
+        chipsWrap.appendChild(grid);
+        body.appendChild(chipsWrap);
+    });
+}
+
+/* ─── Team scout sheet ────────────────────────────────────────────────── */
+async function openTeamScout(userId, matchId) {
+    openBottomSheet(async (body) => {
+        // Fetch user's locked team for this match
+        const { data: team } = await supabase
+            .from("user_match_teams")
+            .select(`
+                captain_id,
+                vice_captain_id,
+                total_points,
+                user_profiles(team_name, team_photo_url),
+                user_match_team_players(
+                    player_id,
+                    player_match_stats(fantasy_points, runs, wickets, catches, is_player_of_match),
+                    players(id, name, role, photo_url, team:real_teams!inner(short_code))
+                )
+            `)
+            .eq("user_id", userId)
+            .eq("match_id", matchId)
+            .maybeSingle();
+
+        body.innerHTML = "";
+
+        if (!team) {
+            const p       = document.createElement("p");
+            p.className   = "sheet-empty";
+            p.textContent = "This user didn't have a team for this match.";
+            body.appendChild(p);
+            return;
+        }
+
+        const profile = team.user_profiles;
+        const photo   = profile?.team_photo_url
+            ? supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url).data.publicUrl
+            : "images/default-avatar.png";
+
+        // Team header
+        const hdr       = document.createElement("div");
+        hdr.className   = "sheet-team-hdr";
+
+        const av        = document.createElement("div");
+        av.className    = "sheet-team-avatar";
+        av.style.backgroundImage = `url('${photo}')`;
+
+        const info      = document.createElement("div");
+        const nameEl    = document.createElement("div");
+        nameEl.className   = "sheet-player-name";
+        nameEl.textContent = profile?.team_name || "Expert";
+
+        const ptsEl     = document.createElement("div");
+        ptsEl.className   = "sheet-player-pts";
+        ptsEl.textContent = `${team.total_points || 0} pts this match`;
+
+        info.append(nameEl, ptsEl);
+        hdr.append(av, info);
+        body.appendChild(hdr);
+
+        // Players list in role order
+        const players = (team.user_match_team_players || [])
+            .map(r => ({
+                ...r.players,
+                pts:     r.player_match_stats?.fantasy_points || 0,
+                isC:     r.player_id === team.captain_id,
+                isVC:    r.player_id === team.vice_captain_id,
+                isPOM:   r.player_match_stats?.is_player_of_match,
+            }))
+            .sort((a, b) => (ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]) || (b.pts - a.pts));
+
+        const label       = document.createElement("p");
+        label.className   = "sheet-section-label";
+        label.textContent = "Locked Team";
+        body.appendChild(label);
+
+        players.forEach(p => {
+            const row       = document.createElement("div");
+            row.className   = "sheet-player-row";
+
+            const av2 = document.createElement("div");
+            av2.className = "sheet-row-avatar";
+            if (p.photo_url) {
+                const photoUrl = supabase.storage.from("player-photos").getPublicUrl(p.photo_url).data.publicUrl;
+                av2.style.backgroundImage = `url('${photoUrl}')`;
+            }
+
+            const info2     = document.createElement("div");
+            info2.className = "sheet-row-info";
+
+            const nameRow   = document.createElement("div");
+            nameRow.className = "sheet-row-name-row";
+
+            const nm        = document.createElement("span");
+            nm.className    = "sheet-row-name";
+            nm.textContent  = p.name || "Unknown";
+
+            if (p.isC || p.isVC) {
+                const badge       = document.createElement("span");
+                badge.className   = `sheet-role-badge ${p.isC ? "c" : "vc"}`;
+                badge.textContent = p.isC ? "C" : "VC";
+                nameRow.append(nm, badge);
+            } else {
+                nameRow.appendChild(nm);
+            }
+
+            const meta      = document.createElement("span");
+            meta.className  = "sheet-row-meta";
+            meta.textContent = `${p.role} · ${p.team?.short_code || "TBA"}`;
+
+            info2.append(nameRow, meta);
+
+            const pts2      = document.createElement("div");
+            pts2.className  = "sheet-row-pts";
+            pts2.textContent = `${p.isPOM ? "🌟 " : ""}${p.pts} pts`;
+            if (p.isPOM) pts2.style.color = "var(--fun-cyan)";
+
+            row.append(av2, info2, pts2);
+            body.appendChild(row);
+        });
+    });
+}
+
+/* ─── Stat chips (shared with stats page pattern) ─────────────────────── */
+function buildStatChips(m) {
+    const chips = [];
+    const chip  = (txt, cls) => {
+        const el       = document.createElement("span");
+        el.className   = `stat-tag ${cls}`;
+        el.textContent = txt;
+        return el;
+    };
+
+    if (m.runs > 0)         chips.push(chip(`🏏 ${m.runs}${m.balls ? ` (${m.balls}b)` : ""}`, "bat"));
+    if (m.fours > 0 || m.sixes > 0) chips.push(chip(`🎯 ${m.fours||0}×4 ${m.sixes||0}×6`, "boundary"));
+    if (m.sr_points)        chips.push(chip(`⚡ SR ${m.sr_points > 0 ? "+" : ""}${m.sr_points}`, "bonus"));
+    if (m.milestone_points > 0) chips.push(chip(`🏆 +${m.milestone_points}`, "bonus"));
+    if (m.duck_penalty < 0) chips.push(chip(`🦆 Duck ${m.duck_penalty}`, "penalty"));
+    if (m.wickets > 0)      chips.push(chip(`🎳 ${m.wickets}W`, "bowl"));
+    if (m.maidens > 0)      chips.push(chip(`🧱 ${m.maidens} Maiden${m.maidens > 1 ? "s" : ""}`, "bowl"));
+    if (m.er_points)        chips.push(chip(`📉 Econ ${m.er_points > 0 ? "+" : ""}${m.er_points}`, "bonus"));
+    if (m.catches > 0)      chips.push(chip(`🧤 ${m.catches}C`, "field"));
+    if (m.stumpings > 0)    chips.push(chip(`🏃 ${m.stumpings}St`, "field"));
+    const ro = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
+    if (ro > 0)             chips.push(chip(`🎯 ${ro}RO`, "field"));
+    if (m.is_player_of_match) chips.push(chip("🏆 POM +20", "gold"));
+
+    return chips;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PREDICT PANEL
 ═══════════════════════════════════════════════════════════════════════════ */
 
 async function loadPredictionCard() {
-    const { data: userPoints } = await supabase
-        .from("user_tournament_points")
-        .select("prediction_stars")
-        .eq("user_id", currentUserId)
-        .eq("tournament_id", currentTournamentId)
-        .maybeSingle();
+    // Fetch user's star count + streak + recent winners in parallel
+    const [pointsRes, streakRes, winnersRes, predictionCountRes] = await Promise.allSettled([
+        supabase.from("user_tournament_points")
+            .select("prediction_stars")
+            .eq("user_id", currentUserId)
+            .eq("tournament_id", currentTournamentId)
+            .maybeSingle(),
+        supabase.from("user_predictions")
+            .select("is_correct")
+            .eq("user_id", currentUserId)
+            .order("created_at", { ascending: false })
+            .limit(20),
+        supabase.from("user_tournament_points")
+            .select("prediction_stars, user_profiles(team_name)")
+            .eq("tournament_id", currentTournamentId)
+            .gte("prediction_stars", 10)
+            .order("prediction_stars", { ascending: false })
+            .limit(5),
+        supabase.from("user_predictions")
+            .select("predicted_winner_id", { count: "exact" })
+            .eq("match_id", "placeholder") // replaced below after match fetch
+            .limit(1),
+    ]);
 
-    const starEl = document.getElementById("userStarCount");
-    if (starEl) starEl.textContent = `${userPoints?.prediction_stars || 0} ⭐`;
+    const stars    = pointsRes.value?.data?.prediction_stars || 0;
+    const starEl   = document.getElementById("userStarCount");
+    if (starEl) starEl.textContent = `${stars} ⭐`;
 
+    // Calculate streak from recent predictions
+    let streak = 0;
+    if (streakRes.value?.data) {
+        for (const p of streakRes.value.data) {
+            if (p.is_correct) streak++;
+            else break;
+        }
+    }
+
+    // Recent sub winners (prediction_stars >= 10 multiples)
+    const recentWinners = winnersRes.value?.data || [];
+
+    // Fetch upcoming match
     const { data: match } = await supabase
         .from("matches")
         .select("id, team_a:real_teams!team_a_id(id, short_code, photo_name), team_b:real_teams!team_b_id(id, short_code, photo_name)")
@@ -124,17 +423,43 @@ async function loadPredictionCard() {
 
     currentMatchId = match.id;
 
-    const { data: existing } = await supabase
-        .from("user_predictions")
-        .select("predicted_winner_id")
-        .eq("user_id", currentUserId)
-        .eq("match_id", currentMatchId)
-        .maybeSingle();
+    // Fetch user's prediction + community split for this match
+    const [existingRes, totalRes, teamARes, teamBRes] = await Promise.all([
+        supabase.from("user_predictions")
+            .select("predicted_winner_id")
+            .eq("user_id", currentUserId)
+            .eq("match_id", currentMatchId)
+            .maybeSingle(),
+        supabase.from("user_predictions")
+            .select("*", { count: "exact", head: true })
+            .eq("match_id", currentMatchId),
+        supabase.from("user_predictions")
+            .select("*", { count: "exact", head: true })
+            .eq("match_id", currentMatchId)
+            .eq("predicted_winner_id", match.team_a.id),
+        supabase.from("user_predictions")
+            .select("*", { count: "exact", head: true })
+            .eq("match_id", currentMatchId)
+            .eq("predicted_winner_id", match.team_b.id),
+    ]);
 
-    renderPredictionUI(match, existing?.predicted_winner_id);
+    const existing      = existingRes.data;
+    const totalPreds    = totalRes.count || 0;
+    const teamAPreds    = teamARes.count || 0;
+    const teamBPreds    = teamBRes.count || 0;
+    const isLocked      = !!existing?.predicted_winner_id;
+
+    const pctA = totalPreds > 0 ? Math.round((teamAPreds / totalPreds) * 100) : null;
+    const pctB = totalPreds > 0 ? Math.round((teamBPreds / totalPreds) * 100) : null;
+
+    renderPredictionUI(match, existing?.predicted_winner_id, {
+        stars, streak, recentWinners,
+        isLocked, totalPreds,
+        split: pctA !== null ? { a: pctA, b: pctB, aName: match.team_a.short_code, bName: match.team_b.short_code } : null,
+    });
 }
 
-function renderPredictionUI(match, predictedWinnerId) {
+function renderPredictionUI(match, predictedWinnerId, meta) {
     const container = document.getElementById("predictionArea");
     if (!container) return;
 
@@ -149,41 +474,133 @@ function renderPredictionUI(match, predictedWinnerId) {
     const isLocked = !!predictedWinnerId;
     container.replaceChildren();
 
-    // Header
+    // ── FOMO strip: streak + star progress ──────────────────────────────
+    const fomoStrip       = document.createElement("div");
+    fomoStrip.className   = "fomo-strip";
+
+    // Streak
+    const streakEl        = document.createElement("div");
+    streakEl.className    = `fomo-pill ${meta.streak >= 3 ? "fomo-hot" : ""}`;
+    streakEl.innerHTML    = meta.streak > 0
+        ? `🔥 ${meta.streak} correct in a row`
+        : `⭐ ${meta.stars} stars total`;
+
+    // Star progress toward next free sub
+    const starsToNext     = 10 - (meta.stars % 10);
+    const progressEl      = document.createElement("div");
+    progressEl.className  = "fomo-pill fomo-progress";
+    progressEl.textContent = `${starsToNext} star${starsToNext !== 1 ? "s" : ""} to free sub`;
+
+    fomoStrip.append(streakEl, progressEl);
+    container.appendChild(fomoStrip);
+
+    // Star progress bar
+    const pct              = ((meta.stars % 10) / 10) * 100;
+    const barWrap          = document.createElement("div");
+    barWrap.className      = "star-bar-wrap";
+
+    const barTrack         = document.createElement("div");
+    barTrack.className     = "star-bar-track";
+
+    const barFill          = document.createElement("div");
+    barFill.className      = "star-bar-fill";
+    barFill.style.width    = `${pct}%`;
+
+    const barLabel         = document.createElement("div");
+    barLabel.className     = "star-bar-label";
+    barLabel.textContent   = `${meta.stars % 10}/10 ⭐ toward free sub`;
+
+    barTrack.appendChild(barFill);
+    barWrap.append(barTrack, barLabel);
+    container.appendChild(barWrap);
+
+    // Recent winners strip
+    if (meta.recentWinners.length > 0) {
+        const winnersWrap       = document.createElement("div");
+        winnersWrap.className   = "winners-strip";
+
+        const wLabel            = document.createElement("span");
+        wLabel.className        = "winners-label";
+        wLabel.textContent      = "🎁 Recent free subs:";
+        winnersWrap.appendChild(wLabel);
+
+        meta.recentWinners.forEach(w => {
+            const pill          = document.createElement("span");
+            pill.className      = "winners-pill";
+            pill.textContent    = w.user_profiles?.team_name || "Expert";
+            winnersWrap.appendChild(pill);
+        });
+
+        container.appendChild(winnersWrap);
+    }
+
+    // ── Prediction question ──────────────────────────────────────────────
     const hdr = document.createElement("div");
     hdr.className = "pred-header";
-    hdr.innerHTML = `
-        <p class="pred-question">Who will win?</p>
-        <p class="pred-hook">Correct = 1 sub reward per 10 wins 🎁</p>
-        <button class="icon-btn" onclick="showGuruLeaderboard()">🏆 Top Prediction Masters</button>`;
+
+    const q           = document.createElement("p");
+    q.className       = "pred-question";
+    q.textContent     = "Who will win?";
+
+    const hook        = document.createElement("p");
+    hook.className    = "pred-hook";
+    hook.textContent  = "Correct = 1 ⭐ · Every 10 stars = 1 free sub 🎁";
+
+    const guruBtn     = document.createElement("button");
+    guruBtn.className = "icon-btn";
+    guruBtn.textContent = "🏆 Prediction Masters";
+    guruBtn.onclick   = () => showGuruLeaderboard();
+
+    hdr.append(q, hook, guruBtn);
     container.appendChild(hdr);
 
-    // VS row
+    // ── VS row ───────────────────────────────────────────────────────────
     const vsWrap = document.createElement("div");
     vsWrap.className = "team-vs-container";
 
-    const makeTeamCard = (team, logoUrl) => {
+    const makeTeamCard = (team, logoUrl, pct) => {
         const card    = document.createElement("div");
         card.className = `team-card ${predictedWinnerId === team.id ? "selected" : ""}`;
         if (!isLocked) card.onclick = () => savePrediction(team.id);
 
-        const img   = document.createElement("img");
-        img.src     = logoUrl;
-        img.alt     = team.short_code;
+        const img     = document.createElement("img");
+        img.src       = logoUrl;
+        img.alt       = team.short_code;
 
-        const name  = document.createElement("span");
+        const name    = document.createElement("span");
         name.textContent = team.short_code;
 
         card.append(img, name);
+
+        // Community split shown only after user has locked
+        if (isLocked && pct !== null) {
+            const pctEl       = document.createElement("span");
+            pctEl.className   = "community-pct";
+            pctEl.textContent = `${pct}% picked`;
+            card.appendChild(pctEl);
+        }
+
         return card;
     };
 
-    const vs       = document.createElement("div");
-    vs.className   = "vs-badge";
-    vs.textContent = "VS";
+    const vs        = document.createElement("div");
+    vs.className    = "vs-badge";
+    vs.textContent  = "VS";
 
-    vsWrap.append(makeTeamCard(match.team_a, logoA), vs, makeTeamCard(match.team_b, logoB));
+    vsWrap.append(
+        makeTeamCard(match.team_a, logoA, meta.split?.a ?? null),
+        vs,
+        makeTeamCard(match.team_b, logoB, meta.split?.b ?? null)
+    );
     container.appendChild(vsWrap);
+
+    // Total predictions count
+    if (meta.totalPreds > 0) {
+        const totalEl       = document.createElement("p");
+        totalEl.className   = "pred-total";
+        totalEl.textContent = `${meta.totalPreds} expert${meta.totalPreds !== 1 ? "s" : ""} have predicted`;
+        container.appendChild(totalEl);
+    }
 
     if (isLocked) {
         const lockMsg       = document.createElement("div");
@@ -203,11 +620,7 @@ async function savePrediction(teamId) {
         predicted_winner_id: teamId,
     });
 
-    if (error) {
-        showToast("Failed to save prediction.", "error");
-        return;
-    }
-
+    if (error) { showToast("Failed to save prediction.", "error"); return; }
     showToast("Prediction locked! 🔒", "success");
     loadPredictionCard();
 }
@@ -227,16 +640,11 @@ async function loadPostMatchSummary() {
     if (!lastMatch?.winner_id) return;
 
     const [totalRes, correctRes] = await Promise.all([
-        supabase.from("user_predictions")
-            .select("*", { count: "exact", head: true })
-            .eq("match_id", lastMatch.id),
-        supabase.from("user_predictions")
-            .select("*", { count: "exact", head: true })
-            .eq("match_id", lastMatch.id)
-            .eq("predicted_winner_id", lastMatch.winner_id),
+        supabase.from("user_predictions").select("*", { count: "exact", head: true }).eq("match_id", lastMatch.id),
+        supabase.from("user_predictions").select("*", { count: "exact", head: true }).eq("match_id", lastMatch.id).eq("predicted_winner_id", lastMatch.winner_id),
     ]);
 
-    const total   = totalRes.count   || 0;
+    const total   = totalRes.count || 0;
     const correct = correctRes.count || 0;
     const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
     const winner  = lastMatch.winner_id === lastMatch.team_a.id
@@ -256,7 +664,7 @@ async function loadPostMatchSummary() {
 
     const body        = document.createElement("p");
     body.className    = "summary-body";
-    body.textContent  = `${pct}% of experts predicted this. Did you get your star?`;
+    body.textContent  = `${pct}% of experts predicted this correctly.`;
 
     card.append(title, body);
     el.appendChild(card);
@@ -277,7 +685,7 @@ async function loadPodiums() {
 
         const [playersRes, usersRes] = await Promise.all([
             supabase.from("player_match_stats")
-                .select("fantasy_points, players(name, photo_url)")
+                .select("fantasy_points, player_id, players(name, photo_url)")
                 .eq("match_id", lastMatch.id)
                 .order("fantasy_points", { ascending: false })
                 .limit(3),
@@ -288,15 +696,15 @@ async function loadPodiums() {
                 .limit(3),
         ]);
 
-        renderPodium(playersRes.data, "playerPodium", "player");
-        renderPodium(usersRes.data,   "userPodium",   "user");
+        renderPodium(playersRes.data, "playerPodium", "player", lastMatch.id);
+        renderPodium(usersRes.data,   "userPodium",   "user",   lastMatch.id);
 
     } catch (err) {
         console.error("Podium error:", err);
     }
 }
 
-function renderPodium(data, containerId, type) {
+function renderPodium(data, containerId, type, matchId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -308,56 +716,69 @@ function renderPodium(data, containerId, type) {
         return;
     }
 
-    // Olympic order: 2nd left, 1st centre, 3rd right
     const order = [data[1], data[0], data[2]].filter(Boolean);
     container.replaceChildren();
 
     order.forEach(item => {
         const rank = item === data[0] ? 1 : item === data[1] ? 2 : 3;
 
-        let name, pts, photoPath;
+        let name, pts, photoPath, clickHandler;
+
         if (type === "player") {
-            name      = item.players?.name?.split(" ").pop() || "Unknown";
-            pts       = `${item.fantasy_points} pts`;
-            photoPath = item.players?.photo_url
+            name        = item.players?.name?.split(" ").pop() || "Unknown";
+            pts         = `${item.fantasy_points} pts`;
+            photoPath   = item.players?.photo_url
                 ? supabase.storage.from("player-photos").getPublicUrl(item.players.photo_url).data.publicUrl
                 : "images/default-avatar.png";
+            // BUG FIX: use player_id not item.id for the stat lookup
+            const pid   = item.player_id;
+            clickHandler = () => openPlayerDetail(pid, matchId);
         } else {
-            name      = item.user_profiles?.team_name || "Unknown";
-            pts       = `${item.total_points} pts`;
-            photoPath = item.user_profiles?.team_photo_url
+            name        = item.user_profiles?.team_name || "Unknown";
+            pts         = `${item.total_points} pts`;
+            photoPath   = item.user_profiles?.team_photo_url
                 ? supabase.storage.from("team-avatars").getPublicUrl(item.user_profiles.team_photo_url).data.publicUrl
                 : "images/default-avatar.png";
+            const uid   = item.user_id;
+            clickHandler = () => openTeamScout(uid, matchId);
         }
 
-        const itemEl      = document.createElement("div");
-        itemEl.className  = `podium-item rank-${rank}`;
+        const itemEl       = document.createElement("div");
+        itemEl.className   = `podium-item rank-${rank}`;
+        itemEl.style.cursor = "pointer";
+        itemEl.onclick     = clickHandler;
+        itemEl.title       = "Tap to view details";
 
-        const nameEl      = document.createElement("div");
-        nameEl.className  = "podium-name";
+        const nameEl       = document.createElement("div");
+        nameEl.className   = "podium-name";
         nameEl.textContent = name;
 
-        const wrap        = document.createElement("div");
-        wrap.className    = "podium-avatar-wrapper";
+        const wrap         = document.createElement("div");
+        wrap.className     = "podium-avatar-wrapper";
 
-        const img         = document.createElement("img");
-        img.src           = photoPath;
-        img.className     = "podium-img";
-        img.alt           = name;
+        const img          = document.createElement("img");
+        img.src            = photoPath;
+        img.className      = "podium-img";
+        img.alt            = name;
 
-        const badge       = document.createElement("div");
-        badge.className   = "rank-badge";
-        badge.textContent = String(rank);
+        const badge        = document.createElement("div");
+        badge.className    = "rank-badge";
+        badge.textContent  = String(rank);
+
+        // Tap hint icon
+        const tapHint      = document.createElement("div");
+        tapHint.className  = "podium-tap-hint";
+        tapHint.textContent = "👆";
 
         wrap.append(img, badge);
 
-        const ptsEl       = document.createElement("div");
-        ptsEl.className   = "podium-pts";
-        ptsEl.textContent = pts;
+        const ptsEl        = document.createElement("div");
+        ptsEl.className    = "podium-pts";
+        ptsEl.textContent  = pts;
 
         if (type === "user") applyRankFlair(img, nameEl, rank);
 
-        itemEl.append(nameEl, wrap, ptsEl);
+        itemEl.append(nameEl, wrap, ptsEl, tapHint);
         container.appendChild(itemEl);
     });
 }
@@ -419,21 +840,18 @@ document.getElementById("closeGuruModal")?.addEventListener("click", () => {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ALL STARS PANEL
-   ─ Edit freely until Match 1 locks
-   ─ Save uses UPSERT on team row + DELETE→INSERT on players
-   ─ After Match 1 locks: premium formation pitch card view
 ═══════════════════════════════════════════════════════════════════════════ */
 
 let allStarsState = {
-    allPlayers:       [],
-    selected:         [],
-    captainId:        null,
-    vcId:             null,
-    isMatch1Locked:   false,
-    existingTeamId:   null,
-    activeRole:       "ALL",
-    searchQuery:      "",
-    saving:           false,
+    allPlayers:     [],
+    selected:       [],
+    captainId:      null,
+    vcId:           null,
+    isMatch1Locked: false,
+    existingTeamId: null,
+    activeRole:     "ALL",
+    searchQuery:    "",
+    saving:         false,
 };
 
 async function loadAllStarsPanel() {
@@ -441,7 +859,6 @@ async function loadAllStarsPanel() {
     if (!panel) return;
     showPanelSpinner("panel-allstars");
 
-    // 1. Check if Match 1 is locked — this is the edit deadline
     const { data: match1 } = await supabase
         .from("matches")
         .select("status, lock_processed, points_processed")
@@ -450,12 +867,11 @@ async function loadAllStarsPanel() {
         .maybeSingle();
 
     allStarsState.isMatch1Locked = !!(
-        match1?.status        === "locked" ||
-        match1?.lock_processed === true    ||
+        match1?.status         === "locked" ||
+        match1?.lock_processed === true     ||
         match1?.points_processed === true
     );
 
-    // 2. Fetch full player pool
     const { data: players } = await supabase
         .from("player_pool_view")
         .select("*")
@@ -464,7 +880,6 @@ async function loadAllStarsPanel() {
 
     allStarsState.allPlayers = players || [];
 
-    // 3. Fetch user's existing team (if any)
     const { data: existing } = await supabase
         .from("user_allstar_teams")
         .select("*, user_allstar_team_players(player_id)")
@@ -480,7 +895,6 @@ async function loadAllStarsPanel() {
         allStarsState.selected = allStarsState.allPlayers.filter(p => savedIds.includes(p.id));
     }
 
-    // 4. Fetch leaderboard (needed for both edit and locked views)
     const { data: lbRows } = await supabase
         .from("allstar_leaderboard_view")
         .select("user_id, team_name, total_allstar_points, rank")
@@ -500,16 +914,12 @@ function renderAllStarsPanel(lbRows) {
     const isLocked = allStarsState.isMatch1Locked;
     const stats    = calcAllStarsStats();
 
-    // ── LOCKED + team exists → premium pitch card view ──
     if (isLocked && hasTeam) {
         renderAllStarsPitchCard(panel);
         renderAllStarsLeaderboard(panel, lbRows);
         return;
     }
 
-    // ── EDIT VIEW ─────────────────────────────────────────────────────────
-
-    // Header with live stats bar
     const hdr = document.createElement("div");
     hdr.className = "as-header";
     hdr.innerHTML = `
@@ -524,15 +934,13 @@ function renderAllStarsPanel(lbRows) {
         </div>`;
     panel.appendChild(hdr);
 
-    // Deadline reminder banner (only before lock)
     if (!isLocked) {
         const warn       = document.createElement("div");
         warn.className   = "as-deadline-warn";
-        warn.textContent = "⏰ Locks when Match 1 starts — save your team before then!";
+        warn.textContent = "⏰ Locks when Match 1 starts — save before then!";
         panel.appendChild(warn);
     }
 
-    // My XI section (always shown if player selected)
     if (hasTeam) {
         const xiSection = document.createElement("div");
         xiSection.className = "as-xi-section";
@@ -544,35 +952,21 @@ function renderAllStarsPanel(lbRows) {
 
         const sorted = [...allStarsState.selected].sort((a, b) =>
             (ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]) || (b.credit - a.credit));
-
-        sorted.forEach(p => xiSection.appendChild(
-            buildAllStarsPlayerCard(p, true, stats)
-        ));
-
+        sorted.forEach(p => xiSection.appendChild(buildAllStarsPlayerCard(p, true, stats)));
         panel.appendChild(xiSection);
     }
 
-    // Player pool + search (edit mode only)
     if (!isLocked) {
-        // Search input
         const search       = document.createElement("input");
         search.type        = "text";
         search.className   = "as-search";
         search.placeholder = "Search players…";
         search.value       = allStarsState.searchQuery;
-        search.oninput     = e => {
-            allStarsState.searchQuery = e.target.value;
-            renderAllStarsPanel([]);
-        };
+        search.oninput     = e => { allStarsState.searchQuery = e.target.value; renderAllStarsPanel([]); };
         panel.appendChild(search);
 
-        // Role tabs
-        panel.appendChild(buildRoleTabs(
-            allStarsState,
-            () => renderAllStarsPanel([])
-        ));
+        panel.appendChild(buildRoleTabs(allStarsState, () => renderAllStarsPanel([])));
 
-        // Filtered pool
         const poolSection = document.createElement("div");
         poolSection.className = "as-pool-section";
 
@@ -591,12 +985,9 @@ function renderAllStarsPanel(lbRows) {
             })
             .sort((a, b) => ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.credit - a.credit);
 
-        filtered.forEach(p => poolSection.appendChild(
-            buildAllStarsPlayerCard(p, false, stats)
-        ));
+        filtered.forEach(p => poolSection.appendChild(buildAllStarsPlayerCard(p, false, stats)));
         panel.appendChild(poolSection);
 
-        // Save / Update button
         const saveBtn       = document.createElement("button");
         saveBtn.className   = "as-save-btn";
         saveBtn.id          = "allStarsSaveBtn";
@@ -606,13 +997,10 @@ function renderAllStarsPanel(lbRows) {
         panel.appendChild(saveBtn);
     }
 
-    // Leaderboard (always shown at the bottom)
     renderAllStarsLeaderboard(panel, lbRows);
 }
 
-/* ── Premium formation pitch card (locked view) ──────────────────────── */
 function renderAllStarsPitchCard(panel) {
-    // Card header
     const hdr = document.createElement("div");
     hdr.className = "pitch-card-header";
     hdr.innerHTML = `
@@ -620,7 +1008,6 @@ function renderAllStarsPitchCard(panel) {
         <span class="pitch-card-sub">Locked for the season</span>`;
     panel.appendChild(hdr);
 
-    // Season points strip — loaded async
     const ptsEl       = document.createElement("div");
     ptsEl.className   = "pitch-season-pts";
     ptsEl.textContent = "Loading…";
@@ -637,14 +1024,11 @@ function renderAllStarsPitchCard(panel) {
                 : "Points appear after Match 1 is processed";
         });
 
-    // Pitch grid — players in WK / BAT / AR / BOWL formation
     const pitch    = document.createElement("div");
     pitch.className = "pitch-field";
 
     const groups = { WK: [], BAT: [], AR: [], BOWL: [] };
-    allStarsState.selected.forEach(p => {
-        if (groups[p.role]) groups[p.role].push(p);
-    });
+    allStarsState.selected.forEach(p => { if (groups[p.role]) groups[p.role].push(p); });
 
     const roleLabels = { WK: "Keeper", BAT: "Batters", AR: "All-Rounders", BOWL: "Bowlers" };
 
@@ -666,11 +1050,10 @@ function renderAllStarsPitchCard(panel) {
                 ? supabase.storage.from("player-photos").getPublicUrl(p.photo_url).data.publicUrl
                 : "images/default-avatar.png";
 
-            const av                    = document.createElement("div");
-            av.className                = "pitch-avatar";
-            av.style.backgroundImage    = `url('${photo}')`;
+            const av                 = document.createElement("div");
+            av.className             = "pitch-avatar";
+            av.style.backgroundImage = `url('${photo}')`;
 
-            // C / VC badge
             if (isC || isVC) {
                 const badge       = document.createElement("span");
                 badge.className   = `pitch-badge ${isC ? "pitch-badge-c" : "pitch-badge-vc"}`;
@@ -694,8 +1077,8 @@ function renderAllStarsPitchCard(panel) {
         rowLabel.className   = "pitch-row-label";
         rowLabel.textContent = roleLabels[role];
 
-        const rowWrap   = document.createElement("div");
-        rowWrap.className = "pitch-row-wrap";
+        const rowWrap        = document.createElement("div");
+        rowWrap.className    = "pitch-row-wrap";
         rowWrap.append(row, rowLabel);
 
         pitch.appendChild(rowWrap);
@@ -745,7 +1128,6 @@ function renderAllStarsLeaderboard(panel, rows) {
     panel.appendChild(section);
 }
 
-/* ── All Stars player card ────────────────────────────────────────────── */
 function buildAllStarsPlayerCard(player, isInXI, stats) {
     const isSelected = allStarsState.selected.some(p => p.id === player.id);
 
@@ -801,11 +1183,9 @@ function buildAllStarsPlayerCard(player, isInXI, stats) {
     return card;
 }
 
-/* ── All Stars state helpers ──────────────────────────────────────────── */
 function calcAllStarsStats() {
-    const roles   = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-    let overseas  = 0;
-    let credits   = 0;
+    const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+    let overseas = 0, credits = 0;
     for (const p of allStarsState.selected) {
         roles[p.role] = (roles[p.role] || 0) + 1;
         if (p.category === "overseas") overseas++;
@@ -816,15 +1196,9 @@ function calcAllStarsStats() {
 
 function isAllStarsValid(stats) {
     return (
-        stats.count     === 11            &&
-        allStarsState.captainId           &&
-        allStarsState.vcId                &&
-        stats.roles.WK   >= 1            &&
-        stats.roles.BAT  >= 3            &&
-        stats.roles.AR   >= 1            &&
-        stats.roles.BOWL >= 3            &&
-        stats.overseas   <= 4            &&
-        stats.credits    <= 100.05
+        stats.count === 11 && allStarsState.captainId && allStarsState.vcId &&
+        stats.roles.WK >= 1 && stats.roles.BAT >= 3 && stats.roles.AR >= 1 &&
+        stats.roles.BOWL >= 3 && stats.overseas <= 4 && stats.credits <= 100.05
     );
 }
 
@@ -852,20 +1226,14 @@ function toggleAllStarsRole(id, type) {
     renderAllStarsPanel([]);
 }
 
-/* ── All Stars save (UPSERT + delete-replace players) ─────────────────── */
 async function saveAllStars() {
-    const stats    = calcAllStarsStats();
-    if (!isAllStarsValid(stats)) {
-        showToast("Team incomplete — check all requirements.", "error");
-        return;
-    }
+    const stats = calcAllStarsStats();
+    if (!isAllStarsValid(stats)) { showToast("Team incomplete — check all requirements.", "error"); return; }
 
     const isUpdate = !!allStarsState.existingTeamId;
     const ok = await showConfirm(
         isUpdate ? "Update All Stars XI?" : "Save All Stars XI?",
-        isUpdate
-            ? "Your previous All Stars XI will be replaced with this one."
-            : "You can keep editing until Match 1 locks."
+        isUpdate ? "Your previous XI will be replaced." : "You can keep editing until Match 1 locks."
     );
     if (!ok) return;
 
@@ -873,8 +1241,6 @@ async function saveAllStars() {
     renderAllStarsPanel([]);
 
     try {
-        // UPSERT the team header row
-        // ON CONFLICT on (user_id, tournament_id) → updates in place
         const { data: saved, error: teamError } = await supabase
             .from("user_allstar_teams")
             .upsert(
@@ -889,43 +1255,24 @@ async function saveAllStars() {
                 },
                 { onConflict: "user_id,tournament_id" }
             )
-            .select()
-            .single();
+            .select().single();
 
         if (teamError) throw teamError;
-
         allStarsState.existingTeamId = saved.id;
 
-        // Clean-replace player rows: delete old, insert new
-        const { error: deleteError } = await supabase
-            .from("user_allstar_team_players")
-            .delete()
-            .eq("user_allstar_team_id", saved.id);
-
-        if (deleteError) throw deleteError;
-
-        const { error: insertError } = await supabase
-            .from("user_allstar_team_players")
-            .insert(
-                allStarsState.selected.map(p => ({
-                    user_allstar_team_id: saved.id,
-                    player_id:            p.id,
-                }))
-            );
-
+        await supabase.from("user_allstar_team_players").delete().eq("user_allstar_team_id", saved.id);
+        const { error: insertError } = await supabase.from("user_allstar_team_players").insert(
+            allStarsState.selected.map(p => ({ user_allstar_team_id: saved.id, player_id: p.id }))
+        );
         if (insertError) throw insertError;
 
-        showToast(
-            isUpdate ? "All Stars XI updated! ✅" : "All Stars XI saved! ✅",
-            "success"
-        );
+        showToast(isUpdate ? "All Stars XI updated! ✅" : "All Stars XI saved! ✅", "success");
 
     } catch (err) {
         console.error("All Stars save error:", err);
         showToast("Save failed: " + err.message, "error");
     } finally {
         allStarsState.saving = false;
-        // Full reload so leaderboard refreshes with latest data
         await loadAllStarsPanel();
     }
 }
@@ -933,9 +1280,6 @@ async function saveAllStars() {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DAILY XI PANEL
-   ─ Pick 11 from today's two teams only
-   ─ One lock per match, no editing after lock
-   ─ Shows per-match leaderboard + season average rank
 ═══════════════════════════════════════════════════════════════════════════ */
 
 let dailyState = {
@@ -954,7 +1298,6 @@ async function loadDailyPanel() {
     panel.dataset.loaded = "1";
     showPanelSpinner("panel-daily");
 
-    // Fetch today's upcoming match
     const { data: match } = await supabase
         .from("matches")
         .select("*, team_a:real_teams!team_a_id(id, short_code, photo_name), team_b:real_teams!team_b_id(id, short_code, photo_name)")
@@ -971,7 +1314,6 @@ async function loadDailyPanel() {
 
     dailyState.match = match;
 
-    // Players from today's two teams only
     const { data: players } = await supabase
         .from("player_pool_view")
         .select("*")
@@ -981,7 +1323,6 @@ async function loadDailyPanel() {
 
     dailyState.players = players || [];
 
-    // Check if user already submitted for this match
     const { data: existing } = await supabase
         .from("user_daily_teams")
         .select("*, user_daily_team_players(player_id)")
@@ -998,11 +1339,7 @@ async function loadDailyPanel() {
     }
 
     renderDailyPanel();
-
-    await Promise.all([
-        loadDailyLeaderboard(match.id),
-        loadDailyAvgRank(),
-    ]);
+    await Promise.all([loadDailyLeaderboard(match.id), loadDailyAvgRank()]);
 }
 
 function renderDailyPanel() {
@@ -1013,7 +1350,6 @@ function renderDailyPanel() {
     const match = dailyState.match;
     const stats = calcDailyStats();
 
-    // Match header card
     const matchHdr = document.createElement("div");
     matchHdr.className = "daily-match-header";
     matchHdr.innerHTML = `
@@ -1022,7 +1358,6 @@ function renderDailyPanel() {
         <span class="daily-match-hint">Pick your best XI from these two teams only</span>`;
     panel.appendChild(matchHdr);
 
-    // Stats bar
     const statsBar = document.createElement("div");
     statsBar.className = "daily-stats-bar";
     statsBar.innerHTML = `
@@ -1031,7 +1366,6 @@ function renderDailyPanel() {
         <span class="daily-stat"><strong>${stats.overseas}</strong>/4 OS</span>`;
     panel.appendChild(statsBar);
 
-    // Locked banner
     if (dailyState.isLocked) {
         const banner       = document.createElement("div");
         banner.className   = "as-locked-banner";
@@ -1039,7 +1373,6 @@ function renderDailyPanel() {
         panel.appendChild(banner);
     }
 
-    // My XI
     if (dailyState.selected.length > 0) {
         const xiSec = document.createElement("div");
         xiSec.className = "as-xi-section";
@@ -1051,14 +1384,11 @@ function renderDailyPanel() {
 
         const sorted = [...dailyState.selected].sort((a, b) =>
             (ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]) || (b.credit - a.credit));
-
         sorted.forEach(p => xiSec.appendChild(buildDailyPlayerCard(p, true, stats)));
         panel.appendChild(xiSec);
     }
 
-    // Player pool (edit mode only)
     if (!dailyState.isLocked) {
-        // Role tabs
         panel.appendChild(buildRoleTabs(dailyState, renderDailyPanel));
 
         const poolSec = document.createElement("div");
@@ -1085,7 +1415,6 @@ function renderDailyPanel() {
         panel.appendChild(saveBtn);
     }
 
-    // Leaderboard containers (populated async)
     const lbWrap = document.createElement("div");
     lbWrap.innerHTML = `
         <div id="dailyLeaderboard" class="as-lb-section"></div>
@@ -1136,18 +1465,16 @@ function buildDailyPlayerCard(player, isInXI, stats) {
         vcBtn.onclick     = () => toggleDailyRole(player.id, "VC");
 
         ctrls.append(cBtn, vcBtn);
-
     } else if (isInXI && dailyState.isLocked) {
-        // Read-only badges when locked
         if (dailyState.captainId === player.id) {
-            const b       = document.createElement("span");
-            b.className   = "as-badge-c";
+            const b = document.createElement("span");
+            b.className = "as-badge-c";
             b.textContent = "C";
             ctrls.appendChild(b);
         }
         if (dailyState.vcId === player.id) {
-            const b       = document.createElement("span");
-            b.className   = "as-badge-vc";
+            const b = document.createElement("span");
+            b.className = "as-badge-vc";
             b.textContent = "VC";
             ctrls.appendChild(b);
         }
@@ -1167,8 +1494,7 @@ function buildDailyPlayerCard(player, isInXI, stats) {
 
 function calcDailyStats() {
     const roles  = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-    let overseas = 0;
-    let credits  = 0;
+    let overseas = 0, credits = 0;
     for (const p of dailyState.selected) {
         roles[p.role] = (roles[p.role] || 0) + 1;
         if (p.category === "overseas") overseas++;
@@ -1179,15 +1505,9 @@ function calcDailyStats() {
 
 function isDailyValid(stats) {
     return (
-        stats.count     === 11           &&
-        dailyState.captainId             &&
-        dailyState.vcId                  &&
-        stats.roles.WK   >= 1           &&
-        stats.roles.BAT  >= 3           &&
-        stats.roles.AR   >= 1           &&
-        stats.roles.BOWL >= 3           &&
-        stats.overseas   <= 4           &&
-        stats.credits    <= 100.05
+        stats.count === 11 && dailyState.captainId && dailyState.vcId &&
+        stats.roles.WK >= 1 && stats.roles.BAT >= 3 && stats.roles.AR >= 1 &&
+        stats.roles.BOWL >= 3 && stats.overseas <= 4 && stats.credits <= 100.05
     );
 }
 
@@ -1217,10 +1537,7 @@ function toggleDailyRole(id, type) {
 
 async function saveDailyXI() {
     const stats = calcDailyStats();
-    if (!isDailyValid(stats)) {
-        showToast("Team incomplete — check all requirements.", "error");
-        return;
-    }
+    if (!isDailyValid(stats)) { showToast("Team incomplete — check all requirements.", "error"); return; }
 
     const ok = await showConfirm("Lock Daily XI?", "You can't change it once locked.");
     if (!ok) return;
@@ -1237,28 +1554,20 @@ async function saveDailyXI() {
                 tournament_id:   currentTournamentId,
                 captain_id:      dailyState.captainId,
                 vice_captain_id: dailyState.vcId,
-                total_credits:   stats.credits,
+                total_credits:   calcDailyStats().credits,
             }])
-            .select()
-            .single();
+            .select().single();
 
         if (teamError) throw teamError;
 
         const { error: playersError } = await supabase
             .from("user_daily_team_players")
-            .insert(
-                dailyState.selected.map(p => ({
-                    user_daily_team_id: saved.id,
-                    player_id:          p.id,
-                }))
-            );
+            .insert(dailyState.selected.map(p => ({ user_daily_team_id: saved.id, player_id: p.id })));
 
         if (playersError) throw playersError;
 
         dailyState.isLocked = true;
         showToast("Daily XI locked! 🔒 Good luck!", "success");
-
-        // Reload so leaderboard containers re-mount correctly
         delete document.getElementById("panel-daily")?.dataset.loaded;
         await loadDailyPanel();
 
@@ -1281,15 +1590,14 @@ async function loadDailyLeaderboard(matchId) {
         .limit(10);
 
     section.innerHTML = "";
-
     const title       = document.createElement("p");
     title.className   = "as-section-label";
     title.textContent = "Daily Match Leaderboard";
     section.appendChild(title);
 
     if (!rows?.length) {
-        const empty       = document.createElement("p");
-        empty.className   = "empty-msg";
+        const empty = document.createElement("p");
+        empty.className = "empty-msg";
         empty.textContent = "Rankings appear after the match is processed.";
         section.appendChild(empty);
         return;
@@ -1328,15 +1636,14 @@ async function loadDailyAvgRank() {
         .limit(10);
 
     section.innerHTML = "";
-
     const title       = document.createElement("p");
     title.className   = "as-section-label";
     title.textContent = "Season Average Rank";
     section.appendChild(title);
 
     if (!rows?.length) {
-        const empty       = document.createElement("p");
-        empty.className   = "empty-msg";
+        const empty = document.createElement("p");
+        empty.className = "empty-msg";
         empty.textContent = "Appears after your first Daily XI match.";
         section.appendChild(empty);
         return;
@@ -1365,28 +1672,18 @@ async function loadDailyAvgRank() {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SHARED UI HELPERS
+   SHARED HELPERS
 ═══════════════════════════════════════════════════════════════════════════ */
 
-/**
- * Builds a role filter tab row for any panel state object.
- * @param {object} stateObj  - the panel's state (allStarsState or dailyState)
- * @param {Function} onchange - called when a tab is clicked
- */
 function buildRoleTabs(stateObj, onchange) {
     const wrap    = document.createElement("div");
     wrap.className = "as-role-tabs";
-
     for (const role of ["ALL", "WK", "BAT", "AR", "BOWL"]) {
         const btn       = document.createElement("button");
         btn.className   = `as-role-tab ${stateObj.activeRole === role ? "active" : ""}`;
         btn.textContent = role;
-        btn.onclick     = () => {
-            stateObj.activeRole = role;
-            onchange();
-        };
+        btn.onclick     = () => { stateObj.activeRole = role; onchange(); };
         wrap.appendChild(btn);
     }
-
     return wrap;
 }
