@@ -329,13 +329,13 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
 );
 
-const ADMIN_EMAIL = "smrutisahoo995@gmail.com";
+const ADMIN_EMAILS = ["smrutisahoo995@gmail.com", "satyara9jansahoo@gmail.com"];
 
 /* ── Auth ─────────────────────────────────────────────────────── */
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (!session) { showScreen("auth"); return; }
   const email = session.user.email;
-  if (email !== ADMIN_EMAIL) { showScreen("denied"); return; }
+if (!ADMIN_EMAILS.includes(email)) { showScreen("denied"); return; }
   document.getElementById("userEmail").textContent = email.split("@")[0];
   showScreen("app");
   await loadPosts();

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://fantasy-season-app.vercel.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/fantasy-preview.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/match-preview.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/team-news.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/post-match-review.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/player-spotlight.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/ipl-news.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fantasy-season-app.vercel.app/terms.html</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+</urlset>
