@@ -3,100 +3,197 @@
    Requires: tokens.css loaded before this file
    ================================================ */
 
+/* ─── Trigger button ─────────────────────────── */
 .notif-trigger {
     position: relative;
     cursor: pointer;
     font-size: 1.2rem;
     color: var(--text-dim);
     padding: 8px;
+    transition: color 0.2s;
 }
 
+.notif-trigger:hover { color: var(--text-primary); }
+
+/* Bell ring animation — fires on new notification */
+@keyframes bell-ring {
+    0%   { transform: rotate(0); }
+    15%  { transform: rotate(18deg); }
+    30%  { transform: rotate(-16deg); }
+    45%  { transform: rotate(12deg); }
+    60%  { transform: rotate(-8deg); }
+    75%  { transform: rotate(5deg); }
+    100% { transform: rotate(0); }
+}
+
+.notif-trigger.bell-ring i {
+    display: inline-block;
+    animation: bell-ring 0.7s ease-in-out;
+    transform-origin: top center;
+}
+
+/* ─── Unread badge ───────────────────────────── */
 .notif-badge {
     position: absolute;
     top: 4px;
     right: 4px;
     background: var(--red);
-    color: white;
-    font-size: 10px;
+    color: #fff;
+    font-size: 9px;
     font-weight: 800;
-    padding: 2px 5px;
+    padding: 1px 4px;
     border-radius: 10px;
-    border: 2px solid var(--bg-dark);
-    min-width: 12px;
+    border: 2px solid #020617;
+    min-width: 14px;
     text-align: center;
+    line-height: 1.4;
+    pointer-events: none;
 }
 
+/* ─── Panel ──────────────────────────────────── */
 .notif-panel {
     position: absolute;
-    top: 60px;
+    top: calc(100% + 8px);
     right: 0;
     width: 300px;
-    max-height: 400px;
-    background: var(--bg-card);
+    max-height: 440px;
+    background: var(--bg-card-alt);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 18px;
     z-index: 3000;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    animation: notifSlideIn 0.2s ease-out;
+    overflow: hidden;
 }
 
+@keyframes notifSlideIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ─── Panel header ───────────────────────────── */
 .notif-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.2);
 }
 
 .notif-header h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: 13px;
+    font-weight: 800;
     color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .btn-mark-read {
     background: transparent;
     border: none;
-    color: var(--text-dim);
+    color: var(--text-faint);
     font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
 }
 
+.btn-mark-read:hover {
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.05);
+}
+
+/* ─── Scrollable list ────────────────────────── */
 .notif-list {
     overflow-y: auto;
     padding: 8px;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
 
-.notif-item {
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    background: rgba(15, 23, 42, 0.4);
-    border-left: 4px solid transparent;
+/* ─── Empty state ────────────────────────────── */
+.empty-notif {
+    padding: 28px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-faint);
+    font-weight: 500;
 }
+
+/* ─── Notification items ─────────────────────── */
+.notif-item {
+    padding: 11px 12px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.notif-item:last-child { margin-bottom: 0; }
+.notif-item:hover      { background: rgba(255,255,255,0.06); }
 
 .notif-item.unread {
-    background: rgba(154, 224, 0, 0.05);
+    background: rgba(154,224,0,0.05);
     border-left-color: var(--accent);
+}
+
+/* Type-specific accent colours on unread items */
+.notif-item.unread[data-type="points"]    { border-left-color: var(--accent); background: rgba(154,224,0,0.06); }
+.notif-item.unread[data-type="locked"]    { border-left-color: var(--gold);   background: rgba(245,158,11,0.06); }
+.notif-item.unread[data-type="abandoned"] { border-left-color: var(--red);    background: rgba(239,68,68,0.06); }
+.notif-item.unread[data-type="delayed"]   { border-left-color: var(--orange); background: rgba(251,146,60,0.06); }
+.notif-item.unread[data-type="info"]      { border-left-color: var(--blue);   background: rgba(124,196,255,0.06); }
+
+/* ─── Icon + title row ───────────────────────── */
+.notif-title-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 4px;
+}
+
+.notif-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    line-height: 1;
 }
 
 .notif-item .title {
     font-weight: 700;
     font-size: 13px;
-    margin-bottom: 4px;
-    display: block;
+    color: var(--text-primary);
+    line-height: 1.3;
 }
 
+/* ─── Message body ───────────────────────────── */
 .notif-item .msg {
     font-size: 12px;
     color: var(--text-dim);
-    line-height: 1.4;
+    line-height: 1.5;
+    margin-top: 2px;
 }
 
+/* ─── Timestamp ──────────────────────────────── */
 .notif-item .time {
     font-size: 10px;
     color: var(--text-faint);
     margin-top: 6px;
     display: block;
+    font-weight: 500;
+}
+
+/* ─── Accessibility ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .notif-trigger.bell-ring i { animation: none !important; }
+    .notif-panel { animation: none !important; }
 }
