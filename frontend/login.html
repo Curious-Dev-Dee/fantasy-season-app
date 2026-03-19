@@ -4,23 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-  <!-- ── SEO ── -->
   <title>Cricket Experts — IPL 2026 Fantasy Cricket | Tips, Previews & Strategy</title>
   <meta name="description" content="India's most strategic IPL fantasy cricket platform. Season-long team building, 7 boosters, All Stars XI, daily match previews and IPL news. Free content for every cricket fan.">
   <meta name="keywords" content="IPL fantasy cricket 2026, best fantasy XI today, IPL match preview, fantasy cricket tips India, IPL player news, fantasy cricket app, IPL 2026 schedule">
   <meta name="robots" content="index, follow">
 
-  <!-- ── Open Graph ── -->
   <meta property="og:title" content="Cricket Experts — IPL 2026 Fantasy Cricket">
   <meta property="og:description" content="Season-long strategy, 7 boosters, All Stars XI, daily match previews and IPL news.">
   <meta property="og:type" content="website">
 
-  <!-- ── Fonts ── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <link rel="stylesheet" href="tokens.css">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
@@ -30,21 +26,20 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --g:      #9AE000;
-      --g-dim:  rgba(154,224,0,0.09);
-      --g-glow: rgba(154,224,0,0.28);
-      --ink:    #020617;
-      --card:   #0d1625;
-      --card2:  #111f32;
-      --border: rgba(255,255,255,0.07);
-      --dim:    #475569;
-      --muted:  #94a3b8;
-      --white:  #f0f4f8;
-      --cyan:   #00f2ff;
-      --gold:   #f59e0b;
-      --red:    #ef4444;
-      --FD:     'Barlow Condensed', sans-serif;
-      --FB:     'DM Sans', sans-serif;
+      --g:     #9AE000;
+      --g-dim: rgba(154,224,0,0.09);
+      --g-glow:rgba(154,224,0,0.28);
+      --ink:   #020617;
+      --card:  #0d1625;
+      --bdr:   rgba(255,255,255,0.07);
+      --dim:   #475569;
+      --muted: #94a3b8;
+      --white: #f0f4f8;
+      --cyan:  #00f2ff;
+      --gold:  #f59e0b;
+      --red:   #ef4444;
+      --FD:    'Barlow Condensed', sans-serif;
+      --FB:    'DM Sans', sans-serif;
     }
 
     html { scroll-behavior: smooth; }
@@ -54,46 +49,53 @@
       color: var(--white);
       font-family: var(--FB);
       overflow-x: hidden;
-      padding-bottom: 82px; /* room for sticky CTA */
+      /* space for sticky CTA */
+      padding-bottom: 78px;
     }
 
     a { text-decoration: none; color: inherit; }
 
-    /* ── Grain texture overlay ── */
+    /* grain */
     body::before {
       content: '';
       position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
       background-size: 180px;
       pointer-events: none;
       z-index: 0;
     }
 
     /* ══════════════════════════════════════
-       TOP NAV
+       TOP NAV — FIX: two-row layout on mobile
+       Row 1: brand | sign-in button
+       Row 2: scrollable nav links
     ══════════════════════════════════════ */
     .top-nav {
       position: sticky; top: 0; z-index: 900;
-      background: rgba(2,6,23,0.88);
+      background: rgba(2,6,23,0.92);
       backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--border);
-      height: 54px;
-      padding: 0 16px;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    /* Row 1 */
+    .nav-row1 {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 48px;
     }
 
     .nav-brand {
       font-family: var(--FD);
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      white-space: nowrap;
       display: flex;
       align-items: center;
       gap: 7px;
+      white-space: nowrap;
     }
 
     .brand-dot {
@@ -103,40 +105,10 @@
       animation: blink 2s ease-in-out infinite;
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.3; }
-    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-    .nav-scroll {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 0 2px;
-    }
-
-    .nav-scroll::-webkit-scrollbar { display: none; }
-
-    .nav-scroll a {
-      font-family: var(--FD);
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      padding: 5px 9px;
-      border-radius: 7px;
-      white-space: nowrap;
-      transition: color 0.2s, background 0.2s;
-    }
-
-    .nav-scroll a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
-    .nav-scroll a.on   { color: var(--g); }
-
-    .nav-cta {
+    /* FIX: Sign In button in row 1 — wired to Google OAuth via JS */
+    .nav-signin-btn {
       font-family: var(--FD);
       font-size: 12px;
       font-weight: 800;
@@ -145,31 +117,59 @@
       border: 1px solid rgba(154,224,0,0.35);
       padding: 5px 13px;
       border-radius: 8px;
-      white-space: nowrap;
-      cursor: pointer;
       background: transparent;
-      flex-shrink: 0;
+      cursor: pointer;
+      white-space: nowrap;
       transition: background 0.2s;
+      /* prevent disabled state while page loads */
     }
 
-    .nav-cta:hover { background: var(--g-dim); }
+    .nav-signin-btn:hover:not(:disabled) { background: var(--g-dim); }
+    .nav-signin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Row 2 — scrollable links, never wraps */
+    .nav-row2 {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 12px 8px;
+    }
+
+    .nav-row2::-webkit-scrollbar { display: none; }
+
+    .nav-row2 a {
+      font-family: var(--FD);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      padding: 4px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-row2 a:hover  { color: var(--white); background: rgba(255,255,255,0.05); }
+    .nav-row2 a.on    { color: var(--g); }
 
     /* ══════════════════════════════════════
        HERO
     ══════════════════════════════════════ */
     .hero {
-      position: relative;
-      z-index: 1;
-      padding: 56px 22px 48px;
+      position: relative; z-index: 1;
+      padding: 52px 22px 44px;
       text-align: center;
       overflow: hidden;
     }
 
-    .hero-bg-glow {
+    .hero-glow {
       position: absolute;
-      top: -120px; left: 50%; transform: translateX(-50%);
-      width: 500px; height: 500px;
-      background: radial-gradient(ellipse, rgba(154,224,0,0.10) 0%, transparent 65%);
+      top: -140px; left: 50%; transform: translateX(-50%);
+      width: 480px; height: 480px;
+      background: radial-gradient(ellipse, rgba(154,224,0,0.11) 0%, transparent 65%);
       pointer-events: none;
     }
 
@@ -190,7 +190,7 @@
       margin-bottom: 22px;
     }
 
-    .pill-live {
+    .pill-dot {
       width: 6px; height: 6px;
       border-radius: 50%;
       background: var(--g);
@@ -199,7 +199,7 @@
 
     .hero h1 {
       font-family: var(--FD);
-      font-size: clamp(40px, 11vw, 68px);
+      font-size: clamp(40px, 11vw, 66px);
       font-weight: 900;
       line-height: 0.95;
       text-transform: uppercase;
@@ -207,16 +207,15 @@
       margin-bottom: 18px;
     }
 
-    .hero h1 .green  { color: var(--g); }
-    .hero h1 .italic { font-style: italic; }
+    .hero h1 .grn  { color: var(--g); }
+    .hero h1 .ital { font-style: italic; }
 
     .hero-sub {
       font-size: 15px;
       color: var(--muted);
       line-height: 1.65;
-      max-width: 440px;
-      margin: 0 auto 26px;
-      font-weight: 400;
+      max-width: 420px;
+      margin: 0 auto 24px;
     }
 
     /* Spots bar */
@@ -225,14 +224,14 @@
       align-items: center;
       gap: 10px;
       background: rgba(245,158,11,0.07);
-      border: 1px solid rgba(245,158,11,0.22);
+      border: 1px solid rgba(245,158,11,0.2);
       border-radius: 10px;
       padding: 9px 16px;
-      margin-bottom: 28px;
+      margin-bottom: 26px;
     }
 
     .spots-track {
-      width: 100px; height: 5px;
+      width: 90px; height: 5px;
       background: rgba(255,255,255,0.08);
       border-radius: 3px;
       overflow: hidden;
@@ -253,37 +252,19 @@
       color: var(--gold);
     }
 
-    /* Quick stats */
+    /* Hero stats */
     .hero-stats {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
     .hstat { text-align: center; }
-
-    .hstat-n {
-      font-family: var(--FD);
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--g);
-      line-height: 1;
-    }
-
-    .hstat-l {
-      font-size: 10px;
-      color: var(--dim);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 500;
-    }
-
-    .hstat-div {
-      width: 1px; height: 32px;
-      background: var(--border);
-    }
+    .hstat-n { font-family: var(--FD); font-size: 26px; font-weight: 900; color: var(--g); line-height: 1; }
+    .hstat-l { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+    .hstat-div { width: 1px; height: 30px; background: var(--bdr); }
 
     /* ══════════════════════════════════════
        FREE CONTENT BELT
@@ -291,9 +272,9 @@
     .belt {
       position: relative; z-index: 1;
       background: linear-gradient(135deg, #091424 0%, #0c1c30 100%);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 36px 22px;
+      border-top: 1px solid var(--bdr);
+      border-bottom: 1px solid var(--bdr);
+      padding: 34px 22px;
       overflow: hidden;
     }
 
@@ -329,7 +310,7 @@
 
     .belt-title {
       font-family: var(--FD);
-      font-size: clamp(22px, 5vw, 32px);
+      font-size: clamp(22px, 5vw, 30px);
       font-weight: 800;
       text-transform: uppercase;
       margin-bottom: 6px;
@@ -339,7 +320,7 @@
       font-size: 13px;
       color: var(--muted);
       line-height: 1.6;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .belt-grid {
@@ -348,18 +329,23 @@
       gap: 10px;
     }
 
+    /* FIX: Content cards are now clickable links to separate pages */
     .bcard {
       background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
+      border: 1px solid var(--bdr);
       border-radius: 13px;
       padding: 14px;
       display: flex;
       align-items: flex-start;
       gap: 11px;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, transform 0.15s;
+      cursor: pointer;
     }
 
-    .bcard:hover { border-color: rgba(0,242,255,0.2); }
+    .bcard:hover {
+      border-color: rgba(0,242,255,0.25);
+      transform: translateY(-1px);
+    }
 
     .bcard-ico {
       width: 34px; height: 34px;
@@ -382,10 +368,13 @@
       margin-bottom: 3px;
     }
 
-    .bcard p {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.4;
+    .bcard p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+    .bcard-arrow {
+      font-size: 10px;
+      color: var(--cyan);
+      margin-top: 4px;
+      display: inline-block;
     }
 
     /* ══════════════════════════════════════
@@ -393,7 +382,7 @@
     ══════════════════════════════════════ */
     .sec {
       position: relative; z-index: 1;
-      padding: 44px 22px;
+      padding: 42px 22px;
       max-width: 640px;
       margin: 0 auto;
     }
@@ -411,7 +400,7 @@
 
     .sec-title {
       font-family: var(--FD);
-      font-size: clamp(26px, 6vw, 40px);
+      font-size: clamp(26px, 6vw, 38px);
       font-weight: 900;
       text-transform: uppercase;
       line-height: 1.0;
@@ -424,25 +413,14 @@
       line-height: 1.7;
     }
 
-    hr.divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      max-width: 640px;
-      margin: 0 auto;
-      position: relative; z-index: 1;
-    }
+    hr.div { border: none; border-top: 1px solid var(--bdr); max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
 
     /* Feature list */
-    .feat-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 24px;
-    }
+    .feat-list { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
 
     .feat {
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 1px solid var(--bdr);
       border-radius: 16px;
       padding: 18px 18px 18px 16px;
       display: flex;
@@ -487,11 +465,7 @@
       margin-bottom: 5px;
     }
 
-    .feat-body p {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+    .feat-body p { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
     .feat-tag {
       display: inline-block;
@@ -508,6 +482,31 @@
       border-radius: 5px;
     }
 
+    /* Prize banner */
+    .prize-banner {
+      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(154,224,0,0.06));
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .prize-ico { font-size: 28px; flex-shrink: 0; }
+
+    .prize-banner h4 {
+      font-family: var(--FD);
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 3px;
+    }
+
+    .prize-banner p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
     /* Why grid */
     .why-grid {
       display: grid;
@@ -518,35 +517,17 @@
 
     .why-cell {
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 1px solid var(--bdr);
       border-radius: 12px;
       padding: 16px 12px;
       text-align: center;
     }
 
-    .why-big {
-      font-family: var(--FD);
-      font-size: 30px;
-      font-weight: 900;
-      color: var(--g);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .why-lbl {
-      font-size: 10px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
+    .why-big { font-family: var(--FD); font-size: 28px; font-weight: 900; color: var(--g); line-height: 1; margin-bottom: 4px; }
+    .why-lbl { font-size: 10px; color: var(--muted); line-height: 1.4; }
 
     /* Steps */
-    .steps {
-      margin-top: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      position: relative;
-    }
+    .steps { margin-top: 24px; display: flex; flex-direction: column; gap: 0; position: relative; }
 
     .steps::before {
       content: '';
@@ -556,11 +537,7 @@
       background: linear-gradient(to bottom, var(--g), rgba(154,224,0,0.1));
     }
 
-    .step {
-      display: flex;
-      gap: 18px;
-      padding-bottom: 26px;
-    }
+    .step { display: flex; gap: 18px; padding-bottom: 24px; }
 
     .step-n {
       width: 40px; height: 40px;
@@ -578,20 +555,8 @@
     }
 
     .step-t { padding-top: 8px; }
-
-    .step-t h4 {
-      font-family: var(--FD);
-      font-size: 16px;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .step-t p {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+    .step-t h4 { font-family: var(--FD); font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+    .step-t p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
     /* ══════════════════════════════════════
        FOOTER
@@ -600,36 +565,13 @@
       position: relative; z-index: 1;
       padding: 28px 22px;
       text-align: center;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--bdr);
     }
 
-    .foot-brand {
-      font-family: var(--FD);
-      font-size: 20px;
-      font-weight: 900;
-      text-transform: uppercase;
-      color: var(--g);
-      letter-spacing: 1px;
-      margin-bottom: 14px;
-    }
-
-    .foot-links {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .foot-links a {
-      font-size: 12px;
-      color: var(--dim);
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
+    .foot-brand { font-family: var(--FD); font-size: 20px; font-weight: 900; text-transform: uppercase; color: var(--g); letter-spacing: 1px; margin-bottom: 14px; }
+    .foot-links { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+    .foot-links a { font-size: 12px; color: var(--dim); font-weight: 500; transition: color 0.2s; }
     .foot-links a:hover { color: var(--white); }
-
     .foot-copy { font-size: 11px; color: var(--dim); }
 
     /* ══════════════════════════════════════
@@ -650,21 +592,12 @@
     }
 
     .cta-copy { flex: 1; min-width: 0; }
+    .cta-head { font-family: var(--FD); font-size: 15px; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cta-sub  { font-size: 11px; color: var(--dim); }
 
-    .cta-head {
-      font-family: var(--FD);
-      font-size: 15px;
-      font-weight: 800;
-      text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .cta-sub2 { font-size: 11px; color: var(--dim); }
-
-    #googleLoginBtn {
-      display: flex;
+    /* Shared button style used for BOTH the bottom CTA and the nav Sign In */
+    .google-btn {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
       background: var(--g);
@@ -683,12 +616,8 @@
       transition: box-shadow 0.2s, transform 0.15s;
     }
 
-    #googleLoginBtn:hover:not(:disabled) {
-      box-shadow: 0 4px 18px var(--g-glow);
-      transform: translateY(-1px);
-    }
-
-    #googleLoginBtn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .google-btn:hover:not(:disabled) { box-shadow: 0 4px 18px var(--g-glow); transform: translateY(-1px); }
+    .google-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
 
     .g-badge {
       width: 18px; height: 18px;
@@ -722,7 +651,7 @@
       bottom: 80px; left: 16px; right: 16px;
       z-index: 999;
       background: rgba(239,68,68,0.12);
-      border: 1px solid rgba(239,68,68,0.35);
+      border: 1px solid rgba(239,68,68,0.3);
       color: #fca5a5;
       padding: 10px 14px;
       border-radius: 10px;
@@ -730,13 +659,8 @@
       text-align: center;
     }
 
-    /* ── Fade-up ── */
-    .fu {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-
+    /* Fade-up animation */
+    .fu { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
     .fu.vis { opacity: 1; transform: translateY(0); }
     .fu:nth-child(2) { transition-delay: 0.07s; }
     .fu:nth-child(3) { transition-delay: 0.14s; }
@@ -748,44 +672,53 @@
 
 <body>
 
-<!-- ═══ STICKY NAV ════════════════════════════════════════════════════ -->
+<!-- ══ NAV ══════════════════════════════════════════════════════════ -->
 <nav class="top-nav" aria-label="Site navigation">
-  <div class="nav-brand">
-    <div class="brand-dot"></div>
-    Cricket Experts
+  <!-- Row 1: brand + sign in -->
+  <div class="nav-row1">
+    <div class="nav-brand">
+      <div class="brand-dot"></div>
+      Cricket Experts
+    </div>
+    <!--
+      FIX: This button now triggers Google OAuth directly.
+      The JS below handles the loading state and wires it to doLogin().
+    -->
+    <button class="nav-signin-btn" id="navSignInBtn" aria-label="Sign in with Google">
+      Sign In
+    </button>
   </div>
 
-  <div class="nav-scroll">
-    <a href="#features"   class="on">Features</a>
-    <a href="#free-zone">Previews</a>
+  <!-- Row 2: scrollable content links -->
+  <div class="nav-row2">
+    <a href="#features"        class="on">Features</a>
+    <a href="fantasy-preview.html">Fantasy Previews</a>
+    <a href="match-preview.html">Match Previews</a>
+    <a href="team-news.html">Team News</a>
     <a href="fixtures.html">Fixtures</a>
     <a href="#how">How It Works</a>
     <a href="#about">Why Us</a>
     <a href="terms.html">Terms</a>
   </div>
-
-  <button class="nav-cta" onclick="document.getElementById('googleLoginBtn').focus(); window.scrollTo({top:0})">
-    Sign In
-  </button>
 </nav>
 
-<!-- ═══ HERO ══════════════════════════════════════════════════════════ -->
+<!-- ══ HERO ══════════════════════════════════════════════════════════ -->
 <section class="hero" aria-labelledby="h1">
-  <div class="hero-bg-glow"></div>
+  <div class="hero-glow"></div>
 
   <div class="hero-pill">
-    <div class="pill-live"></div>
+    <div class="pill-dot"></div>
     IPL 2026 · Season in Progress
   </div>
 
   <h1 id="h1">
     Fantasy<br>
-    <span class="green">Cricket</span><br>
-    <span class="italic">Done Right</span>
+    <span class="grn">Cricket</span><br>
+    <span class="ital">Done Right</span>
   </h1>
 
   <p class="hero-sub">
-    Season-long team strategy, 7 power boosters, All Stars XI that earns all season, and free daily match previews for every IPL fan.
+    Season-long team strategy, 7 power boosters, All Stars XI that earns all season, private leagues with friends and free daily match previews for every IPL fan.
   </p>
 
   <div class="spots-row">
@@ -802,11 +735,11 @@
     <div class="hstat-div"></div>
     <div class="hstat"><div class="hstat-n">3</div><div class="hstat-l">Fun Zone modes</div></div>
     <div class="hstat-div"></div>
-    <div class="hstat"><div class="hstat-n">∞</div><div class="hstat-l">Free content</div></div>
+    <div class="hstat"><div class="hstat-n">Free</div><div class="hstat-l">To play</div></div>
   </div>
 </section>
 
-<!-- ═══ FREE CONTENT BELT ═════════════════════════════════════════════ -->
+<!-- ══ FREE CONTENT BELT ══════════════════════════════════════════════ -->
 <div class="belt" id="free-zone">
   <div class="belt-inner">
     <div class="belt-eyebrow">
@@ -815,50 +748,56 @@
     </div>
     <h2 class="belt-title">Never Miss a Beat This IPL Season</h2>
     <p class="belt-sub">
-      Even if our game reaches capacity, we publish daily fantasy tips, match previews, probable XIs and team news — updated before every single match, completely free.
+      Even if our game reaches capacity, we publish daily fantasy tips, match previews, probable XIs and team news — updated before every match, completely free.
     </p>
     <div class="belt-grid">
-      <div class="bcard fu">
+      <!-- FIX: Each card is now a link to its own page -->
+      <a href="fantasy-preview.html" class="bcard fu">
         <div class="bcard-ico"><i class="fas fa-chess-knight"></i></div>
         <div>
           <h4>Fantasy Previews</h4>
           <p>Best XI picks, captain differentials and must-haves for every match.</p>
+          <span class="bcard-arrow">Read more →</span>
         </div>
-      </div>
-      <div class="bcard fu">
+      </a>
+      <a href="match-preview.html" class="bcard fu">
         <div class="bcard-ico"><i class="fas fa-binoculars"></i></div>
         <div>
           <h4>Match Previews</h4>
           <p>Pitch analysis, venue stats, head-to-head records and key battles.</p>
+          <span class="bcard-arrow">Read more →</span>
         </div>
-      </div>
-      <div class="bcard fu">
+      </a>
+      <a href="team-news.html" class="bcard fu">
         <div class="bcard-ico"><i class="fas fa-newspaper"></i></div>
         <div>
           <h4>IPL Team News</h4>
           <p>Injury updates, squad changes and probable playing XIs before toss.</p>
+          <span class="bcard-arrow">Read more →</span>
         </div>
-      </div>
-      <div class="bcard fu">
+      </a>
+      <a href="fixtures.html" class="bcard fu">
         <div class="bcard-ico"><i class="fas fa-calendar-check"></i></div>
         <div>
           <h4>Full Fixtures</h4>
           <p>Complete IPL 2026 schedule with venues, timings and live status.</p>
+          <span class="bcard-arrow">View schedule →</span>
         </div>
-      </div>
+      </a>
     </div>
   </div>
 </div>
 
-<hr class="divider">
+<hr class="div">
 
-<!-- ═══ FEATURES ══════════════════════════════════════════════════════ -->
+<!-- ══ FEATURES ════════════════════════════════════════════════════ -->
 <section class="sec" id="features" aria-labelledby="feat-h">
   <span class="eyebrow">Inside the Game</span>
   <h2 class="sec-title" id="feat-h">Built for<br>Serious Managers</h2>
-  <p class="sec-body">Not a casual pick-and-forget app. Every feature here rewards thinking ahead, tracking form and making decisions that compound across 74 matches.</p>
+  <p class="sec-body">Not a casual pick-and-forget app. Every feature rewards thinking ahead, tracking form and making decisions that compound across 74 matches.</p>
 
   <div class="feat-list">
+
     <div class="feat fu">
       <div class="feat-ico">🏏</div>
       <div class="feat-body">
@@ -867,14 +806,16 @@
         <span class="feat-tag">74 matches · 130 subs</span>
       </div>
     </div>
+
     <div class="feat fu">
       <div class="feat-ico">⚡</div>
       <div class="feat-body">
         <h3>7 Unique Match Boosters</h3>
-        <p>Total 2×, Captain 3×, Overseas 2×, Indian 2×, Uncapped 2×, MOM 2× and Free 11 — each usable once, only in the league stage. Deploy at the right moment and jump the leaderboard.</p>
+        <p>Total 2×, Captain 3×, Overseas 2×, Indian 2×, Uncapped 2×, MOM 2× and Free 11 — each usable once, only in the league stage. Deploy at the right moment and swing the leaderboard.</p>
         <span class="feat-tag">One each · Use wisely</span>
       </div>
     </div>
+
     <div class="feat fu">
       <div class="feat-ico">⭐</div>
       <div class="feat-body">
@@ -883,20 +824,42 @@
         <span class="feat-tag">Predict · All Stars · Daily XI</span>
       </div>
     </div>
+
+    <!-- FIX: Added Private Leagues + Leaderboard with chat -->
+    <div class="feat fu">
+      <div class="feat-ico">🏆</div>
+      <div class="feat-body">
+        <h3>Leaderboards & Private Leagues</h3>
+        <p>Compete on the global leaderboard or create a private league with your own invite code to battle just your friends. Every leaderboard has a live match chat so you can trash-talk in real time.</p>
+        <span class="feat-tag">Global · Private · Live chat</span>
+      </div>
+    </div>
+
     <div class="feat fu">
       <div class="feat-ico">📊</div>
       <div class="feat-body">
         <h3>Player Stats & Analytics</h3>
-        <p>Match-by-match fantasy point breakdowns for every player — batting SR points, economy rate, milestones, fielding contributions. Know who's in form before you pick them.</p>
+        <p>Match-by-match fantasy point breakdowns for every player — batting SR points, economy rate, milestones, fielding. Know who's in form before you pick them.</p>
         <span class="feat-tag">Every match · Every player</span>
       </div>
     </div>
+
   </div>
+
+  <!-- FIX: Prize banner — compete free + prizes announced soon -->
+  <div class="prize-banner">
+    <div class="prize-ico">🎁</div>
+    <div>
+      <h4>Compete Free — Exciting Prizes Coming!</h4>
+      <p>Cricket Experts is completely free to play — no entry fee, no real money involved. Prize announcements for top finishers coming soon. Watch this space.</p>
+    </div>
+  </div>
+
 </section>
 
-<hr class="divider">
+<hr class="div">
 
-<!-- ═══ HOW IT WORKS ══════════════════════════════════════════════════ -->
+<!-- ══ HOW IT WORKS ════════════════════════════════════════════════ -->
 <section class="sec" id="how" aria-labelledby="how-h">
   <span class="eyebrow">Getting Started</span>
   <h2 class="sec-title" id="how-h">Up & Running<br>in 60 Seconds</h2>
@@ -913,7 +876,7 @@
       <div class="step-n">2</div>
       <div class="step-t">
         <h4>Build Your XI</h4>
-        <p>100 credit budget. Min 1 WK, 3 BAT, 1 AR, 3 BOWL. Max 4 overseas. Set your Captain (2×) and VC (1.5×).</p>
+        <p>100 credit budget. Min 1 WK, 3 BAT, 1 AR, 3 BOWL. Max 4 overseas. Set your Captain (2×) and Vice-Captain (1.5×).</p>
       </div>
     </div>
     <div class="step fu">
@@ -933,13 +896,13 @@
   </div>
 </section>
 
-<hr class="divider">
+<hr class="div">
 
-<!-- ═══ WHY US ════════════════════════════════════════════════════════ -->
+<!-- ══ WHY US ══════════════════════════════════════════════════════ -->
 <section class="sec" id="about" aria-labelledby="why-h">
   <span class="eyebrow">Why Cricket Experts</span>
   <h2 class="sec-title" id="why-h">Depth That<br>Other Platforms<br>Don't Have</h2>
-  <p class="sec-body sec-body--mg">
+  <p class="sec-body">
     Weekly fantasy resets every time. Cricket Experts runs the full IPL season. Your sub budget, your booster choices and your All Stars pick follow you across all 74 matches. Smart play across the full season wins — not just one lucky gameweek.
   </p>
 
@@ -949,32 +912,39 @@
     <div class="why-cell fu"><div class="why-big">7</div><div class="why-lbl">One-use power boosters</div></div>
     <div class="why-cell fu"><div class="why-big">3</div><div class="why-lbl">Fun Zone game modes</div></div>
     <div class="why-cell fu"><div class="why-big">74</div><div class="why-lbl">Matches in the season</div></div>
-    <div class="why-cell fu"><div class="why-big">0</div><div class="why-lbl">Ads inside the app</div></div>
+    <!--
+      FIX: Replaced "0 ads in app" with honest copy.
+      We do show minimal ads but UX is the priority.
+      The edit team page is ad-free.
+    -->
+    <div class="why-cell fu"><div class="why-big">UX</div><div class="why-lbl">First — minimal non-intrusive ads</div></div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="div">
 
-<!-- ═══ FOOTER ════════════════════════════════════════════════════════ -->
+<!-- ══ FOOTER ══════════════════════════════════════════════════════ -->
 <footer>
   <div class="foot-brand">Cricket Experts</div>
   <div class="foot-links">
     <a href="terms.html">Terms &amp; Conditions</a>
     <a href="terms.html#privacy">Privacy Policy</a>
-    <a href="#free-zone">Previews &amp; News</a>
+    <a href="fantasy-preview.html">Fantasy Previews</a>
+    <a href="match-preview.html">Match Previews</a>
+    <a href="team-news.html">Team News</a>
     <a href="fixtures.html">Fixtures</a>
     <a href="mailto:satyaranjansahoo@gmail.com">Contact</a>
   </div>
-  <p class="foot-copy">© 2026 Cricket Experts · Fantasy points are for entertainment only.</p>
+  <p class="foot-copy">© 2026 Cricket Experts · Fan-made fantasy platform · Not affiliated with BCCI or IPL · For entertainment only.</p>
 </footer>
 
-<!-- ═══ STICKY CTA BAR ════════════════════════════════════════════════ -->
-<div class="cta-bar" role="complementary" aria-label="Sign in">
+<!-- ══ STICKY CTA BAR ══════════════════════════════════════════════ -->
+<div class="cta-bar">
   <div class="cta-copy">
     <div class="cta-head" id="ctaHead">Join the League</div>
-    <div class="cta-sub2" id="ctaSub">IPL 2026 · Season in progress</div>
+    <div class="cta-sub"  id="ctaSub">IPL 2026 · Free to play</div>
   </div>
-  <button id="googleLoginBtn" aria-label="Sign in with Google">
+  <button class="google-btn" id="googleLoginBtn" aria-label="Sign in with Google">
     <i class="g-badge">G</i>
     <span class="btn-text">Play Now</span>
     <span class="spin-ico" id="spinIco"></span>
@@ -983,7 +953,7 @@
 
 <div id="authError" role="alert" aria-live="polite"></div>
 
-<!-- ═══ SCRIPTS ═══════════════════════════════════════════════════════ -->
+<!-- ══ SCRIPT ══════════════════════════════════════════════════════ -->
 <script type="module">
   import { supabase } from "./supabase.js";
   import {
@@ -991,15 +961,71 @@
       showRegistrationClosed,
   } from "./registration-guard.js";
 
-  /* ── REDIRECT IF ALREADY LOGGED IN ─────────────────────────────── */
+  /* ── Redirect if already logged in ─────────────────────────────── */
   supabase.auth.onAuthStateChange((event, session) => {
       if (session) window.location.replace("/home");
   });
 
-  /* ── SPOT COUNTER ─────────────────────────────────────────────── */
+  /* ── Shared auth state for all buttons ─────────────────────────── */
+  const bottomBtn = document.getElementById("googleLoginBtn");
+  const navBtn    = document.getElementById("navSignInBtn");
+  const btxt      = bottomBtn?.querySelector(".btn-text");
+  const bspin     = document.getElementById("spinIco");
+  const errEl     = document.getElementById("authError");
+
+  function setLoading(on) {
+      // Disable both buttons simultaneously
+      if (bottomBtn) bottomBtn.disabled = on;
+      if (navBtn)    navBtn.disabled    = on;
+      if (btxt)  btxt.textContent = on ? "Connecting…" : "Play Now";
+      if (bspin) bspin.classList.toggle("on", on);
+      if (navBtn) navBtn.textContent = on ? "Connecting…" : "Sign In";
+  }
+
+  function showErr(msg) {
+      if (!errEl) return;
+      errEl.textContent   = msg;
+      errEl.style.display = "block";
+      setTimeout(() => { errEl.style.display = "none"; }, 5000);
+  }
+
+  /* ── Core login function ────────────────────────────────────────── */
+  async function doLogin() {
+      const status = await checkRegistrationOpen();
+      if (!status.open) {
+          showRegistrationClosed(status.reason);
+          return;
+      }
+
+      setLoading(true);
+
+      try {
+          const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                  // Must be in your Supabase Dashboard → Auth → Redirect URLs
+                  redirectTo: `${window.location.origin}/home`,
+              },
+          });
+          if (error) throw error;
+          // OAuth triggers a browser redirect — no setLoading(false) needed
+
+      } catch (err) {
+          setLoading(false);
+          const net = !navigator.onLine || err.message?.toLowerCase().includes("network");
+          showErr(net ? "No internet — check your connection and try again." : (err.message || "Sign in failed. Please try again."));
+      }
+  }
+
+  /* ── Wire both buttons to the same function ─────────────────────── */
+  bottomBtn?.addEventListener("click", doLogin);
+  navBtn?.addEventListener("click", doLogin);
+
+  /* ── Spot counter ───────────────────────────────────────────────── */
   async function initSpots() {
       const fill  = document.getElementById("spotsFill");
       const label = document.getElementById("spotsLabel");
+
       try {
           const { data: rows } = await supabase
               .from("app_config")
@@ -1007,8 +1033,8 @@
               .in("key", ["max_users", "registration_open"]);
 
           const cfg     = Object.fromEntries((rows || []).map(r => [r.key, r.value]));
-          const max     = parseInt(cfg.max_users || "200", 10);
-          const regOpen = cfg.registration_open !== "false";
+          const max     = parseInt(cfg.max_users  || "200", 10);
+          const regOpen = cfg.registration_open   !== "false";
 
           const { count } = await supabase
               .from("user_profiles")
@@ -1018,11 +1044,11 @@
           const pct  = Math.min(100, Math.round((used / max) * 100));
           const left = max - used;
 
-          if (fill) fill.style.width = `${pct}%`;
+          if (fill)  fill.style.width = `${pct}%`;
 
           if (!regOpen || left <= 0) {
               if (label) label.textContent = "Currently full — free content open to all";
-              setClosed();
+              setClosedMode();
           } else if (left <= 10) {
               if (label) label.textContent = `Only ${left} spots left!`;
           } else {
@@ -1034,83 +1060,53 @@
       }
   }
 
-  function setClosed() {
-      const btn  = document.getElementById("googleLoginBtn");
+  function setClosedMode() {
       const head = document.getElementById("ctaHead");
       const sub  = document.getElementById("ctaSub");
       if (head) head.textContent = "Game Full — Free Content Available";
       if (sub)  sub.textContent  = "Daily previews, tips and IPL news";
-      if (btn) {
-          btn.textContent = "Read Our Blog →";
-          btn.onclick = () =>
+
+      // Bottom button → scroll to free content
+      if (bottomBtn) {
+          bottomBtn.removeEventListener("click", doLogin);
+          bottomBtn.innerHTML = "Read Our Blog →";
+          bottomBtn.onclick = () =>
+              document.getElementById("free-zone")?.scrollIntoView({ behavior: "smooth" });
+      }
+
+      // Nav sign-in → same
+      if (navBtn) {
+          navBtn.removeEventListener("click", doLogin);
+          navBtn.textContent = "Free Content";
+          navBtn.onclick = () =>
               document.getElementById("free-zone")?.scrollIntoView({ behavior: "smooth" });
       }
   }
 
-  /* ── GOOGLE SIGN IN ───────────────────────────────────────────── */
-  const btn    = document.getElementById("googleLoginBtn");
-  const btxt   = btn?.querySelector(".btn-text");
-  const bspin  = document.getElementById("spinIco");
-  const errEl  = document.getElementById("authError");
-
-  function setLoading(on) {
-      if (!btn) return;
-      btn.disabled = on;
-      if (btxt)  btxt.textContent = on ? "Connecting…" : "Play Now";
-      if (bspin) bspin.classList.toggle("on", on);
-  }
-
-  function showErr(msg) {
-      if (!errEl) return;
-      errEl.textContent  = msg;
-      errEl.style.display = "block";
-      setTimeout(() => { errEl.style.display = "none"; }, 5000);
-  }
-
-  async function doLogin() {
-      const status = await checkRegistrationOpen();
-      if (!status.open) { showRegistrationClosed(status.reason); return; }
-
-      setLoading(true);
-      try {
-          const { error } = await supabase.auth.signInWithOAuth({
-              provider: "google",
-              options: { redirectTo: `${window.location.origin}/home` },
-          });
-          if (error) throw error;
-      } catch (err) {
-          setLoading(false);
-          const net = !navigator.onLine || err.message?.toLowerCase().includes("network");
-          showErr(net ? "No internet connection — try again." : (err.message || "Sign in failed."));
-      }
-  }
-
-  if (btn && !btn.onclick) btn.addEventListener("click", doLogin);
-
-  /* ── SCROLL ANIMATIONS ────────────────────────────────────────── */
+  /* ── Scroll animations ──────────────────────────────────────────── */
   const io = new IntersectionObserver(
       entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("vis"); }),
-      { threshold: 0.12 }
+      { threshold: 0.1 }
   );
   document.querySelectorAll(".fu").forEach(el => io.observe(el));
 
-  /* ── ACTIVE NAV HIGHLIGHT ─────────────────────────────────────── */
-  const navAs = document.querySelectorAll(".nav-scroll a[href^='#']");
+  /* ── Active nav highlight ───────────────────────────────────────── */
+  const navAs  = document.querySelectorAll(".nav-row2 a[href^='#']");
   const secEls = document.querySelectorAll("section[id], div[id]");
 
   const nio = new IntersectionObserver(entries => {
       entries.forEach(e => {
           if (e.isIntersecting) {
               navAs.forEach(a => a.classList.remove("on"));
-              const match = document.querySelector(`.nav-scroll a[href="#${e.target.id}"]`);
-              if (match) match.classList.add("on");
+              const m = document.querySelector(`.nav-row2 a[href="#${e.target.id}"]`);
+              if (m) m.classList.add("on");
           }
       });
-  }, { threshold: 0.4 });
+  }, { threshold: 0.35 });
 
   secEls.forEach(s => nio.observe(s));
 
-  /* ── INIT ─────────────────────────────────────────────────────── */
+  /* ── Init ───────────────────────────────────────────────────────── */
   initSpots();
 </script>
 

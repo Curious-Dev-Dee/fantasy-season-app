@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Match Previews · Cricket Experts</title>
+  <meta name="description" content="IPL 2026 match previews — pitch reports, venue analysis, head-to-head records, key battles and match predictions before every game.">
+  <meta name="keywords" content="IPL 2026 match preview, IPL pitch report today, IPL head to head, IPL match prediction, cricket match preview">
+  <meta name="robots" content="index, follow">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g: #9AE000; --g-dim: rgba(154,224,0,0.09);
+      --ink: #020617; --card: #0d1625; --bdr: rgba(255,255,255,0.07);
+      --dim: #475569; --muted: #94a3b8; --white: #f0f4f8;
+      --cyan: #00f2ff;
+      --FD: 'Barlow Condensed', sans-serif; --FB: 'DM Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--ink); color: var(--white); font-family: var(--FB); overflow-x: hidden; }
+    a { text-decoration: none; color: inherit; }
+
+    .top-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(2,6,23,0.92); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--bdr);
+      height: 52px; padding: 0 18px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .top-bar-brand { font-family: var(--FD); font-size: 17px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--g); }
+    .top-bar-back  { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; font-weight: 500; }
+    .top-bar-back:hover { color: var(--white); }
+
+    .page-wrap { max-width: 680px; margin: 0 auto; padding: 40px 22px 60px; }
+
+    .page-eyebrow { font-family: var(--FD); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--cyan); margin-bottom: 8px; display: block; }
+
+    .page-title { font-family: var(--FD); font-size: clamp(32px, 8vw, 52px); font-weight: 900; text-transform: uppercase; line-height: 0.95; margin-bottom: 14px; }
+
+    .page-sub { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 520px; margin-bottom: 36px; }
+
+    .coming-soon {
+      background: var(--card); border: 1px dashed rgba(0,242,255,0.25);
+      border-radius: 20px; padding: 48px 28px; text-align: center;
+    }
+
+    .coming-soon .icon { font-size: 48px; margin-bottom: 18px; }
+
+    .coming-soon h2 { font-family: var(--FD); font-size: 28px; font-weight: 900; text-transform: uppercase; color: var(--cyan); margin-bottom: 10px; }
+
+    .coming-soon p { font-size: 14px; color: var(--muted); line-height: 1.65; max-width: 380px; margin: 0 auto 24px; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--g); color: #000;
+      font-family: var(--FD); font-size: 14px; font-weight: 900;
+      text-transform: uppercase; padding: 12px 22px; border-radius: 12px;
+      transition: box-shadow 0.2s;
+    }
+    .back-link:hover { box-shadow: 0 4px 16px rgba(154,224,0,0.3); }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-brand">Cricket Experts</div>
+  <a href="login.html" class="top-bar-back"><i class="fas fa-arrow-left"></i> Home</a>
+</div>
+
+<div class="page-wrap">
+  <span class="page-eyebrow">IPL 2026</span>
+  <h1 class="page-title">Match<br>Previews</h1>
+  <p class="page-sub">
+    In-depth IPL match previews — pitch reports, venue trends, head-to-head stats, key battles to watch and our match predictions. Published before every game.
+  </p>
+
+  <div class="coming-soon">
+    <div class="icon">🔭</div>
+    <h2>Previews Coming Soon</h2>
+    <p>Full match previews with pitch reports, weather, head-to-head stats and key matchups will be published before every IPL 2026 game. Check back before the next match.</p>
+    <a href="login.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Cricket Experts</a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -16,364 +16,219 @@
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --g:     #9AE000;
-      --ink:   #020617;
-      --card:  #0d1625;
-      --bdr:   rgba(255,255,255,0.07);
-      --muted: #94a3b8;
-      --dim:   #475569;
-      --white: #f0f4f8;
-      --FD:    'Barlow Condensed', sans-serif;
-      --FB:    'DM Sans', sans-serif;
+      --g: #9AE000; --g-dim: rgba(154,224,0,0.09);
+      --ink: #020617; --card: #0d1625; --bdr: rgba(255,255,255,0.07);
+      --dim: #475569; --muted: #94a3b8; --white: #f0f4f8;
+      --FD: 'Barlow Condensed', sans-serif; --FB: 'DM Sans', sans-serif;
     }
-
     html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--ink);
-      color: var(--white);
-      font-family: var(--FB);
-      overflow-x: hidden;
-    }
-
+    body { background: var(--ink); color: var(--white); font-family: var(--FB); overflow-x: hidden; }
     a { color: var(--g); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* NAV */
     .top-bar {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(2,6,23,0.92);
-      backdrop-filter: blur(16px);
+      background: rgba(2,6,23,0.92); backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--bdr);
-      height: 52px;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      height: 52px; padding: 0 18px;
+      display: flex; align-items: center; justify-content: space-between;
     }
+    .top-bar-brand { font-family: var(--FD); font-size: 17px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--g); }
+    .top-bar-back  { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; font-weight: 500; text-decoration: none; }
+    .top-bar-back:hover { color: var(--white); }
 
-    .top-bar-brand {
-      font-family: var(--FD);
-      font-size: 17px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--g);
-    }
+    .doc-hero { padding: 40px 22px 28px; max-width: 680px; margin: 0 auto; border-bottom: 1px solid var(--bdr); }
+    .doc-eyebrow { font-family: var(--FD); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--g); margin-bottom: 8px; display: block; }
+    .doc-title { font-family: var(--FD); font-size: clamp(30px, 8vw, 50px); font-weight: 900; text-transform: uppercase; line-height: 1.0; margin-bottom: 10px; }
+    .doc-meta { font-size: 13px; color: var(--muted); }
 
-    .top-bar-back {
-      font-size: 13px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .top-bar-back:hover { color: var(--white); text-decoration: none; }
-
-    /* HERO */
-    .doc-hero {
-      padding: 44px 22px 32px;
-      max-width: 680px;
-      margin: 0 auto;
-      border-bottom: 1px solid var(--bdr);
-    }
-
-    .doc-eyebrow {
-      font-family: var(--FD);
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--g);
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .doc-title {
-      font-family: var(--FD);
-      font-size: clamp(32px, 8vw, 52px);
-      font-weight: 900;
-      text-transform: uppercase;
-      line-height: 1.0;
-      margin-bottom: 12px;
-    }
-
-    .doc-meta {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    /* TOC */
-    .toc {
-      background: var(--card);
-      border: 1px solid var(--bdr);
-      border-radius: 14px;
-      padding: 18px 20px;
-      margin: 28px auto;
-      max-width: 680px;
-    }
-
-    .toc h3 {
-      font-family: var(--FD);
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    .toc ol {
-      padding-left: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
+    .toc { background: var(--card); border: 1px solid var(--bdr); border-radius: 14px; padding: 18px 20px; margin: 24px auto; max-width: 680px; }
+    .toc h3 { font-family: var(--FD); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+    .toc ol { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
     .toc li { font-size: 13px; }
 
-    /* CONTENT */
-    .doc-body {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 8px 22px 60px;
+    .doc-body { max-width: 680px; margin: 0 auto; padding: 8px 22px 60px; }
+
+    .doc-sec { margin-bottom: 38px; padding-top: 6px; }
+
+    .doc-sec h2 {
+      font-family: var(--FD); font-size: 21px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 14px; color: var(--white);
+      display: flex; align-items: center; gap: 10px;
     }
 
-    .doc-section {
-      margin-bottom: 40px;
-      padding-top: 8px;
+    .doc-sec h2 .num {
+      font-size: 10px; background: var(--g); color: #000;
+      width: 22px; height: 22px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 900; flex-shrink: 0;
     }
 
-    .doc-section h2 {
-      font-family: var(--FD);
-      font-size: 22px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 14px;
-      color: var(--white);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .doc-sec p { font-size: 14px; color: var(--muted); line-height: 1.75; margin-bottom: 12px; }
 
-    .doc-section h2 .num {
-      font-size: 11px;
-      background: var(--g);
-      color: #000;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      flex-shrink: 0;
-    }
+    .doc-sec ul { padding-left: 20px; margin-bottom: 14px; }
+    .doc-sec ul li { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 6px; }
+    .doc-sec ul li::marker { color: var(--g); }
 
-    .doc-section p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.75;
-      margin-bottom: 12px;
-    }
-
-    .doc-section ul {
-      padding-left: 20px;
-      margin-bottom: 14px;
-    }
-
-    .doc-section ul li {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 6px;
-    }
-
-    .doc-section ul li::marker { color: var(--g); }
-
-    .highlight-box {
-      background: rgba(154,224,0,0.05);
-      border: 1px solid rgba(154,224,0,0.2);
+    .box {
       border-radius: 10px;
       padding: 14px 16px;
       margin: 14px 0;
     }
 
-    .highlight-box p { margin-bottom: 0; color: var(--muted); }
+    .box-green { background: rgba(154,224,0,0.05); border: 1px solid rgba(154,224,0,0.2); }
+    .box-amber { background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2); }
+    .box-red   { background: rgba(239,68,68,0.05);  border: 1px solid rgba(239,68,68,0.2); }
 
-    hr.doc-divider {
-      border: none;
-      border-top: 1px solid var(--bdr);
-      margin: 32px 0;
-    }
+    .box p { margin-bottom: 0; }
 
-    /* Footer */
-    .doc-footer {
-      padding: 28px 22px;
-      border-top: 1px solid var(--bdr);
-      text-align: center;
-      max-width: 680px;
-      margin: 0 auto;
-    }
+    hr.doc-div { border: none; border-top: 1px solid var(--bdr); margin: 30px 0; }
 
-    .doc-footer p {
-      font-size: 12px;
-      color: var(--dim);
-      margin-bottom: 8px;
-    }
-
+    .doc-footer { padding: 28px 22px; border-top: 1px solid var(--bdr); text-align: center; max-width: 680px; margin: 0 auto; }
+    .doc-footer p { font-size: 12px; color: var(--dim); margin-bottom: 8px; }
     .doc-footer a { color: var(--g); font-size: 12px; }
   </style>
 </head>
-
 <body>
 
-<!-- TOP BAR -->
 <div class="top-bar">
   <div class="top-bar-brand">Cricket Experts</div>
-  <a href="login.html" class="top-bar-back">
-    <i class="fas fa-arrow-left"></i> Back
-  </a>
+  <a href="login.html" class="top-bar-back"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 
-<!-- HERO -->
 <div class="doc-hero">
   <span class="doc-eyebrow">Legal</span>
   <h1 class="doc-title">Terms &<br>Conditions</h1>
   <p class="doc-meta">Last updated: March 2026 · Effective immediately upon registration</p>
 </div>
 
-<!-- TABLE OF CONTENTS -->
 <div class="toc">
   <h3>Contents</h3>
   <ol>
     <li><a href="#acceptance">Acceptance of Terms</a></li>
     <li><a href="#eligibility">Eligibility</a></li>
     <li><a href="#account">Account & Profile</a></li>
-    <li><a href="#game-rules">Game Rules & Fair Play</a></li>
-    <li><a href="#content">Content & Intellectual Property</a></li>
-    <li><a href="#disclaimers">Disclaimers & Limitations</a></li>
+    <li><a href="#game">Game Rules & Fair Play</a></li>
+    <li><a href="#free">No Real Money & Prizes</a></li>
+    <li><a href="#ads">Advertising Policy</a></li>
+    <li><a href="#ip">Intellectual Property & Disclaimers</a></li>
     <li><a href="#privacy">Privacy Policy</a></li>
     <li><a href="#data">Data We Collect & Why</a></li>
     <li><a href="#contact">Contact & Changes</a></li>
   </ol>
 </div>
 
-<!-- BODY -->
 <div class="doc-body">
 
-  <!-- 1 -->
-  <div class="doc-section" id="acceptance">
+  <div class="doc-sec" id="acceptance">
     <h2><span class="num">1</span> Acceptance of Terms</h2>
     <p>By accessing Cricket Experts ("the Platform", "we", "us") or creating an account, you agree to be bound by these Terms and Conditions. If you do not agree, do not use the Platform.</p>
     <p>These terms govern your use of all features including the fantasy cricket game, Fun Zone, leaderboards, private leagues, blog content, match previews and all other services provided by Cricket Experts.</p>
-    <div class="highlight-box">
-      <p>Cricket Experts is a private, invitation-style fantasy cricket platform operated for entertainment purposes only. Participation is subject to availability — the platform may limit registrations at any time.</p>
+    <div class="box box-green">
+      <p>Cricket Experts is a private fantasy cricket platform operated for entertainment purposes only. Participation is subject to availability — the platform may limit registrations at any time.</p>
     </div>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 2 -->
-  <div class="doc-section" id="eligibility">
+  <div class="doc-sec" id="eligibility">
     <h2><span class="num">2</span> Eligibility</h2>
     <ul>
-      <li>You must be at least 18 years of age to register and participate.</li>
-      <li>You must have a valid Google account to sign in — no other login method is currently available.</li>
-      <li>You must not create more than one account per person. Duplicate accounts will be removed.</li>
-      <li>The Platform is currently accessible from any country but is primarily designed for users following the Indian Premier League (IPL).</li>
-      <li>Registration is subject to a spot limit. Once the maximum number of users is reached, new registrations may be paused or closed.</li>
+      <li>You must be at least 18 years of age to register.</li>
+      <li>You must have a valid Google account — no other login method is available.</li>
+      <li>You must not create more than one account. Duplicates will be removed.</li>
+      <li>Registration is subject to a spot limit and may be paused or closed at any time.</li>
     </ul>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 3 -->
-  <div class="doc-section" id="account">
+  <div class="doc-sec" id="account">
     <h2><span class="num">3</span> Account & Profile</h2>
-    <p>Your profile is created when you first sign in with Google and complete the setup form. You agree to:</p>
+    <p>Your profile is created when you complete the setup form after Google sign-in. You agree to:</p>
     <ul>
       <li>Provide an accurate full name and team name during registration.</li>
       <li>Not use offensive, misleading or impersonating names or avatars.</li>
-      <li>Accept that your team name and full name are locked for the duration of the current tournament and cannot be changed.</li>
-      <li>Keep your account secure — you are responsible for all activity on your account.</li>
+      <li>Accept that your team name and full name are locked for the current tournament season.</li>
+      <li>Take responsibility for all activity under your account.</li>
     </ul>
-    <p>We reserve the right to suspend or remove any account that violates these terms, engages in abuse, or disrupts the experience for other users.</p>
+    <p>We reserve the right to suspend any account that violates these terms or disrupts other users.</p>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 4 -->
-  <div class="doc-section" id="game-rules">
+  <div class="doc-sec" id="game">
     <h2><span class="num">4</span> Game Rules & Fair Play</h2>
-    <p>Cricket Experts is a season-long fantasy cricket game. Key rules include:</p>
     <ul>
-      <li>Each user selects 11 players within a 100 credit budget per match, subject to role minimums and overseas caps as defined in the app.</li>
+      <li>Each user selects 11 players within a 100 credit budget, subject to role minimums and overseas caps as defined in the app.</li>
       <li>Teams lock automatically at the actual match start time. No changes are accepted after the lock.</li>
-      <li>Fantasy points are calculated from real match data processed by the platform admin. Point calculations are final once published.</li>
-      <li>Boosters are one-use-each, applicable only during the designated league stage window. Misuse or exploitation of booster bugs must be reported and will be reversed.</li>
-      <li>The platform operates on a substitution budget system. Circumventing sub counting or exploiting system errors is prohibited.</li>
-      <li>Prediction results, All Stars XI scores and Daily XI scores are calculated automatically and are final.</li>
+      <li>Fantasy points are calculated from match data processed by the platform admin and are final once published.</li>
+      <li>Boosters are one-use-each, applicable only during the designated league stage. Exploitation of bugs must be reported and may be reversed.</li>
+      <li>Circumventing the substitution budget system or any other game mechanic is prohibited.</li>
     </ul>
-    <div class="highlight-box">
-      <p><strong>No real money is involved.</strong> Cricket Experts is a free-to-play entertainment platform. There are no entry fees, no prize money and no gambling elements of any kind.</p>
+  </div>
+
+  <hr class="doc-div">
+
+  <div class="doc-sec" id="free">
+    <h2><span class="num">5</span> No Real Money & Prizes</h2>
+    <div class="box box-green">
+      <p><strong>Cricket Experts is completely free to play.</strong> There are no entry fees, no deposits and no real money involved in any form. This is not a gambling platform.</p>
     </div>
+    <p>We may announce prizes for top-ranked players at our discretion. Any such prizes will be communicated through the Platform. Prizes are non-monetary or token-value and do not constitute gambling winnings. Prize announcements, eligibility criteria and terms will be published when prizes are introduced.</p>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 5 -->
-  <div class="doc-section" id="content">
-    <h2><span class="num">5</span> Content & Intellectual Property</h2>
-    <p>All content on Cricket Experts — including match previews, fantasy tips, scoring systems, UI design, code and copy — is the property of Cricket Experts unless otherwise stated.</p>
-    <ul>
-      <li>You may not reproduce, distribute or republish any content from the Platform without written permission.</li>
-      <li>Player names, team names and tournament names are the property of their respective governing bodies (BCCI, IPL). Cricket Experts uses these for informational and entertainment purposes only and is not affiliated with, endorsed by or sponsored by any cricket board or team.</li>
-      <li>User-generated content (team names, avatars) remains your property. By uploading an avatar, you grant Cricket Experts a limited license to display it within the Platform.</li>
-    </ul>
+  <div class="doc-sec" id="ads">
+    <h2><span class="num">6</span> Advertising Policy</h2>
+    <p>Cricket Experts displays minimal, non-intrusive advertising in certain sections of the app (such as the home page, leaderboard and team view pages) and on public-facing blog and preview pages. We do not display ads on the team editing page or in any experience-critical flow.</p>
+    <p>Our principle: user experience and game quality come first. Ads are present but never at the cost of usability. We do not use your personal game data to target advertising.</p>
+    <p>Third-party ad scripts may collect anonymised browsing data according to their own privacy policies. You may opt out of personalised advertising through your browser or device settings.</p>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 6 -->
-  <div class="doc-section" id="disclaimers">
-    <h2><span class="num">6</span> Disclaimers & Limitations</h2>
-    <p>Cricket Experts is provided "as is". We make no warranties, express or implied, about the reliability, accuracy or availability of the service.</p>
-    <ul>
-      <li>Fantasy points are calculated from scoreboard data entered by the admin. Errors in source data may occasionally occur and will be corrected on a best-effort basis.</li>
-      <li>The Platform may experience downtime, especially around high-traffic periods such as match start times. We are not liable for any losses arising from such outages.</li>
-      <li>Match schedules, player availability and team compositions are subject to real-world changes beyond our control.</li>
-      <li>Blog content, match previews and fantasy tips are editorial opinions and not guarantees of fantasy performance.</li>
-    </ul>
-    <p>To the maximum extent permitted by applicable law, Cricket Experts shall not be liable for any indirect, incidental, special or consequential damages arising from your use of the Platform.</p>
+  <div class="doc-sec" id="ip">
+    <h2><span class="num">7</span> Intellectual Property & Disclaimers</h2>
+    <p>All original content on Cricket Experts — including scoring systems, UI design, editorial content (match previews, fantasy tips), code and copy — is the property of Cricket Experts.</p>
+
+    <div class="box box-amber">
+      <p><strong>Important:</strong> Cricket Experts is an independent, fan-made platform and is not affiliated with, endorsed by, sponsored by or in any way officially connected to the Board of Control for Cricket in India (BCCI), the Indian Premier League (IPL), any IPL franchise, or any official cricket governing body. The IPL name and team names are trademarks of their respective owners and are referenced here for informational and fan entertainment purposes only.</p>
+    </div>
+
+    <p>Player names are used for fantasy entertainment purposes, consistent with the established practice of fantasy sports platforms operating under fair use principles. Cricket Experts makes no claim over the likeness, name rights or image rights of any player.</p>
+
+    <div class="box box-amber">
+      <p><strong>Player imagery:</strong> Player photographs used within the platform are sourced from publicly available sources. We make a good-faith effort to use only images that are freely available for fan use. If you are a rights holder and believe an image is being used improperly, contact us at the email below and we will remove it promptly.</p>
+    </div>
+
+    <p>Blog content, match previews and fantasy tips are editorial opinions of Cricket Experts contributors. They are not guarantees of match outcomes or fantasy performance. We make no warranties about the accuracy or completeness of any content.</p>
+
+    <p>The Platform is provided "as is". We are not liable for downtime, data errors, match result disputes or any consequential losses arising from use of the Platform.</p>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 7 -->
-  <div class="doc-section" id="privacy">
-    <h2><span class="num">7</span> Privacy Policy</h2>
-    <p>Your privacy matters. This section explains how we handle your personal data in plain language.</p>
-    <p>Cricket Experts uses <strong>Supabase</strong> as its backend and authentication provider, and <strong>Google OAuth</strong> for sign-in. By signing in you also agree to Google's Terms of Service and Privacy Policy.</p>
+  <div class="doc-sec" id="privacy">
+    <h2><span class="num">8</span> Privacy Policy</h2>
+    <p>Your privacy matters. Cricket Experts uses <strong>Supabase</strong> as its backend and authentication provider, and <strong>Google OAuth</strong> for sign-in. By signing in you also agree to Google's Terms of Service and Privacy Policy.</p>
+    <p>We do not sell, rent or share your personal data with third parties for marketing purposes.</p>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 8 -->
-  <div class="doc-section" id="data">
-    <h2><span class="num">8</span> Data We Collect & Why</h2>
+  <div class="doc-sec" id="data">
+    <h2><span class="num">9</span> Data We Collect & Why</h2>
 
     <p><strong>What we collect:</strong></p>
     <ul>
-      <li><strong>Google account data</strong> — your name and email address, provided by Google at sign-in. Used to create your account and identify you within the Platform.</li>
-      <li><strong>Profile data</strong> — the team name and full name you provide during setup. Displayed to other users within the Platform.</li>
-      <li><strong>Avatar image</strong> — if you choose to upload one. Stored in Supabase Storage and displayed in the Platform.</li>
-      <li><strong>Game data</strong> — your team selections, transfer history, booster usage, predictions and points. Required to run the fantasy game.</li>
+      <li><strong>Google account data</strong> — your name and email, provided by Google at sign-in. Used to create and identify your account.</li>
+      <li><strong>Profile data</strong> — your team name and display name from setup. Shown to other users within the Platform.</li>
+      <li><strong>Avatar image</strong> — if you choose to upload one. Stored in Supabase Storage.</li>
+      <li><strong>Game data</strong> — team selections, transfer history, booster usage, predictions and points. Required to run the fantasy game.</li>
       <li><strong>Usage data</strong> — page visits and interactions, collected by Supabase and Vercel for operational purposes.</li>
     </ul>
 
@@ -381,49 +236,34 @@
     <ul>
       <li>Payment or financial information of any kind.</li>
       <li>Device location or precise location data.</li>
-      <li>Contact lists, camera access or any device permissions beyond standard web access.</li>
-    </ul>
-
-    <p><strong>How we use your data:</strong></p>
-    <ul>
-      <li>To operate the fantasy cricket game and leaderboards.</li>
-      <li>To display your profile and team to other users within the Platform.</li>
-      <li>To send match-related notifications if you have enabled them in your browser.</li>
-    </ul>
-
-    <p><strong>Data sharing:</strong></p>
-    <ul>
-      <li>We do not sell, rent or share your personal data with third parties for marketing purposes.</li>
-      <li>Your data is processed by Supabase (database and auth) and Vercel (hosting). Both comply with GDPR and industry-standard security practices.</li>
+      <li>Contact lists, camera or any device permissions beyond standard web access.</li>
     </ul>
 
     <p><strong>Your rights:</strong></p>
     <ul>
-      <li>You may request deletion of your account and associated data by contacting us at the email below.</li>
-      <li>You may request a copy of your data at any time.</li>
+      <li>Request deletion of your account and data by emailing us.</li>
+      <li>Request a copy of your stored data at any time.</li>
     </ul>
 
-    <div class="highlight-box">
-      <p>Cricket Experts does not display advertising within the app to registered users. Any advertising on the public blog/preview section is separate from the game and does not use your registered account data for targeting.</p>
+    <div class="box box-green">
+      <p>Your registered account data is never used to target advertising. Any ad scripts on public blog pages operate independently and do not have access to your game profile or personal data.</p>
     </div>
   </div>
 
-  <hr class="doc-divider">
+  <hr class="doc-div">
 
-  <!-- 9 -->
-  <div class="doc-section" id="contact">
-    <h2><span class="num">9</span> Contact & Changes</h2>
-    <p>For any questions, data requests or complaints related to these terms, contact us at:</p>
+  <div class="doc-sec" id="contact">
+    <h2><span class="num">10</span> Contact & Changes</h2>
+    <p>For questions, data requests, image takedown requests or complaints:</p>
     <p><a href="mailto:satyaranjansahoo@gmail.com">satyaranjansahoo@gmail.com</a></p>
-    <p>We reserve the right to update these Terms at any time. Significant changes will be communicated via a notice within the Platform. Continued use after changes constitutes acceptance of the updated terms.</p>
-    <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in India.</p>
+    <p>We reserve the right to update these Terms at any time. Continued use after changes constitutes acceptance of the updated terms.</p>
+    <p>These Terms are governed by the laws of India.</p>
   </div>
 
 </div>
 
-<!-- FOOTER -->
 <div class="doc-footer">
-  <p>© 2026 Cricket Experts. All rights reserved.</p>
+  <p>© 2026 Cricket Experts · Not affiliated with BCCI or IPL · For entertainment only.</p>
   <a href="login.html">← Back to Cricket Experts</a>
 </div>
 
