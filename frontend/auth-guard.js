@@ -7,7 +7,7 @@ async function protectPage() {
     if (error || !session) {
         console.warn("Auth Guard: No session found. Redirecting to login...");
         rejectAuth(new Error("No session"));
-        window.location.replace("login.html");
+        window.location.replace("/login");
         return;
     }
 
@@ -22,6 +22,6 @@ protectPage();
 
 supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
-        window.location.replace("login.html");
+        window.location.replace("/login");
     }
 });

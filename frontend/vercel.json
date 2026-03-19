@@ -7,7 +7,6 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/home", "destination": "/home.html" },
-    { "source": "/auth", "destination": "/auth.js" },
     { "source": "/(.*)", "destination": "/$1" }
   ],
   "cleanUrls": true,
