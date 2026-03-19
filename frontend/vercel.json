@@ -4,11 +4,20 @@
       "source": "/onesignal-scripts/:path*",
       "destination": "https://cdn.onesignal.com/sdks/web/v16/:path*"
     },
-    { "source": "/",       "destination": "/index.html" },
-    { "source": "/login",  "destination": "/login.html" },
-    { "source": "/home",   "destination": "/home.html" },
+    { "source": "/",            "destination": "/index.html" },
+    { "source": "/login",       "destination": "/login.html" },
+    { "source": "/home",        "destination": "/home.html" },
     { "source": "/admin-blog",  "destination": "/admin-blog.html" },
-    { "source": "/(.*)",   "destination": "/$1" }
+    { "source": "/(.*)",        "destination": "/$1" }
+  ],
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    }
   ],
   "cleanUrls": true,
   "trailingSlash": false
