@@ -216,26 +216,47 @@ async function openPlayerDetail(playerId, matchId) {
 /* ─── Team scout sheet ────────────────────────────────────────────────── */
 async function openTeamScout(userId, matchId) {
     openBottomSheet(async (body) => {
-        // Fetch user's locked team for this match
-        const { data: team } = await supabase
-            .from("user_match_teams")
-            .select(`
-                captain_id,
-                vice_captain_id,
-                total_points,
-                user_profiles(team_name, team_photo_url),
-                user_match_team_players(
-                    player_id,
-                    player_match_stats(fantasy_points, runs, wickets, catches, is_player_of_match),
-                    players(id, name, role, photo_url, team:real_teams!inner(short_code))
-                )
-            `)
-            .eq("user_id", userId)
-            .eq("match_id", matchId)
-            .maybeSingle();
+        // FIX: Split into three separate queries.
+        // The original single nested query failed because:
+        // 1. total_points lives in user_match_points, not user_match_teams
+        // 2. player_match_stats has no FK to user_match_team_players —
+        //    Supabase cannot join them and silently returns null for every player
+        const [teamRes, ptsRes, statsRes] = await Promise.all([
+            // Query 1: team header + player IDs + player details
+            supabase
+                .from("user_match_teams")
+                .select(`
+                    id,
+                    captain_id,
+                    vice_captain_id,
+                    user_profiles(team_name, team_photo_url),
+                    user_match_team_players(
+                        player_id,
+                        players(id, name, role, photo_url, team:real_teams!inner(short_code))
+                    )
+                `)
+                .eq("user_id", userId)
+                .eq("match_id", matchId)
+                .maybeSingle(),
+
+            // Query 2: match points for this user (separate table)
+            supabase
+                .from("user_match_points")
+                .select("total_points")
+                .eq("user_id", userId)
+                .eq("match_id", matchId)
+                .maybeSingle(),
+
+            // Query 3: all player stats for this match — we index by player_id
+            supabase
+                .from("player_match_stats")
+                .select("player_id, fantasy_points, is_player_of_match")
+                .eq("match_id", matchId),
+        ]);
 
         body.innerHTML = "";
 
+        const team = teamRes.data;
         if (!team) {
             const p       = document.createElement("p");
             p.className   = "sheet-empty";
@@ -244,8 +265,13 @@ async function openTeamScout(userId, matchId) {
             return;
         }
 
-        const profile = team.user_profiles;
-        const photo   = profile?.team_photo_url
+        // Build a lookup map: player_id → stats
+        const statsMap = {};
+        (statsRes.data || []).forEach(s => { statsMap[s.player_id] = s; });
+
+        const totalPoints = ptsRes.data?.total_points || 0;
+        const profile     = team.user_profiles;
+        const photo       = profile?.team_photo_url
             ? supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url).data.publicUrl
             : "images/default-avatar.png";
 
@@ -264,21 +290,24 @@ async function openTeamScout(userId, matchId) {
 
         const ptsEl     = document.createElement("div");
         ptsEl.className   = "sheet-player-pts";
-        ptsEl.textContent = `${team.total_points || 0} pts this match`;
+        ptsEl.textContent = `${totalPoints} pts this match`;
 
         info.append(nameEl, ptsEl);
         hdr.append(av, info);
         body.appendChild(hdr);
 
-        // Players list in role order
+        // Build player list — merge team players with stats map
         const players = (team.user_match_team_players || [])
-            .map(r => ({
-                ...r.players,
-                pts:     r.player_match_stats?.fantasy_points || 0,
-                isC:     r.player_id === team.captain_id,
-                isVC:    r.player_id === team.vice_captain_id,
-                isPOM:   r.player_match_stats?.is_player_of_match,
-            }))
+            .map(r => {
+                const s = statsMap[r.player_id] || {};
+                return {
+                    ...r.players,
+                    pts:   s.fantasy_points || 0,
+                    isC:   r.player_id === team.captain_id,
+                    isVC:  r.player_id === team.vice_captain_id,
+                    isPOM: s.is_player_of_match || false,
+                };
+            })
             .sort((a, b) => (ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]) || (b.pts - a.pts));
 
         const label       = document.createElement("p");
