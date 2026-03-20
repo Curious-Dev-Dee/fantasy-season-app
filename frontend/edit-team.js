@@ -569,39 +569,44 @@ function renderBoosterUI() {
     container.classList.remove("hidden");
 
     const configs = {
-        TOTAL_2X:    { name: "Total 2X",    icon: "🚀" },
-        INDIAN_2X:   { name: "Indian 2X",   icon: "🇮🇳" },
-        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" },
-        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
-        CAPTAIN_3X:  { name: "Captain 3X",  icon: "👑" },
-        MOM_2X:      { name: "MOM 2X",      icon: "🏆" },
-        FREE_11:     { name: "Free 11",      icon: "🆓" },
+        TOTAL_2X:    { name: "Total 2X",    icon: "🚀", desc: "Double points for your entire team" },
+        INDIAN_2X:   { name: "Indian 2X",   icon: "🇮🇳", desc: "2x points for all Indian players" },
+        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️", desc: "2x points for all overseas players" },
+        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢", desc: "2x points for all uncapped players" },
+        CAPTAIN_3X:  { name: "Captain 3X",  icon: "👑", desc: "3x points for your captain" },
+        MOM_2X:      { name: "MOM 2X",      icon: "🏆", desc: "2x points for Man of the Match" },
+        FREE_11:     { name: "Free 11",     icon: "🆓", desc: "Change all 11 players for free" },
     };
 
-    // BUG FIX #6: activePenalty only computed here (was dead code in render())
     const activePenalty = state.activeBooster !== "NONE" ? 1 : 0;
     const boostersLeft  = 7 - state.usedBoosters.length - activePenalty;
 
-    const cards = Object.entries(configs).map(([key, cfg]) => {
+    const rows = Object.entries(configs).map(([key, cfg]) => {
         const isUsed   = state.usedBoosters.includes(key);
         const isActive = state.activeBooster === key;
+
         return `
-            <div class="booster-card ${isActive ? "active" : ""} ${isUsed ? "used" : ""}"
+            <div class="booster-row ${isActive ? "active" : ""} ${isUsed ? "used" : ""}"
                  ${isUsed ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
-                <div class="booster-icon">${cfg.icon}</div>
-                <div class="b-name">${cfg.name}</div>
-                ${isActive ? '<div class="active-badge">On</div>' : ""}
-                ${isUsed   ? '<div class="used-overlay"><span>USED</span></div>' : ""}
+                <div class="br-icon">${cfg.icon}</div>
+                <div class="br-info">
+                    <span class="br-name">${cfg.name}</span>
+                    <span class="br-desc">${cfg.desc}</span>
+                    ${isUsed ? '<span class="br-used-tag">USED</span>' : ""}
+                </div>
+                <div class="br-selector ${isActive ? "selected" : ""}">
+                    ${isActive ? "✔" : ""}
+                </div>
             </div>`;
     }).join("");
 
     container.innerHTML = `
-        <div class="booster-shelf">
-            <div class="booster-header">
+        <div class="booster-list-wrap">
+            <div class="booster-list-header">
                 <span class="b-title">BOOSTERS</span>
                 <span class="b-count">${boostersLeft} left</span>
             </div>
-            <div class="booster-scroll">${cards}</div>
+            <div class="booster-list">${rows}</div>
         </div>`;
 }
 
