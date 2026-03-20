@@ -490,6 +490,18 @@ body.loading-state .app-container        { display: none !important; }
     letter-spacing: 0.5px;
 }
 
+.p-next-match {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-faint);
+    margin-top: 3px;
+}
+
+.p-next-match.urgent {
+    color: #f59e0b;
+}
 
 /* ─── CONTROLS ───────────────────────────────────── */
 .controls {

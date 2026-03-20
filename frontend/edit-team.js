@@ -281,6 +281,18 @@ function renderPlayerPool(stats) {
     renderList("playerPoolList", filtered, false, stats);
 }
 
+// ─── NEXT MATCH LABEL ─────────────────────────────
+function getNextMatchLabel(realTeamId) {
+    for (let i = 0; i < state.matches.length; i++) {
+        const m = state.matches[i];
+        if (m.team_a_id === realTeamId || m.team_b_id === realTeamId) {
+            if (i === 0) return { text: "Plays next match", urgent: true };
+            if (i === 1) return { text: "Plays in 2 matches", urgent: false };
+            return { text: `Plays in ${i + 1} matches`, urgent: false };
+        }
+    }
+    return null;
+}
 // ─── LIST RENDERER ────────────────────────────────────────────────────────────
 // PERF FIX #11 & #12: Uses DocumentFragment + element creation instead of
 // one giant innerHTML string for 250 players. Avoids a single 250-node parse
@@ -334,6 +346,11 @@ function renderList(containerId, list, isMyXi, stats) {
         // Is this player locked from the previous match?
         const isLocked = state.lockedPlayerIds.includes(p.id);
 
+        const nextMatchInfo = getNextMatchLabel(p.real_team_id);
+const nextMatchHtml = nextMatchInfo
+    ? `<span class="p-next-match ${nextMatchInfo.urgent ? "urgent" : ""}">${nextMatchInfo.text}</span>`
+    : "";
+
         const card = document.createElement("div");
         card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
         card.dataset.id = p.id;
@@ -346,7 +363,8 @@ function renderList(containerId, list, isMyXi, stats) {
             <div class="player-info">
                 <strong class="p-name">${p.name}</strong>
                 <span class="p-meta">${p.role} · ${p.team_short_code} · ${p.credit} Cr</span>
-                ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
+${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
+${nextMatchHtml}
             </div>
             <div class="controls">
                 ${isMyXi ? `
