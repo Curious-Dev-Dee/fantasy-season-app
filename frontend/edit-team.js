@@ -189,7 +189,7 @@ function updateDashboard(stats) {
         const el = document.getElementById(`count-${role}`);
         if (!el) continue;
         el.textContent = stats.roles[role] || 0;
-        el.style.color = (stats.roles[role] >= minReqs[role]) ? "#9AE000" : "";
+el.style.color = (stats.roles[role] >= minReqs[role]) ? "var(--accent)" : "";
     }
 
     setText("playerCountLabel",  stats.count);
