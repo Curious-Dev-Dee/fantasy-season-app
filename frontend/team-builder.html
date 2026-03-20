@@ -158,6 +158,17 @@
     </div>
   </div>
 
+<!-- PLAYER PROFILE POPUP -->
+<div id="playerProfileOverlay" class="profile-overlay hidden" onclick="closePlayerProfile(event)">
+    <div class="profile-card" id="playerProfileCard">
+        <button class="profile-close" onclick="closePlayerProfile()">✕</button>
+        <div id="profileContent" class="profile-content">
+            <div class="profile-loading">
+                <div class="tb-spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
   <script type="module" src="edit-team.js"></script>
 </body>

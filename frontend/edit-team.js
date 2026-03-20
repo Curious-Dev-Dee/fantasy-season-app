@@ -360,8 +360,9 @@ const nextMatchHtml = nextMatchInfo
         card.dataset.id = p.id;
 
         card.innerHTML = `
-            <div class="avatar-wrap">
-                <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+    <div class="avatar-wrap" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer">
+        <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+        
                 ${catBadge}
             </div>
             <div class="player-info">
@@ -1020,6 +1021,156 @@ function triggerHaptic(style = "light") {
         }
     } catch (_) { /* device blocks Web Audio — silent fail */ }
 }
+
+// ─── PLAYER PROFILE ───────────────────────────────────────────────────────────
+window.openPlayerProfile = async (playerId) => {
+    const overlay = document.getElementById("playerProfileOverlay");
+    const content = document.getElementById("profileContent");
+    if (!overlay || !content) return;
+
+    // Show overlay with spinner
+    content.innerHTML = '<div class="profile-loading"><div class="tb-spinner"></div></div>';
+    overlay.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+
+    try {
+        // Fetch player info + match stats in parallel
+        const [playerRes, statsRes] = await Promise.all([
+            supabase.from("player_pool_view")
+                .select("*")
+                .eq("id", playerId)
+                .maybeSingle(),
+            supabase.from("player_match_stats")
+                .select("*, match:matches!inner(match_number)")
+                .eq("player_id", playerId)
+                .order("match_id", { ascending: true }),
+        ]);
+
+        const p     = playerRes.data;
+        const stats = statsRes.data || [];
+
+        if (!p) {
+            content.innerHTML = '<p class="profile-no-history">Player not found.</p>';
+            return;
+        }
+
+        const bucket   = supabase.storage.from("player-photos");
+        const photoUrl = p.photo_url
+            ? bucket.getPublicUrl(p.photo_url).data.publicUrl
+            : "images/default-avatar.png";
+
+        const totalPts = stats.reduce((s, m) => s + (m.fantasy_points || 0), 0);
+        const cat      = (p.category || "").toLowerCase();
+
+        const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
+        const stats2     = calcStats();
+        const canAdd     = !isSelected && stats2.count < 11 &&
+                           !(stats2.overseas >= 4 && cat === "overseas");
+
+        // Category badge
+        const catBadge = cat === "overseas"
+            ? '<span class="profile-badge overseas">✈ Overseas</span>'
+            : cat === "uncapped"
+            ? '<span class="profile-badge uncapped">🧢 Uncapped</span>'
+            : "";
+
+        // Match history rows
+        const historyHtml = stats.length > 0
+            ? stats.map(m => {
+                const isBig = m.fantasy_points >= 100;
+                const chips = buildProfileChips(m);
+                return `
+                    <div class="profile-match-row ${isBig ? "big-game" : ""}">
+                        <div class="pmr-top">
+                            <span class="pmr-match">Match ${m.match?.match_number || "#"}</span>
+                            <span class="pmr-pts">${isBig ? "🌟 " : ""}+${m.fantasy_points} pts</span>
+                        </div>
+                        ${chips.length > 0 ? `<div class="pmr-chips">${chips.join("")}</div>` : ""}
+                    </div>`;
+            }).join("")
+            : '<p class="profile-no-history">No match data yet.</p>';
+
+        // Action button — only show if on edit page (state exists)
+        const actionHtml = typeof state !== "undefined" ? `
+            <div class="profile-action-wrap">
+                <button class="profile-action-btn ${isSelected ? "remove" : "add"}"
+                    ${!isSelected && !canAdd ? "disabled" : ""}
+                    onclick="profileTogglePlayer('${p.id}')">
+                    ${isSelected ? "− Remove from XI" : "+ Add to XI"}
+                </button>
+            </div>` : "";
+
+        content.innerHTML = `
+            <div class="profile-hero">
+                <img src="${photoUrl}" class="profile-avatar" alt="${p.name}">
+                <span class="profile-name">${p.name}</span>
+                <div class="profile-badges">
+                    <span class="profile-badge role">${p.role}</span>
+                    <span class="profile-badge team">${p.team_short_code}</span>
+                    ${catBadge}
+                </div>
+            </div>
+            <div class="profile-stats-row">
+                <div class="profile-stat">
+                    <span class="ps-value">${p.credit} Cr</span>
+                    <span class="ps-label">Credits</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="ps-value">${totalPts}</span>
+                    <span class="ps-label">Season Pts</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="ps-value">${p.selected_by_percent ?? "—"}%</span>
+                    <span class="ps-label">Selected By</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="ps-value">${stats.length}</span>
+                    <span class="ps-label">Matches</span>
+                </div>
+            </div>
+            <div class="profile-history">
+                <div class="profile-history-label">Match Breakdown</div>
+                ${historyHtml}
+            </div>
+            ${actionHtml}`;
+
+    } catch (err) {
+        console.error("Profile load error:", err);
+        content.innerHTML = '<p class="profile-no-history">Failed to load. Try again.</p>';
+    }
+};
+
+function buildProfileChips(m) {
+    const chips = [];
+    const chip  = (text, type) => `<span class="stat-tag ${type}">${text}</span>`;
+
+    if (m.runs   > 0) chips.push(chip(`🏏 ${m.runs}${m.balls ? ` (${m.balls}b)` : ""}`, "bat"));
+    if (m.fours  > 0 || m.sixes > 0) chips.push(chip(`🎯 ${m.fours||0}×4 ${m.sixes||0}×6`, "boundary"));
+    if (m.sr_points && m.sr_points !== 0) chips.push(chip(`⚡ SR ${m.sr_points > 0 ? "+" : ""}${m.sr_points}`, "bonus"));
+    if (m.milestone_points > 0) chips.push(chip(`🏆 +${m.milestone_points}`, "bonus"));
+    if (m.duck_penalty && m.duck_penalty < 0) chips.push(chip(`🦆 Duck ${m.duck_penalty}`, "penalty"));
+    if (m.wickets  > 0) chips.push(chip(`🎳 ${m.wickets}W`, "bowl"));
+    if (m.maidens  > 0) chips.push(chip(`🧱 ${m.maidens} Maiden${m.maidens > 1 ? "s" : ""}`, "bowl"));
+    if (m.er_points && m.er_points !== 0) chips.push(chip(`📉 Econ ${m.er_points > 0 ? "+" : ""}${m.er_points}`, "bonus"));
+    if (m.catches   > 0) chips.push(chip(`🧤 ${m.catches}C`, "field"));
+    if (m.stumpings > 0) chips.push(chip(`🏃 ${m.stumpings}St`, "field"));
+    const ro = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
+    if (ro > 0) chips.push(chip(`🎯 ${ro}RO`, "field"));
+    if (m.is_player_of_match) chips.push(chip("🏆 POM +20", "gold"));
+
+    return chips;
+}
+
+window.profileTogglePlayer = (id) => {
+    closePlayerProfile();
+    setTimeout(() => togglePlayer(id), 200);
+};
+
+window.closePlayerProfile = (e) => {
+    if (e && e.target !== document.getElementById("playerProfileOverlay")) return;
+    document.getElementById("playerProfileOverlay")?.classList.add("hidden");
+    document.body.style.overflow = "";
+};
 
 // Expose for booster onclick (called from innerHTML)
 window.triggerHaptic = triggerHaptic;
