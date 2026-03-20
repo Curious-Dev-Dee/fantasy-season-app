@@ -303,7 +303,7 @@ async function initPushNotifications(userId) {
 ══════════════════════════════════════════════════════ */
 function applyOwnFlair() {
     const effectiveRank = getEffectiveRank(currentUserOverallRank, currentUserPrivateRank);
-    applyRankFlair(avatarElement, teamNameElement, effectiveRank);
+    applyRankFlair(avatarElement, null, effectiveRank);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -346,7 +346,6 @@ ptsPill.className  = `pts-pill${row.total_points > 0 ? " has-pts" : ""}`;
 ptsPill.textContent = `${row.total_points} pts`;
 
             rowDiv.append(rankSpan, ptsPill);
-            if (row.rank <= 3) applyRankFlair(null, nameStrong, row.rank);
             leaderboardContainer.appendChild(rowDiv);
         });
     } else {
@@ -438,7 +437,6 @@ ptsPill.className  = `pts-pill${row.total_points > 0 ? " has-pts" : ""}`;
 ptsPill.textContent = `${row.total_points} pts`;
 
             rowDiv.append(rankSpan, ptsPill);
-            if (row.rank_in_league <= 3) applyRankFlair(null, nameStrong, row.rank_in_league);
             containerEl.appendChild(rowDiv);
         });
 
