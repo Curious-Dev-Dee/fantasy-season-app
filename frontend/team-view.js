@@ -5,7 +5,7 @@ import { getEffectiveRank, applyRankFlair } from "./animations.js";
 /* ─── CONSTANTS ─────────────────────────────────────────────────────────── */
 const TOTAL_SUBS_LIMIT     = 145;
 const TOTAL_BOOSTERS       = 7;
-const PLAYOFF_START_MATCH  = 71;
+const PLAYOFF_START_MATCH  = 81;
 
 /* ─── ELEMENTS ───────────────────────────────────────────────────────────── */
 const teamContainer      = document.getElementById("teamContainer");
