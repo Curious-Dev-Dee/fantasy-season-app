@@ -8,56 +8,64 @@
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- BUG FIX: was href="bottom-nav.css" — correct path -->
   <link rel="stylesheet" href="css/bottom-nav.css">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
-    /*
-     * BUG FIX: Removed :root block with circular references and wrong overrides:
-     *   --accent: var(--accent)    → circular, resolves to nothing
-     *   --bg-dark: var(--bg-dark);; → double semicolon
-     *   --border: #1f2937          → overrides global token from tokens.css
-     * All colours now come from tokens.css correctly.
-     */
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: var(--font);
-      background: var(--bg-dark);
+      font-family: var(--font-body);
+      background: var(--bg-page);
       color: var(--text-primary);
       padding-bottom: 90px;
     }
 
-    .container { max-width: 420px; margin: 0 auto; padding: 20px; }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 16px;
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px 16px;
     }
 
-    .page-title { font-size: 24px; font-weight: 800; margin: 0 0 20px; }
+    /* ── HEADER ──────────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
 
-    /* var(--bg-card-alt) replaces hardcoded #111827 */
+    /* icon-back inherits from components.css */
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+    }
+
+    /* ── CARDS ───────────────────────────────────── */
     .card {
-      background: var(--bg-card-alt);
-      border: 1px solid var(--border);
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
       border-radius: var(--card-radius);
-      padding: 18px;
-      margin-bottom: 14px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
     }
 
     .card h2 {
+      font-family: var(--font-display);
       color: var(--accent);
-      font-size: 16px;
-      font-weight: 800;
-      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 900;
+      margin: 0 0 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -65,32 +73,56 @@
       letter-spacing: 0.5px;
     }
 
+    /* ── RULE ROWS ───────────────────────────────── */
     .rule-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 0;
       border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-body);
       font-size: 14px;
       color: var(--text-dim);
     }
 
     .rule-row:last-child { border-bottom: none; }
 
-    .pts     { font-weight: 800; color: var(--accent); }
-    .pts-neg { font-weight: 800; color: var(--red); }
-    .pts-dyn { font-weight: 800; color: var(--cyan); font-size: 11px; }
+    .pts {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .pts-neg {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--red);
+      flex-shrink: 0;
+    }
+
+    /* Dynamic SR points — uses fun-cyan since it's a unique stat type */
+    .pts-dyn {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 11px;
+      color: var(--fun-cyan);
+      flex-shrink: 0;
+    }
   </style>
 </head>
 
 <body>
 <div class="container">
 
-  <a href="more.html" class="back-link">
-    <i class="fas fa-chevron-left"></i> Back
-  </a>
-
-  <h1 class="page-title">Scorebook 📜</h1>
+  <div class="page-header">
+    <a href="more.html" class="icon-back" aria-label="Back">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    <h1 class="page-title">Scorebook 📜</h1>
+  </div>
 
   <div class="card">
     <h2>🏏 Batting</h2>
@@ -127,7 +159,6 @@
 
 </div>
 
-<!-- BUG FIX: was missing icons and active state on every link -->
 <nav class="bottom-nav">
   <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
