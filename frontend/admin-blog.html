@@ -424,10 +424,10 @@ function makeSlug(title) {
 
 /* ── Publish ──────────────────────────────────────────────────── */
 window.publishPost = async () => {
-  const title    = document.getElementById("title").value.trim();
-  const excerpt  = document.getElementById("excerpt").value.trim();
-  const content  = document.getElementById("content").value.trim();
-  const category = document.getElementById("category").value;
+  const title      = document.getElementById("title").value.trim();
+  const excerpt    = document.getElementById("excerpt").value.trim();
+  const content    = document.getElementById("content").value.trim();
+  const category   = document.getElementById("category").value;
   const matchLabel = document.getElementById("matchLabel").value.trim();
 
   if (!title)   { showToast("Title is required", "error"); return; }
@@ -440,30 +440,36 @@ window.publishPost = async () => {
 
   const slug = makeSlug(title);
 
-  const { error } = await supabase.from("blog_posts").insert([{
-    slug, title, excerpt, content, category,
-    match_label: matchLabel || null,
-    cover_emoji: selectedEmoji,
-    published: true,
-  }]);
+  try {
+    const { error } = await supabase.from("blog_posts").insert([{
+      slug, title, excerpt, content, category,
+      match_label: matchLabel || null,
+      cover_emoji: selectedEmoji,
+      published: true,
+    }]);
 
-  btn.disabled = false;
-  btn.textContent = "Publish Article";
+    // If Supabase returns an error, intentionally throw it so the catch block handles it
+    if (error) throw error; 
 
-  if (error) {
-    showToast("Failed: " + error.message, "error");
-    return;
+    showToast("Published! ✅", "success");
+
+    // Clear form
+    document.getElementById("title").value      = "";
+    document.getElementById("excerpt").value    = "";
+    document.getElementById("content").value    = "";
+    document.getElementById("matchLabel").value = "";
+    document.getElementById("excerptCount").textContent = "0 / 200";
+    document.getElementById("contentCount").textContent = "0 chars";
+
+  } catch (err) {
+    console.error("Publishing Error:", err);
+    // This will now catch and display network errors, WAF blocks, or DB errors
+    showToast("Failed: " + (err.message || "Network error. Check console."), "error");
+  } finally {
+    // FINALLY always runs. This guarantees your button won't get stuck!
+    btn.disabled = false;
+    btn.textContent = "Publish Article";
   }
-
-  showToast("Published! ✅", "success");
-
-  // Clear form
-  document.getElementById("title").value      = "";
-  document.getElementById("excerpt").value    = "";
-  document.getElementById("content").value    = "";
-  document.getElementById("matchLabel").value = "";
-  document.getElementById("excerptCount").textContent = "0 / 200";
-  document.getElementById("contentCount").textContent = "0 chars";
 };
 
 /* ── Load posts ───────────────────────────────────────────────── */
