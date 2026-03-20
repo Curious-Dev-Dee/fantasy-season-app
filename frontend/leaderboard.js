@@ -138,9 +138,9 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
         name.className   = "podium-name";
         name.textContent = user.team_name || "Anonymous";
 
-        const points = document.createElement("div");
-        points.className   = "podium-pts";
-        points.textContent = `${user.total_points} pts`;
+const points = document.createElement("div");
+points.className   = `podium-pts${user.total_points > 0 ? " has-pts" : ""}`;
+points.textContent = `${user.total_points} pts`;
 
         applyRankFlair(avatar, name, pos);
 
@@ -148,11 +148,14 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
         podiumContainer.appendChild(card);
     });
 
-    // User summary bar
-    const me = leaderboard.find(row => row.user_id === userId);
-    leaderboardSummary.textContent = me
-        ? `Your Rank: #${me.rank}  ·  ${me.total_points} pts`
-        : "You are not ranked yet.";
+const me = leaderboard.find(row => row.user_id === userId);
+if (me) {
+    leaderboardSummary.textContent = `Your Rank: #${me.rank}  ·  ${me.total_points} pts`;
+    leaderboardSummary.classList.remove("unranked");
+} else {
+    leaderboardSummary.textContent = "You are not ranked yet.";
+    leaderboardSummary.classList.add("unranked");
+}
 
     // Ranks 4+ list
     leaderboardContainer.replaceChildren();
@@ -176,9 +179,9 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
         team.className   = "l-team";
         team.textContent = row.team_name || "Anonymous";
 
-        const pts = document.createElement("div");
-        pts.className   = "l-pts";
-        pts.textContent = `${row.total_points} pts`;
+const pts = document.createElement("div");
+pts.className   = `l-pts${row.total_points > 0 ? " has-pts" : ""}`;
+pts.textContent = `${row.total_points} pts`;
 
         const arrow = document.createElement("i");
         arrow.className = "fas fa-chevron-right l-arrow";
