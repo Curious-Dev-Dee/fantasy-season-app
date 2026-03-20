@@ -200,11 +200,11 @@ body {
 /* ─── RANK BADGE ─────────────────────────────────── */
 .rank-badge {
     position: absolute;
-    bottom: -10px;
+    top: -8px;
     left: 50%;
     transform: translateX(-50%);
     width: 22px; height: 22px;
-    border-radius: 50%;
+    border-radius: 6px;
     font-family: var(--font-display);
     font-size: 11px;
     font-weight: 900;
@@ -219,7 +219,6 @@ body {
 .podium-card.rank-1 .rank-badge { background: #ffd700; }
 .podium-card.rank-2 .rank-badge { background: #c0c0c0; }
 .podium-card.rank-3 .rank-badge { background: #cd7f32; }
-
 
 /* ─── PODIUM TEXT ────────────────────────────────── */
 .podium-name {
@@ -247,46 +246,49 @@ body {
 }
 
 
-/* ─── USER SUMMARY BAR ───────────────────────────── */
-/*
-   BEFORE: solid lime green fill — way too aggressive.
-   "Your Rank: #1 · 0 pts" is INFORMATION, not a CTA.
-   It was screaming louder than the EDIT TEAM button.
-
-   NOW: subtle accent-tinted card with a green left border.
-   Visible and clearly yours, but not shouting.
-*/
+/* ─── USER RANK CARD ─────────────────────────────── */
 .user-summary-card {
-    background: var(--accent-dim);
-    border: 1px solid var(--border-accent);
-    border-left: 3px solid var(--accent);
-    color: var(--text-primary);
-    padding: 13px 18px;
-    border-radius: var(--card-radius-sm);
     margin: 0 16px 16px;
-    font-family: var(--font-display);
-    font-size: 15px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-align: center;
+    padding: 14px 20px;
+    border-radius: var(--card-radius-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-accent);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
     min-height: 48px;
+    position: relative;
+    overflow: hidden;
 }
 
-/* "Not ranked yet" state — dimmer */
+/* Subtle neon glow line at top */
+.user-summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent, var(--accent), transparent);
+}
+
 .user-summary-card.unranked {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255,255,255,0.02);
     border-color: var(--border);
-    border-left-color: var(--text-faint);
     color: var(--text-faint);
 }
 
+.user-summary-card.unranked::before {
+    display: none;
+}
 
-/* ─── LEADERBOARD LIST ───────────────────────────── */
+/* ─── LEADERBOARD ROWS ───────────────────────────── */
 .leaderboard-list {
     display: flex;
     flex-direction: column;
@@ -298,35 +300,39 @@ body {
     display: flex;
     align-items: center;
     background: var(--bg-card);
-    padding: 13px 14px;
+    padding: 13px 16px;
     border-radius: var(--card-radius-sm);
     cursor: pointer;
-    transition: background var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
     border: 1px solid var(--border);
-    gap: 4px;
+    gap: 6px;
 }
 
-.leader-row:hover { background: rgba(255,255,255,0.06); }
+.leader-row:hover {
+    background: var(--bg-card-alt);
+    transform: translateX(2px);
+}
 
-/* Your own row */
 .leader-row.you {
     background: var(--accent-dim);
     border-color: var(--border-accent);
 }
 
-/* Rank tiers */
-.leader-row.row-top5  { border: 1px solid rgba(245, 158, 11, 0.35); }
-.leader-row.row-top10 { border: 1px solid rgba(148, 163, 184, 0.2); }
-.leader-row.row-rest  { opacity: 0.70; }
+.leader-row.row-top5  { border-color: rgba(245,158,11,0.25); }
+.leader-row.row-top10 { border-color: rgba(148,163,184,0.15); }
+.leader-row.row-rest  { opacity: 0.65; }
 
 .l-rank {
     font-family: var(--font-display);
     font-weight: 900;
     color: var(--text-faint);
-    width: 38px;
+    width: 36px;
     font-size: 14px;
     flex-shrink: 0;
 }
+
+.leader-row.you .l-rank { color: var(--accent); }
 
 .l-team {
     flex: 1;
@@ -341,28 +347,22 @@ body {
     padding-right: 8px;
 }
 
-/* Points in list rows — muted until earned */
 .l-pts {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 14px;
-    color: var(--text-faint);   /* muted default */
+    font-size: 13px;
+    color: var(--text-faint);
     flex-shrink: 0;
-    margin-right: 8px;
-    transition: color var(--duration-base) var(--ease-out);
+    margin-right: 6px;
 }
 
-/* Add has-pts in JS when total_points > 0 */
-.l-pts.has-pts {
-    color: var(--accent);
-}
+.l-pts.has-pts { color: var(--accent); }
 
 .l-arrow {
     color: var(--text-ghost);
     font-size: 10px;
     flex-shrink: 0;
 }
-
 
 /* ─── TIER SHIMMER (history rows) ────────────────── */
 .tier-gold   { border: 2px solid #ffd700 !important; position: relative; overflow: hidden; }
