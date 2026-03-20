@@ -140,22 +140,41 @@ body.loading-state .app-container        { display: none !important; }
     padding: 14px 16px 10px;
 }
 
-.progress-track {
-    width: 100%;
-    height: 4px;
-    background: var(--bg-card);
-    border-radius: 10px;
-    overflow: hidden;
+/* ─── TEAM DOTS ROW ──────────────────────────────── */
+.team-dots-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 12px;
+    gap: 4px;
 }
 
-.progress-fill {
-    height: 100%;
-    width: 0%;
-    background: var(--accent);
-    border-radius: 10px;
-    transition: width 0.3s ease;
-    box-shadow: 0 0 8px var(--accent-glow);
+.team-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    border: 1.5px solid var(--border-card);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.team-dot.filled {
+    border-color: var(--accent);
+    transform: scale(1.08);
+}
+
+.team-dot.no-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--accent);
 }
 
 .progress-labels {

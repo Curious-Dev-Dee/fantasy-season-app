@@ -181,7 +181,39 @@ function calcStats() {
     return { count: selected.length, overseas, credits, roles, liveSubs, isOverLimit, isResetMatch };
 }
 
+function renderTeamDots() {
+    const container = document.getElementById("teamDotsRow");
+    if (!container) return;
+
+    const bucket = supabase.storage.from("team-logos");
+    const frag = document.createDocumentFragment();
+
+    for (let i = 0; i < 11; i++) {
+        const player = state.selectedPlayers[i];
+        const dot = document.createElement("div");
+        dot.className = "team-dot";
+
+        if (player) {
+            const team = state.realTeamsMap[player.real_team_id];
+            if (team?.photo_name) {
+                const url = bucket.getPublicUrl(team.photo_name).data.publicUrl;
+                dot.style.backgroundImage = `url('${url}')`;
+                dot.classList.add("filled");
+            } else {
+                dot.classList.add("filled", "no-logo");
+                dot.textContent = team?.short_code?.[0] || "?";
+            }
+        }
+
+        frag.appendChild(dot);
+    }
+
+    container.innerHTML = "";
+    container.appendChild(frag);
+}
+
 function updateDashboard(stats) {
+    renderTeamDots();
     const minReqs = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
 
     // Role counts + colour
