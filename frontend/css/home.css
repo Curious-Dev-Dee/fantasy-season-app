@@ -631,3 +631,185 @@ body.loaded #loadingOverlay {
     animation: none !important;
   }
 }
+
+/* ─── SPONSORS SECTION ───────────────────────────── */
+.sponsors-section {
+  border-top: 1px solid var(--border);
+  padding: 24px 0 16px;
+  margin-top: 8px;
+}
+
+.sponsors-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.sponsors-header::before,
+.sponsors-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-card);
+}
+
+.sponsors-header-text {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--text-faint);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Title sponsor block */
+.sponsor-title-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.sponsor-cat-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+  display: block;
+}
+
+.ajak-logo-mark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ajak-wordmark {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 900;
+  color: var(--rank-color);
+  letter-spacing: 4px;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(124,196,255,0.3);
+}
+
+.ajak-sub {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ajak-tagline {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Prize sponsors block */
+.sponsor-prize-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+}
+
+.prize-sponsors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.prize-sponsor-cell {
+  padding: 14px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.prize-sponsor-cell:first-child {
+  border-right: 1px solid var(--border);
+}
+
+.att-logo, .ffs-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.att-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 6px rgba(245,158,11,0.4));
+}
+
+.att-wordmark {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.att-tagline, .ffs-tagline {
+  font-family: var(--font-body);
+  font-size: 9px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.ffs-monogram {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 900;
+  color: #fb923c;
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px rgba(251,146,60,0.35);
+  line-height: 1;
+}
+
+.ffs-wordmark {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.cell-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--border-card);
+  margin: 2px auto;
+}
+
+.sponsors-footer {
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 6px;
+  line-height: 1.6;
+}
