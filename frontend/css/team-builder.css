@@ -673,6 +673,10 @@ body.loading-state .app-container        { display: none !important; }
     font-weight: 800;
 }
 
+.b-count-locked {
+    background: var(--text-faint);
+}
+
 .booster-list {
     display: flex;
     flex-direction: column;
@@ -694,6 +698,11 @@ body.loading-state .app-container        { display: none !important; }
 .booster-row.active {
     border-color: var(--accent);
     background: var(--accent-dim);
+}
+
+.booster-row.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 .booster-row.used {

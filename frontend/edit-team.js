@@ -563,11 +563,11 @@ function renderBoosterUI() {
     const container = document.getElementById("boosterContainer");
     if (!container) return;
 
-    const inWindow = state.currentMatchNumber >= BOOSTER_WINDOW_START &&
-                     state.currentMatchNumber <= BOOSTER_WINDOW_END;
-    if (!inWindow) { container.classList.add("hidden"); return; }
-    container.classList.remove("hidden");
+const afterTournament = state.currentMatchNumber > BOOSTER_WINDOW_END;
+if (afterTournament) { container.classList.add("hidden"); return; }
+container.classList.remove("hidden");
 
+const isMatch1 = state.currentMatchNumber < BOOSTER_WINDOW_START;
     const configs = {
         TOTAL_2X:    { name: "Total 2X",    icon: "🚀", desc: "Double points for your entire team" },
         INDIAN_2X:   { name: "Indian 2X",   icon: "🇮🇳", desc: "2x points for all Indian players" },
@@ -586,11 +586,10 @@ function renderBoosterUI() {
         const isActive = state.activeBooster === key;
 
         return `
-            <div class="booster-row ${isActive ? "active" : ""} ${isUsed ? "used" : ""}"
-                 ${isUsed ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
-                <div class="br-icon">${cfg.icon}</div>
+class="booster-row ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 ? "locked" : ""}"${isUsed || isMatch1 ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}                <div class="br-icon">${cfg.icon}</div>
                 <div class="br-info">
                     <span class="br-name">${cfg.name}</span>
+                    
                     <span class="br-desc">${cfg.desc}</span>
                     ${isUsed ? '<span class="br-used-tag">USED</span>' : ""}
                 </div>
@@ -604,8 +603,10 @@ function renderBoosterUI() {
         <div class="booster-list-wrap">
             <div class="booster-list-header">
                 <span class="b-title">BOOSTERS</span>
-                <span class="b-count">${boostersLeft} left</span>
-            </div>
+${isMatch1
+    ? '<span class="b-count b-count-locked">Available from Match 2</span>'
+    : `<span class="b-count">${boostersLeft} left</span>`
+}            </div>
             <div class="booster-list">${rows}</div>
         </div>`;
 }
