@@ -354,8 +354,7 @@ async function openTeamScout(userId, matchId) {
             const pts2      = document.createElement("div");
             pts2.className  = "sheet-row-pts";
             pts2.textContent = `${p.isPOM ? "🌟 " : ""}${p.pts} pts`;
-            if (p.isPOM) pts2.style.color = "var(--fun-cyan)";
-
+if (p.isPOM) pts2.style.color = "var(--fun-cyan)";
             row.append(av2, info2, pts2);
             body.appendChild(row);
         });
@@ -1141,9 +1140,10 @@ function renderAllStarsLeaderboard(panel, rows) {
         name.className = "as-lb-name";
         name.textContent = row.team_name || "Expert";
 
-        const pts      = document.createElement("span");
-        pts.className  = "as-lb-pts";
-        pts.textContent = `${row.total_allstar_points} pts`;
+const pts      = document.createElement("span");
+pts.className  = `as-lb-pts${row.total_allstar_points > 0 ? " has-pts" : ""}`;
+pts.textContent = `${row.total_allstar_points} pts`;
+
 
         el.append(rank, name, pts);
         section.appendChild(el);
@@ -1639,9 +1639,9 @@ async function loadDailyLeaderboard(matchId) {
         name.className = "as-lb-name";
         name.textContent = row.team_name || "Expert";
 
-        const pts      = document.createElement("span");
-        pts.className  = "as-lb-pts";
-        pts.textContent = `${row.total_daily_points} pts`;
+const pts      = document.createElement("span");
+pts.className  = `as-lb-pts${row.total_daily_points > 0 ? " has-pts" : ""}`;
+pts.textContent = `${row.total_daily_points} pts`;
 
         el.append(rank, name, pts);
         section.appendChild(el);
