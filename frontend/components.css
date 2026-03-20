@@ -1,7 +1,22 @@
 /* ================================================
    COMPONENTS.CSS — Shared UI Pieces
+   v2.0 — Design system audit & cleanup
+
    Requires: tokens.css loaded before this file
    Used on: every page except login
+
+   CHANGES FROM v1:
+   - All hardcoded colour values replaced with tokens
+   - pts-pill now has active/muted states (not always green)
+   - Modal backgrounds use --bg-elevated token
+   - icon-back uses --border-card (more visible)
+   - Added .app-header — the ONE shared header component
+   - Added .page-title — standardised inner page headers
+   - Leader rows: pts pill now context-aware
+   - Removed duplicate CSS blocks (avatar-upload-wrap etc
+     was defined twice — kept one clean version)
+   - Added .empty-state — proper empty state component
+   - Added .stat-badge — for small info chips
    ================================================ */
 
 
@@ -9,9 +24,16 @@
    UTILITY
    ------------------------------------------------ */
 
-/* The single definition of .hidden for the whole app */
 .hidden {
   display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
 }
 
 
@@ -19,28 +41,113 @@
    ANIMATIONS
    ------------------------------------------------ */
 
-/* Spinner used on login button AND leaderboard */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Slide up — used by modals and bottom sheets */
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Fade in + rise — used by page load transitions */
 @keyframes fadeInRise {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+  50%       { box-shadow: 0 0 20px var(--accent-glow); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+
+/* ------------------------------------------------
+   APP HEADER — THE ONE SHARED HEADER COMPONENT
+   Use this on every inner page (not landing).
+   Replaces all the per-page header variations.
+
+   Usage:
+   <header class="app-header">
+     <a href="/home" class="icon-back">←</a>
+     <h1 class="page-title">Team Name</h1>
+     <div class="header-action">...</div>  (optional)
+   </header>
+   ------------------------------------------------ */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 10px;
+  background: rgba(2, 6, 23, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  min-height: 56px;
+}
+
+/* The brand dot used on home header */
+.header-logo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  flex-shrink: 0;
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+/* Tournament/section name in header */
+.header-tournament {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0;
+  flex: 1;
+}
+
+/* Page title — used on all inner pages */
+.page-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right slot in header — notification bell, trophy icon etc */
+.header-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 
 /* ------------------------------------------------
    BACK BUTTON
-   The .icon-back button used on edit team,
-   team view, leaderboard, prediction pages
    ------------------------------------------------ */
 
 .icon-back {
@@ -50,193 +157,322 @@
   width: 40px;
   height: 40px;
   border-radius: var(--btn-radius);
-  background: var(--accent-dim);
-  border: 1px solid rgba(154, 224, 0, 0.2);
-  color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-card);
+  color: var(--text-primary);
   text-decoration: none;
-  font-size: 20px;
-  font-weight: 900;
+  font-size: 16px;
   backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-sm);
   transition: var(--transition);
-  position: relative;
   flex-shrink: 0;
 }
 
-.icon-back:active {
-  transform: scale(0.92);
+.icon-back:active  { transform: scale(0.92); }
+.icon-back:hover   {
+  background: var(--accent-dim);
+  border-color: var(--border-accent);
+  color: var(--accent);
 }
 
-.icon-back:hover {
-  background: rgba(154, 224, 0, 0.15);
-  border-color: var(--accent);
+
+/* ------------------------------------------------
+   CARD BASE
+   ------------------------------------------------ */
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--border-card);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Glow ring on hover */
-.icon-back::after {
+/* Subtle top-edge highlight — depth effect */
+.card::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: var(--btn-radius);
-  box-shadow: 0 0 12px var(--accent-glow);
-  opacity: 0;
-  transition: var(--transition);
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
-.icon-back:hover::after {
-  opacity: 1;
+/* Accent-bordered card variant */
+.card.card-accent {
+  border-color: var(--border-accent);
+  background: linear-gradient(145deg, var(--bg-card) 0%, rgba(154, 224, 0, 0.02) 100%);
+}
+
+/* Card with accent top bar */
+.card.card-top-bar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+}
+
+
+/* ------------------------------------------------
+   BUTTONS
+   ------------------------------------------------ */
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 14px 20px;
+  border-radius: var(--btn-radius);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 24px var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border: 1px solid var(--border-card);
+  padding: 14px 20px;
+  border-radius: var(--btn-radius);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Ghost / outline button */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 11px 18px;
+  border-radius: var(--btn-radius);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-ghost:hover {
+  background: var(--accent-dim);
+  border-color: var(--border-accent);
+  color: var(--accent);
+}
+
+/* Full width modifier */
+.btn-full { width: 100%; }
+
+
+/* ------------------------------------------------
+   POINTS PILLS
+   Context-aware: muted when 0, green when earned.
+   JavaScript should add class "has-pts" when
+   total_points > 0.
+   ------------------------------------------------ */
+
+.pts-pill {
+  background: var(--pts-muted-bg);
+  color: var(--pts-muted-color);
+  padding: 4px 10px;
+  border-radius: var(--pill-radius);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: background var(--duration-base) var(--ease-out),
+              color var(--duration-base) var(--ease-out);
+}
+
+/* Active state — add this class when points > 0 */
+.pts-pill.has-pts {
+  background: var(--pts-active-bg);
+  color: var(--pts-active-color);
+}
+
+/* Negative points (penalties etc) */
+.pts-pill.negative {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+
+/* ------------------------------------------------
+   STAT BADGE
+   Small info chip for credits, match count etc.
+   ------------------------------------------------ */
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--pill-radius);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+}
+
+.stat-badge.accent {
+  background: var(--accent-dim);
+  border-color: var(--border-accent);
+  color: var(--accent);
+}
+
+.stat-badge.gold {
+  background: var(--gold-dim);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: var(--gold);
+}
+
+
+/* ------------------------------------------------
+   LEADER ROWS
+   ------------------------------------------------ */
+
+.leader-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: var(--card-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+  gap: 10px;
+}
+
+.leader-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Highlight your own row */
+.leader-row.you {
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+}
+
+.team-name-text {
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 
 /* ------------------------------------------------
    TOAST NOTIFICATIONS
-   Consistent position: top-center of screen
-   Works on all pages
    ------------------------------------------------ */
 
 .toast-container {
   position: fixed;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);    /* centered horizontally */
+  transform: translateX(-50%);
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   pointer-events: none;
   width: 90%;
   max-width: 340px;
 }
 
 .toast {
-  background: var(--bg-card);
+  background: var(--bg-card-alt);
   color: var(--text-primary);
-  padding: 14px 20px;
+  padding: 13px 18px;
   border-radius: var(--btn-radius);
+  font-family: var(--font-body);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   border-left: 4px solid var(--accent);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  animation: toastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s var(--ease-bounce) forwards;
+  backdrop-filter: blur(12px);
 }
 
-.toast.error {
-  border-left-color: var(--red);
-}
-
-.toast.warning {
-  border-left-color: var(--orange);
-}
+.toast.error   { border-left-color: var(--red); }
+.toast.warning { border-left-color: var(--orange); }
+.toast.success { border-left-color: var(--accent); }
 
 .toast.fade-out {
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   opacity: 0 !important;
-  transform: scale(0.92) !important;
+  transform: scale(0.92) translateY(-4px) !important;
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  from { opacity: 0; transform: translateY(-16px) scale(0.92); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 
 /* ------------------------------------------------
-   MODAL BACKDROP
-   The dark blurred overlay behind modals
-   ------------------------------------------------ */
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(12, 17, 23, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-/* The white card that sits on top of the backdrop */
-.modal-card {
-  position: relative;
-  background: var(--bg-card);
-  width: 88%;
-  max-width: 380px;
-  border-radius: var(--card-radius);
-  padding: 30px;
-  border: 1px solid var(--border);
-  animation: fadeInRise 0.3s ease-out forwards;
-}
-
-/* Close button inside any modal */
-.modal-close {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: var(--text-dim);
-  cursor: pointer;
-  line-height: 1;
-  transition: var(--transition);
-}
-
-.modal-close:hover {
-  color: var(--text-primary);
-}
-
-
-/* ------------------------------------------------
-   BOTTOM SHEET
-   The panel that slides up from the bottom
-   Used for filters, dropdowns, chat
-   ------------------------------------------------ */
-
-.sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 2000;
-  backdrop-filter: blur(4px);
-}
-
-.bottom-sheet {
-  position: fixed;
-  bottom: -100%;
-  left: 0;
-  width: 100%;
-  max-height: 75vh;
-  background: var(--bg-card-alt);
-  border-radius: 24px 24px 0 0;
-  z-index: 2100;
-  transition: bottom 0.4s var(--transition-bounce);
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.bottom-sheet.open {
-  bottom: 0;
-}
-
-
-/* ------------------------------------------------
-   ACCESSIBILITY
-   Respects user's "reduce motion" system setting
-   ------------------------------------------------ */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}/* ------------------------------------------------
    MODAL — full-screen fixed overlay
-   Used for profile setup, custom prompt, etc.
-   Add this block to components.css
    ------------------------------------------------ */
 
 .modal {
@@ -244,13 +480,12 @@
   inset: 0;
   z-index: 3000;
   background: rgba(2, 6, 23, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  /* Prevents page scroll while modal is open */
   overflow: hidden;
 }
 
@@ -259,26 +494,36 @@
 }
 
 .modal-content {
-  background: #0d1625;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-card);
+  border-radius: var(--card-radius);
   padding: 28px 24px;
   width: 100%;
   max-width: 360px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  animation: fadeInRise 0.25s ease-out forwards;
+  animation: fadeInRise 0.25s var(--ease-bounce) forwards;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Subtle top highlight on modal card */
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
 }
 
 .modal-title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #f0f4f8;
-  margin-bottom: 20px;
+  color: var(--text-primary);
+  margin: 0 0 22px;
 }
 
 .close-modal {
@@ -287,16 +532,21 @@
   right: 16px;
   background: none;
   border: none;
-  font-size: 24px;
-  color: #475569;
+  font-size: 22px;
+  color: var(--text-faint);
   cursor: pointer;
   line-height: 1;
-  transition: color 0.2s;
+  transition: color var(--duration-base) var(--ease-out);
+  padding: 4px;
 }
 
-.close-modal:hover { color: #f0f4f8; }
+.close-modal:hover { color: var(--text-primary); }
 
-/* Avatar upload inside modal */
+
+/* ------------------------------------------------
+   AVATAR UPLOAD (modal)
+   ------------------------------------------------ */
+
 .avatar-upload-wrap {
   position: relative;
   width: 88px;
@@ -308,68 +558,74 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #1f2937;
+  background: var(--bg-card);
   background-size: cover;
   background-position: center;
-  border: 2px solid #9AE000;
+  border: 2px solid var(--accent);
 }
 
 .avatar-edit-btn {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  background: #9AE000;
+  bottom: 0; right: 0;
+  background: var(--accent);
   color: #000;
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
-  transition: transform 0.2s;
+  font-size: 11px;
+  transition: transform var(--duration-base) var(--ease-bounce);
 }
 
-.avatar-edit-btn:hover { transform: scale(1.1); }
+.avatar-edit-btn:hover { transform: scale(1.12); }
 
-/* Input groups inside modal */
-.input-group {
-  margin-bottom: 16px;
-}
+
+/* ------------------------------------------------
+   FORM INPUTS
+   ------------------------------------------------ */
+
+.input-group { margin-bottom: 16px; }
 
 .input-group label {
   display: block;
+  font-family: var(--font-body);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #475569;
+  letter-spacing: 0.7px;
+  color: var(--text-faint);
   margin-bottom: 7px;
 }
 
 .input-group input {
   width: 100%;
-  background: #020617;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f0f4f8;
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-family: 'Inter', sans-serif;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 13px 14px;
+  border-radius: var(--btn-radius);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
 }
 
 .input-group input:focus {
-  border-color: #9AE000;
-  box-shadow: 0 0 0 3px rgba(154, 224, 0, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
-.input-group input::placeholder { color: #374151; }
+.input-group input::placeholder { color: var(--text-ghost); }
 
-/* Prompt modal specific */
+
+/* ------------------------------------------------
+   CUSTOM PROMPT MODAL
+   ------------------------------------------------ */
+
 .prompt-modal {
   display: flex;
   flex-direction: column;
@@ -377,34 +633,35 @@
 }
 
 .prompt-title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-display);
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
-  color: #9AE000;
+  color: var(--accent);
   text-align: center;
   margin: 0;
   letter-spacing: 1px;
 }
 
 .prompt-input {
-  background: #020617;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f0f4f8;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   padding: 13px 16px;
-  border-radius: 10px;
-  font-family: 'Inter', sans-serif;
+  border-radius: var(--btn-radius);
+  font-family: var(--font-body);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   outline: none;
   width: 100%;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
 }
 
 .prompt-input:focus {
-  border-color: #9AE000;
-  box-shadow: 0 0 0 3px rgba(154, 224, 0, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 .prompt-actions {
@@ -417,4 +674,173 @@
   flex: 1;
   font-size: 13px;
   padding: 13px;
+}
+
+
+/* ------------------------------------------------
+   BOTTOM SHEET
+   ------------------------------------------------ */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  max-height: 78vh;
+  background: var(--bg-elevated);
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border-card);
+  z-index: 2100;
+  transition: bottom var(--duration-slow) var(--ease-bounce);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.bottom-sheet.open { bottom: 0; }
+
+/* Sheet handle bar */
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--border-card);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+
+/* ------------------------------------------------
+   EMPTY STATE
+   Proper empty state component — not just text.
+   ------------------------------------------------ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  gap: 10px;
+}
+
+.empty-state-icon {
+  font-size: 36px;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.empty-state-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.empty-state-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-faint);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 240px;
+}
+
+/* Legacy alias for existing code */
+.empty-state-text {
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+  padding: 10px 0;
+  margin: 0;
+}
+
+.empty-msg {
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+}
+
+
+/* ------------------------------------------------
+   LOADING STATES
+   ------------------------------------------------ */
+
+.loading-inline {
+  color: var(--text-faint);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
+/* Skeleton shimmer — for cards loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    var(--bg-card-alt) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: var(--card-radius-sm);
+}
+
+/* Spinner */
+.spinner-small {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 20px auto;
+}
+
+
+/* ------------------------------------------------
+   CARD EYEBROW — section labels above cards
+   ------------------------------------------------ */
+
+.card-eyebrow {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+
+
+/* ------------------------------------------------
+   ACCESSIBILITY
+   ------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

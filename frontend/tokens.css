@@ -1,49 +1,187 @@
 /* ================================================
    TOKENS.CSS — Single Source of Truth
-   Import this FIRST in every HTML page:
+   v2.0 — Full design system audit & cleanup
+
+   CHANGES FROM v1:
+   - Added --font-display for Barlow Condensed
+   - Added --font-body for DM Sans (replaces Inter)
+   - Standardised ALL background values (was 5 different darks)
+   - Added --bg-page (true page background, was hardcoded #020617)
+   - Added --bg-modal (was hardcoded #0d1625 in components)
+   - Added --accent-2 for cyan (was used raw everywhere)
+   - Removed --blue (replaced by --accent-2, --rank-color)
+   - Added --rank-color for rank displays (single source)
+   - Added shadow tokens
+   - Added --pts-muted for zero/empty point pills
+   - Added --border-card for card borders (stronger than --border-subtle)
+   - Tightened animation token names
+
+   Import FIRST in every HTML page:
    <link rel="stylesheet" href="tokens.css">
    ================================================ */
 
 :root {
 
-  /* --- BRAND COLORS --- */
-  --accent:      #9AE000;
-  --accent-dim:  rgba(154, 224, 0, 0.1);
-  --accent-glow: rgba(154, 224, 0, 0.3);
+  /* ─── BRAND COLORS ─────────────────────────────
+     Green is the ONE primary brand colour.
+     Cyan is accent-2 — used sparingly for secondary
+     highlights only. Never as a page title or primary
+     interactive colour. That belongs to green only.
+  ─────────────────────────────────────────────── */
+  --accent:       #9AE000;
+  --accent-dim:   rgba(154, 224, 0, 0.09);
+  --accent-mid:   rgba(154, 224, 0, 0.18);
+  --accent-glow:  rgba(154, 224, 0, 0.28);
 
-  /* --- BACKGROUNDS --- */
-  --bg-dark:     #0c1117;
-  --bg-card:     #1e293b;
-  --bg-card-alt: #111827;
-  --bg-input:    #0c1117;
+  --accent-2:     #00f2ff;             /* cyan — secondary accent only */
+  --accent-2-dim: rgba(0, 242, 255, 0.08);
+  --accent-2-mid: rgba(0, 242, 255, 0.16);
 
-  /* --- BORDERS --- */
-  --border:        #334155;
-  --border-subtle: rgba(255, 255, 255, 0.08);
 
-  /* --- TEXT --- */
-  --text-primary: #ffffff;
+  /* ─── BACKGROUNDS ──────────────────────────────
+     HIERARCHY (darkest to lightest):
+     --bg-page      → true page background (body)
+     --bg-card      → primary card surface
+     --bg-card-alt  → secondary card / nested surface
+     --bg-elevated  → modals, overlays, sheets
+     --bg-input     → form inputs
+
+     Previously: 5 different hardcoded dark values
+     were scattered across files. Now one source.
+  ─────────────────────────────────────────────── */
+  --bg-page:     #020617;   /* body background */
+  --bg-card:     #0d1625;   /* primary cards */
+  --bg-card-alt: #111e30;   /* secondary / nested cards */
+  --bg-elevated: #0d1a2d;   /* modals, bottom sheets */
+  --bg-input:    #020617;   /* input fields */
+
+  /* Legacy alias — keep for any files not yet updated */
+  --bg-dark: #020617;
+
+
+  /* ─── BORDERS ──────────────────────────────────
+     Three levels of border intensity:
+     --border-card   → visible card edge (stronger)
+     --border        → standard border
+     --border-subtle → barely-there separator
+  ─────────────────────────────────────────────── */
+  --border-card:   rgba(255, 255, 255, 0.10);
+  --border:        rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+
+  /* Accent-tinted border — for highlighted cards */
+  --border-accent: rgba(154, 224, 0, 0.20);
+  --border-accent-strong: rgba(154, 224, 0, 0.35);
+
+
+  /* ─── TEXT ─────────────────────────────────────
+     Four levels of text weight:
+     primary → headings, values, labels you must read
+     dim     → secondary info, subtitles
+     faint   → hints, timestamps, eyebrows
+     ghost   → placeholders, disabled states
+  ─────────────────────────────────────────────── */
+  --text-primary: #f0f4f8;
   --text-dim:     #94a3b8;
   --text-faint:   #64748b;
+  --text-ghost:   #334155;
 
-  /* --- SEMANTIC COLORS --- */
-  --red:    #ef4444;
-  --orange: #fb923c;
-  --gold:   #f59e0b;
-  --blue:   #7cc4ff;
-  --cyan:   #00f2ff;   /* prediction page accent — added to tokens */
 
-  /* --- LAYOUT --- */
+  /* ─── SEMANTIC COLORS ──────────────────────────
+     Each colour has ONE job.
+     --red    → errors, negative points, danger actions
+     --orange → warnings, delays, caution states
+     --gold   → milestones, stars, achievements
+     --rank-color → rank displays ONLY (replaces --blue)
+     --accent-2   → Fun Zone secondary, add buttons (see above)
+
+     Previously --blue was #7cc4ff used only for rank
+     display. Renamed to --rank-color for clarity.
+  ─────────────────────────────────────────────── */
+  --red:         #ef4444;
+  --red-dim:     rgba(239, 68, 68, 0.10);
+  --orange:      #fb923c;
+  --orange-dim:  rgba(251, 146, 60, 0.10);
+  --gold:        #f59e0b;
+  --gold-dim:    rgba(245, 158, 11, 0.10);
+  --rank-color:  #7cc4ff;   /* rank #1, #2, #3 displays */
+
+
+  /* ─── POINTS PILL SYSTEM ───────────────────────
+     Points pills need TWO states:
+     --pts-active → when user has real points (green)
+     --pts-muted  → when points = 0 or pre-season (grey)
+
+     Previously: bright green pills on "0 pts" were
+     visually screaming for zero-value information.
+     Now zero = muted, earned = green.
+  ─────────────────────────────────────────────── */
+  --pts-active-bg:    rgba(154, 224, 0, 0.10);
+  --pts-active-color: #9AE000;
+  --pts-muted-bg:     rgba(255, 255, 255, 0.05);
+  --pts-muted-color:  #64748b;
+
+
+  /* ─── TYPOGRAPHY ───────────────────────────────
+     --font-display → Barlow Condensed
+       Use for: headings, team names, stat numbers,
+       match labels, buttons, badges, nav labels
+       Weight range: 600–900
+
+     --font-body    → DM Sans
+       Use for: body copy, descriptions, meta text,
+       tooltips, input labels
+       Weight range: 300–600
+
+     Previously: Inter was the body font but it's
+     too generic for a premium sports product.
+     DM Sans is geometric, sporty, slightly condensed
+     — pairs better with Barlow Condensed.
+
+     HTML pages need:
+     <link href="https://fonts.googleapis.com/css2?
+       family=Barlow+Condensed:wght@600;700;800;900&
+       family=DM+Sans:wght@300;400;500;600&display=swap"
+       rel="stylesheet">
+  ─────────────────────────────────────────────── */
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body:    'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Legacy alias — keep until all files updated */
+  --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+
+  /* ─── LAYOUT ───────────────────────────────────  */
   --nav-height:    65px;
   --app-max-width: 480px;
-  --card-radius:   20px;
+  --card-radius:   18px;    /* was 20px — slightly tighter */
+  --card-radius-sm: 12px;   /* for inner cards, chips, pills */
   --btn-radius:    12px;
+  --pill-radius:   20px;    /* for badges, pills, chips */
 
-  /* --- ANIMATION --- */
-  --transition:        all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-  /* --- FONT --- */
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* ─── SHADOWS ──────────────────────────────────
+     Previously no shadow tokens — values were
+     scattered inline across multiple files.
+  ─────────────────────────────────────────────── */
+  --shadow-sm:   0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md:   0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg:   0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+
+
+  /* ─── ANIMATION ────────────────────────────────  */
+  --ease-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast:   150ms;
+  --duration-base:   250ms;
+  --duration-slow:   400ms;
+
+  /* Legacy aliases */
+  --transition:        all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
 }

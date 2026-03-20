@@ -181,7 +181,7 @@ async function fetchHomeData(userId) {
         currentUserOverallRank = dash.user_rank || Infinity;
 
         if (dash.subs_remaining === 999) {
-            if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "#9AE000"; }
+if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "var(--accent)"; }
         } else {
             if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 145; subsElement.style.color = ""; }
         }
@@ -341,9 +341,9 @@ async function loadLeaderboardPreview() {
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
 
-            const ptsPill      = document.createElement("span");
-            ptsPill.className  = "pts-pill";
-            ptsPill.textContent = `${row.total_points} pts`;
+const ptsPill      = document.createElement("span");
+ptsPill.className  = `pts-pill${row.total_points > 0 ? " has-pts" : ""}`;
+ptsPill.textContent = `${row.total_points} pts`;
 
             rowDiv.append(rankSpan, ptsPill);
             if (row.rank <= 3) applyRankFlair(null, nameStrong, row.rank);
@@ -398,7 +398,7 @@ async function fetchPrivateLeagueData(userId) {
             navigator.clipboard.writeText(m.leagues.invite_code);
             const original = inviteCodeEl.textContent;
             inviteCodeEl.textContent = "COPIED!";
-            inviteCodeEl.style.color = "#9AE000";
+inviteCodeEl.style.color = "var(--accent)";
             setTimeout(() => { inviteCodeEl.textContent = original; inviteCodeEl.style.color = ""; }, 2000);
         };
     }
@@ -434,8 +434,8 @@ async function fetchPrivateLeagueData(userId) {
             rankSpan.append(rankTxt, nameStrong);
 
             const ptsPill      = document.createElement("span");
-            ptsPill.className  = "pts-pill";
-            ptsPill.textContent = `${row.total_points} pts`;
+ptsPill.className  = `pts-pill${row.total_points > 0 ? " has-pts" : ""}`;
+ptsPill.textContent = `${row.total_points} pts`;
 
             rowDiv.append(rankSpan, ptsPill);
             if (row.rank_in_league <= 3) applyRankFlair(null, nameStrong, row.rank_in_league);
