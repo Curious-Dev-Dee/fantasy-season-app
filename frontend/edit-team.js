@@ -585,11 +585,14 @@ const isMatch1 = state.currentMatchNumber < BOOSTER_WINDOW_START;
         const isUsed   = state.usedBoosters.includes(key);
         const isActive = state.activeBooster === key;
 
-        return `
-class="booster-row ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 ? "locked" : ""}"${isUsed || isMatch1 ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}                <div class="br-icon">${cfg.icon}</div>
+       return `
+    <div class='booster-row ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 ? "locked" : ""}'
+         ${isUsed || isMatch1 ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
+                       
+  <div class="br-icon">${cfg.icon}</div>
                 <div class="br-info">
                     <span class="br-name">${cfg.name}</span>
-                    
+
                     <span class="br-desc">${cfg.desc}</span>
                     ${isUsed ? '<span class="br-used-tag">USED</span>' : ""}
                 </div>
