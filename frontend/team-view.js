@@ -236,9 +236,9 @@ function createHistoryRow(snapshot, totalPoints) {
     const right = document.createElement("div");
     right.className = "h-right";
 
-    const ptsPill = document.createElement("span");
-    ptsPill.className   = "h-pts-pill";
-    ptsPill.textContent = `${totalPoints} pts`;
+const ptsPill = document.createElement("span");
+ptsPill.className   = `h-pts-pill${totalPoints > 0 ? " has-pts" : ""}`;
+ptsPill.textContent = `${totalPoints} pts`;
 
     const subsPill = document.createElement("span");
     subsPill.className   = "h-subs-pill";

@@ -1,6 +1,20 @@
 /* ================================================
    TEAM-VIEW.CSS
+   v2.0 — Design system audit & cleanup
+
    Requires: tokens.css + components.css
+
+   CHANGES FROM v1:
+   - body font uses --font-body token
+   - body background uses --bg-page token
+   - overlay-content background uses --bg-elevated
+   - All 'Barlow Condensed' strings → var(--font-display)
+   - team-init-label: 7px → 9px (was below readable threshold)
+   - h-pts-pill: always-green → has-pts pattern
+   - spinner-small colours were correct — kept as is
+   - C/VC badge colours intentionally kept:
+     C = green (--accent), VC = blue (--rank-color)
+     This is correct — they must be visually distinct
    ================================================ */
 
 /* ─── PAGE TOKENS ────────────────────────────────── */
@@ -14,8 +28,8 @@
 body, html {
     margin: 0;
     padding: 0;
-    background: #000;
-    font-family: var(--font);
+    background: var(--bg-page);
+    font-family: var(--font-body);
     color: var(--text-primary);
     overflow-x: hidden;
 }
@@ -26,19 +40,25 @@ body, html {
     background:
         repeating-linear-gradient(
             90deg,
-            rgba(0,0,0,0.025) 0px,
-            rgba(0,0,0,0.025) 40px,
+            rgba(0, 0, 0, 0.025) 0px,
+            rgba(0, 0, 0, 0.025) 40px,
             transparent 40px,
             transparent 80px
         ),
-        radial-gradient(circle at center, var(--field-center) 0%, var(--field-mid) 60%, var(--field-edge) 100%);
+        radial-gradient(
+            circle at center,
+            var(--field-center) 0%,
+            var(--field-mid) 60%,
+            var(--field-edge) 100%
+        );
 }
+
 
 /* ─── LOADING OVERLAY ────────────────────────────── */
 #loadingOverlay {
     position: fixed;
     inset: 0;
-    background: #020617;
+    background: var(--bg-page);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -65,7 +85,11 @@ body.loaded #loadingOverlay {
     position: absolute;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, transparent 0%, rgba(154,224,0,0.4) 50%, transparent 100%);
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(154, 224, 0, 0.4) 50%,
+        transparent 100%
+    );
 }
 
 .bowler-pos {
@@ -77,17 +101,17 @@ body.loaded #loadingOverlay {
 
 .cricket-ball {
     position: absolute;
-    width: 14px;
-    height: 14px;
+    width: 14px; height: 14px;
     background: radial-gradient(circle at 35% 35%, #ff4d4d, #990000);
     border-radius: 50%;
-    box-shadow: 0 0 12px rgba(255,77,77,0.6);
+    box-shadow: 0 0 12px rgba(255, 77, 77, 0.6);
     left: 0;
-    animation: bowlingDelivery 1.8s infinite cubic-bezier(0.45,0.05,0.55,0.95);
+    animation: bowlingDelivery 1.8s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }
 
 .loading-text {
     margin-top: 28px;
+    font-family: var(--font-display);
     font-size: 11px;
     font-weight: 900;
     color: var(--accent);
@@ -108,16 +132,17 @@ body.loaded #loadingOverlay {
     to   { opacity: 1;   letter-spacing: 6px; }
 }
 
+
 /* ─── HEADER ─────────────────────────────────────── */
 .premium-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 16px 15px 12px;
-    background: rgba(0,0,0,0.45);
+    padding: 14px 15px 12px;
+    background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -132,24 +157,26 @@ body.loaded #loadingOverlay {
     padding: 0 10px;
 }
 
-/* BUG FIX #8: replaces inline width:40px div */
 .header-spacer { width: 40px; flex-shrink: 0; }
 
 .main-title {
+    font-family: var(--font-display);
     font-size: 18px;
-    font-weight: 800;
+    font-weight: 900;
     margin: 0;
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     line-height: 1.1;
+    color: var(--text-primary);
 }
 
 .booster-indicator-view {
     background: var(--accent);
     color: #000;
     padding: 3px 12px;
-    border-radius: 20px;
+    border-radius: var(--pill-radius);
+    font-family: var(--font-display);
     font-size: 10px;
     font-weight: 900;
     text-transform: uppercase;
@@ -157,7 +184,6 @@ body.loaded #loadingOverlay {
     box-shadow: 0 0 10px var(--accent-glow);
 }
 
-/* BUG FIX #9: replaces inline margin/display on breakdownBooster */
 .breakdown-booster-badge {
     display: block;
     margin: 10px auto 0;
@@ -165,21 +191,23 @@ body.loaded #loadingOverlay {
 }
 
 .countdown-text {
+    font-family: var(--font-body);
     font-size: 11px;
     color: var(--accent);
-    font-weight: 800;
+    font-weight: 700;
     background: var(--accent-dim);
     padding: 3px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(154,224,0,0.2);
+    border: 1px solid var(--border-accent);
 }
 
 .history-trigger {
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.7);
-    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 6px 14px;
-    border-radius: 20px;
+    border-radius: var(--pill-radius);
+    font-family: var(--font-body);
     font-size: 10px;
     font-weight: 700;
     cursor: pointer;
@@ -192,9 +220,10 @@ body.loaded #loadingOverlay {
 }
 
 .history-trigger:active {
-    background: rgba(255,255,255,0.12);
+    background: rgba(255, 255, 255, 0.12);
     transform: scale(0.96);
 }
+
 
 /* ─── XI TOGGLE ──────────────────────────────────── */
 .xi-toggle {
@@ -207,12 +236,14 @@ body.loaded #loadingOverlay {
 .xi-tab {
     padding: 9px 16px;
     border-radius: var(--btn-radius);
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.04);
-    color: rgba(255,255,255,0.5);
-    font-family: var(--font);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.45);
+    font-family: var(--font-display);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
     cursor: pointer;
     transition: var(--transition);
 }
@@ -222,6 +253,7 @@ body.loaded #loadingOverlay {
     color: #000;
     border-color: var(--accent);
 }
+
 
 /* ─── TEAM FIELD ─────────────────────────────────── */
 .team-field {
@@ -236,9 +268,10 @@ body.loaded #loadingOverlay {
     min-height: 24px;
     padding: 0 16px 18px;
     text-align: center;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 700;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.55);
     letter-spacing: 0.04em;
     display: flex;
     align-items: center;
@@ -250,13 +283,15 @@ body.loaded #loadingOverlay {
 
 .role-title {
     text-align: center;
+    font-family: var(--font-display);
     font-size: 9px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 2.5px;
     margin-bottom: 12px;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255, 255, 255, 0.40);
 }
+
 
 /* ─── PLAYER CIRCLES ─────────────────────────────── */
 .player-row {
@@ -276,57 +311,72 @@ body.loaded #loadingOverlay {
 .player-circle:active { transform: scale(0.94); }
 
 .avatar {
-    width: 54px;
-    height: 54px;
+    width: 54px; height: 54px;
     border-radius: 50%;
     margin: 0 auto 6px;
     background: #0f2f22 center/cover;
-    border: 2px solid rgba(255,255,255,0.2);
+    border: 2px solid rgba(255, 255, 255, 0.20);
     position: relative;
 }
 
-.player-circle.captain     .avatar { border-color: var(--accent); box-shadow: 0 0 14px var(--accent-glow); }
-.player-circle.vice-captain .avatar { border-color: var(--blue);   box-shadow: 0 0 12px rgba(124,196,255,0.35); }
+/* C = green, VC = blue — intentionally different, must stay distinct */
+.player-circle.captain      .avatar {
+    border-color: var(--accent);
+    box-shadow: 0 0 14px var(--accent-glow);
+}
 
+.player-circle.vice-captain .avatar {
+    border-color: var(--rank-color);
+    box-shadow: 0 0 12px rgba(124, 196, 255, 0.35);
+}
+
+/*
+   CHANGE: team-init-label was 7px — below minimum readable size.
+   Bumped to 9px. Still compact but actually legible on mobile.
+*/
 .team-init-label {
     position: absolute;
     bottom: -4px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.82);
     color: #fff;
-    font-size: 7px;
+    font-family: var(--font-display);
+    font-size: 9px;
     padding: 2px 5px;
     border-radius: 4px;
     font-weight: 800;
     white-space: nowrap;
+    letter-spacing: 0.3px;
 }
 
 .player-name {
+    font-family: var(--font-body);
     font-size: 10px;
     font-weight: 600;
-    color: rgba(255,255,255,0.9);
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .player-pts {
+    font-family: var(--font-display);
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 900;
     color: var(--accent);
     margin-top: 2px;
 }
 
+
 /* ─── C / VC BADGES ──────────────────────────────── */
 .badge {
     position: absolute;
-    top: -6px;
-    left: 4px;
-    width: 20px;
-    height: 20px;
+    top: -6px; left: 4px;
+    width: 20px; height: 20px;
     border-radius: 50%;
+    font-family: var(--font-display);
     font-size: 10px;
     font-weight: 900;
     display: flex;
@@ -336,14 +386,16 @@ body.loaded #loadingOverlay {
     z-index: 10;
 }
 
+/* C = green, VC = blue — kept intentionally distinct */
 .captain-badge { background: var(--accent); }
-.vice-badge    { background: var(--blue); }
+.vice-badge    { background: var(--rank-color); }
+
 
 /* ─── OVERLAYS ───────────────────────────────────── */
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.82);
+    background: rgba(0, 0, 0, 0.82);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     z-index: 3000;
@@ -351,11 +403,10 @@ body.loaded #loadingOverlay {
     align-items: flex-end;
 }
 
-/* PPL sits above breakdown */
 .overlay-top { z-index: 4000; }
 
 .overlay-content {
-    background: #0c1117;
+    background: var(--bg-elevated);
     width: 100%;
     max-width: 480px;
     height: 90vh;
@@ -363,33 +414,46 @@ body.loaded #loadingOverlay {
     border-radius: 24px 24px 0 0;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--border-subtle);
+    border-top: 1px solid var(--border-card);
     overflow: hidden;
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.3s var(--ease-bounce);
+}
+
+/* Handle bar */
+.overlay-content::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: var(--border-card);
+    border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
 }
 
 .overlay-header {
-    padding: 18px 20px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
 }
 
 .overlay-title {
+    font-family: var(--font-display);
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
     margin: 0;
     color: var(--text-primary);
 }
 
 .close-btn {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-card);
     color: var(--text-dim);
-    width: 32px;
-    height: 32px;
+    width: 32px; height: 32px;
     border-radius: 50%;
     font-size: 20px;
     cursor: pointer;
@@ -400,12 +464,13 @@ body.loaded #loadingOverlay {
     transition: var(--transition);
 }
 
-.close-btn:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+.close-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--text-primary); }
 
 .back-arrow {
     background: transparent;
     border: none;
     color: var(--text-dim);
+    font-family: var(--font-body);
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
@@ -413,7 +478,7 @@ body.loaded #loadingOverlay {
     align-items: center;
     gap: 6px;
     padding: 4px 0;
-    transition: color 0.2s;
+    transition: color var(--duration-base) var(--ease-out);
 }
 
 .back-arrow:hover { color: var(--text-primary); }
@@ -423,7 +488,9 @@ body.loaded #loadingOverlay {
     overflow-y: auto;
     padding: 14px 16px;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
+
 
 /* ─── HISTORY SUMMARY CARDS ──────────────────────── */
 .history-summary {
@@ -435,7 +502,7 @@ body.loaded #loadingOverlay {
 }
 
 .history-summary-card {
-    background: rgba(255,255,255,0.04);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 14px 16px;
@@ -445,47 +512,51 @@ body.loaded #loadingOverlay {
 }
 
 .history-summary-label {
+    font-family: var(--font-body);
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(255,255,255,0.45);
+    color: var(--text-faint);
 }
 
 .history-summary-value {
-    font-size: 20px;
+    font-family: var(--font-display);
+    font-size: 22px;
     font-weight: 900;
     color: var(--accent);
     line-height: 1;
 }
 
+
 /* ─── HISTORY ROWS ───────────────────────────────── */
 .history-row {
-    background: rgba(30,41,59,0.6);
-    padding: 14px 16px;
-    border-radius: 16px;
+    background: rgba(30, 41, 59, 0.6);
+    padding: 13px 15px;
+    border-radius: var(--card-radius-sm);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     border: 1px solid var(--border-subtle);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background var(--duration-fast) var(--ease-out);
     position: relative;
     overflow: hidden;
 }
 
-.history-row:hover { background: rgba(30,41,59,0.9); }
+.history-row:hover { background: rgba(30, 41, 59, 0.9); }
 
 .h-left {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     flex: 1;
     min-width: 0;
 }
 
 .h-m-num {
+    font-family: var(--font-display);
     font-size: 11px;
     font-weight: 800;
     color: var(--text-dim);
@@ -498,10 +569,11 @@ body.loaded #loadingOverlay {
     align-items: center;
     width: fit-content;
     padding: 2px 8px;
-    border-radius: 20px;
+    border-radius: var(--pill-radius);
     background: var(--accent-dim);
-    border: 1px solid rgba(154,224,0,0.3);
+    border: 1px solid var(--border-accent);
     color: var(--accent);
+    font-family: var(--font-display);
     font-size: 9px;
     font-weight: 800;
     text-transform: uppercase;
@@ -509,6 +581,7 @@ body.loaded #loadingOverlay {
 }
 
 .h-teams {
+    font-family: var(--font-body);
     font-size: 13px;
     font-weight: 700;
     color: var(--text-primary);
@@ -517,7 +590,6 @@ body.loaded #loadingOverlay {
     text-overflow: ellipsis;
 }
 
-/* BUG FIX #6: Two separate styled chips replace the '|| *' hack */
 .h-right {
     display: flex;
     flex-direction: column;
@@ -527,49 +599,61 @@ body.loaded #loadingOverlay {
     padding-left: 12px;
 }
 
+/*
+   Points pill: muted when 0, green when earned.
+   Add has-pts class in JS when totalPoints > 0.
+*/
 .h-pts-pill {
-    background: var(--accent-dim);
-    color: var(--accent);
+    background: var(--pts-muted-bg);
+    color: var(--pts-muted-color);
+    font-family: var(--font-display);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 900;
     padding: 3px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(154,224,0,0.2);
+    border-radius: var(--pill-radius);
+    border: 1px solid var(--border);
     white-space: nowrap;
+    transition: background var(--duration-base) var(--ease-out),
+                color var(--duration-base) var(--ease-out);
+}
+
+.h-pts-pill.has-pts {
+    background: var(--pts-active-bg);
+    color: var(--pts-active-color);
+    border-color: var(--border-accent);
 }
 
 .h-subs-pill {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-faint);
+    font-family: var(--font-body);
     font-size: 10px;
     font-weight: 700;
     padding: 2px 8px;
-    border-radius: 20px;
+    border-radius: var(--pill-radius);
     border: 1px solid var(--border-subtle);
     white-space: nowrap;
 }
 
 .h-arrow {
-    font-size: 11px;
-    color: var(--text-faint);
+    font-size: 10px;
+    color: var(--text-ghost);
     margin-top: 2px;
 }
+
 
 /* ─── TIER BORDERS ───────────────────────────────── */
 .tier-gold   { border: 2px solid #ffd700 !important; }
 .tier-silver { border: 2px solid #c0c0c0 !important; }
-.tier-bronze { border: 1px solid rgba(205,127,50,0.35) !important; opacity: 0.85; }
+.tier-bronze { border: 1px solid rgba(205, 127, 50, 0.35) !important; opacity: 0.85; }
 
-/* BUG FIX #10: Sweep now animates translateX — GPU composited, not 'left' which triggers layout */
 .tier-gold::after,
 .tier-silver::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    top: 0; left: 0;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
     transform: skewX(-20deg) translateX(-200%);
     animation: sweep var(--sweep-dur, 4s) ease-in-out infinite;
     pointer-events: none;
@@ -577,7 +661,7 @@ body.loaded #loadingOverlay {
 
 .tier-silver::after {
     --sweep-dur: 6s;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
 }
 
 @keyframes sweep {
@@ -586,21 +670,27 @@ body.loaded #loadingOverlay {
     100% { transform: skewX(-20deg) translateX(300%); }
 }
 
+
 /* ─── BREAKDOWN OVERLAY ──────────────────────────── */
 .breakdown-view .breakdown-body {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
-    background: radial-gradient(circle at center, var(--field-center) 0%, var(--field-edge) 100%);
+    background: radial-gradient(
+        circle at center,
+        var(--field-center) 0%,
+        var(--field-edge) 100%
+    );
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .breakdown-footer {
-    padding: 18px 20px;
-    background: rgba(0,0,0,0.5);
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     text-align: center;
-    border-top: 1px solid var(--border-subtle);
+    border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -608,22 +698,24 @@ body.loaded #loadingOverlay {
     flex-shrink: 0;
 }
 
-/* BUG FIX #9: replaces breakdownFooter.textContent with two styled children */
 .breakdown-pts {
-    font-size: 16px;
+    font-family: var(--font-display);
+    font-size: 18px;
     font-weight: 900;
     color: var(--accent);
 }
 
 .breakdown-subs {
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 700;
     color: var(--text-faint);
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--pill-radius);
     border: 1px solid var(--border-subtle);
 }
+
 
 /* ─── PLAYER POINT LOG ───────────────────────────── */
 .log-items {
@@ -637,38 +729,42 @@ body.loaded #loadingOverlay {
     justify-content: space-between;
     align-items: center;
     padding: 11px 14px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.03);
+    border-radius: var(--card-radius-sm);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-subtle);
 }
 
 .log-label {
+    font-family: var(--font-body);
     font-size: 14px;
     color: var(--text-primary);
     font-weight: 500;
 }
 
 .log-pts {
-    font-size: 14px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 900;
     color: var(--accent);
 }
 
-/* BUG FIX #5: replaces inline style.cssText on log total element */
 .log-total {
     margin-top: 14px;
     padding-top: 14px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    font-weight: 800;
-    font-size: 14px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
     color: var(--accent);
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+
 /* ─── EMPTY / SPINNER ────────────────────────────── */
 .empty-msg {
+    font-family: var(--font-body);
     color: var(--text-faint);
     font-size: 14px;
     text-align: center;
@@ -677,25 +773,29 @@ body.loaded #loadingOverlay {
 }
 
 .spinner-small {
-    width: 28px;
-    height: 28px;
-    border: 2px solid rgba(154,224,0,0.15);
+    width: 28px; height: 28px;
+    border: 2px solid rgba(154, 224, 0, 0.15);
     border-left-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.9s linear infinite;
     margin: 30px auto;
 }
 
-/* ─── ANIMATION KEYFRAMES ────────────────────────── */
+
+/* ─── KEYFRAMES ──────────────────────────────────── */
 @keyframes slideUp {
     from { transform: translateY(100%); }
     to   { transform: translateY(0); }
 }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
 /* ─── ACCESSIBILITY ──────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-    .cricket-ball, .loading-text, .tier-gold::after, .tier-silver::after {
-        animation: none !important;
-    }
-    .overlay-content { animation: none !important; }
+    .cricket-ball,
+    .loading-text,
+    .tier-gold::after,
+    .tier-silver::after { animation: none !important; }
+    .overlay-content    { animation: none !important; }
 }
