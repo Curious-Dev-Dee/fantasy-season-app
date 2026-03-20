@@ -8,31 +8,25 @@
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    /*
-     * BUG FIX: Removed :root overrides block:
-     *   --bg: var(--bg-dark);;       → double semicolon
-     *   --accent: var(--accent);     → circular reference, resolves to nothing
-     *   --danger: var(--red);;       → double semicolon
-     *   --card: #161b22              → hardcoded, now uses var(--bg-card-alt)
-     *   --border: rgba(...,0.08)     → overrides global token
-     * All values come from tokens.css instead.
-     */
-
+    /* ── RESET ─────────────────────────────────────── */
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
-      background-color: var(--bg-dark);
+      background: var(--bg-page);
       color: var(--text-primary);
-      font-family: var(--font);
+      font-family: var(--font-body);
       margin: 0;
-      padding-bottom: 120px;
+      padding-bottom: 80px;
       overflow-x: hidden;
     }
 
-    /* STICKY HEADER */
+    /* ── STICKY HEADER ─────────────────────────────── */
     .app-header {
       display: flex;
       align-items: center;
@@ -40,49 +34,70 @@
       gap: 12px;
       position: sticky;
       top: 0;
-      background: rgba(12, 17, 23, 0.9);
+      background: rgba(2, 6, 23, 0.94);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       z-index: 1000;
-      border-bottom: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border);
     }
 
-    .back-btn {
-      background: var(--bg-card-alt);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-primary);
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      flex-shrink: 0;
+    /* back button inherits .icon-back from components.css */
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      margin: 0;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
+    /* ── CONTAINER ─────────────────────────────────── */
     .container {
       width: 100%;
       max-width: 420px;
       margin: 0 auto;
-      padding: 12px;
+      padding: 16px 14px;
     }
 
-    /* SCORE BOX */
+    /* ── SCORE BOX ─────────────────────────────────── */
     .score-box {
-      background: linear-gradient(145deg, var(--bg-card), var(--bg-card-alt));
-      padding: 20px;
-      border-radius: 20px;
+      background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-card-alt) 100%);
+      padding: 22px 20px;
+      border-radius: var(--card-radius);
       text-align: center;
-      border: 1px solid var(--accent);
-      margin-bottom: 15px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      border: 1px solid var(--border-accent);
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border-accent);
     }
 
-    .score-box .label   { font-size: 10px; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
-    .score-box .val     { font-size: 42px; font-weight: 900; margin: 5px 0; color: var(--text-primary); }
-    .score-box .summary { font-size: 11px; color: var(--text-faint); }
+    .score-box .label {
+      font-family: var(--font-display);
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
 
-    /* FLOATING BOTTOM SCORE */
+    /* Big score number — display font makes this look premium */
+    .score-box .val {
+      font-family: var(--font-display);
+      font-size: 56px;
+      font-weight: 900;
+      margin: 6px 0 4px;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .score-box .summary {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    /* ── FLOATING BOTTOM SCORE ─────────────────────── */
     .floating-score {
       position: fixed;
       bottom: 20px;
@@ -99,28 +114,37 @@
       align-items: center;
       box-shadow: 0 10px 25px var(--accent-glow);
       z-index: 2000;
-      font-weight: 800;
-    }
-
-    /* SECTION TITLE */
-    .section-title {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--cyan);
-      margin: 20px 0 10px;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 15px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    /* ── SECTION TITLE ─────────────────────────────── */
+    /*
+       CHANGE: was var(--cyan) — undefined token, rendered black.
+       This is main app content, not Fun Zone, so --accent green is correct.
+    */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--accent);
+      margin: 22px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    /* CARD — uses token instead of hardcoded colour */
+    /* ── INPUT CARD ────────────────────────────────── */
     .card {
-      background: var(--bg-card-alt);
-      border-radius: 16px;
+      background: var(--bg-card);
+      border-radius: var(--card-radius);
       padding: 16px;
-      border: 1px solid var(--border-subtle);
+      border: 1px solid var(--border-card);
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
@@ -128,73 +152,125 @@
 
     .full { grid-column: span 2; }
 
-    .input-group               { display: flex; flex-direction: column; gap: 4px; }
-    .input-group label         { font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; }
+    /* ── INPUT GROUPS ──────────────────────────────── */
+    .input-group               { display: flex; flex-direction: column; gap: 5px; }
+
+    .input-group label {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     .input-group input,
     .input-group select {
-      background: var(--bg-dark);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm);
       padding: 12px;
       color: var(--text-primary);
-      font-family: var(--font);
+      font-family: var(--font-body);
       font-size: 15px;
       font-weight: 700;
       width: 100%;
       outline: none;
+      transition: border-color var(--duration-base) var(--ease-out);
+      -webkit-appearance: none;
     }
-    .input-group input:focus   { border-color: var(--accent); }
 
-    /* CHIPS */
+    .input-group input:focus,
+    .input-group select:focus { border-color: var(--accent); }
+
+    .input-group select { cursor: pointer; }
+
+    /* ── CHIP GROUP ────────────────────────────────── */
     .chip-group { display: flex; gap: 8px; }
+
     .chip {
       flex: 1;
       padding: 10px 5px;
-      background: var(--bg-dark);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm);
       text-align: center;
-      font-size: 10px;
+      font-family: var(--font-display);
+      font-size: 11px;
       font-weight: 800;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: 0.2s;
+      transition: var(--transition);
       color: var(--text-faint);
-      font-family: var(--font);
     }
-    .chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-    /* TOGGLE ROW */
+    .chip:hover:not(.active) {
+      border-color: var(--text-faint);
+      color: var(--text-dim);
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    /* ── TOGGLE ROW ────────────────────────────────── */
     .toggle-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--card-radius-sm);
+      border: 1px solid var(--border-card);
     }
-    .toggle-row span { font-size: 13px; font-weight: 700; }
 
-    /* DUCK ROW — uses var(--red) not --danger */
+    .toggle-row span {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* POM toggle — accent border, not --cyan */
+    .toggle-row.pom-row { border-color: var(--border-accent); }
+
+    /* Duck row — red */
     .toggle-row.danger span { color: var(--red); }
+    .toggle-row.danger      { border-color: rgba(239, 68, 68, 0.3); }
 
+    /* Native checkbox — keep simple, just resize */
+    .toggle-row input[type="checkbox"] {
+      width: 20px; height: 20px;
+      cursor: pointer;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── PULSE ANIMATION ───────────────────────────── */
     .pulse { animation: pulseAnim 0.3s ease-in-out; }
+
     @keyframes pulseAnim {
       0%   { transform: scale(1); }
-      50%  { transform: scale(1.03); }
+      50%  { transform: scale(1.02); }
       100% { transform: scale(1); }
     }
   </style>
 </head>
 
 <body>
+
 <header class="app-header">
-  <a href="more.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-  <h1 style="margin:0; font-size:17px; font-weight:800;">Points Calculator</h1>
+  <a href="more.html" class="icon-back" aria-label="Back to more">
+    <i class="fas fa-chevron-left"></i>
+  </a>
+  <h1 class="page-title">Points Calculator</h1>
 </header>
 
 <div class="container">
 
+  <!-- SCORE DISPLAY -->
   <div class="score-box" id="mainDisplay">
     <div class="label">Projected Fantasy Points</div>
     <div class="val" id="totalPoints">0</div>
@@ -204,12 +280,13 @@
   <!-- MULTIPLIERS -->
   <div class="section-title"><i class="fas fa-rocket"></i> Multipliers</div>
   <div class="card">
+
     <div class="input-group full">
       <label>Player Designation</label>
       <div class="chip-group">
         <div class="chip active" onclick="setRole('norm', this)">Standard</div>
-        <div class="chip" onclick="setRole('c', this)">Captain (2×)</div>
-        <div class="chip" onclick="setRole('vc', this)">VC (1.5×)</div>
+        <div class="chip"        onclick="setRole('c', this)">Captain (2×)</div>
+        <div class="chip"        onclick="setRole('vc', this)">VC (1.5×)</div>
       </div>
     </div>
 
@@ -226,24 +303,25 @@
     </div>
 
     <div class="full">
-      <div class="toggle-row" style="border-color: var(--cyan);">
+      <div class="toggle-row pom-row">
         <span>Player of the Match?</span>
-        <input type="checkbox" id="isPOM" onchange="calculate()" style="width:20px;height:20px;">
+        <input type="checkbox" id="isPOM" onchange="calculate()">
       </div>
     </div>
+
   </div>
 
   <!-- BATTING -->
   <div class="section-title"><i class="fas fa-baseball-bat-ball"></i> Batting</div>
   <div class="card">
-    <div class="input-group"><label>Runs</label>  <input type="number" id="runs"   placeholder="0" oninput="calculate()"></div>
-    <div class="input-group"><label>Balls</label> <input type="number" id="balls"  placeholder="0" oninput="calculate()"></div>
-    <div class="input-group"><label>Fours</label> <input type="number" id="fours"  placeholder="0" oninput="calculate()"></div>
-    <div class="input-group"><label>Sixes</label> <input type="number" id="sixes"  placeholder="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Runs</label>  <input type="number" id="runs"   placeholder="0" min="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Balls</label> <input type="number" id="balls"  placeholder="0" min="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Fours</label> <input type="number" id="fours"  placeholder="0" min="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Sixes</label> <input type="number" id="sixes"  placeholder="0" min="0" oninput="calculate()"></div>
     <div class="full">
       <div class="toggle-row danger">
         <span>Out for Duck?</span>
-        <input type="checkbox" id="isDuck" onchange="calculate()" style="width:20px;height:20px;">
+        <input type="checkbox" id="isDuck" onchange="calculate()">
       </div>
     </div>
   </div>
@@ -251,25 +329,29 @@
   <!-- BOWLING -->
   <div class="section-title"><i class="fas fa-circle-dot"></i> Bowling</div>
   <div class="card">
-    <div class="input-group"><label>Wickets</label>    <input type="number" id="wickets"      placeholder="0"   oninput="calculate()"></div>
-    <div class="input-group"><label>Maidens</label>    <input type="number" id="maidens"      placeholder="0"   oninput="calculate()"></div>
-    <div class="input-group"><label>Overs</label>      <input type="number" id="overs"        placeholder="0.0" step="0.1" oninput="calculate()"></div>
-    <div class="input-group"><label>Runs Conc.</label> <input type="number" id="runsConceded" placeholder="0"   oninput="calculate()"></div>
+    <div class="input-group"><label>Wickets</label>    <input type="number" id="wickets"      placeholder="0"   min="0"      oninput="calculate()"></div>
+    <div class="input-group"><label>Maidens</label>    <input type="number" id="maidens"      placeholder="0"   min="0"      oninput="calculate()"></div>
+    <div class="input-group"><label>Overs</label>      <input type="number" id="overs"        placeholder="0.0" step="0.1" min="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Runs Conceded</label> <input type="number" id="runsConceded" placeholder="0"   min="0"  oninput="calculate()"></div>
   </div>
 
   <!-- FIELDING -->
   <div class="section-title"><i class="fas fa-hands"></i> Fielding</div>
   <div class="card">
-    <div class="input-group"><label>Catches</label>      <input type="number" id="catches"   placeholder="0" oninput="calculate()"></div>
-    <div class="input-group"><label>Stumpings</label>    <input type="number" id="stumpings" placeholder="0" oninput="calculate()"></div>
-    <div class="input-group full"><label>Run Outs (Total)</label> <input type="number" id="runouts" placeholder="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Catches</label>   <input type="number" id="catches"   placeholder="0" min="0" oninput="calculate()"></div>
+    <div class="input-group"><label>Stumpings</label> <input type="number" id="stumpings" placeholder="0" min="0" oninput="calculate()"></div>
+    <div class="input-group full">
+      <label>Run Outs (Total)</label>
+      <input type="number" id="runouts" placeholder="0" min="0" oninput="calculate()">
+    </div>
   </div>
 
-</div>
+</div><!-- end .container -->
 
+<!-- FLOATING SCORE BAR -->
 <div class="floating-score" id="floatBar">
-  <span>TOTAL POINTS</span>
-  <span id="floatPoints">0 PTS</span>
+  <span>Total Points</span>
+  <span id="floatPoints">0 pts</span>
 </div>
 
 <script>
@@ -279,7 +361,8 @@
     const floatBar    = document.getElementById("floatBar");
     const mainDisplay = document.getElementById("mainDisplay");
     floatBar.style.display =
-      window.pageYOffset > mainDisplay.offsetTop + mainDisplay.offsetHeight ? "flex" : "none";
+      window.pageYOffset > mainDisplay.offsetTop + mainDisplay.offsetHeight
+        ? "flex" : "none";
   };
 
   function setRole(role, el) {
@@ -299,70 +382,73 @@
   }
 
   function calculate() {
-    const runs     = Number(document.getElementById("runs").value)         || 0;
-    const balls    = Number(document.getElementById("balls").value)        || 0;
-    const fours    = Number(document.getElementById("fours").value)        || 0;
-    const sixes    = Number(document.getElementById("sixes").value)        || 0;
-    const wickets  = Number(document.getElementById("wickets").value)      || 0;
-    const maidens  = Number(document.getElementById("maidens").value)      || 0;
-    const overs    = Number(document.getElementById("overs").value)        || 0;
-    const conceded = Number(document.getElementById("runsConceded").value) || 0;
-    const catches  = Number(document.getElementById("catches").value)      || 0;
-    const stump    = Number(document.getElementById("stumpings").value)    || 0;
-    const runouts  = Number(document.getElementById("runouts").value)      || 0;
+    const runs     = Number(document.getElementById("runs").value)          || 0;
+    const balls    = Number(document.getElementById("balls").value)         || 0;
+    const fours    = Number(document.getElementById("fours").value)         || 0;
+    const sixes    = Number(document.getElementById("sixes").value)         || 0;
+    const wickets  = Number(document.getElementById("wickets").value)       || 0;
+    const maidens  = Number(document.getElementById("maidens").value)       || 0;
+    const overs    = Number(document.getElementById("overs").value)         || 0;
+    const conceded = Number(document.getElementById("runsConceded").value)  || 0;
+    const catches  = Number(document.getElementById("catches").value)       || 0;
+    const stump    = Number(document.getElementById("stumpings").value)     || 0;
+    const runouts  = Number(document.getElementById("runouts").value)       || 0;
     const isPOM    = document.getElementById("isPOM").checked;
     const isDuck   = document.getElementById("isDuck").checked;
     const booster  = document.getElementById("boosterSelect").value;
 
     let pts = 0;
 
-    // Batting
+    // ── Batting ──────────────────────────────────────
     pts += runs;
     pts += (fours * 1) + (sixes * 2);
     if      (runs >= 100) pts += 20;
     else if (runs >= 75)  pts += 15;
     else if (runs >= 50)  pts += 10;
     else if (runs >= 30)  pts += 5;
-    pts += (runs - balls); // Strike Rate
+    pts += (runs - balls); // Strike Rate bonus/penalty
     if (runs === 0 && isDuck) pts -= 2;
 
-    // Bowling
+    // ── Bowling ──────────────────────────────────────
     if (wickets > 0) pts += 20 + ((wickets - 1) * 25);
     pts += (maidens * 10);
     if (overs >= 2) {
-      const whole = Math.floor(overs);
-      const extra = Math.round((overs - whole) * 10);
+      const whole    = Math.floor(overs);
+      const extra    = Math.round((overs - whole) * 10);
       const trueOvers = whole + (extra / 6);
-      const er = conceded / trueOvers;
+      const er       = conceded / trueOvers;
       if      (er <= 6) pts += 8;
       else if (er <= 9) pts += 4;
       else              pts -= 4;
     }
 
-    // Fielding
+    // ── Fielding ─────────────────────────────────────
     pts += (catches * 8) + (stump * 8) + (runouts * 8);
 
-    // Involvement + POM
+    // ── Involvement + POM ─────────────────────────────
     if (runs > 0 || wickets > 0 || catches > 0 || stump > 0 || runouts > 0) pts += 4;
     if (isPOM) pts += 20;
 
-    // Multiplier
+    // ── Multiplier ────────────────────────────────────
     let multiplier = 1;
     if (currentRole === "c")  multiplier = 2;
     if (currentRole === "vc") multiplier = 1.5;
 
     let finalScore = pts * multiplier;
 
-    // Boosters
-    if (["TOTAL_2X","INDIAN_2X","UNCAPPED_2X"].includes(booster)) finalScore *= 2;
-    if (booster === "MOM_2X"     && isPOM)                         finalScore += (20 * multiplier);
-    if (booster === "CAPTAIN_3X" && currentRole === "c")           finalScore = (finalScore / 2) * 3;
+    // ── Boosters ──────────────────────────────────────
+    if (["TOTAL_2X", "INDIAN_2X", "UNCAPPED_2X"].includes(booster)) finalScore *= 2;
+    if (booster === "MOM_2X"     && isPOM)          finalScore += (20 * multiplier);
+    if (booster === "CAPTAIN_3X" && currentRole === "c") finalScore = (finalScore / 2) * 3;
 
     const result = Math.round(finalScore);
+
     document.getElementById("totalPoints").textContent  = result;
-    document.getElementById("floatPoints").textContent  = `${result} PTS`;
-    document.getElementById("breakdownText").textContent = `Base: ${pts} · Multiplier: ${multiplier}×`;
+    document.getElementById("floatPoints").textContent  = `${result} pts`;
+    document.getElementById("breakdownText").textContent =
+      `Base: ${pts} · Multiplier: ${multiplier}× ${booster !== "NONE" ? "· Booster active" : ""}`;
   }
 </script>
+
 </body>
 </html>
