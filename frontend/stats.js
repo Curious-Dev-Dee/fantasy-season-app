@@ -162,7 +162,7 @@ function renderStats(data) {
 function updateSubtitle(playerCount, matchCount) {
     if (!statsSub) return;
     if (playerCount === 0) {
-        statsSub.textContent = "No data";
+        statsSub.textContent = "Season performance tracker";
         return;
     }
     statsSub.textContent = `${playerCount} player${playerCount !== 1 ? "s" : ""} · ${matchCount} match${matchCount !== 1 ? "es" : ""}`;
@@ -207,15 +207,8 @@ function buildPlayerCard(player, rank) {
 
     // Rank number
     const rankEl   = document.createElement("span");
-    rankEl.className  = "player-rank";
-    rankEl.textContent = `#${rank}`;
-    rankEl.style.cssText = `
-        font-size: 10px;
-        font-weight: 800;
-        color: var(--text-faint);
-        min-width: 24px;
-        flex-shrink: 0;
-    `;
+rankEl.className  = "player-rank";
+rankEl.textContent = `#${rank}`;
 
     const nameTxt  = document.createElement("span");
     nameTxt.className   = "player-name";
@@ -234,13 +227,9 @@ function buildPlayerCard(player, rank) {
     roleBadge.className   = "role-badge";
     roleBadge.textContent = player.role;
 
-    const matchCountBadge = document.createElement("span");
-    matchCountBadge.style.cssText = `
-        font-size: 9px;
-        color: var(--text-faint);
-        margin-left: 2px;
-    `;
-    matchCountBadge.textContent = `${player.matches.length}M`;
+const matchCountBadge = document.createElement("span");
+matchCountBadge.className = "match-count";
+matchCountBadge.textContent = `${player.matches.length}M`;
 
     meta.append(teamBadge, roleBadge, matchCountBadge);
     info.append(nameRow, meta);
