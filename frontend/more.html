@@ -10,12 +10,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/bottom-nav.css">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
+    /* ── BASE ──────────────────────────────────────── */
     body {
-      background-color: var(--bg-dark);
+      background: var(--bg-page);
       color: var(--text-primary);
       margin: 0;
-      font-family: var(--font);
+      font-family: var(--font-body);
       overflow-x: hidden;
     }
 
@@ -27,51 +32,57 @@
       box-sizing: border-box;
     }
 
-    .app-header { margin-bottom: 30px; }
+    /* ── HEADER ────────────────────────────────────── */
+    .app-header { margin-bottom: 28px; }
 
     .app-header h1 {
-      font-size: 26px;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 900;
       margin: 0;
-    }
-
-    .section-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-faint);
-      letter-spacing: 1px;
-      margin-bottom: 12px;
       text-transform: uppercase;
-      padding-left: 5px;
+      letter-spacing: 0.5px;
+      color: var(--accent);
     }
 
+    /* ── SECTION TITLE ─────────────────────────────── */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-faint);
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      padding-left: 4px;
+    }
+
+    /* ── CARD ──────────────────────────────────────── */
     .card {
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-card);
       border-radius: var(--card-radius);
-      padding: 8px;
+      padding: 6px;
       margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
 
-    .menu-list { display: flex; flex-direction: column; gap: 4px; }
+    /* ── MENU ITEMS ────────────────────────────────── */
+    .menu-list { display: flex; flex-direction: column; gap: 2px; }
 
     .menu-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px;
+      padding: 15px 14px;
       background: transparent;
-      border-radius: 14px;
+      border-radius: var(--card-radius-sm);
       text-decoration: none;
       color: var(--text-primary);
       transition: var(--transition);
     }
 
-    .menu-item:active {
-      background: var(--accent-dim);
-      transform: scale(0.98);
-    }
+    .menu-item:hover  { background: rgba(255, 255, 255, 0.04); }
+    .menu-item:active { background: var(--accent-dim); transform: scale(0.985); }
 
     .menu-item .icon-box {
       display: flex;
@@ -79,35 +90,54 @@
       gap: 14px;
     }
 
+    /*
+       CHANGE: was var(--cyan) — not defined in tokens, fell back to black.
+       More page is main app nav, not Fun Zone, so green accent is correct.
+    */
     .menu-item .icon-box i {
-      font-size: 18px;
-      color: var(--cyan);
-      width: 24px;
+      font-size: 17px;
+      color: var(--accent);
+      width: 22px;
       text-align: center;
+      flex-shrink: 0;
     }
 
-    .menu-item .label { font-weight: 600; font-size: 15px; }
-    .menu-item .arrow { color: var(--text-faint); font-size: 16px; }
+    .menu-item .label {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 15px;
+    }
 
-    .logout-btn,
-    .logout-btn i { color: var(--red) !important; }
+    .menu-item .arrow {
+      color: var(--text-ghost);
+      font-size: 13px;
+    }
 
+    /* Sign out row — red treatment */
+    .logout-btn .icon-box i,
+    .logout-btn .label { color: var(--red) !important; }
+
+    /* Admin badge */
     .admin-badge {
+      font-family: var(--font-display);
       font-size: 9px;
-      background: var(--cyan);
+      background: var(--accent);
       color: #000;
       padding: 2px 6px;
       border-radius: 4px;
       font-weight: 900;
       margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    /* LOGOUT MODAL */
+    /* ── LOGOUT MODAL ──────────────────────────────── */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       z-index: 3000;
       display: flex;
       align-items: center;
@@ -116,60 +146,91 @@
       animation: fadeIn 0.2s ease-out;
     }
 
+    .modal-overlay.hidden { display: none; }
+
     .modal-content {
-      background: var(--bg-card);
+      background: var(--bg-elevated);
       width: 100%;
       max-width: 320px;
-      border-radius: 24px;
-      padding: 24px;
+      border-radius: var(--card-radius);
+      padding: 26px 22px;
       text-align: center;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-      animation: scaleUp 0.2s ease-out;
+      border: 1px solid var(--border-card);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      animation: scaleUp 0.2s var(--ease-bounce);
     }
 
     .modal-icon {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 50%;
-      background: rgba(255,77,77,0.1);
+      background: var(--red-dim);
       color: var(--red);
-      font-size: 20px;
+      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
     }
 
-    .modal-content h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
-    .modal-content p  { margin: 0 0 24px; font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+    .modal-content h3 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+      color: var(--text-primary);
+    }
 
-    .modal-actions { display: flex; gap: 12px; }
+    .modal-content p {
+      font-family: var(--font-body);
+      margin: 0 0 24px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    .modal-actions { display: flex; gap: 10px; }
 
     .modal-actions button {
       flex: 1;
       padding: 14px;
-      border-radius: 14px;
-      font-weight: 800;
+      border-radius: var(--btn-radius);
+      font-family: var(--font-display);
+      font-weight: 900;
       font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
       border: none;
       cursor: pointer;
       transition: var(--transition);
     }
 
     .btn-cancel {
-      background: var(--bg-dark);
+      background: var(--bg-page);
       color: var(--text-primary);
-      border: 1px solid var(--border) !important;
+      border: 1px solid var(--border-card) !important;
     }
 
-    .btn-cancel:active { background: var(--border); }
+    .btn-cancel:active { background: var(--bg-card); }
 
-    .btn-danger { background: var(--red); color: #000; }
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+    }
+
     .btn-danger:active { transform: scale(0.96); }
+    .btn-danger:hover  { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
 
-    @keyframes fadeIn  { from { opacity: 0; }                       to { opacity: 1; } }
-    @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    /* ── KEYFRAMES ─────────────────────────────────── */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes scaleUp {
+      from { transform: scale(0.95); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
   </style>
 </head>
 
@@ -194,7 +255,7 @@
       <a href="stats.html" class="menu-item">
         <div class="icon-box">
           <i class="fas fa-chart-bar"></i>
-          <span class="label">Player Stats & History</span>
+          <span class="label">Player Stats &amp; History</span>
         </div>
         <span class="arrow"><i class="fas fa-chevron-right"></i></span>
       </a>
@@ -209,13 +270,16 @@
   </section>
 
   <!-- HELP -->
-  <div class="section-title">Help & Support</div>
+  <div class="section-title">Help &amp; Support</div>
   <section class="card">
     <div class="menu-list">
       <a href="mailto:satyaranjansahoo@gmail.com" class="menu-item">
         <div class="icon-box">
           <i class="fas fa-envelope-open-text"></i>
-          <span class="label">Contact Admin <span class="admin-badge">SUPPORT</span></span>
+          <span class="label">
+            Contact Admin
+            <span class="admin-badge">Support</span>
+          </span>
         </div>
         <span class="arrow"><i class="fas fa-chevron-right"></i></span>
       </a>
@@ -235,7 +299,7 @@
     </div>
   </section>
 
-</div><!-- end .app-container -->
+</div>
 
 <!-- LOGOUT MODAL -->
 <div id="logoutOverlay" class="modal-overlay hidden">
@@ -254,7 +318,6 @@
 <div id="toastContainer" class="toast-container"></div>
 
 <!-- BOTTOM NAV -->
-<!-- BUG FIX: all home.html → /home clean URL -->
 <nav class="bottom-nav">
   <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="fixtures.html"><i class="fas fa-calendar-check"></i><span>Fixtures</span></a>
@@ -277,8 +340,8 @@
     t.textContent = message;
     toastEl.appendChild(t);
     setTimeout(() => {
-      t.style.opacity   = "0";
-      t.style.transform = "translateX(120%)";
+      t.style.opacity    = "0";
+      t.style.transform  = "translateX(120%)";
       t.style.transition = "all 0.4s ease";
       setTimeout(() => t.remove(), 400);
     }, 3500);
@@ -294,8 +357,8 @@
   });
 
   confirmLogout.addEventListener("click", async () => {
-    confirmLogout.textContent     = "Signing out…";
-    confirmLogout.style.opacity   = "0.7";
+    confirmLogout.textContent       = "Signing out…";
+    confirmLogout.style.opacity     = "0.7";
     confirmLogout.style.pointerEvents = "none";
 
     const { error } = await supabase.auth.signOut();
@@ -303,11 +366,10 @@
     if (!error) {
       window.location.href = "login.html";
     } else {
-      confirmLogout.textContent     = "Sign Out";
-      confirmLogout.style.opacity   = "1";
+      confirmLogout.textContent       = "Sign Out";
+      confirmLogout.style.opacity     = "1";
       confirmLogout.style.pointerEvents = "auto";
       logoutOverlay.classList.add("hidden");
-      // BUG FIX: was alert() — replaced with showToast
       showToast("Weak internet — please try again.", "error");
     }
   });
