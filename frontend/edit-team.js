@@ -563,54 +563,49 @@ function renderBoosterUI() {
     const container = document.getElementById("boosterContainer");
     if (!container) return;
 
-const afterTournament = state.currentMatchNumber > BOOSTER_WINDOW_END;
-if (afterTournament) { container.classList.add("hidden"); return; }
-container.classList.remove("hidden");
+    const afterTournament = state.currentMatchNumber > BOOSTER_WINDOW_END;
+    if (afterTournament) { container.classList.add("hidden"); return; }
+    container.classList.remove("hidden");
 
-const isMatch1 = state.currentMatchNumber < BOOSTER_WINDOW_START;
+    const isMatch1 = state.currentMatchNumber < BOOSTER_WINDOW_START;
+
     const configs = {
-        TOTAL_2X:    { name: "Total 2X",    icon: "🚀", desc: "Double points for your entire team" },
-        INDIAN_2X:   { name: "Indian 2X",   icon: "🇮🇳", desc: "2x points for all Indian players" },
-        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️", desc: "2x points for all overseas players" },
-        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢", desc: "2x points for all uncapped players" },
-        CAPTAIN_3X:  { name: "Captain 3X",  icon: "👑", desc: "3x points for your captain" },
-        MOM_2X:      { name: "MOM 2X",      icon: "🏆", desc: "2x points for Man of the Match" },
-        FREE_11:     { name: "Free 11",     icon: "🆓", desc: "Change all 11 players for free" },
+        TOTAL_2X:    { name: "Total 2X",    icon: "🚀" },
+        INDIAN_2X:   { name: "Indian 2X",   icon: "🇮🇳" },
+        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" },
+        UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
+        CAPTAIN_3X:  { name: "Captain 3X",  icon: "👑" },
+        MOM_2X:      { name: "MOM 2X",      icon: "🏆" },
+        FREE_11:     { name: "Free 11",     icon: "🆓" },
     };
 
     const activePenalty = state.activeBooster !== "NONE" ? 1 : 0;
     const boostersLeft  = 7 - state.usedBoosters.length - activePenalty;
 
-    const rows = Object.entries(configs).map(([key, cfg]) => {
+    const cards = Object.entries(configs).map(([key, cfg]) => {
         const isUsed   = state.usedBoosters.includes(key);
         const isActive = state.activeBooster === key;
+        const disabled = isUsed || isMatch1;
 
-       return `
-    <div class='booster-row ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 ? "locked" : ""}'
-         ${isUsed || isMatch1 ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
-                       
-  <div class="br-icon">${cfg.icon}</div>
-                <div class="br-info">
-                    <span class="br-name">${cfg.name}</span>
-
-                    <span class="br-desc">${cfg.desc}</span>
-                    ${isUsed ? '<span class="br-used-tag">USED</span>' : ""}
-                </div>
-                <div class="br-selector ${isActive ? "selected" : ""}">
-                    ${isActive ? "✔" : ""}
-                </div>
+        return `
+            <div class="booster-card ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 && !isUsed ? "locked" : ""}"
+                 ${disabled ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
+                <div class="booster-icon">${cfg.icon}</div>
+                <div class="b-name">${cfg.name}</div>
+                ${isActive ? '<div class="active-badge">On</div>' : ""}
+                ${isUsed   ? '<div class="used-overlay"><span>USED</span></div>' : ""}
             </div>`;
     }).join("");
 
     container.innerHTML = `
-        <div class="booster-list-wrap">
-            <div class="booster-list-header">
+        <div class="booster-shelf">
+            <div class="booster-header">
                 <span class="b-title">BOOSTERS</span>
-${isMatch1
-    ? '<span class="b-count b-count-locked">Available from Match 2</span>'
-    : `<span class="b-count">${boostersLeft} left</span>`
-}            </div>
-            <div class="booster-list">${rows}</div>
+                ${isMatch1
+                    ? '<span class="b-count b-count-locked">From Match 2</span>'
+                    : `<span class="b-count">${boostersLeft} left</span>`}
+            </div>
+            <div class="booster-scroll">${cards}</div>
         </div>`;
 }
 
