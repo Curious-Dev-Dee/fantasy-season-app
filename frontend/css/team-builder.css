@@ -503,19 +503,6 @@ body.loading-state .app-container        { display: none !important; }
     color: #f59e0b;
 }
 
-.p-sel-pct {
-    display: inline-block;
-    font-family: var(--font-body);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-faint);
-    margin-top: 3px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    padding: 1px 6px;
-    border-radius: 4px;
-}
-
 /* ─── CONTROLS ───────────────────────────────────── */
 .controls {
     display: flex;

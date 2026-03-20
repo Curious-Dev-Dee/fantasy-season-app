@@ -351,9 +351,6 @@ const nextMatchHtml = nextMatchInfo
     ? `<span class="p-next-match ${nextMatchInfo.urgent ? "urgent" : ""}">${nextMatchInfo.text}</span>`
     : "";
 
-    const selPct = p.selected_by_percent != null
-    ? `<span class="p-sel-pct">${p.selected_by_percent}% picked</span>`
-    : "";
 
         const card = document.createElement("div");
         card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
@@ -362,7 +359,7 @@ const nextMatchHtml = nextMatchInfo
         card.innerHTML = `
     <div class="avatar-wrap" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer">
         <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
-        
+
                 ${catBadge}
             </div>
             <div class="player-info">
@@ -370,7 +367,7 @@ const nextMatchHtml = nextMatchInfo
                 <span class="p-meta">${p.role} · ${p.team_short_code} · ${p.credit} Cr</span>
 ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
 ${nextMatchHtml}
-${selPct}
+
             </div>
             <div class="controls">
                 ${isMyXi ? `
