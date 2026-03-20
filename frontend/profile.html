@@ -5,25 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
   <title>Cricket Experts · Account</title>
+
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/bottom-nav.css">
   <link rel="stylesheet" href="css/profile.css">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <link rel="icon" type="image/png" href="favicon.png">
   <script type="module" src="auth-guard.js"></script>
 </head>
-<body>
 
+<body>
   <div class="prof-wrap">
 
     <!-- HEADER -->
     <header class="prof-header">
-      <button class="prof-back" onclick="history.back()">←</button>
+      <a href="/home" class="icon-back" aria-label="Back to home">
+        <i class="fas fa-arrow-left"></i>
+      </a>
       <h1 class="prof-title">Account</h1>
-      <span></span>
+      <span aria-hidden="true"></span>
     </header>
 
     <!-- LOADING STATE -->
@@ -31,10 +37,10 @@
       <div class="prof-spinner"></div>
     </div>
 
-    <!-- CONTENT — hidden until loaded -->
+    <!-- CONTENT — hidden until profile data loads -->
     <main id="profContent" class="prof-content hidden">
 
-      <!-- AVATAR SECTION -->
+      <!-- AVATAR + NAME CARD -->
       <section class="prof-card">
         <div class="prof-avatar-section">
           <div class="prof-avatar" id="profAvatar"></div>
@@ -44,7 +50,6 @@
           </div>
         </div>
 
-        <!-- Photo upload — hidden file input triggered by button -->
         <input type="file" id="profAvatarInput" accept="image/*" class="hidden">
         <button class="prof-photo-btn" id="profChangePhotoBtn">
           📷 Change Profile Photo
@@ -52,7 +57,7 @@
         <div id="profPhotoStatus" class="prof-status hidden"></div>
       </section>
 
-      <!-- LOCKED INFO -->
+      <!-- LOCKED IDENTITY CARD -->
       <section class="prof-card">
         <div class="prof-lock-notice">
           <span class="prof-lock-icon">🔒</span>
@@ -78,9 +83,11 @@
         </div>
       </section>
 
-      <!-- SIGN OUT -->
+      <!-- SIGN OUT CARD -->
       <section class="prof-card">
-        <button class="prof-signout-btn" id="profSignOutBtn">Sign Out</button>
+        <button class="prof-signout-btn" id="profSignOutBtn">
+          <i class="fas fa-sign-out-alt"></i> Sign Out
+        </button>
       </section>
 
     </main>
@@ -95,7 +102,6 @@
     <a href="more.html" class="active"><i class="fas fa-bars"></i><span>More</span></a>
   </nav>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script type="module" src="profile.js"></script>
 </body>
 </html>

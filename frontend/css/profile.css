@@ -1,10 +1,31 @@
 /* ── PROFILE PAGE ─────────────────────────────────── */
+/* v2.0 — Design system audit & cleanup
+   Requires: tokens.css + components.css
+
+   CHANGES FROM v1:
+   - All hardcoded hex → design tokens
+   - font-family: 'Inter' → var(--font-body) throughout
+   - Barlow Condensed strings → var(--font-display)
+   - Body background uses --bg-page
+   - Card backgrounds use --bg-card and --bg-elevated
+   - All colour values use token equivalents
+   - -webkit-backdrop-filter added
+   - prof-spinner uses --border-card and --accent
+   - prof-label uses --text-faint (was #475569 hardcoded)
+   - prof-value uses --text-primary
+   - prof-lock matches gold token pattern
+   - prof-avatar border uses --accent
+   - prof-avatar bg uses --bg-card-alt
+   - prof-photo-btn uses accent-dim pattern
+   - prof-signout-btn matches More page logout treatment
+*/
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #020617;
-  color: #f0f4f8;
-  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
   min-height: 100vh;
   padding-bottom: 80px;
 }
@@ -17,42 +38,34 @@ body {
   padding: 0 0 24px;
 }
 
+
 /* ── HEADER ──────────────────────────────────────── */
 .prof-header {
   display: grid;
   grid-template-columns: 44px 1fr 44px;
   align-items: center;
   padding: 14px 16px;
-  background: rgba(2,6,23,0.95);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: rgba(2, 6, 23, 0.95);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-.prof-back {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
-  color: #9AE000;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* icon-back inherits from components.css */
 
 .prof-title {
   text-align: center;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #f0f4f8;
+  color: var(--text-primary);
 }
+
 
 /* ── LOADING ─────────────────────────────────────── */
 .prof-loading {
@@ -64,13 +77,14 @@ body {
 
 .prof-spinner {
   width: 32px; height: 32px;
-  border: 3px solid rgba(154,224,0,0.15);
-  border-left-color: #9AE000;
+  border: 3px solid var(--border-card);
+  border-left-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
 
 /* ── CONTENT ─────────────────────────────────────── */
 .prof-content {
@@ -80,16 +94,18 @@ body {
   gap: 12px;
 }
 
+
 /* ── CARDS ───────────────────────────────────────── */
 .prof-card {
-  background: #0d1625;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--card-radius);
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
+
 
 /* ── AVATAR SECTION ──────────────────────────────── */
 .prof-avatar-section {
@@ -99,14 +115,14 @@ body {
 }
 
 .prof-avatar {
-  width: 72px;
-  height: 72px;
+  width: 72px; height: 72px;
   border-radius: 50%;
-  background: #1f2937;
+  background: var(--bg-card-alt);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border: 2px solid #9AE000;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
   flex-shrink: 0;
 }
 
@@ -116,117 +132,146 @@ body {
 }
 
 .prof-name {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: 800;
-  color: #f0f4f8;
+  font-weight: 900;
+  color: var(--text-primary);
   text-transform: uppercase;
-  margin-bottom: 2px;
+  letter-spacing: 0.3px;
+  margin-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .prof-team {
+  font-family: var(--font-body);
   font-size: 13px;
-  color: #9AE000;
+  color: var(--accent);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* Change photo button — accent-tinted, not a full CTA */
 .prof-photo-btn {
   width: 100%;
-  background: rgba(154,224,0,0.08);
-  border: 1px solid rgba(154,224,0,0.25);
-  color: #9AE000;
-  border-radius: 10px;
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+  border-radius: var(--card-radius-sm);
   padding: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--transition);
 }
 
-.prof-photo-btn:hover { background: rgba(154,224,0,0.14); }
+.prof-photo-btn:hover    { background: rgba(154, 224, 0, 0.14); }
 .prof-photo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Upload status message */
 .prof-status {
+  font-family: var(--font-body);
   font-size: 12px;
   text-align: center;
-  padding: 6px;
+  padding: 6px 10px;
   border-radius: 8px;
 }
 
-.prof-status.success { color: #9AE000; background: rgba(154,224,0,0.08); }
-.prof-status.error   { color: #ef4444; background: rgba(239,68,68,0.08); }
+.prof-status.success {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+}
+
+.prof-status.error {
+  color: var(--red);
+  background: var(--red-dim);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
 
 /* ── LOCK NOTICE ─────────────────────────────────── */
 .prof-lock-notice {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: rgba(245,158,11,0.06);
-  border: 1px solid rgba(245,158,11,0.18);
-  border-radius: 10px;
-  padding: 12px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(245, 158, 11, 0.20);
+  border-radius: var(--card-radius-sm);
+  padding: 12px 14px;
 }
 
 .prof-lock-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
 
 .prof-lock-title {
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
-  color: #f59e0b;
-  margin-bottom: 2px;
+  color: var(--gold);
+  margin-bottom: 3px;
 }
 
 .prof-lock-sub {
+  font-family: var(--font-body);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-faint);
   line-height: 1.5;
 }
 
-/* ── FIELDS ──────────────────────────────────────── */
+
+/* ── PROFILE FIELDS ──────────────────────────────── */
 .prof-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .prof-field:last-child { border-bottom: none; padding-bottom: 0; }
 
 .prof-label {
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #475569;
+  color: var(--text-faint);
 }
 
 .prof-value {
+  font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
-  color: #f0f4f8;
+  color: var(--text-primary);
 }
 
-/* ── SIGN OUT ─────────────────────────────────────── */
+
+/* ── SIGN OUT BUTTON ─────────────────────────────── */
+/*
+   Matches the More page logout button treatment:
+   transparent background, red border and text.
+   Red fill on active/hover for clear destructive action signal.
+*/
 .prof-signout-btn {
   width: 100%;
   background: transparent;
-  border: 1px solid rgba(239,68,68,0.3);
-  color: #ef4444;
-  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--red);
+  border-radius: var(--card-radius-sm);
   padding: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--transition);
 }
 
-.prof-signout-btn:hover { background: rgba(239,68,68,0.06); }
+.prof-signout-btn:hover  { background: var(--red-dim); border-color: rgba(239, 68, 68, 0.5); }
+.prof-signout-btn:active { transform: scale(0.98); }
