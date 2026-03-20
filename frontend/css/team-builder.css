@@ -1114,7 +1114,8 @@ body.loading-state .app-container        { display: none !important; }
 
 /* ─── ACCESSIBILITY ──────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-    .tb-spinner, .progress-fill, .toggle-btn,
-    .player-card, .booster-card, .action-btn { transition: none !important; animation: none !important; }
+    .tb-spinner, .team-dot, .toggle-btn,
+    .player-card, .booster-row, .action-btn { transition: none !important; animation: none !important; }
+    
     .role-slider-bg { transition: none !important; }
 }
