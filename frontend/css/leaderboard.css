@@ -620,3 +620,99 @@ body {
     .podium-card,
     .leader-row          { transition: none !important; }
 }
+
+/* ─── SEASON PRIZES STRIP ────────────────────────── */
+.lb-prizes-strip {
+    margin: 0 16px 14px;
+    background: linear-gradient(135deg,
+        rgba(245,158,11,0.07) 0%,
+        rgba(154,224,0,0.07) 100%);
+    border: 1px solid rgba(245,158,11,0.18);
+    border-radius: var(--card-radius-sm);
+    padding: 14px 16px;
+}
+
+.lb-prizes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.lb-prizes-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lb-prizes-sub {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+.lb-prize-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--card-radius-sm);
+    margin-bottom: 7px;
+}
+
+.lb-prize-row:last-child { margin-bottom: 0; }
+
+.lb-prize-rank {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 900;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.lb-prize-rank.gold   { background: var(--gold);  color: #000; }
+.lb-prize-rank.silver { background: #94a3b8; color: #000; }
+
+.lb-prize-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.lb-prize-what {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+
+.lb-prize-by {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+}
+
+.lb-prize-by strong {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.lb-prize-medal {
+    font-size: 18px;
+    flex-shrink: 0;
+}
