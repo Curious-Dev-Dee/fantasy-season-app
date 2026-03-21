@@ -457,6 +457,13 @@ body {
   line-height: 1;
 }
 
+.league-member-count {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin: 2px 0 0;
+    font-weight: 500;
+}
 
 /* ─── LEADERBOARD CARD ───────────────────────────── */
 .leaderboard-card {

@@ -310,11 +310,20 @@ function applyOwnFlair() {
    LEADERBOARD PREVIEW
 ══════════════════════════════════════════════════════ */
 async function loadLeaderboardPreview() {
-    const { data: lb, error } = await supabase
-        .from("leaderboard_view")
+    const [{ data: lb, error }, { count: userCount }] = await Promise.all([
+    supabase.from("leaderboard_view")
         .select("team_name, total_points, rank, user_id")
         .order("rank", { ascending: true })
-        .limit(3);
+        .limit(3),
+    supabase.from("user_profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("profile_completed", true),
+]);
+
+const overallCountEl = document.getElementById("overallMemberCount");
+if (overallCountEl && userCount != null) {
+    overallCountEl.textContent = `${(10000 + userCount).toLocaleString()} managers`;
+}
 
     if (!leaderboardContainer) return;
 
@@ -368,11 +377,11 @@ async function fetchPrivateLeagueData(userId) {
 
     if (!card) return;
 
-    const { data: m, error } = await supabase
-        .from("league_members")
-        .select("league_id, leagues(name, invite_code)")
-        .eq("user_id", userId)
-        .maybeSingle();
+const { data: m, error } = await supabase
+    .from("league_members")
+    .select("league_id, leagues(name, invite_code)")
+    .eq("user_id", userId)
+    .maybeSingle();
 
     if (error || !m) {
         card.classList.remove("hidden");
@@ -388,6 +397,16 @@ async function fetchPrivateLeagueData(userId) {
     contentEl?.classList.remove("hidden");
     emptyStateEl?.classList.add("hidden");
     if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
+    // Fetch member count for this private league
+const { count: leagueCount } = await supabase
+    .from("league_members")
+    .select("*", { count: "exact", head: true })
+    .eq("league_id", m.league_id);
+
+const privateCountEl = document.getElementById("privateLeagueMemberCount");
+if (privateCountEl && leagueCount != null) {
+    privateCountEl.textContent = `${leagueCount} member${leagueCount !== 1 ? "s" : ""}`;
+}
 
     if (inviteCodeEl) {
         inviteCodeEl.textContent  = m.leagues.invite_code;
