@@ -57,31 +57,51 @@
         <div id="profPhotoStatus" class="prof-status hidden"></div>
       </section>
 
-      <!-- LOCKED IDENTITY CARD -->
-      <section class="prof-card">
-        <div class="prof-lock-notice">
-          <span class="prof-lock-icon">🔒</span>
-          <div>
-            <div class="prof-lock-title">Identity Locked for the Season</div>
-            <div class="prof-lock-sub">Name and team name cannot be changed once set.</div>
-          </div>
-        </div>
+<!-- IDENTITY CARD -->
+<section class="prof-card">
 
-        <div class="prof-field">
-          <label class="prof-label">Display Name</label>
-          <div class="prof-value" id="profNameVal">—</div>
+    <!-- Shown when Match 1 locked -->
+    <div id="profLockNotice" class="prof-lock-notice hidden">
+        <span class="prof-lock-icon">🔒</span>
+        <div>
+            <div class="prof-lock-title">Team Name Locked</div>
+            <div class="prof-lock-sub">Team name is locked after Match 1 starts.</div>
         </div>
+    </div>
 
-        <div class="prof-field">
-          <label class="prof-label">Team Name</label>
-          <div class="prof-value" id="profTeamVal">—</div>
+    <!-- Shown before Match 1 locked -->
+    <div id="profEditNotice" class="prof-lock-notice hidden">
+        <span class="prof-lock-icon">✏️</span>
+        <div>
+            <div class="prof-lock-title">Team Name Editable</div>
+            <div class="prof-lock-sub">You can change your team name until Match 1 starts.</div>
         </div>
+    </div>
 
-        <div class="prof-field">
-          <label class="prof-label">Member Since</label>
-          <div class="prof-value" id="profJoined">—</div>
-        </div>
-      </section>
+    <div class="prof-field">
+        <label class="prof-label">Display Name</label>
+        <div class="prof-value" id="profNameVal">—</div>
+    </div>
+
+    <div class="prof-field">
+        <label class="prof-label">Team Name</label>
+        <div class="prof-value" id="profTeamVal">—</div>
+        <input type="text"
+               id="profTeamInput"
+               class="prof-input hidden"
+               placeholder="Enter team name"
+               maxlength="30">
+        <button id="profTeamSaveBtn" class="prof-save-btn hidden">
+            Save Team Name
+        </button>
+    </div>
+
+    <div class="prof-field">
+        <label class="prof-label">Member Since</label>
+        <div class="prof-value" id="profJoined">—</div>
+    </div>
+
+</section>
 
       <!-- SIGN OUT CARD -->
       <section class="prof-card">

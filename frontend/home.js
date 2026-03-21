@@ -601,12 +601,24 @@ if (saveProfileBtn) {
             }
 
             // Build payload — name + team only set on first time, never again
-            const updatePayload = { team_photo_url: photoPath };
-            if (isFirstTime) {
-                updatePayload.full_name         = fullName;
-                updatePayload.team_name         = teamName;
-                updatePayload.profile_completed = true;
-            }
+            // Check if match 1 has locked
+const { data: match1 } = await supabase
+    .from("matches")
+    .select("status")
+    .eq("match_number", 1)
+    .maybeSingle();
+
+const match1Locked = match1?.status === "locked";
+
+const updatePayload = { team_photo_url: photoPath };
+if (isFirstTime) {
+    updatePayload.full_name         = fullName;
+    updatePayload.team_name         = teamName;
+    updatePayload.profile_completed = true;
+} else if (!match1Locked && teamName) {
+    // Allow team name change before match 1
+    updatePayload.team_name = teamName;
+}
 
             const { error: updateError } = await supabase
                 .from("user_profiles")

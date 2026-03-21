@@ -1,19 +1,25 @@
 import { supabase } from "./supabase.js";
 
-let currentUserId = null;
+let currentUserId   = null;
+let teamNameLocked  = false;
 
-/* ── INIT ─────────────────────────────────────────────────────────────────
-   auth-guard.js already verified the session before this module runs.
-   We use getSession() directly — no authReady needed, no race condition.
-─────────────────────────────────────────────────────────────────────────── */
 (async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return; // auth-guard.js handles redirect
+    if (!session) return;
     currentUserId = session.user.id;
+
+    // Check if Match 1 has locked
+    const { data: match1 } = await supabase
+        .from("matches")
+        .select("status")
+        .eq("match_number", 1)
+        .maybeSingle();
+
+    teamNameLocked = match1?.status === "locked";
+
     await loadProfile();
 })();
 
-/* ── LOAD PROFILE ──────────────────────────────────────────────────────── */
 async function loadProfile() {
     const { data: p, error } = await supabase
         .from("user_profiles")
@@ -21,18 +27,14 @@ async function loadProfile() {
         .eq("user_id", currentUserId)
         .maybeSingle();
 
-    // Hide loader, show content regardless
     document.getElementById("profLoading")?.classList.add("hidden");
     document.getElementById("profContent")?.classList.remove("hidden");
 
-    if (error) { console.error("Profile fetch error:", error.message); return; }
-    if (!p)    { console.warn("No profile row found for user:", currentUserId); return; }
+    if (error || !p) return;
 
-    // Avatar
     if (p.team_photo_url) {
         const { data: img } = supabase.storage
-            .from("team-avatars")
-            .getPublicUrl(p.team_photo_url);
+            .from("team-avatars").getPublicUrl(p.team_photo_url);
         const av = document.getElementById("profAvatar");
         if (av) {
             av.style.backgroundImage    = `url('${img.publicUrl}')`;
@@ -41,13 +43,9 @@ async function loadProfile() {
         }
     }
 
-    const fullName = p.full_name || "—";
-    const teamName = p.team_name || "—";
-
-    setText("profName",    fullName);
-    setText("profTeam",    teamName);
-    setText("profNameVal", fullName);
-    setText("profTeamVal", teamName);
+    setText("profName",    p.full_name  || "—");
+    setText("profTeam",    p.team_name  || "—");
+    setText("profNameVal", p.full_name  || "—");
 
     if (p.joined_at) {
         const d = new Date(p.joined_at).toLocaleDateString("en-IN", {
@@ -55,9 +53,60 @@ async function loadProfile() {
         });
         setText("profJoined", d);
     }
+
+    // Team name — editable before Match 1, locked after
+    const teamValEl    = document.getElementById("profTeamVal");
+    const teamInputEl  = document.getElementById("profTeamInput");
+    const teamSaveBtn  = document.getElementById("profTeamSaveBtn");
+    const lockNotice   = document.getElementById("profLockNotice");
+    const editNotice   = document.getElementById("profEditNotice");
+
+    if (teamNameLocked) {
+        // Show locked view
+        if (teamValEl)   { teamValEl.textContent = p.team_name || "—"; teamValEl.classList.remove("hidden"); }
+        if (teamInputEl) teamInputEl.classList.add("hidden");
+        if (teamSaveBtn) teamSaveBtn.classList.add("hidden");
+        if (lockNotice)  lockNotice.classList.remove("hidden");
+        if (editNotice)  editNotice.classList.add("hidden");
+    } else {
+        // Show editable input
+        if (teamValEl)   teamValEl.classList.add("hidden");
+        if (teamInputEl) { teamInputEl.value = p.team_name || ""; teamInputEl.classList.remove("hidden"); }
+        if (teamSaveBtn) teamSaveBtn.classList.remove("hidden");
+        if (lockNotice)  lockNotice.classList.add("hidden");
+        if (editNotice)  editNotice.classList.remove("hidden");
+    }
 }
 
-/* ── PHOTO CHANGE ──────────────────────────────────────────────────────── */
+/* ── SAVE TEAM NAME ── */
+document.getElementById("profTeamSaveBtn")?.addEventListener("click", async () => {
+    const input = document.getElementById("profTeamInput");
+    const btn   = document.getElementById("profTeamSaveBtn");
+    const newName = input?.value.trim();
+
+    if (!newName) { showStatus("Team name cannot be empty.", "error"); return; }
+    if (newName.length > 30) { showStatus("Max 30 characters.", "error"); return; }
+
+    btn.disabled    = true;
+    btn.textContent = "Saving…";
+
+    const { error } = await supabase
+        .from("user_profiles")
+        .update({ team_name: newName })
+        .eq("user_id", currentUserId);
+
+    if (error) {
+        showStatus("Failed to save. Try again.", "error");
+    } else {
+        setText("profTeam", newName);
+        showStatus("Team name updated ✅", "success");
+    }
+
+    btn.disabled    = false;
+    btn.textContent = "Save Team Name";
+});
+
+/* ── PHOTO CHANGE ── */
 document.getElementById("profChangePhotoBtn")?.addEventListener("click", () => {
     document.getElementById("profAvatarInput")?.click();
 });
@@ -88,10 +137,8 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
             .eq("user_id", currentUserId);
         if (updateErr) throw updateErr;
 
-        // Update avatar preview immediately without reload
         const { data: img } = supabase.storage
-            .from("team-avatars")
-            .getPublicUrl(photoPath);
+            .from("team-avatars").getPublicUrl(photoPath);
         const av = document.getElementById("profAvatar");
         if (av) {
             av.style.backgroundImage    = `url('${img.publicUrl}')`;
@@ -102,7 +149,6 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
         showStatus("Photo updated ✅", "success");
 
     } catch (err) {
-        console.error("Photo upload failed:", err.message);
         showStatus("Upload failed — try again", "error");
     } finally {
         btn.disabled    = false;
@@ -110,13 +156,12 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
     }
 });
 
-/* ── SIGN OUT ──────────────────────────────────────────────────────────── */
+/* ── SIGN OUT ── */
 document.getElementById("profSignOutBtn")?.addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
 });
 
-/* ── HELPERS ───────────────────────────────────────────────────────────── */
 function setText(id, val) {
     const el = document.getElementById(id);
     if (el) el.textContent = val;

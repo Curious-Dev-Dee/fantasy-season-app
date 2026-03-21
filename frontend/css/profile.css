@@ -275,3 +275,48 @@ body {
 
 .prof-signout-btn:hover  { background: var(--red-dim); border-color: rgba(239, 68, 68, 0.5); }
 .prof-signout-btn:active { transform: scale(0.98); }
+
+.prof-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--card-radius-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    margin-top: 6px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.prof-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.prof-save-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: var(--btn-radius);
+    border: none;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.prof-save-btn:hover:not(:disabled) {
+    box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.prof-save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
