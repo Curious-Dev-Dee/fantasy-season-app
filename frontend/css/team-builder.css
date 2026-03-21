@@ -380,12 +380,12 @@ body.loading-state .app-container        { display: none !important; }
     width: 100%;
     background: var(--bg-card);
     border-radius: var(--card-radius-sm);
-    padding: 4px;
+    padding: 3px;
     border: 1px solid var(--border-card);
     height: 44px;
     position: relative;
     align-items: center;
-    overflow: hidden;
+    gap: 3px;
 }
 
 .role-tab {
@@ -399,29 +399,80 @@ body.loading-state .app-container        { display: none !important; }
     color: var(--text-dim);
     cursor: pointer;
     z-index: 2;
-    transition: color var(--duration-base) var(--ease-out);
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
     gap: 3px;
     white-space: nowrap;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    border-radius: 7px;
+    border: 1.5px solid transparent;
+    height: 100%;
+    padding: 0 4px;
 }
 
-.role-tab.active { color: #000; }
+/* Met minimum — text goes neon */
+.role-tab.req-met {
+    color: var(--accent);
+}
+
+/* Not met minimum — text goes red */
+.role-tab.req-unmet {
+    color: var(--red);
+}
+
+/* Active + met = neon border */
+.role-tab.active.req-met {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+}
+
+/* Active + unmet = red border */
+.role-tab.active.req-unmet {
+    border-color: var(--red);
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--red);
+}
+
+/* Active but no players yet (0/0) — neutral */
+.role-tab.active {
+    border-color: var(--border-accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+}
 
 .role-tab span {
     font-size: 9px;
-    background: rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.08);
     padding: 1px 5px;
     border-radius: 4px;
     min-width: 14px;
     text-align: center;
-    transition: background var(--duration-base) var(--ease-out);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.role-tab.req-met span {
+    background: rgba(154,224,0,0.15);
+    color: var(--accent);
+}
+
+.role-tab.req-unmet span {
+    background: rgba(239,68,68,0.15);
+    color: var(--red);
 }
 
 .role-tab.active span {
-    background: rgba(0,0,0,0.20);
-    color: #000;
+    background: rgba(154,224,0,0.20);
+    color: var(--accent);
 }
+
+.role-tab.active.req-unmet span {
+    background: rgba(239,68,68,0.20);
+    color: var(--red);
+}
+
+/* Remove the sliding bg — no longer needed */
+.role-slider-bg { display: none; }
 
 /* ─── FILTER PILLS ───────────────────────────────── */
 .dropdown-filters {
