@@ -769,7 +769,7 @@ body {
 
 .podium-rank-circle {
     position: absolute;
-    top: -21px;
+    top: -14px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
