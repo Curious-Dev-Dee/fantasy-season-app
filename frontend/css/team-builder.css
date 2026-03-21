@@ -396,9 +396,16 @@ body.loading-state .app-container        { display: none !important; }
     border: 1px solid var(--border-card);
     border-radius: var(--card-radius-sm);
     padding: 12px;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
     gap: 12px;
+    min-height: 70px;
     transition: border-color var(--duration-fast) var(--ease-out),
                 background var(--duration-fast) var(--ease-out);
 }
@@ -418,11 +425,15 @@ body.loading-state .app-container        { display: none !important; }
 /* ─── AVATAR ─────────────────────────────────────── */
 .avatar-col {
     position: relative;
+    -webkit-flex-shrink: 0;
     flex-shrink: 0;
     cursor: pointer;
     width: 46px;
+    display: -webkit-flex;
     display: flex;
+    -webkit-flex-direction: column;
     flex-direction: column;
+    -webkit-align-items: center;
     align-items: center;
 }
 
@@ -480,8 +491,12 @@ body.loading-state .app-container        { display: none !important; }
 
 /* ─── PLAYER INFO ────────────────────────────────── */
 .player-info {
+    -webkit-flex: 1;
     flex: 1;
     min-width: 0;
+    overflow: hidden;
+    -webkit-align-self: center;
+    align-self: center;
 }
 
 .p-name {
@@ -535,10 +550,16 @@ body.loading-state .app-container        { display: none !important; }
 
 /* ─── CONTROLS ───────────────────────────────────── */
 .controls {
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: flex-end;
+    justify-content: flex-end;
     gap: 6px;
     flex-shrink: 0;
+    -webkit-flex-shrink: 0;
+    margin-left: auto;
 }
 
 /* C and VC — smaller, secondary role buttons */
@@ -654,14 +675,40 @@ body.loading-state .app-container        { display: none !important; }
     letter-spacing: 0.2px;
 }
 
+.save-btn {
+    width: 100%;
+    background: var(--bg-card);
+    color: var(--text-dim);
+    border: none;
+    padding: 16px;
+    border-radius: var(--btn-radius);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: not-allowed;
+    transition: var(--transition);
+}
+
 .save-btn:not(:disabled) {
+    background: var(--accent);
+    color: #000;
+    cursor: pointer;
     animation: savePulse 2s ease-in-out infinite;
+}
+
+.save-btn:not(:disabled):hover {
+    box-shadow: 0 6px 20px var(--accent-glow);
+    transform: translateY(-1px);
+    animation: none;
 }
 
 @keyframes savePulse {
     0%, 100% { box-shadow: 0 0 12px var(--accent-glow); }
     50%       { box-shadow: 0 0 24px var(--accent-glow); }
 }
+
 /* ─── BOOSTER SHELF ──────────────────────────────── */
 .booster-shelf {
     background: rgba(13, 22, 37, 0.6);
@@ -1661,7 +1708,6 @@ body.loading-state .app-container        { display: none !important; }
 /* ─── ACCESSIBILITY ──────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     .tb-spinner, .team-dot, .toggle-btn,
-    .player-card, .booster-card, .action-btn { transition: none !important; animation: none !important; }
-
-    .role-slider-bg { transition: none !important; }
+    .player-card, .booster-card, .action-btn,
+    .save-btn { transition: none !important; animation: none !important; }
 }
