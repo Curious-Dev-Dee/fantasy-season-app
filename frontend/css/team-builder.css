@@ -554,12 +554,12 @@ body.loading-state .app-container        { display: none !important; }
     display: flex;
     -webkit-align-items: center;
     align-items: center;
-    -webkit-justify-content: flex-end;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 6px;
     flex-shrink: 0;
     -webkit-flex-shrink: 0;
-    margin-left: auto;
+    -webkit-align-self: center;
+    align-self: center;
 }
 
 /* C and VC — smaller, secondary role buttons */
