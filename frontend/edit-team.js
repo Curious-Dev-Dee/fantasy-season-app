@@ -739,6 +739,30 @@ function togglePlayer(id) {
     renderMyXI(stats);
     renderPlayerPool(stats);
     updateSaveButton(stats);
+    // Auto switch to My XI when 11 players done but C/VC pending
+const allRolesMet = stats.roles.WK >= 1 && stats.roles.BAT >= 3 &&
+                    stats.roles.AR >= 1 && stats.roles.BOWL >= 3;
+
+if (stats.count === 11 && allRolesMet && (!state.captainId || !state.viceCaptainId)) {
+    const myXiBtn = document.querySelector(".toggle-btn[data-mode='myxi']");
+    const editBtn = document.querySelector(".toggle-btn[data-mode='playerPool']");
+    const myXiView  = document.getElementById("myxi-view");
+    const poolView  = document.getElementById("playerPool-view");
+    const fw = document.querySelector(".search-filter-wrapper");
+
+    if (myXiBtn && myXiView) {
+        // Switch tabs
+        myXiBtn.classList.add("active");
+        editBtn?.classList.remove("active");
+        myXiView.classList.add("active");
+        poolView?.classList.remove("active");
+        if (fw) fw.style.display = "none";
+
+        // Toast hint
+        showToast("11 players added! Now set your C & VC 👑", "success");
+        triggerHaptic("success");
+    }
+}
 }
 
 function setRole(id, type) {
