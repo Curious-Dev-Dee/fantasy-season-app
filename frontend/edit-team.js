@@ -364,30 +364,28 @@ const nextMatchHtml = nextMatchInfo
         </div>
         <span class="p-team-badge">${p.team_short_code}</span>
     </div>
-
-            </div>
-            <div class="player-info">
-                <strong class="p-name">${p.name}</strong>
-<span class="p-meta">${p.role} · ${p.credit} Cr</span>
-${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
-${nextMatchHtml}
-
-            <div class="controls">
-                ${isMyXi ? `
-                    <button class="role-btn ${state.captainId === p.id ? "active-c" : ""}"
-                        data-action="C" data-id="${p.id}"
-                        aria-label="Set captain">C</button>
-                    <button class="role-btn ${state.viceCaptainId === p.id ? "active-vc" : ""}"
-                        data-action="VC" data-id="${p.id}"
-                        aria-label="Set vice-captain">VC</button>
-                ` : ""}
-                <button class="action-btn ${isSelected ? "remove" : "add"}"
-                    data-action="toggle" data-id="${p.id}"
-                    ${isDisabled ? "disabled" : ""}
-                    aria-label="${isSelected ? "Remove player" : "Add player"}">
-                    ${isSelected ? "−" : "+"}
-                </button>
-            </div>`;
+    <div class="player-info">
+        <strong class="p-name">${p.name}</strong>
+        <span class="p-meta">${p.role} · ${p.credit} Cr</span>
+        ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
+        ${nextMatchHtml}
+    </div>
+    <div class="controls">
+        ${isMyXi ? `
+            <button class="role-btn ${state.captainId === p.id ? "active-c" : ""}"
+                data-action="C" data-id="${p.id}"
+                aria-label="Set captain">C</button>
+            <button class="role-btn ${state.viceCaptainId === p.id ? "active-vc" : ""}"
+                data-action="VC" data-id="${p.id}"
+                aria-label="Set vice-captain">VC</button>
+        ` : ""}
+        <button class="action-btn ${isSelected ? "remove" : "add"}"
+            data-action="toggle" data-id="${p.id}"
+            ${isDisabled ? "disabled" : ""}
+            aria-label="${isSelected ? "Remove player" : "Add player"}">
+            ${isSelected ? "−" : "+"}
+        </button>
+    </div>`;
 
         frag.appendChild(card);
     }
