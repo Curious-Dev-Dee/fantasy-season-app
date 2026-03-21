@@ -357,14 +357,20 @@ const nextMatchHtml = nextMatchInfo
         card.dataset.id = p.id;
 
         card.innerHTML = `
-    <div class="avatar-wrap" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer">
-        <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+    <div class="avatar-col" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer">
+        <div class="avatar-wrap">
+            <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+            ${catBadge}
+        </div>
+        <span class="p-team-badge">${p.team_short_code}</span>
+    </div>
+
 
                 ${catBadge}
             </div>
             <div class="player-info">
                 <strong class="p-name">${p.name}</strong>
-                <span class="p-meta">${p.role} · ${p.team_short_code} · ${p.credit} Cr</span>
+<span class="p-meta">${p.role} · ${p.credit} Cr</span>
 ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
 ${nextMatchHtml}
 
