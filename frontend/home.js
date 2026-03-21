@@ -578,8 +578,8 @@ if (saveProfileBtn) {
         const isFirstTime = !existingProfile || !existingProfile.profile_completed;
 
         // Name + team mandatory on first time
-        if (isFirstTime && (!fullName || !teamName)) {
-            window.showToast("Please enter your name and team name to continue.", "error");
+        if (isFirstTime && (!teamName)) {
+            window.showToast("Please enter your team name to continue.", "error");
             return;
         }
 
