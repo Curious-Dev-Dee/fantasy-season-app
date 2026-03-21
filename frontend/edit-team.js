@@ -216,13 +216,7 @@ function updateDashboard(stats) {
     renderTeamDots();
     const minReqs = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
 
-    // Role counts + colour
-    for (const role of ["WK", "BAT", "AR", "BOWL"]) {
-        const el = document.getElementById(`count-${role}`);
-        if (!el) continue;
-        el.textContent = stats.roles[role] || 0;
-el.style.color = (stats.roles[role] >= minReqs[role]) ? "var(--accent)" : "";
-    }
+
 
     setText("playerCountLabel",  stats.count);
     setText("overseasCountLabel", `${stats.overseas}/4`);
@@ -237,6 +231,7 @@ el.style.color = (stats.roles[role] >= minReqs[role]) ? "var(--accent)" : "";
         subsEl.textContent = stats.liveSubs;
         subsEl.closest(".dashboard-item")?.classList.toggle("negative", stats.isOverLimit);
     }
+    updateRoleTabStates();
 }
 
 function renderMyXI(stats) {
@@ -1341,6 +1336,40 @@ window.openPlayerProfile = async (playerId) => {
         content.innerHTML = '<p class="profile-no-history">Failed to load. Try again.</p>';
     }
 };
+
+function updateRoleTabStates() {
+    const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+    const maxReq = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
+    const counts = {
+        WK:   state.selectedPlayers.filter(p => p.role === "WK").length,
+        BAT:  state.selectedPlayers.filter(p => p.role === "BAT").length,
+        AR:   state.selectedPlayers.filter(p => p.role === "AR").length,
+        BOWL: state.selectedPlayers.filter(p => p.role === "BOWL").length,
+    };
+
+    document.querySelectorAll(".role-tab[data-role]").forEach(tab => {
+        const role = tab.dataset.role;
+        if (!role || role === "ALL") return;
+
+        const count = counts[role] || 0;
+        const min   = minReq[role] || 0;
+
+        // Update count badge
+        const badge = tab.querySelector("span");
+        if (badge) badge.textContent = count;
+
+        // Clear state classes
+        tab.classList.remove("req-met", "req-unmet");
+
+        if (count === 0) return; // no class — neutral grey
+
+        if (count >= min) {
+            tab.classList.add("req-met");
+        } else {
+            tab.classList.add("req-unmet");
+        }
+    });
+}
 
 function buildProfileChips(m) {
     const chips = [];
