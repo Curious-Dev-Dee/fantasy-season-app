@@ -39,27 +39,6 @@ if (viewFullLeaderboardBtn) {
 /* ══════════════════════════════════════════════════════
    AD UTILITIES
 ══════════════════════════════════════════════════════ */
-function loadMonetagAd() {
-    let lastShown = null;
-    try { lastShown = localStorage.getItem("ad_last_shown"); } catch (_) {}
-    const now = Date.now();
-    if (lastShown && now - Number(lastShown) < 120000) return;
-    try { localStorage.setItem("ad_last_shown", now); } catch (_) {}
-    const existing = document.getElementById("monetag-vignette");
-    if (existing) existing.remove();
-    const script        = document.createElement("script");
-    script.id           = "monetag-vignette";
-    script.src          = "https://gizokraijaw.net/vignette.min.js";
-    script.dataset.zone = "10742556";
-    script.async        = true;
-    document.body.appendChild(script);
-}
-
-function shouldShowHomeAd() {
-    if (profileModal?.hasAttribute("data-forced")) return false;
-    if (!existingProfile?.profile_completed) return false;
-    return true;
-}
 
 /* ══════════════════════════════════════════════════════
    INIT
@@ -91,7 +70,6 @@ function revealApp(hasError = false) {
     }
     document.body.classList.remove("loading-state");
     document.body.classList.add("loaded");
-    if (shouldShowHomeAd()) loadMonetagAd();
 }
 
 /* ══════════════════════════════════════════════════════

@@ -7,23 +7,8 @@ const leaderboardContainer = document.getElementById("leaderboardContainer");
 const leaderboardSummary   = document.getElementById("leaderboardSummary");
 const podiumContainer      = document.getElementById("podiumContainer");
 
-/* ─── AD UTILITY ─────────────────────────────────────────────────────────── */
-// BUG FIX #2: localStorage wrapped in try/catch for Safari Private Mode
-let adShownOnScroll = false;
 
-function loadMonetagAd() {
-    let lastShown = null;
-    try { lastShown = localStorage.getItem("ad_last_shown"); } catch (_) {}
-    const now = Date.now();
-    if (lastShown && now - Number(lastShown) < 120000) return;
-    try { localStorage.setItem("ad_last_shown", now); } catch (_) {}
 
-    const script       = document.createElement("script");
-    script.dataset.zone = "10742556";
-    script.src          = "https://gizokraijaw.net/vignette.min.js";
-    script.async        = true;
-    document.body.appendChild(script);
-}
 
 /* ─── INIT ───────────────────────────────────────────────────────────────── */
 // BUG FIX #1: Replaced supabase.auth.getSession() with authReady Promise
@@ -89,9 +74,7 @@ if (leagueId) {
     // BUG FIX #3: Pass userId to initChat so it doesn't re-fetch the session
     initChat(userId, leagueId, activeTournament.id);
 
-    setTimeout(() => {
-        if (Math.random() < 0.5) loadMonetagAd();
-    }, 2000);
+
 }
 
 init();
@@ -434,12 +417,4 @@ function subscribeToChat(userId, leagueId) {
         .subscribe();
 }
 
-/* ─── SCROLL AD TRIGGER ─────────────────────────────────────────────────── */
-window.addEventListener("scroll", () => {
-    if (adShownOnScroll) return;
-    const triggerPoint = document.body.scrollHeight * 0.6;
-    if (window.scrollY > triggerPoint && !chatPanel?.classList.contains("show")) {
-        adShownOnScroll = true;
-        loadMonetagAd();
-    }
-});
+;

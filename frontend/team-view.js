@@ -31,29 +31,6 @@ let isScoutMode = false;
 let realTeamsMap = {};
 let currentSession = null; // set by authReady so we don't call getSession() twice
 
-/* ─── AD UTILITY ─────────────────────────────────────────────────────────── */
-// BUG FIX #2 & #4: localStorage wrapped in try/catch for Safari Private Mode.
-// BUG FIX #4: Scout counter removed — simplified to every visit as requested.
-function loadMonetagAd() {
-    // Don't show ad if an overlay is open
-    const overlayOpen = ["historyOverlay", "breakdownOverlay", "playerPointLogOverlay"]
-        .some(id => !document.getElementById(id)?.classList.contains("hidden"));
-    if (overlayOpen) return;
-
-    let lastShown = null;
-    try { lastShown = localStorage.getItem("ad_last_shown"); } catch (_) {}
-
-    const now = Date.now();
-    if (lastShown && now - Number(lastShown) < 120000) return;
-
-    try { localStorage.setItem("ad_last_shown", now); } catch (_) {}
-
-    const script = document.createElement("script");
-    script.dataset.zone = "10742556";
-    script.src          = "https://gizokraijaw.net/vignette.min.js";
-    script.async        = true;
-    document.body.appendChild(script);
-}
 
 /* ─── BOOSTER HELPERS ────────────────────────────────────────────────────── */
 function getAppliedBooster(record) {
@@ -404,7 +381,6 @@ async function init() {
         console.error("Init error:", err);
     } finally {
         revealApp();
-        setTimeout(() => loadMonetagAd(), 1200);
     }
 }
 
@@ -591,7 +567,6 @@ function setupHistoryListeners() {
         if (isFetchingHistory) return;
         isFetchingHistory = true;
 
-        if (Math.random() < 0.5) loadMonetagAd();
 
         document.body.style.overflow = "hidden";
         historyOverlay.classList.remove("hidden");
