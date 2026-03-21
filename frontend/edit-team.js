@@ -365,8 +365,6 @@ const nextMatchHtml = nextMatchInfo
         <span class="p-team-badge">${p.team_short_code}</span>
     </div>
 
-
-                ${catBadge}
             </div>
             <div class="player-info">
                 <strong class="p-name">${p.name}</strong>
