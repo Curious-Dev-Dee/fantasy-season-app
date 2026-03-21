@@ -721,3 +721,56 @@ body {
     font-size: 18px;
     flex-shrink: 0;
 }
+
+/* ─── RANK CIRCLE PROGRESS ───────────────────────── */
+.rank-circle {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.rank-circle svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 42px; height: 42px;
+    transform: rotate(-90deg);
+}
+
+.rank-circle-bg {
+    fill: none;
+    stroke: var(--border-card);
+    stroke-width: 2.5;
+}
+
+.rank-circle-fill {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease, stroke 0.3s ease;
+}
+
+.rank-circle-fill.neon { stroke: var(--accent); }
+.rank-circle-fill.red  { stroke: var(--red); }
+
+.rank-circle-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--text-primary);
+}
+
+.leader-row.you .rank-circle-label { color: var(--accent); }
+
+.podium-rank-circle {
+    position: absolute;
+    top: -21px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}

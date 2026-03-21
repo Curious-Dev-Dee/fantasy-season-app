@@ -62,7 +62,7 @@ if (leagueId) {
     // Hide prizes — private league has no season prizes
     const prizesStrip = document.querySelector(".lb-prizes-strip");
     if (prizesStrip) prizesStrip.style.display = "none";
-    
+
     } else {
         query = supabase
             .from("leaderboard_view")
@@ -96,6 +96,29 @@ if (leagueId) {
 
 init();
 
+function buildRankCircle(rank, pct) {
+    const radius = 16;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (pct / 100) * circumference;
+    const colorClass = pct >= 70 ? "neon" : "red";
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "rank-circle";
+
+    wrapper.innerHTML = `
+        <svg viewBox="0 0 42 42">
+            <circle class="rank-circle-bg"
+                cx="21" cy="21" r="${radius}"/>
+            <circle class="rank-circle-fill ${colorClass}"
+                cx="21" cy="21" r="${radius}"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="rank-circle-label">#${rank}</div>`;
+
+    return wrapper;
+}
+
 /* ─── LEADERBOARD RENDERER ───────────────────────────────────────────────── */
 function renderLeaderboard(leaderboard, userId, avatarMap) {
     if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
@@ -110,6 +133,8 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
     const top3     = leaderboard.slice(0, 3);
     const rest     = leaderboard.slice(3);
 
+    const rank1Points = top3[0]?.total_points || 1;
+
     const p1 = top3[0] || { team_name: "TBA", total_points: 0, rank: 1, user_id: null };
     const p2 = top3[1] || { team_name: "TBA", total_points: 0, rank: 2, user_id: null };
     const p3 = top3[2] || { team_name: "TBA", total_points: 0, rank: 3, user_id: null };
@@ -122,9 +147,9 @@ function renderLeaderboard(leaderboard, userId, avatarMap) {
         card.className = `podium-card rank-${pos}`;
         card.onclick   = () => scoutUser(user.user_id, user.team_name || "Anonymous");
 
-        const rankBadge = document.createElement("div");
-        rankBadge.className   = "rank-badge";
-        rankBadge.textContent = String(user.rank || pos);
+const pct       = pos === 1 ? 100 : Math.round(((user.total_points || 0) / rank1Points) * 100);
+const rankBadge = buildRankCircle(user.rank || pos, pct);
+rankBadge.classList.add("podium-rank-circle");
 
         const avatar = document.createElement("div");
         avatar.className = "podium-avatar";
@@ -175,9 +200,8 @@ if (me) {
         rowEl.className = `leader-row ${row.user_id === userId ? "you" : ""} ${extraClass}`.trim();
         rowEl.onclick   = () => scoutUser(row.user_id, row.team_name || "Anonymous");
 
-        const rank = document.createElement("div");
-        rank.className   = "l-rank";
-        rank.textContent = `#${row.rank}`;
+const pct  = Math.round((row.total_points / rank1Points) * 100);
+const rank = buildRankCircle(row.rank, pct);
 
         const team = document.createElement("div");
         team.className   = "l-team";
