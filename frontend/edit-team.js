@@ -220,7 +220,12 @@ function updateDashboard(stats) {
 
     setText("playerCountLabel",  stats.count);
     setText("overseasCountLabel", `${stats.overseas}/4`);
-    setText("creditCount",        stats.credits.toFixed(1));
+setText("creditCount", (100 - stats.credits).toFixed(1));
+const creditEl = document.getElementById("creditCount");
+if (creditEl) {
+    const remaining = 100 - stats.credits;
+    creditEl.closest(".dashboard-item")?.classList.toggle("negative", remaining < 5);
+}
     setText("boosterUsedLabel",   `${7 - state.usedBoosters.length}/7`);
 
     const fill = document.getElementById("progressFill");
