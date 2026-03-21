@@ -287,8 +287,8 @@ function getNextMatchLabel(realTeamId) {
         const m = state.matches[i];
         if (m.team_a_id === realTeamId || m.team_b_id === realTeamId) {
             if (i === 0) return { text: "Plays next match", urgent: true };
-            if (i === 1) return { text: "Plays in 2 matches", urgent: false };
-            return { text: `Plays in ${i + 1} matches`, urgent: false };
+            if (i === 1) return { text: "Plays after 1 match", urgent: false };
+            return { text: `Plays after ${i} matches`, urgent: false };
         }
     }
     return null;
