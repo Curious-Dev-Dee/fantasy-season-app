@@ -131,8 +131,16 @@
        The animation on .app-container creates a stacking context that traps
        fixed children inside it. Moving it outside fixes this. -->
   <div class="save-bar">
-    <button id="saveTeamBtn" class="save-btn" disabled>Save Team</button>
-  </div>
+    <div class="save-hint" id="saveHint"></div>
+    <button id="saveTeamBtn" class="save-btn" disabled>NEXT →</button>
+</div>
+
+<!-- TRANSFER SUMMARY SHEET -->
+<div id="transferBackdrop" class="filter-backdrop hidden"></div>
+<div id="transferSheet" class="dropdown-menu bottom-sheet transfer-sheet hidden">
+    <div id="transferSheetBody"></div>
+</div>
+
 
   <!-- FILTER BACKDROP -->
   <div id="filterBackdrop" class="filter-backdrop hidden"></div>

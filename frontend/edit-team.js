@@ -480,6 +480,9 @@ function setupListeners() {
     // Save button
     document.getElementById("saveTeamBtn")?.addEventListener("click", handleSave);
 
+    document.getElementById("transferBackdrop")
+    ?.addEventListener("click", closeTransferSheet);
+    
     // BUG FIX #5: Clean up AudioContext on page hide
     window.addEventListener("pagehide", () => {
         if (audioCtx) {
@@ -487,25 +490,180 @@ function setupListeners() {
             audioCtx = null;
         }
         if (countdownInterval) clearInterval(countdownInterval);
+        
     });
 }
 
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 async function handleSave() {
     if (state.saving || isTransitioning) return;
+    showTransferSheet();
+}
+
+// ─── TRANSFER SHEET ───────────────────────────────────────────────────────────
+function showTransferSheet() {
+    const sheet    = document.getElementById("transferSheet");
+    const body     = document.getElementById("transferSheetBody");
+    const backdrop = document.getElementById("transferBackdrop");
+    if (!sheet || !body) return;
+
+    const stats   = calcStats();
+    const captain = state.allPlayers.find(p => p.id === state.captainId);
+    const vc      = state.allPlayers.find(p => p.id === state.viceCaptainId);
+
+    const boosterNames = {
+        TOTAL_2X: "Total 2X", INDIAN_2X: "Indian 2X", OVERSEAS_2X: "Overseas 2X",
+        UNCAPPED_2X: "Uncapped 2X", CAPTAIN_3X: "Captain 3X",
+        MOM_2X: "MOM 2X", FREE_11: "Free 11",
+    };
+    const boosterIcons = {
+        TOTAL_2X: "🚀", INDIAN_2X: "🇮🇳", OVERSEAS_2X: "✈️",
+        UNCAPPED_2X: "🧢", CAPTAIN_3X: "👑", MOM_2X: "🏆", FREE_11: "🆓",
+    };
+
+    // CVC block
+    const cvcHtml = `
+        <div class="ts-cvc-grid">
+            <div class="ts-cvc-block">
+                <span class="ts-cvc-block-label">👑 Captain</span>
+                <span class="ts-cvc-name captain">${captain?.name || "—"}</span>
+            </div>
+            <div class="ts-cvc-block">
+                <span class="ts-cvc-block-label">VC Vice-Captain</span>
+                <span class="ts-cvc-name vc">${vc?.name || "—"}</span>
+            </div>
+        </div>`;
+
+    // Tags — booster + uncapped
+    const newPlayers     = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
+    const hasUncapped    = !stats.isResetMatch && newPlayers.some(p => p.category === "uncapped") && newPlayers.length > 0;
+    const boosterHtml    = state.activeBooster !== "NONE"
+        ? `<span class="ts-tag booster">${boosterIcons[state.activeBooster]} ${boosterNames[state.activeBooster]}</span>`
+        : "";
+    const uncappedHtml   = hasUncapped
+        ? `<span class="ts-tag uncapped">🧢 Uncapped Free Sub</span>`
+        : "";
+    const tagsHtml       = (boosterHtml || uncappedHtml)
+        ? `<div class="ts-tags-row">${boosterHtml}${uncappedHtml}</div>`
+        : "";
+
+    // Reset match — fresh team
+const isFreeChange = stats.isResetMatch || state.activeBooster === "FREE_11";
+const freeReason = state.activeBooster === "FREE_11"
+    ? "🆓 Free 11 Booster Active — No Subs Deducted"
+    : state.currentMatchNumber === 1
+    ? "🏏 Match 1 — Fresh Start, No Subs Deducted"
+    : "🔄 Playoff Reset — No Subs Deducted";
+
+if (isFreeChange) {
+    body.innerHTML = `
+        <div class="ts-inner">
+            <div class="ts-header">
+                <span class="ts-title">Confirm Team</span>
+                <button class="ts-close" onclick="closeTransferSheet()">✕</button>
+            </div>
+            <div class="ts-fresh">${freeReason}</div>
+            ${cvcHtml}
+            ${tagsHtml}
+            <p class="ts-note">Your team will lock at match start time.</p>
+            <button class="ts-confirm-btn" onclick="confirmAndSave()">Confirm & Save</button>
+        </div>`;
+    openTransferSheet(sheet, backdrop);
+    return;
+}
+
+    // Normal match — IN / OUT
+    const currentIds = state.selectedPlayers.map(p => p.id);
+    const playersIn  = state.selectedPlayers.filter(p => !state.lockedPlayerIds.includes(p.id));
+    const playersOut = state.allPlayers.filter(p =>
+        state.lockedPlayerIds.includes(p.id) && !currentIds.includes(p.id)
+    );
+
+    const pillHtml = (players, type) =>
+        players.length > 0
+            ? players.map(p => `
+                <div class="ts-player-pill ${type}">
+                    <div class="ts-pill-dot"></div>
+                    <span class="ts-pill-name">${p.name}</span>
+                </div>`).join("")
+            : `<div class="ts-player-pill ${type}" style="opacity:0.4">
+                   <div class="ts-pill-dot"></div>
+                   <span class="ts-pill-name">None</span>
+               </div>`;
+
+    const subsUsed = state.baseSubsRemaining - (typeof stats.liveSubs === "number" ? stats.liveSubs : state.baseSubsRemaining);
+    const subsClass = stats.isOverLimit ? "danger" : subsUsed > 0 ? "warning" : "";
+
+    body.innerHTML = `
+        <div class="ts-inner">
+            <div class="ts-header">
+                <span class="ts-title">Confirm Transfer</span>
+                <button class="ts-close" onclick="closeTransferSheet()">✕</button>
+            </div>
+            <div class="ts-inout-grid">
+                <div>
+                    <div class="ts-col-label out">▼ Out</div>
+                    ${pillHtml(playersOut, "out")}
+                </div>
+                <div>
+                    <div class="ts-col-label in">▲ In</div>
+                    ${pillHtml(playersIn, "in")}
+                </div>
+            </div>
+            ${cvcHtml}
+            <div class="ts-stats-row">
+                <div class="ts-stat-pill">
+                    <span class="ts-stat-value ${subsClass}">${subsUsed}</span>
+                    <span class="ts-stat-label">Subs Used</span>
+                </div>
+                <div class="ts-stat-pill">
+                    <span class="ts-stat-value ${stats.isOverLimit ? "danger" : ""}">${stats.liveSubs}</span>
+                    <span class="ts-stat-label">Subs Left</span>
+                </div>
+                <div class="ts-stat-pill">
+                    <span class="ts-stat-value">${state.selectedPlayers.length}</span>
+                    <span class="ts-stat-label">Players</span>
+                </div>
+            </div>
+            ${tagsHtml}
+            <p class="ts-note">Subs will be deducted and team locked at next match start time.</p>
+            <button class="ts-confirm-btn" onclick="confirmAndSave()">Confirm & Save</button>
+        </div>`;
+
+    openTransferSheet(sheet, backdrop);
+}
+
+function openTransferSheet(sheet, backdrop) {
+    backdrop?.classList.remove("hidden");
+    sheet.classList.remove("hidden");
+    setTimeout(() => sheet.classList.add("show"), 10);
+    document.body.style.overflow = "hidden";
+}
+
+window.closeTransferSheet = () => {
+    const sheet    = document.getElementById("transferSheet");
+    const backdrop = document.getElementById("transferBackdrop");
+    sheet?.classList.remove("show");
+    backdrop?.classList.add("hidden");
+    document.body.style.overflow = "";
+    setTimeout(() => sheet?.classList.add("hidden"), 400);
+};
+
+window.confirmAndSave = async () => {
+    closeTransferSheet();
     state.saving = true;
     updateSaveButton(calcStats());
 
     try {
         const { data: { user } } = await supabase.auth.getUser();
         const { error } = await supabase.rpc("save_fantasy_team", {
-            p_user_id:       user.id,
-            p_tournament_id: activeTournamentId,
-            p_captain_id:    state.captainId,
+            p_user_id:         user.id,
+            p_tournament_id:   activeTournamentId,
+            p_captain_id:      state.captainId,
             p_vice_captain_id: state.viceCaptainId,
-            p_total_credits: state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
-            p_active_booster: state.activeBooster,
-            p_player_ids:    state.selectedPlayers.map(p => p.id),
+            p_total_credits:   state.selectedPlayers.reduce((s, p) => s + Number(p.credit), 0),
+            p_active_booster:  state.activeBooster,
+            p_player_ids:      state.selectedPlayers.map(p => p.id),
         });
 
         if (error) throw error;
@@ -513,23 +671,19 @@ async function handleSave() {
         triggerHaptic("success");
         showToast("Team saved successfully!", "success");
         localStorage.setItem("last_action", "team_saved");
-
-        setTimeout(() => {
-            window.location.href = "/home";
-        }, 1500);
+        setTimeout(() => { window.location.href = "/home"; }, 1500);
 
     } catch (err) {
         triggerHaptic("error");
         let msg = err.message;
-        if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
-            msg = "Weak internet! Please tap save again.";
-        }
+        if (msg.includes("Failed to fetch") || msg.includes("NetworkError"))
+            msg = "Weak internet! Please try again.";
         showToast(msg, "error");
     } finally {
         state.saving = false;
         updateSaveButton(calcStats());
     }
-}
+};
 
 // ─── PLAYER ACTIONS ───────────────────────────────────────────────────────────
 function togglePlayer(id) {
@@ -718,38 +872,42 @@ function updateHeaderMatch() {
 
 // ─── SAVE BUTTON STATE ────────────────────────────────────────────────────────
 function updateSaveButton(stats) {
-    const btn = document.getElementById("saveTeamBtn");
+    const btn  = document.getElementById("saveTeamBtn");
+    const hint = document.getElementById("saveHint");
     if (!btn) return;
 
     if (isTransitioning) {
         btn.disabled = true;
-        btn.textContent = "MATCH LOCKED";
+        btn.textContent = "LOCKED";
+        if (hint) hint.textContent = `Team locked for this match`;
         return;
     }
 
     const checks = [
-        [state.saving,               "SAVING..."],
-        [stats.count < 11,           `ADD ${11 - stats.count} MORE`],
-        [!state.captainId || !state.viceCaptainId, "SET C & VC"],
-        [stats.roles.WK   < 1,      "NEED A KEEPER"],
-        [stats.roles.BAT  < 3,      "MIN 3 BATTERS"],
-        [stats.roles.AR   < 1,      "NEED ALL-ROUNDER"],
-        [stats.roles.BOWL < 3,      "MIN 3 BOWLERS"],
-        [stats.overseas   > 4,      "MAX 4 OVERSEAS"],
-        [stats.credits    > 100.05, "CREDITS EXCEEDED"],
-        [stats.isOverLimit,         "NOT ENOUGH SUBS"],
+        [state.saving,                              "SAVING...",   ""],
+        [stats.count < 11,                          "NEXT →",      `Add ${11 - stats.count} more player${11 - stats.count > 1 ? "s" : ""}`],
+        [!state.captainId || !state.viceCaptainId,  "NEXT →",      "Select your Captain & Vice-Captain"],
+        [stats.roles.WK   < 1,                     "NEXT →",      "Need at least 1 Wicket-Keeper"],
+        [stats.roles.BAT  < 3,                     "NEXT →",      "Need at least 3 Batters"],
+        [stats.roles.AR   < 1,                     "NEXT →",      "Need at least 1 All-Rounder"],
+        [stats.roles.BOWL < 3,                     "NEXT →",      "Need at least 3 Bowlers"],
+        [stats.overseas   > 4,                     "NEXT →",      "Max 4 overseas players allowed"],
+        [stats.credits    > 100.05,                "NEXT →",      "Credits exceeded — remove a player"],
+        [stats.isOverLimit,                         "NEXT →",      "Not enough subs remaining"],
     ];
 
-    for (const [condition, label] of checks) {
+    for (const [condition, label, hintText] of checks) {
         if (condition) {
             btn.disabled = true;
             btn.textContent = label;
+            if (hint) hint.textContent = hintText;
             return;
         }
     }
 
     btn.disabled = false;
-    btn.textContent = "SAVE TEAM";
+    btn.textContent = "NEXT →";
+    if (hint) hint.textContent = "Tap to review your changes";
 }
 
 // ─── FILTERS ──────────────────────────────────────────────────────────────────
