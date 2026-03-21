@@ -676,11 +676,15 @@ body.loaded #loadingOverlay {
         rgba(154,224,0,0.05) 100%);
     border: 1px solid rgba(245,158,11,0.18);
     border-radius: var(--card-radius-sm);
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .prizes-teaser-left {
     font-size: 20px;
     flex-shrink: 0;
+    line-height: 1;
 }
 
 .prizes-teaser-mid {
@@ -689,6 +693,7 @@ body.loaded #loadingOverlay {
     flex-direction: column;
     gap: 5px;
     min-width: 0;
+    overflow: hidden;
 }
 
 .pt-rank {
@@ -698,15 +703,19 @@ body.loaded #loadingOverlay {
     color: var(--text-dim);
     display: flex;
     align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    gap: 5px;
+    flex-wrap: nowrap;
+    min-width: 0;
 }
 
 .pt-rank strong {
     color: var(--text-primary);
     font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
 }
 
 .pt-badge {
@@ -715,6 +724,7 @@ body.loaded #loadingOverlay {
     font-weight: 900;
     width: 18px;
     height: 18px;
+    min-width: 18px;
     border-radius: 5px;
     display: inline-flex;
     align-items: center;
@@ -725,6 +735,13 @@ body.loaded #loadingOverlay {
 
 .pt-badge.gold   { background: var(--gold); }
 .pt-badge.silver { background: #94a3b8; }
+
+.pt-rank-label {
+    white-space: nowrap;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .pt-link {
     font-family: var(--font-display);
@@ -739,6 +756,7 @@ body.loaded #loadingOverlay {
     flex-shrink: 0;
     border-left: 1px solid rgba(245,158,11,0.20);
     padding-left: 10px;
+    white-space: nowrap;
 }
 
 /* Title sponsor block */
