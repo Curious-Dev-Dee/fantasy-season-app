@@ -696,6 +696,36 @@ body.loading-state .app-container        { display: none !important; }
 }
 
 /* ─── BOOSTER SHELF ──────────────────────────────── */
+
+.b-title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--text-faint);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.b-count {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    background: var(--red);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 6px;
+}
+
+.b-count-locked {
+    background: var(--text-faint);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 6px;
+}
+
 .booster-shelf {
     background: rgba(13, 22, 37, 0.6);
     border-bottom: 1px solid var(--border);
