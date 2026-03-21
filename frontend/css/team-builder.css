@@ -396,16 +396,11 @@ body.loading-state .app-container        { display: none !important; }
     border: 1px solid var(--border-card);
     border-radius: var(--card-radius-sm);
     padding: 12px;
-    display: -webkit-flex;
     display: flex;
-    -webkit-align-items: center;
-align-items: stretch;
--webkit-align-items: stretch;
+    align-items: center;
     flex-direction: row;
-    -webkit-flex-wrap: nowrap;
     flex-wrap: nowrap;
     gap: 12px;
-    min-height: 70px;
     transition: border-color var(--duration-fast) var(--ease-out),
                 background var(--duration-fast) var(--ease-out);
 }
@@ -491,7 +486,6 @@ align-items: stretch;
 
 /* ─── PLAYER INFO ────────────────────────────────── */
 .player-info {
-    -webkit-flex: 1;
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -548,16 +542,10 @@ align-items: stretch;
 
 /* ─── CONTROLS ───────────────────────────────────── */
 .controls {
-    display: -webkit-flex;
     display: flex;
-    -webkit-align-items: center;
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
-    -webkit-flex-shrink: 0;
-    align-self: stretch;
-    -webkit-align-self: stretch;
-    padding-left: 4px;
 }
 
 /* C and VC — smaller, secondary role buttons */
