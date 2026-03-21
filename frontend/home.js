@@ -25,8 +25,8 @@ const editButton             = document.getElementById("editXiBtn");
 const boosterStatusEl        = document.getElementById("boosterStatus");
 const profileModal           = document.getElementById("profileModal");
 const saveProfileBtn         = document.getElementById("saveProfileBtn");
-const modalFullName          = document.getElementById("modalFullName");
-const modalTeamName          = document.getElementById("modalTeamName");
+const modalFullName = null; // removed — full name auto-set from email
+// const modalTeamName          = document.getElementById("modalTeamName");
 const avatarInput            = document.getElementById("avatarInput");
 const modalPreview           = document.getElementById("modalAvatarPreview");
 const viewXiBtn              = document.getElementById("viewXiBtn");
@@ -570,10 +570,10 @@ function setupHomeLeagueListeners(userId) {
 ══════════════════════════════════════════════════════ */
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
-        if (!modalFullName || !modalTeamName || !profileModal) return;
+if (!modalTeamName || !profileModal) return;
 
-        const fullName = modalFullName.value.trim();
-        const teamName = modalTeamName.value.trim();
+const fullName = "";
+const teamName = modalTeamName.value.trim();
         const file     = avatarInput?.files[0];
         const isFirstTime = !existingProfile || !existingProfile.profile_completed;
 
@@ -612,11 +612,9 @@ const match1Locked = match1?.status === "locked";
 
 const updatePayload = { team_photo_url: photoPath };
 if (isFirstTime) {
-    updatePayload.full_name         = fullName;
     updatePayload.team_name         = teamName;
     updatePayload.profile_completed = true;
 } else if (!match1Locked && teamName) {
-    // Allow team name change before match 1
     updatePayload.team_name = teamName;
 }
 
