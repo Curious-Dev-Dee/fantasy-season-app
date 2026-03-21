@@ -150,11 +150,17 @@ async function fetchHomeData(userId) {
     if (dash) {
         if (scoreElement) scoreElement.textContent = dash.total_points || 0;
 
-        const displayRank = dash.user_rank > 0 ? `#${dash.user_rank}` : "--";
-        if (rankElement) rankElement.textContent = displayRank;
+const displayRank = dash.user_rank > 0 ? `#${dash.user_rank}` : "Pre-Season";
+if (rankElement) {
+    rankElement.textContent = displayRank;
+    rankElement.classList.toggle("pre-season", dash.user_rank <= 0);
+}
 
-        const overallRankHeader = document.getElementById("overallUserRank");
-        if (overallRankHeader) overallRankHeader.textContent = displayRank;
+const overallRankHeader = document.getElementById("overallUserRank");
+if (overallRankHeader) {
+    overallRankHeader.textContent = displayRank;
+    overallRankHeader.classList.toggle("pre-season", dash.user_rank <= 0);
+}
 
         currentUserOverallRank = dash.user_rank || Infinity;
 
@@ -163,6 +169,18 @@ if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "v
         } else {
             if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 145; subsElement.style.color = ""; }
         }
+
+        
+        // Season progress bar
+const progressFill = document.getElementById("seasonProgressFill");
+const progressLabel = document.getElementById("seasonProgressLabel");
+if (progressFill && dash.current_match_number != null) {
+    const total = 84;
+    const current = Math.min(dash.current_match_number, total);
+    const pct = Math.round((current / total) * 100);
+    progressFill.style.width = `${pct}%`;
+    if (progressLabel) progressLabel.textContent = `Match ${current} of ${total}`;
+}
 
         if (dash.upcoming_match) {
             const match = dash.upcoming_match;
@@ -328,9 +346,10 @@ if (overallCountEl && userCount != null) {
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
 
-const ptsPill      = document.createElement("span");
-ptsPill.className  = `pts-pill${row.total_points > 0 ? " has-pts" : ""}`;
-ptsPill.textContent = `${row.total_points} pts`;
+const ptsPill     = document.createElement("span");
+const hasPoints   = row.total_points > 0;
+ptsPill.className = `pts-pill${hasPoints ? " has-pts" : ""}`;
+ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
 
             rowDiv.append(rankSpan, ptsPill);
             leaderboardContainer.appendChild(rowDiv);
@@ -429,18 +448,26 @@ inviteCodeEl.style.color = "var(--accent)";
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
 
-            const ptsPill      = document.createElement("span");
-ptsPill.className  = `pts-pill${row.total_points > 0 ? " has-pts" : ""}`;
-ptsPill.textContent = `${row.total_points} pts`;
+const ptsPill     = document.createElement("span");
+const hasPoints   = row.total_points > 0;
+ptsPill.className = `pts-pill${hasPoints ? " has-pts" : ""}`;
+ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
 
             rowDiv.append(rankSpan, ptsPill);
             containerEl.appendChild(rowDiv);
         });
 
-        const userRow  = lb.find(r => r.user_id === userId);
-        const rankSpan = document.getElementById("privateLeagueRank");
-        if (rankSpan && userRow) rankSpan.textContent = `#${userRow.rank_in_league}`;
-        currentUserPrivateRank = userRow?.rank_in_league ?? Infinity;
+const rankSpan = document.getElementById("privateLeagueRank");
+if (rankSpan) {
+    if (userRow && userRow.total_points > 0) {
+        rankSpan.textContent = `#${userRow.rank_in_league}`;
+        rankSpan.classList.remove("pre-season");
+    } else {
+        rankSpan.textContent = "Pre-Season";
+        rankSpan.classList.add("pre-season");
+    }
+}
+currentUserPrivateRank = userRow?.rank_in_league ?? Infinity;
     } else {
         currentUserPrivateRank = Infinity;
     }

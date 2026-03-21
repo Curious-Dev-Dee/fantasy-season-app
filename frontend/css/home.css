@@ -915,3 +915,44 @@ body.loaded #loadingOverlay {
   margin-top: 6px;
   line-height: 1.6;
 }
+
+/* ─── SEASON PROGRESS BAR ────────────────────────── */
+.season-progress-bar {
+    height: 3px;
+    background: var(--border-subtle);
+    border-radius: 2px;
+    margin: 12px 0 0;
+    overflow: hidden;
+}
+
+.season-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 1s var(--ease-out);
+}
+
+.season-progress-label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+    text-align: center;
+    margin: 5px 0 0;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* ─── PRE-SEASON STATE ───────────────────────────── */
+.stat-val.pre-season,
+.league-rank.pre-season,
+.lb-user-rank.pre-season {
+    font-size: 13px;
+    color: var(--text-faint);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* ─── MATCH ACTIONS RATIO FIX ────────────────────── */
+.match-actions .btn-primary   { flex: 1.6; }
+.match-actions .btn-secondary { flex: 1; font-size: 13px; padding: 14px 12px; }
