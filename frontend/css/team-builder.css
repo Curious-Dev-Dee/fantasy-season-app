@@ -736,7 +736,7 @@ body.loading-state .app-container        { display: none !important; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 16px 8px;
+    padding: 8px 16px 8px;
 }
 
 .booster-scroll {
