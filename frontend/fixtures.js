@@ -150,6 +150,8 @@ function buildMatchCard(match) {
     // Card
     const card     = document.createElement("article");
     card.className = `match-card status-${match.status}`;
+    card.style.cursor = "pointer";
+card.onclick = () => window.open("https://crex.live/fixtures", "_blank");
 
     // Top accent bar — avoids border-left + border-radius conflict
     const bar      = document.createElement("div");
