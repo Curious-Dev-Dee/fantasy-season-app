@@ -83,31 +83,41 @@
         </button>
       </div>
 
-      <!-- SEARCH + ROLE TABS + FILTER PILLS -->
-      <div class="search-filter-wrapper">
+<!-- SEARCH + ROLE TABS + FILTER PILLS -->
+<div class="search-filter-wrapper">
+
+    <div class="role-search-row">
+        <div class="role-navigation-wrapper">
+            <div class="role-tabs-container">
+                <div class="role-tab active" data-role="WK">WK <span id="count-WK">0</span></div>
+                <div class="role-tab" data-role="BAT">BAT <span id="count-BAT">0</span></div>
+                <div class="role-tab" data-role="AR">AR <span id="count-AR">0</span></div>
+                <div class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL">0</span></div>
+                <div class="role-slider-bg"></div>
+            </div>
+        </div>
+        <button class="search-icon-btn" id="searchIconBtn" aria-label="Search players">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <!-- Search overlay — hidden by default -->
+    <div class="search-overlay-row hidden" id="searchOverlayRow">
         <input type="text" id="playerSearch"
-               placeholder="Search name, team, role…"
+               placeholder="Search any player…"
                autocomplete="off"
                spellcheck="false">
+        <button class="search-close-btn" id="searchCloseBtn">✕</button>
+    </div>
 
-        <div class="role-navigation-wrapper">
-          <div class="role-tabs-container">
-            <div class="role-tab active" data-role="ALL">ALL</div>
-            <div class="role-tab" data-role="WK">WK <span id="count-WK">0</span></div>
-            <div class="role-tab" data-role="BAT">BAT <span id="count-BAT">0</span></div>
-            <div class="role-tab" data-role="AR">AR <span id="count-AR">0</span></div>
-            <div class="role-tab" data-role="BOWL">BOWL <span id="count-BOWL">0</span></div>
-            <div class="role-slider-bg"></div>
-          </div>
-        </div>
+    <div class="dropdown-filters">
+        <button id="matchToggle"  class="pill-filter">Matches</button>
+        <button id="teamToggle"   class="pill-filter">Teams</button>
+        <button id="creditToggle" class="pill-filter">Credits</button>
+        <button id="typeToggle"   class="pill-filter">Type</button>
+    </div>
 
-        <div class="dropdown-filters">
-          <button id="matchToggle"  class="pill-filter">Matches</button>
-          <button id="teamToggle"   class="pill-filter">Teams</button>
-          <button id="creditToggle" class="pill-filter">Credits</button>
-          <button id="typeToggle"   class="pill-filter">Type</button>
-        </div>
-      </div>
+</div>
 
     </div><!-- end .sticky-controls -->
 

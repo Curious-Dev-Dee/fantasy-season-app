@@ -246,8 +246,51 @@ body.loading-state .app-container        { display: none !important; }
     gap: 10px;
 }
 
+/* ─── ROLE + SEARCH ROW ──────────────────────────── */
+.role-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.role-search-row .role-navigation-wrapper {
+    flex: 1;
+}
+
+.search-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--card-radius-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    color: var(--text-faint);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.search-icon-btn:hover,
+.search-icon-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--border-accent);
+    color: var(--accent);
+}
+
+/* Search overlay row */
+.search-overlay-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-overlay-row.hidden { display: none; }
+
 #playerSearch {
-    width: 100%;
+    flex: 1;
     padding: 12px 14px;
     border-radius: var(--card-radius-sm);
     background: var(--bg-card);
@@ -267,6 +310,67 @@ body.loading-state .app-container        { display: none !important; }
 
 #playerSearch::placeholder { color: var(--text-faint); }
 
+.search-close-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--card-radius-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    color: var(--text-faint);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+/* ─── PLAYER STAT PILLS ──────────────────────────── */
+.p-stat-pills {
+    display: flex;
+    gap: 5px;
+    margin-top: 4px;
+    flex-wrap: nowrap;
+}
+
+.p-stat-pill {
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.p-stat-pill.points {
+    background: rgba(154,224,0,0.10);
+    border: 1px solid var(--border-accent);
+    color: var(--accent);
+}
+
+.p-stat-pill.picked {
+    background: rgba(124,196,255,0.08);
+    border: 1px solid rgba(124,196,255,0.18);
+    color: var(--rank-color);
+}
+
+/* The sliding pill — keep the CSS-only animation, it's perfect */
+.role-slider-bg {
+    position: absolute;
+    top: 4px; left: 4px;
+    height: calc(100% - 8px);
+    width: calc(25% - 2px);
+    background: var(--accent);
+    border-radius: 8px;
+    z-index: 1;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.role-tab[data-role="WK"].active   ~ .role-slider-bg { transform: translateX(0%); }
+.role-tab[data-role="BAT"].active  ~ .role-slider-bg { transform: translateX(100%); }
+.role-tab[data-role="AR"].active   ~ .role-slider-bg { transform: translateX(200%); }
+.role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(300%); }
 
 /* ─── ROLE TABS ──────────────────────────────────── */
 .role-navigation-wrapper { width: 100%; }
@@ -306,7 +410,7 @@ body.loading-state .app-container        { display: none !important; }
 
 .role-tab span {
     font-size: 9px;
-    background: rgba(255, 255, 255, 0.10);
+    background: rgba(255,255,255,0.10);
     padding: 1px 5px;
     border-radius: 4px;
     min-width: 14px;
@@ -315,28 +419,9 @@ body.loading-state .app-container        { display: none !important; }
 }
 
 .role-tab.active span {
-    background: rgba(0, 0, 0, 0.20);
+    background: rgba(0,0,0,0.20);
     color: #000;
 }
-
-/* The sliding pill — keep the CSS-only animation, it's perfect */
-.role-slider-bg {
-    position: absolute;
-    top: 4px; left: 4px;
-    height: calc(100% - 8px);
-    width: calc(20% - 2px);
-    background: var(--accent);
-    border-radius: 8px;
-    z-index: 1;
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.role-tab[data-role="ALL"].active  ~ .role-slider-bg { transform: translateX(0%); }
-.role-tab[data-role="WK"].active   ~ .role-slider-bg { transform: translateX(100%); }
-.role-tab[data-role="BAT"].active  ~ .role-slider-bg { transform: translateX(200%); }
-.role-tab[data-role="AR"].active   ~ .role-slider-bg { transform: translateX(300%); }
-.role-tab[data-role="BOWL"].active ~ .role-slider-bg { transform: translateX(400%); }
-
 
 /* ─── FILTER PILLS ───────────────────────────────── */
 .dropdown-filters {

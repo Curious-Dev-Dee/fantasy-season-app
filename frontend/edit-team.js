@@ -24,7 +24,7 @@ let state = {
     realTeamsMap:      {},
     filters: {
         search:  "",
-        role:    "ALL",
+        role:    "WK",
         teams:   [],
         credits: [],
         matches: [],
@@ -257,7 +257,7 @@ function renderPlayerPool(stats) {
         if (s && !p.name.toLowerCase().includes(s) &&
             !(p.team_short_code || "").toLowerCase().includes(s) &&
             !cat.includes(s)) return false;
-        if (state.filters.role !== "ALL" && p.role !== state.filters.role) return false;
+if (!state.filters.search && p.role !== state.filters.role) return false;
         if (state.filters.teams.length && !state.filters.teams.includes(p.real_team_id)) return false;
         if (state.filters.credits.length && !state.filters.credits.includes(p.credit)) return false;
         if (state.filters.type.length && !state.filters.type.includes(cat)) return false;
@@ -366,7 +366,7 @@ const nextMatchHtml = nextMatchInfo
     </div>
     <div class="player-info">
         <strong class="p-name">${p.name}</strong>
-        <span class="p-meta">${p.role} · ${p.credit} Cr</span>
+<span class="p-meta">${p.credit} Cr · ${p.selected_by_percent ?? "—"}% · ${p.season_points ?? 0} pts</span>
         ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
         ${nextMatchHtml}
     </div>
@@ -417,19 +417,59 @@ function setupListeners() {
     });
 
     // Search with debounce
-    const searchInput = document.getElementById("playerSearch");
-    let searchTimeout;
-    if (searchInput) {
-        searchInput.oninput = e => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                state.filters.search = e.target.value;
-                renderPlayerPool(calcStats());
-                updateFilterButtonStates();
-            }, 250);
-        };
-    }
+    // Search icon toggle
+const searchIconBtn  = document.getElementById("searchIconBtn");
+const searchOverlay  = document.getElementById("searchOverlayRow");
+const searchCloseBtn = document.getElementById("searchCloseBtn");
+const searchInput    = document.getElementById("playerSearch");
+let searchTimeout;
 
+if (searchIconBtn) {
+    searchIconBtn.onclick = () => {
+        searchOverlay?.classList.remove("hidden");
+        searchIconBtn.classList.add("active");
+        searchInput?.focus();
+    };
+}
+
+if (searchCloseBtn) {
+    searchCloseBtn.onclick = () => {
+        searchOverlay?.classList.add("hidden");
+        searchIconBtn?.classList.remove("active");
+        if (searchInput) searchInput.value = "";
+        state.filters.search = "";
+        renderPlayerPool(calcStats());
+        updateFilterButtonStates();
+    };
+}
+
+if (searchInput) {
+    searchInput.oninput = e => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = e.target.value.toLowerCase().trim();
+            state.filters.search = term;
+
+            if (term) {
+                // Find first matching player's role and auto-switch tab
+                const match = state.allPlayers.find(p =>
+                    p.name.toLowerCase().includes(term) ||
+                    (p.team_short_code || "").toLowerCase().includes(term)
+                );
+                if (match && match.role !== state.filters.role) {
+                    // Auto switch role tab
+                    state.filters.role = match.role;
+                    document.querySelectorAll(".role-tab").forEach(t => {
+                        t.classList.toggle("active", t.dataset.role === match.role);
+                    });
+                }
+            }
+
+            renderPlayerPool(calcStats());
+            updateFilterButtonStates();
+        }, 250);
+    };
+}
     // Filter dropdowns
     const backdrop = document.getElementById("filterBackdrop");
     for (const type of ["match", "team", "credit", "type"]) {
@@ -464,13 +504,19 @@ function setupListeners() {
 
     // Role filter tabs
     document.querySelectorAll(".role-tab").forEach(tab => {
-        tab.onclick = () => {
-            document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-            state.filters.role = tab.dataset.role;
-            renderPlayerPool(calcStats());
-        };
-    });
+    tab.onclick = () => {
+        document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        state.filters.role = tab.dataset.role;
+        // Clear search when switching tabs
+        if (searchInput) searchInput.value = "";
+        state.filters.search = "";
+        searchOverlay?.classList.add("hidden");
+        searchIconBtn?.classList.remove("active");
+        renderPlayerPool(calcStats());
+        updateFilterButtonStates();
+    };
+});
 
     // Save button
     document.getElementById("saveTeamBtn")?.addEventListener("click", handleSave);
