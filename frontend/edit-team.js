@@ -1339,7 +1339,6 @@ window.openPlayerProfile = async (playerId) => {
 
 function updateRoleTabStates() {
     const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-    const maxReq = { WK: 4, BAT: 6, AR: 4, BOWL: 6 };
     const counts = {
         WK:   state.selectedPlayers.filter(p => p.role === "WK").length,
         BAT:  state.selectedPlayers.filter(p => p.role === "BAT").length,
@@ -1349,7 +1348,7 @@ function updateRoleTabStates() {
 
     document.querySelectorAll(".role-tab[data-role]").forEach(tab => {
         const role = tab.dataset.role;
-        if (!role || role === "ALL") return;
+        if (!role) return;
 
         const count = counts[role] || 0;
         const min   = minReq[role] || 0;
@@ -1361,8 +1360,7 @@ function updateRoleTabStates() {
         // Clear state classes
         tab.classList.remove("req-met", "req-unmet");
 
-        if (count === 0) return; // no class — neutral grey
-
+        // Always apply — 0 is still below minimum so red
         if (count >= min) {
             tab.classList.add("req-met");
         } else {
