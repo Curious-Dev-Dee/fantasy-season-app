@@ -374,7 +374,7 @@ body.loading-state .app-container        { display: none !important; }
 .view-mode.active { display: block; }
 
 .player-list {
-    padding: 14px 16px calc(80px + 24px);
+    padding: 14px 16px calc(100px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -633,7 +633,7 @@ body.loading-state .app-container        { display: none !important; }
     transform: translateX(-50%);
     width: 100%;
     max-width: var(--app-max-width);
-    padding: 8px 16px 14px;
+    padding: 8px 16px calc(14px + env(safe-area-inset-bottom, 0px));
     background: rgba(2, 6, 23, 0.94);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -654,6 +654,14 @@ body.loading-state .app-container        { display: none !important; }
     letter-spacing: 0.2px;
 }
 
+.save-btn:not(:disabled) {
+    animation: savePulse 2s ease-in-out infinite;
+}
+
+@keyframes savePulse {
+    0%, 100% { box-shadow: 0 0 12px var(--accent-glow); }
+    50%       { box-shadow: 0 0 24px var(--accent-glow); }
+}
 /* ─── BOOSTER SHELF ──────────────────────────────── */
 .booster-shelf {
     background: rgba(13, 22, 37, 0.6);
@@ -767,6 +775,8 @@ body.loading-state .app-container        { display: none !important; }
     max-height: 85vh;
     padding: 0;
     overflow-y: auto;
+        z-index: 3000;
+
 }
 
 .transfer-sheet.hidden {
@@ -774,7 +784,7 @@ body.loading-state .app-container        { display: none !important; }
 }
 
 .ts-inner {
-    padding: 20px 16px;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
     gap: 14px;

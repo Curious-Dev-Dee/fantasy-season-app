@@ -372,7 +372,6 @@ const nextMatchHtml = nextMatchInfo
 ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
 ${nextMatchHtml}
 
-            </div>
             <div class="controls">
                 ${isMyXi ? `
                     <button class="role-btn ${state.captainId === p.id ? "active-c" : ""}"
