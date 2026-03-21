@@ -72,6 +72,9 @@ body {
     letter-spacing: 0.5px;
     color: var(--text-primary);
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-icon i {
@@ -200,20 +203,22 @@ body {
 /* ─── RANK BADGE ─────────────────────────────────── */
 .rank-badge {
     position: absolute;
-    top: -8px;
+    top: -10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 22px; height: 22px;
-    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
     font-family: var(--font-display);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #000;
-    z-index: 2;
-    border: 2px solid var(--bg-card);
+    z-index: 10;
+    border: 2px solid var(--bg-page);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
 .podium-card.rank-1 .rank-badge { background: #ffd700; }
@@ -669,16 +674,16 @@ body {
 .lb-prize-row:last-child { margin-bottom: 0; }
 
 .lb-prize-rank {
-    font-family: var(--font-display);
-    font-size: 12px;
-    font-weight: 900;
-    width: 26px;
-    height: 26px;
-    border-radius: 7px;
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    background: var(--bg-card-alt);
+    border-radius: 10px;
+    border: 1px solid var(--border-card);
 }
 
 .lb-prize-rank.gold   { background: var(--gold);  color: #000; }

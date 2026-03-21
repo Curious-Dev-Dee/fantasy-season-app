@@ -52,13 +52,17 @@ async function init() {
     }
 
     let query;
-    if (leagueId) {
-        query = supabase
-            .from("private_league_leaderboard")
-            .select("*")
-            .eq("league_id", leagueId);
-        const h1 = document.querySelector("h1");
-        if (h1) h1.textContent = "League Standings";
+if (leagueId) {
+    query = supabase
+        .from("private_league_leaderboard")
+        .select("*")
+        .eq("league_id", leagueId);
+    const h1 = document.getElementById("lbPageTitle");
+    if (h1) h1.textContent = "League Standings";
+    // Hide prizes — private league has no season prizes
+    const prizesStrip = document.querySelector(".lb-prizes-strip");
+    if (prizesStrip) prizesStrip.style.display = "none";
+    
     } else {
         query = supabase
             .from("leaderboard_view")
