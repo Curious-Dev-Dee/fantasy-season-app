@@ -434,7 +434,7 @@ body.loading-state .app-container        { display: none !important; }
 
 .p-team-badge {
     font-family: var(--font-display);
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 900;
     color: var(--text-primary);
     text-transform: uppercase;
