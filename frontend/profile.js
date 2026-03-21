@@ -115,11 +115,16 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
     const file = e.target.files?.[0];
     if (!file || !currentUserId) return;
 
+    if (file.size > 2 * 1024 * 1024) {
+        showStatus("Photo must be under 2MB. Please choose a smaller image.", "error");
+        return;
+    }
+
     const btn = document.getElementById("profChangePhotoBtn");
     btn.disabled    = true;
     btn.textContent = "Uploading…";
     showStatus("", "");
-
+    
     try {
         const ext      = file.name.split(".").pop();
         const fileName = `${currentUserId}/avatar.${ext}`;

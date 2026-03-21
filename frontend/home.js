@@ -589,9 +589,17 @@ const teamName = modalTeamName.value.trim();
         try {
             let photoPath = existingProfile?.team_photo_url;
 
+            
             // Upload avatar if selected (optional)
-            if (file) {
-                const fileExt  = file.name.split(".").pop();
+// Upload avatar if selected (optional)
+if (file) {
+    if (file.size > 2 * 1024 * 1024) {
+        window.showToast("Photo must be under 2MB. Please choose a smaller image.", "error");
+        saveProfileBtn.disabled    = false;
+        saveProfileBtn.textContent = isFirstTime ? "Save & Start" : "Update Photo";
+        return;
+    }
+    const fileExt  = file.name.split(".").pop();
                 const fileName = `${currentUserId}/avatar.${fileExt}`;
                 const { error: uploadError } = await supabase.storage
                     .from("team-avatars")
