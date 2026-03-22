@@ -2,10 +2,10 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // --- IPL 2026 CONFIGURATION ---
-const PLAYOFF_START = 71;
-const KNOCKOUT_PHASE = 72;   // Match 72 = Start of the 10-sub pool
+const PLAYOFF_START = 81;
+const KNOCKOUT_PHASE = 82;   // Match 82 = Start of the 10-sub pool
 const BOOSTER_WINDOW_START = 2; 
-const BOOSTER_WINDOW_END = 70;
+const BOOSTER_WINDOW_END = 80;
 
 serve(async (_req) => {
   const supabase = createClient(
