@@ -1036,3 +1036,32 @@ body.loaded #loadingOverlay {
 .btn-view-matches i {
     font-size: 11px;
 }
+
+/* ─── HEADER RIGHT GROUP ─────────────────────────── */
+.header-right-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ─── HEADER MORE BUTTON ─────────────────────────── */
+.header-more-btn {
+    width: 40px; height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-card);
+    border-radius: var(--btn-radius);
+    color: var(--text-dim);
+    font-size: 16px;
+    text-decoration: none;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.header-more-btn:hover {
+    background: var(--accent-dim);
+    border-color: var(--border-accent);
+    color: var(--accent);
+}
