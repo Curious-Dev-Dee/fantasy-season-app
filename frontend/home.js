@@ -345,7 +345,7 @@ if (overallCountEl && userCount != null) {
             };
 
             const rankSpan   = document.createElement("span");
-            const rankTxt    = document.createTextNode(`#${row.rank} `);
+const rankTxt = document.createTextNode(row.total_points > 0 ? `#${row.rank} ` : "");
             const nameStrong = document.createElement("strong");
             nameStrong.className   = "team-name-text";
             nameStrong.textContent = row.team_name || "Expert";
@@ -447,7 +447,7 @@ inviteCodeEl.style.color = "var(--accent)";
             };
 
             const rankSpan   = document.createElement("span");
-            const rankTxt    = document.createTextNode(`#${row.rank_in_league} `);
+const rankTxt = document.createTextNode(row.total_points > 0 ? `#${row.rank_in_league} ` : "");
             const nameStrong = document.createElement("strong");
             nameStrong.className   = "team-name-text";
             nameStrong.textContent = row.team_name || "Expert";
