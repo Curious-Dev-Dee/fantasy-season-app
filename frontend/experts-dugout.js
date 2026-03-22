@@ -130,7 +130,7 @@ async function loadDugout(userId) {
         content.appendChild(buildCaptainStats(d));
         content.appendChild(buildBoosterROI(d));
         content.appendChild(buildH2H(d, userId));
-        if (players) { content.appendChild(buildTopScorers(players)); content.appendChild(buildMostPicked(players)); content.appendChild(buildByRole(players)); }
+if (players) { content.appendChild(buildTopScorers(players)); content.appendChild(buildMostPicked(players)); content.appendChild(buildByRole(players)); content.appendChild(buildPlayerCategories(players)); }
         content.appendChild(buildCompareSection(userId));
         content.appendChild(buildShareCard(d, teamRow));
     } catch (err) {
@@ -473,6 +473,143 @@ function buildCompareSection(userId) {
             await loadCompare(userId, cUid);
         });
     }, 100);
+    return sec;
+}
+
+function buildPlayerCategories(players) {
+    const sec  = createSection("fas fa-flag", "green", "Player Categories");
+    const body = sec.querySelector(".ed-section-body");
+
+    // ── CATEGORY BREAKDOWN BAR ──────────────────────
+    const breakdown = players.category_breakdown || [];
+    const totalPts  = breakdown.reduce((a, b) => a + (b.total_points || 0), 0);
+
+    const catColors = { indian: "#9AE000", overseas: "#7cc4ff", uncapped: "#f59e0b" };
+    const catLabels = { indian: "Indian", overseas: "Overseas", uncapped: "Uncapped" };
+    const catIcons  = { indian: "🇮🇳", overseas: "✈️", uncapped: "🧢" };
+
+    let breakdownHtml = "";
+    if (breakdown.length) {
+        const bars = breakdown.map(cat => {
+            const pct   = totalPts > 0 ? Math.round((cat.total_points / totalPts) * 100) : 0;
+            const color = catColors[cat.category] || "#64748b";
+            return `<div class="ed-cat-bar-seg" style="width:${pct}%;background:${color}" title="${catLabels[cat.category]}: ${pct}%"></div>`;
+        }).join("");
+
+        const legends = breakdown.map(cat => {
+            const pct   = totalPts > 0 ? Math.round((cat.total_points / totalPts) * 100) : 0;
+            const color = catColors[cat.category] || "#64748b";
+            return `<div class="ed-cat-legend-item">
+                <span class="ed-cat-legend-dot" style="background:${color}"></span>
+                <span class="ed-cat-legend-label">${catIcons[cat.category] || ""} ${catLabels[cat.category] || cat.category}</span>
+                <span class="ed-cat-legend-pct" style="color:${color}">${pct}%</span>
+            </div>`;
+        }).join("");
+
+        const statRows = breakdown.map(cat => {
+            const color = catColors[cat.category] || "#64748b";
+            return `<div class="ed-cat-stat-row">
+                <span class="ed-cat-stat-name" style="color:${color}">${catIcons[cat.category] || ""} ${catLabels[cat.category] || cat.category}</span>
+                <span class="ed-cat-stat-val">${cat.total_picks} picks</span>
+                <span class="ed-cat-stat-val">${cat.total_points} pts</span>
+                <span class="ed-cat-stat-val">${cat.avg_points_per_pick} avg</span>
+            </div>`;
+        }).join("");
+
+        breakdownHtml = `
+            <div class="ed-cat-breakdown">
+                <div class="ed-cat-breakdown-label">Points share by category</div>
+                <div class="ed-cat-bar">${bars}</div>
+                <div class="ed-cat-legend">${legends}</div>
+                <div class="ed-cat-stats-header">
+                    <span></span>
+                    <span class="ed-cat-stats-hdr-val">Picks</span>
+                    <span class="ed-cat-stats-hdr-val">Total pts</span>
+                    <span class="ed-cat-stats-hdr-val">Avg/pick</span>
+                </div>
+                ${statRows}
+            </div>`;
+    }
+
+    // ── TABS ────────────────────────────────────────
+    const tabs = document.createElement("div");
+    tabs.className = "ed-role-tabs";
+
+    const tabList = [
+        { key: "top_indian",   label: "🇮🇳 Indian",   sum: "top_indian" },
+        { key: "top_overseas", label: "✈️ Overseas",  sum: null },
+        { key: "top_uncapped", label: "🧢 Uncapped",  sum: "uncapped" },
+    ];
+
+    const listWrap = document.createElement("div");
+    listWrap.className = "ed-player-list";
+
+    const summaryWrap = document.createElement("div");
+    summaryWrap.id = "uncappedSummaryWrap";
+
+    let activeKey = "top_indian";
+
+    function renderCategoryTab(key, showUncappedSummary) {
+        listWrap.innerHTML = "";
+        summaryWrap.innerHTML = "";
+
+        // Uncapped summary strip
+        if (showUncappedSummary) {
+            const us = players.uncapped_summary;
+            if (us) {
+                summaryWrap.innerHTML = `
+                    <div class="ed-uncapped-summary">
+                        <div class="ed-uncapped-stat">
+                            <span class="ed-uncapped-val">${us.total_picks || 0}</span>
+                            <span class="ed-uncapped-lbl">Total Picks</span>
+                        </div>
+                        <div class="ed-uncapped-divider"></div>
+                        <div class="ed-uncapped-stat">
+                            <span class="ed-uncapped-val gold">${us.total_points || 0}</span>
+                            <span class="ed-uncapped-lbl">Total pts</span>
+                        </div>
+                        <div class="ed-uncapped-divider"></div>
+                        <div class="ed-uncapped-stat">
+                            <span class="ed-uncapped-val">${us.avg_points_per_pick || 0}</span>
+                            <span class="ed-uncapped-lbl">Avg/pick</span>
+                        </div>
+                        <div class="ed-uncapped-divider"></div>
+                        <div class="ed-uncapped-stat">
+                            <span class="ed-uncapped-val">${us.matches_with_uncapped || 0}</span>
+                            <span class="ed-uncapped-lbl">Matches used</span>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        const list = players[key] || [];
+        if (!list.length) {
+            listWrap.innerHTML = '<div class="ed-no-data">No data for this category yet</div>';
+            return;
+        }
+        list.forEach((p, i) => listWrap.appendChild(buildPlayerCard(p, i + 1)));
+    }
+
+    tabList.forEach(t => {
+        const btn = document.createElement("button");
+        btn.className = "ed-role-tab" + (t.key === activeKey ? " active" : "");
+        btn.textContent = t.label;
+        btn.onclick = () => {
+            tabs.querySelectorAll(".ed-role-tab").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeKey = t.key;
+            renderCategoryTab(t.key, t.key === "top_uncapped");
+        };
+        tabs.appendChild(btn);
+    });
+
+    renderCategoryTab("top_indian", false);
+
+    body.innerHTML = breakdownHtml;
+    body.appendChild(tabs);
+    body.appendChild(summaryWrap);
+    body.appendChild(listWrap);
+
     return sec;
 }
 
