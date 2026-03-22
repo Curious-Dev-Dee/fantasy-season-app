@@ -118,9 +118,9 @@ function renderMatches() {
     // 1. LIVE — locked but points not yet processed
     // 2. Upcoming — soonest first
     // 3. Results — locked + points processed, or abandoned
-    const live     = sorted.filter(m => m.status === "locked" && !m.points_processed);
-    const upcoming = sorted.filter(m => m.status === "upcoming");
-    const results  = sorted.filter(m =>
+    const live     = filtered.filter(m => m.status === "locked" && !m.points_processed);
+    const upcoming = filtered.filter(m => m.status === "upcoming");
+    const results  = filtered.filter(m =>
         (m.status === "locked" && m.points_processed) || m.status === "abandoned"
     );
 
