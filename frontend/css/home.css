@@ -256,8 +256,13 @@ body {
 }
 
 .stat-cell.rank-hero .stat-val {
-    font-size: 28px;
+    font-size: 22px;
     color: var(--accent);
+}
+
+.stat-cell.rank-hero .stat-val.pre-season {
+    font-size: 11px;
+    white-space: nowrap;
 }
 
 .stat-cell.rank-hero .stat-lbl {
