@@ -4,21 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Experts Dugout · Cricket Experts</title>
-
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="css/bottom-nav.css">
   <link rel="stylesheet" href="css/experts-dugout.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
   <link rel="icon" type="image/png" href="favicon.png">
   <script type="module" src="auth-guard.js"></script>
 </head>
-
 <body class="loading-state">
 
   <div id="loadingOverlay" class="ed-loading">
@@ -28,7 +24,6 @@
 
   <div class="app-container page-with-nav">
 
-    <!-- HEADER -->
     <header class="ed-header">
       <a href="more.html" class="icon-back" aria-label="Back">
         <i class="fas fa-arrow-left"></i>
@@ -42,20 +37,15 @@
       </div>
     </header>
 
-    <!-- CONTROLS -->
     <div class="ed-controls">
-
-      <!-- LEAGUE TOGGLE -->
       <div class="ed-toggle-row">
-        <button class="ed-toggle-btn active" data-mode="overall" id="toggleOverall">
+        <button class="ed-toggle-btn active" id="toggleOverall">
           <i class="fas fa-globe"></i> Overall
         </button>
-        <button class="ed-toggle-btn" data-mode="league" id="toggleLeague">
+        <button class="ed-toggle-btn" id="toggleLeague">
           <i class="fas fa-shield-alt"></i> My League
         </button>
       </div>
-
-      <!-- TEAM SELECTOR -->
       <div class="ed-select-wrap">
         <i class="fas fa-users ed-select-icon"></i>
         <select id="teamSelector" class="ed-select">
@@ -63,15 +53,11 @@
         </select>
         <i class="fas fa-chevron-down ed-select-arrow"></i>
       </div>
-
     </div>
 
-    <!-- MAIN CONTENT -->
     <main class="ed-main" id="dugoutContent">
-      <div class="ed-empty-state" id="emptyState">
-        <div class="ed-empty-icon">
-          <i class="fas fa-flask"></i>
-        </div>
+      <div class="ed-empty-state">
+        <div class="ed-empty-icon"><i class="fas fa-flask"></i></div>
         <p class="ed-empty-title">Pick a team to analyse</p>
         <p class="ed-empty-sub">Select from the dropdown above to see full team intelligence</p>
       </div>
@@ -87,7 +73,6 @@
   </nav>
 
   <div id="toastContainer" class="toast-container"></div>
-
   <script type="module" src="experts-dugout.js"></script>
   <script type="module" src="ad-manager.js"></script>
 </body>
