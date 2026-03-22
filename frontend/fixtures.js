@@ -114,18 +114,24 @@ function renderMatches() {
         return;
     }
 
-    // Sort: upcoming soonest first, then locked/abandoned most recent first
-    const ORDER = { upcoming: 1, locked: 2, abandoned: 3 };
-    const sorted = [...filtered].sort((a, b) => {
-        if (ORDER[a.status] !== ORDER[b.status]) return ORDER[a.status] - ORDER[b.status];
-        if (a.status === "upcoming") return new Date(a.actual_start_time) - new Date(b.actual_start_time);
-        return new Date(b.actual_start_time) - new Date(a.actual_start_time);
-    });
-
-    // Render in two groups
+    // Three groups:
+    // 1. LIVE — locked but points not yet processed
+    // 2. Upcoming — soonest first
+    // 3. Results — locked + points processed, or abandoned
+    const live     = sorted.filter(m => m.status === "locked" && !m.points_processed);
     const upcoming = sorted.filter(m => m.status === "upcoming");
-    const results  = sorted.filter(m => m.status !== "upcoming");
+    const results  = sorted.filter(m =>
+        (m.status === "locked" && m.points_processed) || m.status === "abandoned"
+    );
 
+    // Sort upcoming soonest first, results most recent first
+    upcoming.sort((a, b) => new Date(a.actual_start_time) - new Date(b.actual_start_time));
+    results.sort((a, b) => new Date(b.actual_start_time) - new Date(a.actual_start_time));
+
+    if (live.length) {
+        matchesContainer.appendChild(buildGroupHeader("🔴 Live"));
+        live.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
+    }
     if (upcoming.length) {
         matchesContainer.appendChild(buildGroupHeader("Upcoming"));
         upcoming.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
@@ -204,9 +210,12 @@ card.onclick = () => window.open("https://crex.com/live-matches", "_blank");
 
     // ── Status chip ──
     const chip     = document.createElement("span");
-    chip.className = `status-chip chip-${match.status}`;
-    chip.textContent = match.status.toUpperCase();
-
+    const isLive   = match.status === "locked" && !match.points_processed;
+    chip.className = `status-chip ${isLive ? "chip-live" : `chip-${match.status}`}`;
+    chip.textContent = isLive ? "LIVE" : match.status.toUpperCase();
+    if (isLive) {
+        chip.innerHTML = `<span class="live-dot"></span> LIVE`;
+    }
     inner.append(meta, teamsRow, venue, chip);
     card.appendChild(inner);
     return card;

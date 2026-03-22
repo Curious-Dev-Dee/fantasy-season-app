@@ -318,7 +318,27 @@ body {
 .chip-upcoming  { background: var(--accent-dim);  color: var(--accent); border: 1px solid var(--border-accent); }
 .chip-locked    { background: var(--gold-dim);     color: var(--gold);   border: 1px solid rgba(245,158,11,0.3); }
 .chip-abandoned { background: var(--red-dim);      color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+.chip-live {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.30);
+    /* no animation here */
+}
+.live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 4px;
+    animation: pulseLive 1.5s ease-in-out infinite;
+    vertical-align: middle;
+}
 
+@keyframes pulseLive {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
 
 /* ─── LOADING STATE ──────────────────────────────── */
 .fixtures-loading {
