@@ -698,7 +698,7 @@ function createSection(iconClass, iconColor, title) {
 function showEmptyState() {
     const content = document.getElementById("dugoutContent");
     if (!content) return;
-    content.innerHTML = `<div class="ed-empty-state"><div class="ed-empty-icon"><i class="fas fa-flask"></i></div><p class="ed-empty-title">Pick a team to analyse</p><p class="ed-empty-sub">Select from the dropdown above</p></div>`;
+    content.innerHTML = `<div class="ed-empty-state"><div class="ed-empty-icon"><i class="fas fa-magnifying-glass-chart"></i></div><p class="ed-empty-title">Pick a team to analyse</p><p class="ed-empty-sub">Select from the dropdown above</p></div>`;
 }
 
 function buildSkeleton() {
