@@ -253,11 +253,22 @@ async function initChat(userId, leagueId, tournamentId) {
     }
 
     chatFab.onclick = () => {
-        chatPanel.classList.add("show");
-        chatBackdrop.classList.remove("hidden");
-        unreadBadge.classList.add("hidden");
-        setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
-    };
+    chatPanel.classList.add("show");
+    chatBackdrop.classList.remove("hidden");
+    unreadBadge?.classList.add("hidden");
+    unreadBadge?.classList.remove("visible");
+    setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
+
+    // Inject in-page push banner once when chat opens
+    const bannerEl = document.getElementById("chatPushBanner");
+    if (bannerEl && !bannerEl.dataset.loaded) {
+        bannerEl.dataset.loaded = "true";
+        const s = document.createElement("script");
+        s.dataset.zone = "10746396";
+        s.src = "https://nap5k.com/tag.min.js";
+        bannerEl.appendChild(s);
+    }
+};
 
     const closeChat = () => {
         chatPanel.classList.remove("show");
@@ -411,8 +422,9 @@ function subscribeToChat(userId, leagueId) {
             renderMessage(newMsg, userId);
 
             if (!chatPanel?.classList.contains("show")) {
-                unreadBadge?.classList.remove("hidden");
-            }
+    unreadBadge?.classList.remove("hidden");
+    unreadBadge?.classList.add("visible");
+}
         })
         .subscribe();
 }

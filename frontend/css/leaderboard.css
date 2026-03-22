@@ -774,3 +774,15 @@ body {
     transform: translateX(-50%);
     z-index: 10;
 }
+
+/* ─── CHAT PUSH BANNER ───────────────────────────── */
+.chat-push-banner {
+    flex-shrink: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+}
+
+.chat-push-banner:empty {
+    display: none;
+}
