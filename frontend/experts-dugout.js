@@ -34,6 +34,7 @@ async function init() {
         }
 
         setupListeners();
+    setupInfoPanel();
         await loadTeamList();
 
         const sel = document.getElementById("teamSelector");
@@ -573,4 +574,22 @@ function showToast(msg, type = "success") {
     const t = document.createElement("div");
     t.className = `toast ${type}`; t.textContent = msg; c.appendChild(t);
     setTimeout(() => { t.classList.add("fade-out"); t.addEventListener("transitionend", () => t.remove(), { once: true }); }, 3000);
+}
+
+function setupInfoPanel() {
+    const btn     = document.getElementById("infoBtn");
+    const overlay = document.getElementById("infoOverlay");
+    const close   = document.getElementById("infoClose");
+
+    btn?.addEventListener("click", () => {
+        overlay?.classList.remove("hidden");
+    });
+
+    close?.addEventListener("click", () => {
+        overlay?.classList.add("hidden");
+    });
+
+    overlay?.addEventListener("click", e => {
+        if (e.target === overlay) overlay.classList.add("hidden");
+    });
 }
