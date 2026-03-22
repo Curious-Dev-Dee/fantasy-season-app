@@ -168,7 +168,7 @@ card.onclick = () => window.open("https://crex.com/live-matches", "_blank");
 
     const num      = document.createElement("span");
     num.className  = "match-num";
-    num.textContent = `M#${match.match_number}`;
+    num.textContent = `Match#${match.match_number}`;
 
     const dateEl   = document.createElement("span");
     dateEl.className = "match-date";
