@@ -698,7 +698,7 @@ body.loaded #loadingOverlay {
     background: var(--bg-card);
     border: 1px solid rgba(245,158,11,0.20);
     border-radius: var(--card-radius);
-    padding: 14px 16px;
+    padding: 10px 14px;
     margin-bottom: 12px;
     position: relative;
     overflow: hidden;
@@ -750,8 +750,8 @@ body.loaded #loadingOverlay {
 .prize-card-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 0;
+    gap: 10px;
+    padding: 5px 0;
 }
 
 .prize-card-divider {
@@ -761,14 +761,14 @@ body.loaded #loadingOverlay {
 }
 
 .prize-medal-circle {
-    width: 36px;
-    height: 36px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 900;
     flex-shrink: 0;
 }
@@ -793,7 +793,7 @@ body.loaded #loadingOverlay {
 
 .prize-card-what {
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 800;
     color: var(--text-primary);
     text-transform: uppercase;
@@ -802,7 +802,7 @@ body.loaded #loadingOverlay {
 
 .prize-card-by {
     font-family: var(--font-body);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-faint);
     font-weight: 500;
 }
