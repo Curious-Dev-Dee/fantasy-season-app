@@ -1351,13 +1351,13 @@ body.loading-state .app-container        { display: none !important; }
 
 
 /* ─── MATCH FILTER CARDS ─────────────────────────── */
-.match-filter-grid { display: flex; flex-direction: column; gap: 12px; padding-bottom: 18px; }
+.match-filter-grid { display: flex; flex-direction: column; gap: 8px; padding-bottom: 18px; }
 
 .match-filter-card {
     background: var(--bg-card);
     border: 2px solid var(--border-card);
     border-radius: var(--card-radius-sm);
-    padding: 14px;
+    padding: 10px 12px;
     cursor: pointer;
     transition: border-color var(--duration-fast) var(--ease-out),
                 background var(--duration-fast) var(--ease-out);
@@ -1370,65 +1370,111 @@ body.loading-state .app-container        { display: none !important; }
     background: var(--accent-dim);
 }
 
-.match-filter-card.selected::before {
-    content: '✔';
-    position: absolute;
-    top: 12px; right: 14px;
-    color: var(--accent);
-    font-size: 14px;
-    font-weight: 900;
+/* ── ROW 1: Match number + Venue ── */
+.mfc-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
-.mfc-header {
+.mfc-match-num {
     font-family: var(--font-display);
     font-size: 10px;
     font-weight: 900;
     color: var(--accent);
-    margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.mfc-teams {
+.mfc-venue {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-faint);
+    text-align: right;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── ROW 2: Team A | Date-Time | Team B ── */
+.mfc-main-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 14px;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.mfc-team-side {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.mfc-team-side.right {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
 }
 
 .mfc-logo {
-    width: 34px; height: 34px;
+    width: 28px; height: 28px;
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    flex-shrink: 0;
 }
 
 .mfc-team-name {
     font-family: var(--font-display);
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 900;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mfc-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
 }
 
 .mfc-vs {
     font-family: var(--font-display);
-    font-size: 11px;
+    font-size: 9px;
     color: var(--text-faint);
     font-weight: 800;
+    text-transform: uppercase;
 }
 
-.mfc-details {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: center;
+.mfc-datetime {
     font-family: var(--font-body);
-    font-size: 11px;
-    color: var(--text-dim);
+    font-size: 10px;
     font-weight: 600;
-    border-top: 1px solid var(--border-subtle);
-    padding-top: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.mfc-selected-tick {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 900;
+    display: none;
+}
+
+.match-filter-card.selected .mfc-selected-tick {
+    display: block;
 }
 
 

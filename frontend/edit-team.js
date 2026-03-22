@@ -1040,17 +1040,24 @@ function renderMatchDropdown() {
         return `
             <div class="match-filter-card ${isSelected ? "selected" : ""}"
                  onclick="toggleMatchFilterCard('${m.id}', this)">
-                <div class="mfc-header">Match #${m.match_number}</div>
-                <div class="mfc-teams">
-                    <div class="mfc-logo" style="background-image:url('${logoA}')"></div>
-                    <span class="mfc-team-name">${m.team_a?.short_code}</span>
-                    <span class="mfc-vs">VS</span>
-                    <span class="mfc-team-name">${m.team_b?.short_code}</span>
-                    <div class="mfc-logo" style="background-image:url('${logoB}')"></div>
+                <span class="mfc-selected-tick">✔</span>
+                <div class="mfc-top-row">
+                    <span class="mfc-match-num">Match ${m.match_number}</span>
+                    <span class="mfc-venue">${m.venue || "Venue TBA"}</span>
                 </div>
-                <div class="mfc-details">
-                    <span>🏟️ ${m.venue || "Venue TBA"}</span>
-                    <span>🕐 ${date}, ${time}</span>
+                <div class="mfc-main-row">
+                    <div class="mfc-team-side">
+                        <div class="mfc-logo" style="background-image:url('${logoA}')"></div>
+                        <span class="mfc-team-name">${m.team_a?.short_code}</span>
+                    </div>
+                    <div class="mfc-center">
+                        <span class="mfc-vs">vs</span>
+                        <span class="mfc-datetime">${date}, ${time}</span>
+                    </div>
+                    <div class="mfc-team-side right">
+                        <div class="mfc-logo" style="background-image:url('${logoB}')"></div>
+                        <span class="mfc-team-name">${m.team_b?.short_code}</span>
+                    </div>
                 </div>
             </div>`;
     }).join("");
