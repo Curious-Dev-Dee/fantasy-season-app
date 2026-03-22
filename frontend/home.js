@@ -150,16 +150,19 @@ async function fetchHomeData(userId) {
     if (dash) {
         if (scoreElement) scoreElement.textContent = dash.total_points || 0;
 
-const displayRank = dash.user_rank > 0 ? `#${dash.user_rank}` : "Pre-Season";
+const hasEarnedPoints = (dash.total_points || 0) > 0;
+const displayRank = hasEarnedPoints && dash.user_rank > 0 ? `#${dash.user_rank}` : "Pre-Season";
+const isPreSeason = !hasEarnedPoints;
+
 if (rankElement) {
     rankElement.textContent = displayRank;
-    rankElement.classList.toggle("pre-season", dash.user_rank <= 0);
+    rankElement.classList.toggle("pre-season", isPreSeason);
 }
 
 const overallRankHeader = document.getElementById("overallUserRank");
 if (overallRankHeader) {
     overallRankHeader.textContent = displayRank;
-    overallRankHeader.classList.toggle("pre-season", dash.user_rank <= 0);
+    overallRankHeader.classList.toggle("pre-season", isPreSeason);
 }
 
         currentUserOverallRank = dash.user_rank || Infinity;
