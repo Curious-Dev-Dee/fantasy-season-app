@@ -247,6 +247,23 @@ body {
   flex-shrink: 0;
 }
 
+.stat-cell.rank-hero {
+    background: rgba(154,224,0,0.06);
+    border: 1px solid rgba(154,224,0,0.15);
+    border-radius: 10px;
+    padding: 4px 8px;
+    margin: -4px 0;
+}
+
+.stat-cell.rank-hero .stat-val {
+    font-size: 28px;
+    color: var(--accent);
+}
+
+.stat-cell.rank-hero .stat-lbl {
+    color: var(--accent);
+    opacity: 0.7;
+}
 
 /* ─── MATCH CARD ─────────────────────────────────── */
 .match-card {
@@ -918,8 +935,8 @@ body.loaded #loadingOverlay {
 
 /* ─── SEASON PROGRESS BAR ────────────────────────── */
 .season-progress-bar {
-    height: 3px;
-    background: var(--border-subtle);
+    height: 4px;
+    background: var(--border-card);
     border-radius: 2px;
     margin: 12px 0 0;
     overflow: hidden;
@@ -930,7 +947,8 @@ body.loaded #loadingOverlay {
     width: 0%;
     background: var(--accent);
     border-radius: 2px;
-    transition: width 1s var(--ease-out);
+    transition: width 1.2s var(--ease-out);
+    min-width: 3px;
 }
 
 .season-progress-label {
@@ -947,10 +965,17 @@ body.loaded #loadingOverlay {
 .stat-val.pre-season,
 .league-rank.pre-season,
 .lb-user-rank.pre-season {
-    font-size: 13px;
+    font-size: 11px;
     color: var(--text-faint);
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: var(--font-display);
+}
+
+.pts-pill:not(.has-pts) {
+    font-style: italic;
+    letter-spacing: 0.2px;
 }
 
 /* ─── MATCH ACTIONS RATIO FIX ────────────────────── */

@@ -178,7 +178,9 @@ if (progressFill && dash.current_match_number != null) {
     const total = 84;
     const current = Math.min(dash.current_match_number, total);
     const pct = Math.round((current / total) * 100);
-    progressFill.style.width = `${pct}%`;
+requestAnimationFrame(() => {
+    setTimeout(() => { progressFill.style.width = `${pct}%`; }, 100);
+});
     if (progressLabel) progressLabel.textContent = `Match ${current} of ${total}`;
 }
 
@@ -457,6 +459,7 @@ ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
             containerEl.appendChild(rowDiv);
         });
 
+const userRow  = lb.find(r => r.user_id === userId);
 const rankSpan = document.getElementById("privateLeagueRank");
 if (rankSpan) {
     if (userRow && userRow.total_points > 0) {
