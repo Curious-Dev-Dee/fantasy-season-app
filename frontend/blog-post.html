@@ -265,8 +265,29 @@ async function loadArticle(slug) {
     matchEl.classList.remove("hidden");
   }
 
-  // Render markdown-style content
-  document.getElementById("articleBody").innerHTML = renderContent(post.content);
+// Cover image
+    if (post.cover_image_url) {
+        const imgWrap = document.createElement("div");
+        imgWrap.style.cssText = "margin-bottom:20px;border-radius:12px;overflow:hidden";
+        const img = document.createElement("img");
+        img.src = post.cover_image_url;
+        img.alt = post.title || "Cover image";
+        img.style.cssText = "width:100%;display:block;max-height:400px;object-fit:cover";
+        imgWrap.appendChild(img);
+        if (post.image_caption) {
+            const cap = document.createElement("p");
+            cap.textContent = post.image_caption;
+            cap.style.cssText = "font-size:12px;color:#64748b;text-align:center;font-style:italic;padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-top:none;border-radius:0 0 12px 12px";
+            imgWrap.appendChild(cap);
+        }
+        document.getElementById("articleContent").insertBefore(
+            imgWrap,
+            document.getElementById("articleBody")
+        );
+    }
+
+    // Render content — stored as HTML so use innerHTML directly
+    document.getElementById("articleBody").innerHTML = post.content || "";
 
   // Show ads
   document.getElementById("adTop").classList.remove("hidden");
