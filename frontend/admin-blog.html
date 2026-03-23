@@ -718,10 +718,12 @@ const { data, error } = await supabase
                 .insert([payload])
                 .select("*");
             if (error) throw error;
-            result = data?.[0];
-            if (!result) throw new Error("Insert succeeded but no data returned — check RLS policies on blog_posts");
+            if (!data || data.length === 0) {
+                throw new Error("No data returned after insert — check RLS policies on blog_posts table");
+            }
+            result = data[0];
             isNew = false;
-            currentPost = result;
+            currentPost = { ...result };
             showToast("Article created!", "success");
         } else {
             const { data, error } = await supabase
@@ -735,9 +737,9 @@ const { data, error } = await supabase
             showToast("Saved!", "success");
         }
 
-        await loadPosts();
+await loadPosts();
         updateStatusBadge();
-        renderSidebar();
+        if (currentPost?.id) renderSidebar();
 
     } catch (err) {
         showToast("Save failed: " + err.message, "error");
