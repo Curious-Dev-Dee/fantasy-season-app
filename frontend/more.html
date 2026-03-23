@@ -364,7 +364,7 @@
     const { error } = await supabase.auth.signOut();
 
     if (!error) {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     } else {
       confirmLogout.textContent       = "Sign Out";
       confirmLogout.style.opacity     = "1";
