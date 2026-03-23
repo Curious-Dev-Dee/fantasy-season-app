@@ -7,6 +7,13 @@
 <meta name="description" content="In-depth profiles of IPL 2026 players worth watching and picking.">
 <meta name="robots" content="index,follow">
 <meta property="og:image" content="https://fantasy-season-app.vercel.app/favicon.png">
+<link rel="canonical" href="https://fantasy-season-app.vercel.app/player-spotlight.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Player Spotlight 2026 · Cricket Experts">
+<meta property="og:description" content="In-depth profiles of IPL 2026 players worth watching and picking for fantasy and real cricket.">
+<meta property="og:url" content="https://fantasy-season-app.vercel.app/player-spotlight.html">
+
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -48,8 +55,9 @@ a{text-decoration:none;color:inherit}
 <body>
 <nav class="nav">
   <button class="back" onclick="window.location.href='/'">← Home</button>
-  <div class="brand">Cricket Experts</div>
+  <a class="brand" href="/">Cricket Experts</a>
 </nav>
+
 <div class="wrap">
   <div class="ph">
     <div class="ph-cat">⭐ Player Spotlight</div>
@@ -61,27 +69,87 @@ a{text-decoration:none;color:inherit}
     <div class="sk"></div><div class="sk"></div><div class="sk"></div>
   </div>
 </div>
+
 <script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-const sb = createClient("https://tuvqgcosbweljslbfgqc.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo");
-const grid = document.getElementById("grid");
-try {
-  const { data, error } = await sb.from("articles").select("id,slug,title,excerpt,cover_emoji,cover_image,match_label,created_at").eq("category","player-spotlight").eq("published",true).order("created_at",{ascending:false}).limit(30);
-  if (error) throw error;
-  grid.innerHTML = "";
-  if (!data?.length) { grid.innerHTML='<div class="empty"><div class="empty-icon">🚨</div>No articles yet — check back soon!</div>'; return; }
-  data.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => window.location.href = `blog-post.html?slug=${p.slug}`;
-    const date = new Date(p.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
-    card.innerHTML = p.cover_image
-      ? `<img class="card-img" src="${p.cover_image}" alt="${p.title||""}" loading="lazy"/><div class="card-body"><div class="card-title">${p.title||"Untitled"}</div><div class="card-exc">${p.excerpt||""}</div><div class="card-meta"><span class="card-date">${date}</span>${p.match_label?`<span class="match-pill">🏟️ ${p.match_label}</span>`:""}<span class="card-arrow">Read →</span></div></div>`
-      : `<div class="card-emoji">${p.cover_emoji||"⭐"}</div><div class="card-body"><div class="card-title">${p.title||"Untitled"}</div><div class="card-exc">${p.excerpt||""}</div><div class="card-meta"><span class="card-date">${date}</span>${p.match_label?`<span class="match-pill">🏟️ ${p.match_label}</span>`:""}<span class="card-arrow">Read →</span></div></div>`;
-    grid.appendChild(card);
-  });
-} catch(e) { grid.innerHTML='<div class="empty">Failed to load articles. Try refreshing.</div>'; console.error(e); }
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const sb = createClient(
+    "https://tuvqgcosbweljslbfgqc.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
+  );
+
+  const grid = document.getElementById("grid");
+
+  async function loadPlayerSpotlight() {
+    try {
+      const { data, error } = await sb
+        .from("articles")
+        .select("id,slug,title,excerpt,cover_emoji,cover_image,match_label,created_at")
+        .eq("category", "player-spotlight")
+        .eq("published", true)
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+      if (error) throw error;
+
+      grid.innerHTML = "";
+
+      if (!data?.length) {
+        grid.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">⭐</div>
+            No player spotlights yet — check back soon!
+          </div>`;
+        return;
+      }
+
+      data.forEach(p => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.onclick = () => window.location.href = `blog-post.html?slug=${p.slug}`;
+        const date = new Date(p.created_at).toLocaleDateString(
+          "en-IN",
+          { day: "numeric", month: "short", year: "numeric" }
+        );
+
+        card.innerHTML = p.cover_image
+          ? `
+            <img class="card-img" src="${p.cover_image}" alt="${p.title || ""}" loading="lazy"/>
+            <div class="card-body">
+              <div class="card-title">${p.title || "Untitled"}</div>
+              <div class="card-exc">${p.excerpt || ""}</div>
+              <div class="card-meta">
+                <span class="card-date">${date}</span>
+                ${p.match_label ? `<span class="match-pill">🏟️ ${p.match_label}</span>` : ""}
+                <span class="card-arrow">Read →</span>
+              </div>
+            </div>`
+          : `
+            <div class="card-emoji">${p.cover_emoji || "⭐"}</div>
+            <div class="card-body">
+              <div class="card-title">${p.title || "Untitled"}</div>
+              <div class="card-exc">${p.excerpt || ""}</div>
+              <div class="card-meta">
+                <span class="card-date">${date}</span>
+                ${p.match_label ? `<span class="match-pill">🏟️ ${p.match_label}</span>` : ""}
+                <span class="card-arrow">Read →</span>
+              </div>
+            </div>`;
+
+        grid.appendChild(card);
+      });
+    } catch (e) {
+      console.error("Error loading player spotlights:", e);
+      grid.innerHTML = `
+        <div class="empty">
+          Failed to load articles. Try refreshing.
+        </div>`;
+    }
+  }
+
+  loadPlayerSpotlight();
 </script>
+
 <script type="module" src="ad-manager.js"></script>
 </body>
 </html>
