@@ -1,325 +1,469 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Cricket Experts · Admin</title>
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --g:#9AE000;--g-dim:rgba(154,224,0,0.09);--ink:#020617;
-      --card:#0d1625;--bdr:rgba(255,255,255,0.08);--muted:#94a3b8;
-      --red:#ef4444;--gold:#f59e0b;--FD:'Barlow Condensed',sans-serif;
-      --FB:'Inter',sans-serif;
-    }
-    body{background:var(--ink);color:#f0f4f8;font-family:var(--FB);min-height:100vh;padding:0 0 40px}
-    a{text-decoration:none;color:inherit}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Blog Admin · Cricket Experts</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020617;--card:#0d1625;--card2:#111e30;--elevated:#0d1a2d;
+  --accent:#9AE000;--accent-dim:rgba(154,224,0,0.09);--accent-glow:rgba(154,224,0,0.28);
+  --border:rgba(255,255,255,0.07);--border-card:rgba(255,255,255,0.10);
+  --text:#f0f4f8;--muted:#94a3b8;--faint:#64748b;--ghost:#334155;
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.10);
+  --gold:#f59e0b;--gold-dim:rgba(245,158,11,0.10);
+  --rank:#7cc4ff;
+  --FD:'Barlow Condensed',sans-serif;
+  --FB:'DM Sans',sans-serif;
+  --radius:16px;--radius-sm:10px;--btn-radius:10px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--FB);min-height:100vh}
+a{text-decoration:none;color:inherit}
 
-    /* AUTH SCREEN */
-    #authScreen{
-      min-height:100vh;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;padding:32px 24px;text-align:center;
-    }
-    .auth-logo{font-family:var(--FD);font-size:28px;font-weight:900;color:var(--g);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-    .auth-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
-    .auth-card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:28px 24px;width:100%;max-width:340px}
-    .auth-card h2{font-family:var(--FD);font-size:22px;font-weight:800;text-transform:uppercase;margin-bottom:6px}
-    .auth-card p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
-    .google-btn{
-      display:flex;align-items:center;justify-content:center;gap:10px;
-      background:var(--g);color:#000;border:none;border-radius:12px;
-      padding:13px 20px;font-family:var(--FD);font-size:15px;font-weight:900;
-      text-transform:uppercase;letter-spacing:0.3px;cursor:pointer;width:100%;
-      transition:opacity 0.2s;
-    }
-    .google-btn:hover{opacity:0.9}
-    .google-btn:disabled{opacity:0.5;cursor:not-allowed}
-    .g-badge{
-      width:20px;height:20px;background:#fff;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:11px;font-weight:900;color:#4285F4;flex-shrink:0;
-    }
-    #authError{margin-top:14px;font-size:12px;color:var(--red);display:none}
+/* ── PASSWORD GATE ── */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:20px;padding:24px}
+#gate.hidden{display:none}
+.gate-logo{font-family:var(--FD);font-size:28px;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:2px}
+.gate-sub{font-size:13px;color:var(--faint);text-align:center}
+.gate-input{width:280px;padding:14px 16px;background:var(--card);border:1px solid var(--border-card);border-radius:var(--btn-radius);color:var(--text);font-family:var(--FB);font-size:15px;outline:none;text-align:center;letter-spacing:2px}
+.gate-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.gate-btn{width:280px;padding:14px;background:var(--accent);color:#000;border:none;border-radius:var(--btn-radius);font-family:var(--FD);font-size:16px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.gate-btn:hover{box-shadow:0 4px 20px var(--accent-glow);transform:translateY(-1px)}
+.gate-err{color:var(--red);font-size:13px;min-height:18px}
 
-    /* ACCESS DENIED */
-    #deniedScreen{
-      min-height:100vh;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;padding:32px 24px;text-align:center;
-    }
-    #deniedScreen h2{font-family:var(--FD);font-size:26px;font-weight:900;color:var(--red);text-transform:uppercase;margin-bottom:12px}
-    #deniedScreen p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
-    .sign-out-btn{
-      background:transparent;border:1px solid var(--bdr);color:var(--muted);
-      padding:10px 20px;border-radius:10px;font-family:var(--FB);font-size:13px;
-      cursor:pointer;transition:border-color 0.2s;
-    }
-    .sign-out-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff}
+/* ── LAYOUT ── */
+#app{display:none;min-height:100vh}
+#app.visible{display:flex;flex-direction:column}
 
-    /* ADMIN APP */
-    #adminApp{display:none}
+/* ── HEADER ── */
+.adm-header{background:rgba(2,6,23,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-card);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:500}
+.adm-brand{font-family:var(--FD);font-size:18px;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+.adm-brand-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.adm-header-right{display:flex;align-items:center;gap:10px}
+.adm-new-btn{background:var(--accent);color:#000;border:none;padding:9px 16px;border-radius:var(--btn-radius);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+.adm-new-btn:hover{box-shadow:0 4px 14px var(--accent-glow);transform:translateY(-1px)}
+.adm-logout-btn{background:transparent;border:1px solid var(--border-card);color:var(--faint);padding:8px 12px;border-radius:var(--btn-radius);font-family:var(--FD);font-size:12px;font-weight:700;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.adm-logout-btn:hover{border-color:var(--red);color:var(--red)}
 
-    .top-bar{
-      background:rgba(2,6,23,0.95);backdrop-filter:blur(16px);
-      border-bottom:1px solid var(--bdr);padding:0 16px;
-      display:flex;align-items:center;justify-content:space-between;
-      height:52px;position:sticky;top:0;z-index:100;
-    }
-    .top-bar-brand{font-family:var(--FD);font-size:17px;font-weight:900;color:var(--g);text-transform:uppercase;letter-spacing:1px}
-    .top-bar-right{display:flex;align-items:center;gap:10px}
-    .user-pill{font-size:11px;color:var(--muted);background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:20px;border:1px solid var(--bdr)}
-    .sign-out-sm{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--FB)}
-    .sign-out-sm:hover{color:#fff}
+/* ── MAIN SPLIT ── */
+.adm-body{display:flex;flex:1;gap:0;min-height:0}
 
-    /* TABS */
-    .tabs{display:flex;border-bottom:1px solid var(--bdr);background:var(--ink)}
-    .tab-btn{
-      flex:1;padding:12px 8px;background:transparent;border:none;
-      color:var(--muted);font-family:var(--FB);font-size:12px;font-weight:600;
-      cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;
-      text-transform:uppercase;letter-spacing:0.3px;
-    }
-    .tab-btn.active{color:var(--g);border-bottom-color:var(--g)}
+/* ── SIDEBAR ── */
+.adm-sidebar{width:300px;min-width:300px;background:var(--card);border-right:1px solid var(--border-card);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-top{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-search{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border-card);border-radius:var(--radius-sm);color:var(--text);font-family:var(--FB);font-size:13px;outline:none}
+.sidebar-search:focus{border-color:var(--accent)}
+.sidebar-search::placeholder{color:var(--faint)}
+.sidebar-filters{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.sf-btn{padding:5px 10px;border-radius:20px;border:1px solid var(--border-card);background:transparent;color:var(--faint);font-family:var(--FD);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.sf-btn.active{background:var(--accent-dim);border-color:rgba(154,224,0,0.3);color:var(--accent)}
+.sidebar-list{flex:1;overflow-y:auto;padding:8px}
+.sidebar-list::-webkit-scrollbar{width:3px}
+.sidebar-list::-webkit-scrollbar-thumb{background:var(--border-card);border-radius:2px}
+.sidebar-count{font-size:10px;color:var(--faint);padding:6px 8px;text-transform:uppercase;letter-spacing:1px;font-weight:700}
 
-    /* WRITE PANEL */
-    #writePanel{padding:16px}
-    .field{margin-bottom:14px}
-    .field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
-    .field input,.field select,.field textarea{
-      width:100%;background:var(--card);border:1px solid var(--bdr);
-      color:#f0f4f8;padding:12px 14px;border-radius:12px;
-      font-family:var(--FB);font-size:14px;outline:none;
-      transition:border-color 0.2s;
-    }
-    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g)}
-    .field textarea{min-height:280px;resize:vertical;line-height:1.7}
-    .field select option{background:#0d1625}
-    .field input::placeholder,.field textarea::placeholder{color:rgba(148,163,184,0.5)}
+/* ── POST ITEM IN SIDEBAR ── */
+.post-item{padding:11px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:4px}
+.post-item:hover{background:var(--card2);border-color:var(--border)}
+.post-item.active{background:var(--accent-dim);border-color:rgba(154,224,0,0.2)}
+.pi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.pi-emoji{font-size:16px;flex-shrink:0}
+.pi-cat{font-family:var(--FD);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:4px}
+.pi-cat.draft{color:var(--faint);background:rgba(255,255,255,0.04)}
+.pi-title{font-family:var(--FD);font-size:13px;font-weight:800;text-transform:uppercase;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.pi-meta{font-size:10px;color:var(--faint)}
+.sidebar-empty{text-align:center;padding:40px 16px;color:var(--faint);font-size:13px}
 
-    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* ── EDITOR PANE ── */
+.adm-editor{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.adm-editor::-webkit-scrollbar{width:4px}
+.adm-editor::-webkit-scrollbar-thumb{background:var(--border-card);border-radius:2px}
 
-    /* Emoji picker */
-    .emoji-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-    .emoji-opt{
-      width:36px;height:36px;border-radius:8px;border:1px solid var(--bdr);
-      background:var(--card);font-size:18px;cursor:pointer;display:flex;
-      align-items:center;justify-content:center;transition:border-color 0.2s;
-    }
-    .emoji-opt.sel{border-color:var(--g);background:var(--g-dim)}
+/* ── EMPTY STATE ── */
+.editor-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;text-align:center}
+.ee-icon{width:64px;height:64px;border-radius:20px;background:var(--accent-dim);border:1px solid rgba(154,224,0,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--accent)}
+.ee-title{font-family:var(--FD);font-size:20px;font-weight:900;text-transform:uppercase;color:var(--muted)}
+.ee-sub{font-size:13px;color:var(--faint);max-width:260px;line-height:1.5}
 
-    /* Content toolbar */
-    .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-    .tb-btn{
-      background:rgba(255,255,255,0.05);border:1px solid var(--bdr);
-      color:var(--muted);padding:5px 10px;border-radius:7px;
-      font-size:11px;font-weight:600;cursor:pointer;font-family:var(--FB);
-      transition:all 0.15s;white-space:nowrap;
-    }
-    .tb-btn:hover{background:rgba(255,255,255,0.1);color:#fff}
+/* ── EDITOR FORM ── */
+.editor-form{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.editor-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.editor-title-block{flex:1}
+.editor-label{font-family:var(--FD);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin-bottom:6px;display:block}
+.editor-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-save{background:var(--accent);color:#000;border:none;padding:12px 20px;border-radius:var(--btn-radius);font-family:var(--FD);font-size:14px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px}
+.btn-save:hover{box-shadow:0 4px 16px var(--accent-glow);transform:translateY(-1px)}
+.btn-save:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-delete{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.25);padding:12px 16px;border-radius:var(--btn-radius);font-family:var(--FD);font-size:14px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-delete:hover{background:rgba(239,68,68,0.18);border-color:rgba(239,68,68,0.4)}
+.btn-preview{background:transparent;color:var(--rank);border:1px solid rgba(124,196,255,0.2);padding:12px 16px;border-radius:var(--btn-radius);font-family:var(--FD);font-size:14px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-preview:hover{background:rgba(124,196,255,0.08);border-color:rgba(124,196,255,0.35)}
+.btn-dup{background:transparent;color:var(--muted);border:1px solid var(--border-card);padding:12px 16px;border-radius:var(--btn-radius);font-family:var(--FD);font-size:14px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-dup:hover{background:var(--card2);border-color:var(--muted)}
 
-    /* Char count */
-    .char-count{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
-    .char-count.warn{color:var(--gold)}
-    .char-count.over{color:var(--red)}
+/* ── FORM FIELDS ── */
+.field-group{display:flex;flex-direction:column;gap:6px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.f-input,.f-select,.f-textarea{width:100%;background:var(--card);border:1px solid var(--border-card);color:var(--text);padding:12px 14px;border-radius:var(--radius-sm);font-family:var(--FB);font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.f-input::placeholder,.f-textarea::placeholder{color:var(--ghost)}
+.f-select option{background:var(--card);color:var(--text)}
+.f-textarea{resize:vertical;line-height:1.6}
+.f-textarea.content-area{min-height:340px;font-family:var(--FB);font-size:14px;tab-size:2}
+.char-count{font-size:10px;color:var(--faint);text-align:right;margin-top:3px}
 
-    /* Publish button */
-    .publish-bar{
-      position:sticky;bottom:0;background:rgba(2,6,23,0.97);
-      backdrop-filter:blur(16px);border-top:1px solid var(--bdr);
-      padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
-    }
-    .publish-btn{
-      width:100%;background:var(--g);color:#000;border:none;
-      border-radius:12px;padding:15px;font-family:var(--FD);
-      font-size:16px;font-weight:900;text-transform:uppercase;
-      letter-spacing:0.5px;cursor:pointer;transition:opacity 0.2s;
-    }
-    .publish-btn:hover:not(:disabled){opacity:0.9}
-    .publish-btn:disabled{background:rgba(255,255,255,0.1);color:var(--muted);cursor:not-allowed}
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:5px;padding:8px 10px;background:var(--card2);border:1px solid var(--border-card);border-radius:var(--radius-sm) var(--radius-sm) 0 0;flex-wrap:wrap}
+.tb-btn{padding:5px 9px;background:transparent;border:1px solid transparent;color:var(--faint);border-radius:6px;font-family:var(--FD);font-size:11px;font-weight:800;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.tb-btn:hover{background:var(--card);border-color:var(--border);color:var(--text)}
+.tb-btn.active{background:var(--accent-dim);border-color:rgba(154,224,0,0.2);color:var(--accent)}
+.tb-divider{width:1px;height:20px;background:var(--border);margin:0 3px;align-self:center}
+.content-area.with-toolbar{border-radius:0 0 var(--radius-sm) var(--radius-sm);border-top:none}
 
-    /* POSTS PANEL */
-    #postsPanel{padding:16px}
-    .posts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-    .posts-header h2{font-family:var(--FD);font-size:20px;font-weight:800;text-transform:uppercase;color:var(--g)}
-    .refresh-btn{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--FB)}
+/* ── IMAGE UPLOAD ── */
+.img-upload-zone{border:2px dashed var(--border-card);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+.img-upload-zone:hover,.img-upload-zone.drag{border-color:rgba(154,224,0,0.4);background:var(--accent-dim)}
+.img-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.iuz-icon{font-size:28px;color:var(--faint);margin-bottom:8px}
+.iuz-text{font-family:var(--FD);font-size:13px;font-weight:800;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.iuz-sub{font-size:11px;color:var(--ghost)}
+.img-preview-wrap{position:relative;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border-card)}
+.img-preview{width:100%;max-height:280px;object-fit:cover;display:block;border-radius:var(--radius-sm)}
+.img-remove-btn{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:background 0.2s}
+.img-remove-btn:hover{background:var(--red)}
+.img-loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--faint);font-size:13px}
+.img-spinner{width:18px;height:18px;border:2px solid var(--border-card);border-left-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    .post-card{
-      background:var(--card);border:1px solid var(--bdr);border-radius:14px;
-      padding:14px;margin-bottom:10px;
-    }
-    .post-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-    .post-emoji{font-size:22px;flex-shrink:0;margin-top:2px}
-    .post-meta{flex:1;min-width:0}
-    .post-title{font-size:14px;font-weight:700;color:#f0f4f8;margin-bottom:3px;line-height:1.3}
-    .post-info{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .cat-badge{
-      font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;
-      padding:2px 7px;border-radius:5px;background:var(--g-dim);color:var(--g);
-      border:1px solid rgba(154,224,0,0.2);white-space:nowrap;
-    }
-    .post-date{font-size:10px;color:var(--muted)}
-    .post-excerpt{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px}
-    .post-actions{display:flex;gap:8px}
-    .action-btn{
-      flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;
-      font-family:var(--FB);cursor:pointer;border:1px solid var(--bdr);
-      background:transparent;color:var(--muted);transition:all 0.15s;text-transform:uppercase;
-    }
-    .action-btn:hover{background:rgba(255,255,255,0.06);color:#fff}
-    .action-btn.del{border-color:rgba(239,68,68,0.3);color:var(--red)}
-    .action-btn.del:hover{background:rgba(239,68,68,0.08)}
-    .action-btn.toggle-pub{border-color:rgba(245,158,11,0.3);color:var(--gold)}
+/* ── TOGGLE ── */
+.toggle-wrap{display:flex;align-items:center;gap:10px}
+.toggle{width:44px;height:24px;background:var(--border-card);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;border:none}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform 0.2s}
+.toggle.on::after{transform:translateX(20px)}
+.toggle-label{font-family:var(--FB);font-size:13px;font-weight:600;color:var(--muted)}
 
-    .empty-state{text-align:center;padding:48px 0;color:var(--muted);font-size:13px}
+/* ── SECTION CARD ── */
+.sec-card{background:var(--card);border:1px solid var(--border-card);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px}
+.sec-card-title{font-family:var(--FD);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--faint);display:flex;align-items:center;gap:6px}
+.sec-card-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.sci-green{background:var(--accent-dim);color:var(--accent)}
+.sci-gold{background:var(--gold-dim);color:var(--gold)}
+.sci-blue{background:rgba(124,196,255,0.08);color:var(--rank)}
 
-    /* TOAST */
-    #toast{
-      position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);
-      background:#1e293b;border:1px solid var(--bdr);color:#f0f4f8;
-      padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;
-      z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;
-    }
-    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-    #toast.success{border-color:rgba(154,224,0,0.4);color:var(--g)}
-    #toast.error{border-color:rgba(239,68,68,0.4);color:var(--red)}
+/* ── SLUG ── */
+.slug-preview{font-size:11px;color:var(--faint);margin-top:4px;word-break:break-all}
+.slug-preview span{color:var(--accent)}
 
-    .hidden{display:none!important}
-  </style>
+/* ── STATUS BADGE ── */
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-family:var(--FD);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px}
+.sb-published{background:rgba(154,224,0,0.10);border:1px solid rgba(154,224,0,0.2);color:var(--accent)}
+.sb-draft{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--faint)}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:340px}
+.toast{background:var(--card2);color:var(--text);padding:12px 16px;border-radius:var(--btn-radius);font-family:var(--FB);font-size:13px;font-weight:600;border-left:4px solid var(--accent);box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:toastIn 0.3s ease forwards}
+.toast.error{border-left-color:var(--red)}
+.toast.warn{border-left-color:var(--gold)}
+.toast.fade-out{transition:opacity 0.3s,transform 0.3s;opacity:0;transform:scale(0.92) translateY(-4px)}
+@keyframes toastIn{from{opacity:0;transform:translateY(-12px) scale(0.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ── PREVIEW MODAL ── */
+.preview-overlay{position:fixed;inset:0;background:rgba(2,6,23,0.92);backdrop-filter:blur(12px);z-index:4000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.preview-overlay.hidden{display:none}
+.preview-modal{background:var(--elevated);border:1px solid var(--border-card);border-radius:var(--radius);width:100%;max-width:680px;overflow:hidden}
+.preview-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.preview-title-label{font-family:var(--FD);font-size:14px;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px}
+.preview-close{background:rgba(255,255,255,0.06);border:1px solid var(--border-card);color:var(--faint);width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s}
+.preview-close:hover{color:var(--text);background:rgba(255,255,255,0.12)}
+.preview-body{padding:28px 32px;font-family:var(--FB);line-height:1.8;color:var(--text)}
+.preview-body h1{font-family:var(--FD);font-size:32px;font-weight:900;text-transform:uppercase;margin-bottom:12px;color:var(--text)}
+.preview-body h2{font-family:var(--FD);font-size:22px;font-weight:800;text-transform:uppercase;margin:20px 0 10px;color:var(--text)}
+.preview-body h3{font-family:var(--FD);font-size:18px;font-weight:800;text-transform:uppercase;margin:16px 0 8px;color:var(--muted)}
+.preview-body p{margin-bottom:14px;font-size:14px;color:var(--muted)}
+.preview-body strong{color:var(--text);font-weight:700}
+.preview-body ul,.preview-body ol{padding-left:20px;margin-bottom:14px}
+.preview-body li{font-size:14px;color:var(--muted);margin-bottom:6px}
+.preview-body blockquote{border-left:3px solid var(--accent);padding:10px 16px;background:var(--accent-dim);border-radius:0 8px 8px 0;margin:14px 0;font-style:italic;color:var(--muted)}
+.preview-body img{width:100%;border-radius:var(--radius-sm);margin-bottom:8px}
+.preview-body .img-caption{font-size:12px;color:var(--faint);text-align:center;font-style:italic;margin-bottom:14px}
+.preview-cover-img{width:100%;max-height:300px;object-fit:cover}
+.preview-cover-caption{font-size:12px;color:var(--faint);text-align:center;font-style:italic;padding:8px 32px}
+.preview-meta{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.preview-cat-badge{font-family:var(--FD);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;background:var(--accent-dim);border:1px solid rgba(154,224,0,0.2);color:var(--accent);padding:3px 9px;border-radius:5px}
+.preview-date{font-size:12px;color:var(--faint)}
+
+/* ── CONFIRM DIALOG ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.hidden{display:none}
+.confirm-card{background:var(--elevated);border:1px solid var(--border-card);border-radius:var(--radius);padding:28px 24px;width:100%;max-width:320px;text-align:center;animation:fadeUp 0.2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.confirm-title{font-family:var(--FD);font-size:20px;font-weight:900;color:var(--red);text-transform:uppercase;margin-bottom:10px}
+.confirm-text{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.confirm-actions{display:flex;gap:10px}
+.btn-cancel{flex:1;padding:12px;border-radius:var(--btn-radius);border:1px solid var(--border-card);background:transparent;color:var(--text);font-family:var(--FD);font-size:14px;font-weight:800;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-cancel:hover{background:var(--card2)}
+.btn-confirm-del{flex:1;padding:12px;border-radius:var(--btn-radius);border:none;background:var(--red);color:#fff;font-family:var(--FD);font-size:14px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-confirm-del:hover{box-shadow:0 4px 14px rgba(239,68,68,0.35)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  .adm-body{flex-direction:column}
+  .adm-sidebar{width:100%;min-width:0;max-height:260px}
+  .field-row,.field-row-3{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
-<div id="authScreen">
-  <div class="auth-logo">Cricket Experts</div>
-  <div class="auth-sub">Admin Portal</div>
-  <div class="auth-card">
-    <h2>Sign In</h2>
-    <p>Use your authorised Google account to access the content management panel.</p>
-    <button class="google-btn" id="signInBtn">
-      <span class="g-badge">G</span>
-      Continue with Google
-    </button>
-    <div id="authError"></div>
-  </div>
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-logo">Blog Admin</div>
+  <div class="gate-sub">Cricket Experts · Internal Tool</div>
+  <input type="password" class="gate-input" id="gateInput" placeholder="Enter password" autocomplete="current-password"/>
+  <button class="gate-btn" id="gateBtn">Unlock</button>
+  <div class="gate-err" id="gateErr"></div>
 </div>
 
-<!-- ACCESS DENIED -->
-<div id="deniedScreen" class="hidden">
-  <h2>Access Denied</h2>
-  <p>This account is not authorised to access the admin panel.<br>Please sign in with the authorised account.</p>
-  <button class="sign-out-btn" id="deniedSignOut">Sign Out & Try Again</button>
-</div>
+<!-- MAIN APP -->
+<div id="app">
 
-<!-- ADMIN APP -->
-<div id="adminApp">
-
-  <div class="top-bar">
-    <div class="top-bar-brand">CE Admin</div>
-    <div class="top-bar-right">
-      <span class="user-pill" id="userEmail"></span>
-      <button class="sign-out-sm" id="signOutBtn">Sign Out</button>
+  <header class="adm-header">
+    <div class="adm-brand">
+      <div class="adm-brand-dot"></div>
+      Blog Admin
     </div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" id="tabWrite" onclick="showTab('write')">✍️ Write</button>
-    <button class="tab-btn" id="tabPosts" onclick="showTab('posts')">📋 Posts</button>
-  </div>
-
-  <!-- WRITE PANEL -->
-  <div id="writePanel">
-
-    <div class="field">
-      <label>Category</label>
-      <select id="category">
-        <option value="fantasy-preview">🏏 Fantasy Preview</option>
-        <option value="match-preview">🔭 Match Preview</option>
-        <option value="team-news">📰 Team News</option>
-        <option value="post-match-review">📊 Post Match Review</option>
-        <option value="player-spotlight">⭐ Player Spotlight</option>
-        <option value="ipl-news">🚨 IPL News</option>
-      </select>
+    <div class="adm-header-right">
+      <button class="adm-new-btn" id="newPostBtn">
+        <i class="fas fa-plus"></i> New Article
+      </button>
+      <button class="adm-logout-btn" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Lock
+      </button>
     </div>
+  </header>
 
-    <div class="field">
-      <label>Article Title</label>
-      <input type="text" id="title" placeholder="e.g. RCB vs MI Preview: Kohli's Return to Wankhede" maxlength="120"/>
-    </div>
+  <div class="adm-body">
 
-    <div class="row-2">
-      <div class="field">
-        <label>Match (optional)</label>
-        <input type="text" id="matchLabel" placeholder="e.g. M#1 · Mar 28"/>
-      </div>
-      <div class="field">
-        <label>Cover Icon</label>
-        <div class="emoji-row" id="emojiPicker">
-          <div class="emoji-opt sel" data-e="🏏">🏏</div>
-          <div class="emoji-opt" data-e="🔭">🔭</div>
-          <div class="emoji-opt" data-e="📰">📰</div>
-          <div class="emoji-opt" data-e="📊">📊</div>
-          <div class="emoji-opt" data-e="⭐">⭐</div>
-          <div class="emoji-opt" data-e="🚨">🚨</div>
-          <div class="emoji-opt" data-e="🎯">🎯</div>
-          <div class="emoji-opt" data-e="👑">👑</div>
+    <!-- SIDEBAR -->
+    <aside class="adm-sidebar">
+      <div class="sidebar-top">
+        <input type="text" class="sidebar-search" id="sidebarSearch" placeholder="Search articles..."/>
+        <div class="sidebar-filters" id="sidebarFilters">
+          <button class="sf-btn active" data-filter="all">All</button>
+          <button class="sf-btn" data-filter="published">Live</button>
+          <button class="sf-btn" data-filter="draft">Draft</button>
+          <button class="sf-btn" data-filter="fantasy-preview">Fantasy</button>
+          <button class="sf-btn" data-filter="match-preview">Match</button>
+          <button class="sf-btn" data-filter="team-news">News</button>
+          <button class="sf-btn" data-filter="post-match-review">Review</button>
+          <button class="sf-btn" data-filter="player-spotlight">Player</button>
+          <button class="sf-btn" data-filter="ipl-news">IPL</button>
         </div>
       </div>
-    </div>
-
-    <div class="field">
-      <label>Excerpt <span style="font-weight:400;text-transform:none">(shown in card previews — 1-2 sentences)</span></label>
-      <textarea id="excerpt" rows="2" placeholder="Quick summary that appears on the listing page and in Google results..." maxlength="200"></textarea>
-      <div class="char-count" id="excerptCount">0 / 200</div>
-    </div>
-
-    <div class="field">
-      <label>Full Article</label>
-      <div class="toolbar">
-        <button class="tb-btn" onclick="insertTag('## ','')">H2</button>
-        <button class="tb-btn" onclick="insertTag('### ','')">H3</button>
-        <button class="tb-btn" onclick="insertTag('**','**')">Bold</button>
-        <button class="tb-btn" onclick="insertTag('*','*')">Italic</button>
-        <button class="tb-btn" onclick="insertTag('\n- ','')">• List</button>
-        <button class="tb-btn" onclick="insertTag('\n\n---\n\n','')">Divider</button>
-        <button class="tb-btn" onclick="insertTag('> ','')">Quote</button>
-        <button class="tb-btn" onclick="insertTag('\n\n','')">New Para</button>
+      <div class="sidebar-count" id="sidebarCount">Loading...</div>
+      <div class="sidebar-list" id="sidebarList">
+        <div class="sidebar-empty">Loading articles...</div>
       </div>
-      <textarea id="content" placeholder="Write the full article here. Use the buttons above to format — H2 for section headings, Bold for key names, bullet list for XI picks etc.
+    </aside>
 
-## Section Heading
+    <!-- EDITOR -->
+    <main class="adm-editor" id="editorPane">
+      <div class="editor-empty" id="editorEmpty">
+        <div class="ee-icon"><i class="fas fa-pen-nib"></i></div>
+        <div class="ee-title">Select or Create</div>
+        <div class="ee-sub">Pick an article from the sidebar or click New Article to start writing</div>
+      </div>
 
-Your paragraph text goes here. **Player Name** scored brilliantly.
+      <div class="editor-form hidden" id="editorForm">
 
-- Pick 1
-- Pick 2
-- Pick 3"></textarea>
-      <div class="char-count" id="contentCount">0 chars</div>
-    </div>
+        <!-- HEADER ROW -->
+        <div class="editor-header">
+          <div class="editor-title-block">
+            <span class="editor-label">Editing Article</span>
+            <span class="status-badge sb-draft" id="statusBadge">Draft</span>
+          </div>
+          <div class="editor-actions">
+            <button class="btn-preview" id="previewBtn"><i class="fas fa-eye"></i> Preview</button>
+            <button class="btn-dup" id="dupBtn"><i class="fas fa-copy"></i> Duplicate</button>
+            <button class="btn-delete" id="deleteBtn"><i class="fas fa-trash"></i> Delete</button>
+            <button class="btn-save" id="saveBtn"><i class="fas fa-save"></i> Save</button>
+          </div>
+        </div>
+
+        <!-- BASICS -->
+        <div class="sec-card">
+          <div class="sec-card-title">
+            <div class="sec-card-icon sci-green"><i class="fas fa-file-alt"></i></div>
+            Article Basics
+          </div>
+
+          <div class="field-group">
+            <label class="editor-label">Title</label>
+            <input type="text" class="f-input" id="fTitle" placeholder="Article headline..."/>
+          </div>
+
+          <div class="field-group">
+            <label class="editor-label">Slug (URL)</label>
+            <input type="text" class="f-input" id="fSlug" placeholder="auto-generated-from-title"/>
+            <div class="slug-preview" id="slugPreview">URL: <span>/blog-post.html?slug=</span></div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label class="editor-label">Category</label>
+              <select class="f-select" id="fCategory">
+                <option value="">— No Category —</option>
+                <option value="fantasy-preview">Fantasy Preview</option>
+                <option value="match-preview">Match Preview</option>
+                <option value="team-news">Team News</option>
+                <option value="post-match-review">Post Match Review</option>
+                <option value="player-spotlight">Player Spotlight</option>
+                <option value="ipl-news">IPL News</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="editor-label">Match Label</label>
+              <input type="text" class="f-input" id="fMatchLabel" placeholder="e.g. RCB vs MI · Match 21"/>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label class="editor-label">Cover Emoji</label>
+              <input type="text" class="f-input" id="fEmoji" placeholder="🏏" style="font-size:20px;text-align:center"/>
+            </div>
+            <div class="field-group">
+              <label class="editor-label">Author</label>
+              <input type="text" class="f-input" id="fAuthor" placeholder="Cricket Experts"/>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="editor-label">Excerpt (shown on cards)</label>
+            <textarea class="f-textarea" id="fExcerpt" rows="2" placeholder="Short summary shown on the homepage and article cards..."></textarea>
+          </div>
+
+          <div class="toggle-wrap">
+            <button class="toggle" id="publishToggle" type="button"></button>
+            <span class="toggle-label" id="publishLabel">Published — visible on site</span>
+          </div>
+        </div>
+
+        <!-- COVER IMAGE -->
+        <div class="sec-card">
+          <div class="sec-card-title">
+            <div class="sec-card-icon sci-gold"><i class="fas fa-image"></i></div>
+            Cover Image
+          </div>
+
+          <div id="imgUploadZone" class="img-upload-zone">
+            <input type="file" id="imgFileInput" accept="image/*"/>
+            <div class="iuz-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <div class="iuz-text">Drop image here or click to upload</div>
+            <div class="iuz-sub">JPG, PNG, WebP · Max 5MB · Shown at top of article</div>
+          </div>
+
+          <div id="imgPreviewWrap" class="hidden">
+            <div class="img-preview-wrap">
+              <img id="imgPreview" class="img-preview" src="" alt="Cover"/>
+              <button class="img-remove-btn" id="imgRemoveBtn" type="button"><i class="fas fa-times"></i></button>
+            </div>
+          </div>
+
+          <div id="imgLoadingWrap" class="hidden">
+            <div class="img-loading"><div class="img-spinner"></div>Uploading image...</div>
+          </div>
+
+          <div class="field-group">
+            <label class="editor-label">Image Caption / Credit</label>
+            <input type="text" class="f-input" id="fImgCaption" placeholder="Photo: Getty Images / Source caption shown below the cover image..."/>
+          </div>
+
+          <div class="field-group">
+            <label class="editor-label">Image URL (or paste URL directly)</label>
+            <input type="text" class="f-input" id="fImgUrl" placeholder="https://... (auto-filled on upload)"/>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="sec-card">
+          <div class="sec-card-title">
+            <div class="sec-card-icon sci-blue"><i class="fas fa-align-left"></i></div>
+            Article Content
+          </div>
+
+          <div class="field-group">
+            <div class="toolbar" id="toolbar">
+              <button class="tb-btn" data-tag="h2">H2</button>
+              <button class="tb-btn" data-tag="h3">H3</button>
+              <div class="tb-divider"></div>
+              <button class="tb-btn" data-wrap="<strong>" data-endwrap="</strong>"><b>Bold</b></button>
+              <button class="tb-btn" data-wrap="<em>" data-endwrap="</em>"><i>Italic</i></button>
+              <div class="tb-divider"></div>
+              <button class="tb-btn" data-insert="<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>">List</button>
+              <button class="tb-btn" data-insert="<ol>\n  <li>First</li>\n  <li>Second</li>\n</ol>">Ordered</button>
+              <button class="tb-btn" data-insert='<blockquote>Quote text here</blockquote>'>Quote</button>
+              <div class="tb-divider"></div>
+              <button class="tb-btn" data-insert='<img src="IMAGE_URL" alt="Description" style="width:100%;border-radius:10px;margin:12px 0"/>'>Img</button>
+              <button class="tb-btn" data-insert='<p class="img-caption">Caption here</p>'>Caption</button>
+              <div class="tb-divider"></div>
+              <button class="tb-btn" data-insert="<hr style='border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0'/>">HR</button>
+              <button class="tb-btn" data-insert='<span style="color:#9AE000;font-weight:700">highlighted text</span>'>Highlight</button>
+            </div>
+            <textarea class="f-textarea content-area with-toolbar" id="fContent" placeholder="Write your article in HTML...&#10;&#10;<p>Your article starts here. Use the toolbar above to insert formatted elements.</p>&#10;&#10;<h2>Section Heading</h2>&#10;<p>More content...</p>&#10;&#10;<blockquote>A key quote or highlight</blockquote>"></textarea>
+            <div class="char-count" id="contentCount">0 characters</div>
+          </div>
+        </div>
+
+        <!-- SAVE BOTTOM -->
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-bottom:40px">
+          <button class="btn-preview" id="previewBtn2"><i class="fas fa-eye"></i> Preview</button>
+          <button class="btn-save" id="saveBtn2"><i class="fas fa-save"></i> Save Article</button>
+        </div>
+
+      </div>
+    </main>
 
   </div>
-
-  <div class="publish-bar">
-    <button class="publish-btn" id="publishBtn" onclick="publishPost()">
-      Publish Article
-    </button>
-  </div>
-
-  <!-- POSTS PANEL -->
-  <div id="postsPanel" class="hidden">
-    <div class="posts-header">
-      <h2>All Posts</h2>
-      <button class="refresh-btn" onclick="loadPosts()">Refresh</button>
-    </div>
-    <div id="postsList"></div>
-  </div>
-
 </div>
 
-<div id="toast"></div>
+<!-- PREVIEW MODAL -->
+<div class="preview-overlay hidden" id="previewOverlay">
+  <div class="preview-modal">
+    <div class="preview-header">
+      <span class="preview-title-label">Article Preview</span>
+      <button class="preview-close" id="previewClose"><i class="fas fa-times"></i></button>
+    </div>
+    <img id="previewCoverImg" class="preview-cover-img hidden" src="" alt="Cover"/>
+    <div id="previewCoverCaption" class="preview-cover-caption hidden"></div>
+    <div class="preview-meta" id="previewMeta"></div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay hidden" id="confirmOverlay">
+  <div class="confirm-card">
+    <div class="confirm-title">Delete Article?</div>
+    <div class="confirm-text" id="confirmText">This cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="confirmCancel">Cancel</button>
+      <button class="btn-confirm-del" id="confirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -329,231 +473,578 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
 );
 
-const ADMIN_EMAILS = ["smrutisahoo995@gmail.com", "satyara9jansahoo@gmail.com"];
+// ── PASSWORD GATE ──────────────────────────────────────────────────────────
+const ADMIN_PASSWORD = "cricket2026admin";
+const SESSION_KEY    = "ce_admin_unlocked";
 
-/* ── Auth ─────────────────────────────────────────────────────── */
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (!session) { showScreen("auth"); return; }
-  const email = session.user.email;
-if (!ADMIN_EMAILS.includes(email)) { showScreen("denied"); return; }
-  document.getElementById("userEmail").textContent = email.split("@")[0];
-  showScreen("app");
-  await loadPosts();
-});
+const gate     = document.getElementById("gate");
+const app      = document.getElementById("app");
+const gateInput = document.getElementById("gateInput");
+const gateBtn  = document.getElementById("gateBtn");
+const gateErr  = document.getElementById("gateErr");
 
-document.getElementById("signInBtn").onclick = async () => {
-  document.getElementById("signInBtn").disabled = true;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.href }
-  });
-  if (error) {
-    document.getElementById("authError").textContent = error.message;
-    document.getElementById("authError").style.display = "block";
-    document.getElementById("signInBtn").disabled = false;
-  }
-};
-
-const signOut = async () => {
-  await supabase.auth.signOut();
-  showScreen("auth");
-};
-
-document.getElementById("signOutBtn").onclick     = signOut;
-document.getElementById("deniedSignOut").onclick  = signOut;
-
-function showScreen(s) {
-  document.getElementById("authScreen").style.display  = s === "auth"   ? "flex"  : "none";
-  document.getElementById("deniedScreen").classList.toggle("hidden", s !== "denied");
-  document.getElementById("adminApp").style.display    = s === "app"    ? "block" : "none";
+function checkGate() {
+    if (sessionStorage.getItem(SESSION_KEY) === "1") {
+        gate.classList.add("hidden");
+        app.classList.add("visible");
+        initApp();
+    }
 }
 
-/* ── Tab switching ────────────────────────────────────────────── */
-window.showTab = (tab) => {
-  document.getElementById("writePanel").classList.toggle("hidden", tab !== "write");
-  document.getElementById("postsPanel").classList.toggle("hidden", tab !== "posts");
-  document.getElementById("tabWrite").classList.toggle("active", tab === "write");
-  document.getElementById("tabPosts").classList.toggle("active", tab === "posts");
-  if (tab === "posts") loadPosts();
+gateBtn.onclick = () => {
+    if (gateInput.value === ADMIN_PASSWORD) {
+        sessionStorage.setItem(SESSION_KEY, "1");
+        gate.classList.add("hidden");
+        app.classList.add("visible");
+        initApp();
+    } else {
+        gateErr.textContent = "Incorrect password";
+        gateInput.value = "";
+        gateInput.focus();
+        setTimeout(() => gateErr.textContent = "", 3000);
+    }
 };
 
-/* ── Emoji picker ─────────────────────────────────────────────── */
-let selectedEmoji = "🏏";
-document.getElementById("emojiPicker").addEventListener("click", e => {
-  const opt = e.target.closest(".emoji-opt");
-  if (!opt) return;
-  document.querySelectorAll(".emoji-opt").forEach(o => o.classList.remove("sel"));
-  opt.classList.add("sel");
-  selectedEmoji = opt.dataset.e;
-});
-
-/* ── Char counts ──────────────────────────────────────────────── */
-document.getElementById("excerpt").addEventListener("input", function() {
-  const n = this.value.length;
-  const el = document.getElementById("excerptCount");
-  el.textContent = `${n} / 200`;
-  el.className = "char-count" + (n > 180 ? " warn" : "") + (n >= 200 ? " over" : "");
-});
-
-document.getElementById("content").addEventListener("input", function() {
-  const n = this.value.length;
-  document.getElementById("contentCount").textContent = `${n.toLocaleString()} chars`;
-});
-
-/* ── Toolbar ──────────────────────────────────────────────────── */
-window.insertTag = (before, after) => {
-  const ta = document.getElementById("content");
-  const s = ta.selectionStart, e = ta.selectionEnd;
-  const selected = ta.value.substring(s, e);
-  const replacement = before + selected + after;
-  ta.value = ta.value.substring(0, s) + replacement + ta.value.substring(e);
-  ta.focus();
-  ta.selectionStart = ta.selectionEnd = s + before.length + selected.length + after.length;
-  ta.dispatchEvent(new Event("input"));
+gateInput.addEventListener("keydown", e => { if (e.key === "Enter") gateBtn.click(); });
+document.getElementById("logoutBtn").onclick = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    location.reload();
 };
 
-/* ── Slug generator ───────────────────────────────────────────── */
-function makeSlug(title) {
-  return title.toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .substring(0, 80)
-    + "-" + Date.now().toString(36);
+checkGate();
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let allPosts     = [];
+let currentPost  = null;
+let isNew        = false;
+let filterActive = "all";
+let searchTerm   = "";
+let isPublished  = true;
+let coverImgUrl  = "";
+let saveInProgress = false;
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+async function initApp() {
+    try {
+        await loadPosts();
+        setupListeners();
+    } catch (err) {
+        showToast("Failed to load posts: " + err.message, "error");
+    }
 }
 
-/* ── Publish ──────────────────────────────────────────────────── */
-window.publishPost = async () => {
-  const title      = document.getElementById("title").value.trim();
-  const excerpt    = document.getElementById("excerpt").value.trim();
-  const content    = document.getElementById("content").value.trim();
-  const category   = document.getElementById("category").value;
-  const matchLabel = document.getElementById("matchLabel").value.trim();
+// ── LOAD POSTS ─────────────────────────────────────────────────────────────
+async function loadPosts() {
+    try {
+        const { data, error } = await supabase
+            .from("blog_posts")
+            .select("id, slug, title, excerpt, category, cover_emoji, published, created_at, updated_at, match_label")
+            .order("updated_at", { ascending: false });
+        if (error) throw error;
+        allPosts = data || [];
+        renderSidebar();
+    } catch (err) {
+        showToast("Load error: " + err.message, "error");
+    }
+}
 
-  if (!title)   { showToast("Title is required", "error"); return; }
-  if (!excerpt) { showToast("Excerpt is required", "error"); return; }
-  if (!content || content.length < 100) { showToast("Content too short — write at least 100 characters", "error"); return; }
-
-  const btn = document.getElementById("publishBtn");
-  btn.disabled = true;
-  btn.textContent = "Publishing…";
-
-  const slug = makeSlug(title);
-
-  try {
-    const { error } = await supabase.from("blog_posts").insert([{
-      slug, title, excerpt, content, category,
-      match_label: matchLabel || null,
-      cover_emoji: selectedEmoji,
-      published: true,
-    }]);
-
-    // If Supabase returns an error, intentionally throw it so the catch block handles it
-    if (error) throw error; 
-
-    showToast("Published! ✅", "success");
-
-    // Clear form
-    document.getElementById("title").value      = "";
-    document.getElementById("excerpt").value    = "";
-    document.getElementById("content").value    = "";
-    document.getElementById("matchLabel").value = "";
-    document.getElementById("excerptCount").textContent = "0 / 200";
-    document.getElementById("contentCount").textContent = "0 chars";
-
-  } catch (err) {
-    console.error("Publishing Error:", err);
-    // This will now catch and display network errors, WAF blocks, or DB errors
-    showToast("Failed: " + (err.message || "Network error. Check console."), "error");
-  } finally {
-    // FINALLY always runs. This guarantees your button won't get stuck!
-    btn.disabled = false;
-    btn.textContent = "Publish Article";
-  }
+// ── SIDEBAR ────────────────────────────────────────────────────────────────
+const CAT_LABELS = {
+    "fantasy-preview": "Fantasy",
+    "match-preview": "Match",
+    "team-news": "News",
+    "post-match-review": "Review",
+    "player-spotlight": "Player",
+    "ipl-news": "IPL",
 };
 
-/* ── Load posts ───────────────────────────────────────────────── */
-window.loadPosts = async () => {
-  const list = document.getElementById("postsList");
-  list.innerHTML = `<div class="empty-state">Loading…</div>`;
+function renderSidebar() {
+    const list  = document.getElementById("sidebarList");
+    const count = document.getElementById("sidebarCount");
 
-  const { data, error } = await supabase
-    .from("blog_posts")
-    .select("id, title, excerpt, category, cover_emoji, published, created_at, slug")
-    .order("created_at", { ascending: false })
-    .limit(50);
+    let filtered = allPosts.filter(p => {
+        const q = searchTerm.toLowerCase();
+        const matchSearch = !q || p.title?.toLowerCase().includes(q) || p.slug?.toLowerCase().includes(q);
+        let matchFilter = true;
+        if (filterActive === "published") matchFilter = p.published;
+        else if (filterActive === "draft") matchFilter = !p.published;
+        else if (filterActive !== "all") matchFilter = p.category === filterActive;
+        return matchSearch && matchFilter;
+    });
 
-  if (error || !data?.length) {
-    list.innerHTML = `<div class="empty-state">No posts yet. Write your first one!</div>`;
-    return;
-  }
+    count.textContent = `${filtered.length} article${filtered.length !== 1 ? "s" : ""}`;
 
-  const catLabels = {
-    "fantasy-preview": "Fantasy Preview",
-    "match-preview": "Match Preview",
-    "team-news": "Team News",
-    "post-match-review": "Post Match Review",
-    "player-spotlight": "Player Spotlight",
-    "ipl-news": "IPL News",
-  };
+    if (!filtered.length) {
+        list.innerHTML = `<div class="sidebar-empty">No articles found</div>`;
+        return;
+    }
 
-  list.innerHTML = "";
-  data.forEach(post => {
-    const card = document.createElement("div");
-    card.className = "post-card";
-    card.innerHTML = `
-      <div class="post-card-top">
-        <div class="post-emoji">${post.cover_emoji}</div>
-        <div class="post-meta">
-          <div class="post-title">${post.title}</div>
-          <div class="post-info">
-            <span class="cat-badge">${catLabels[post.category] || post.category}</span>
-            <span class="post-date">${new Date(post.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span>
-            ${!post.published ? '<span style="font-size:10px;color:var(--gold)">DRAFT</span>' : ''}
-          </div>
-        </div>
-      </div>
-      <div class="post-excerpt">${post.excerpt}</div>
-      <div class="post-actions">
-        <button class="action-btn" onclick="viewPost('${post.slug}','${post.category}')">View</button>
-        <button class="action-btn toggle-pub" onclick="togglePublish('${post.id}',${post.published})">${post.published ? "Unpublish" : "Publish"}</button>
-        <button class="action-btn del" onclick="deletePost('${post.id}')">Delete</button>
-      </div>`;
-    list.appendChild(card);
-  });
+    list.innerHTML = "";
+    filtered.forEach(p => {
+        const item = document.createElement("div");
+        item.className = `post-item${currentPost?.id === p.id ? " active" : ""}`;
+        item.dataset.id = p.id;
+        const date = new Date(p.updated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+        item.innerHTML = `
+            <div class="pi-top">
+                <span class="pi-emoji">${p.cover_emoji || "🏏"}</span>
+                <span class="pi-cat${p.published ? "" : " draft"}">${p.published ? (CAT_LABELS[p.category] || p.category || "Article") : "Draft"}</span>
+            </div>
+            <div class="pi-title">${p.title || "Untitled"}</div>
+            <div class="pi-meta">${date}${p.match_label ? " · " + p.match_label : ""}</div>`;
+        item.onclick = () => loadPostIntoEditor(p.id);
+        list.appendChild(item);
+    });
+}
+
+// ── LOAD POST INTO EDITOR ──────────────────────────────────────────────────
+async function loadPostIntoEditor(id) {
+    try {
+        const { data, error } = await supabase
+            .from("blog_posts")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle();
+        if (error) throw error;
+        if (!data) { showToast("Post not found", "error"); return; }
+
+        currentPost = data;
+        isNew = false;
+        populateEditor(data);
+        showEditor();
+        renderSidebar();
+    } catch (err) {
+        showToast("Failed to load: " + err.message, "error");
+    }
+}
+
+function populateEditor(p) {
+    document.getElementById("fTitle").value      = p.title       || "";
+    document.getElementById("fSlug").value       = p.slug        || "";
+    document.getElementById("fCategory").value   = p.category    || "";
+    document.getElementById("fMatchLabel").value = p.match_label || "";
+    document.getElementById("fEmoji").value      = p.cover_emoji || "🏏";
+    document.getElementById("fAuthor").value     = p.author      || "Cricket Experts";
+    document.getElementById("fExcerpt").value    = p.excerpt     || "";
+    document.getElementById("fContent").value    = p.content     || "";
+    document.getElementById("fImgCaption").value = p.image_caption || "";
+    document.getElementById("fImgUrl").value     = p.cover_image_url || "";
+
+    isPublished = p.published !== false;
+    updatePublishToggle();
+    updateSlugPreview();
+    updateContentCount();
+    updateStatusBadge();
+
+    coverImgUrl = p.cover_image_url || "";
+    if (coverImgUrl) {
+        showImgPreview(coverImgUrl);
+    } else {
+        clearImgPreview();
+    }
+}
+
+function showEditor() {
+    document.getElementById("editorEmpty").classList.add("hidden");
+    document.getElementById("editorForm").classList.remove("hidden");
+}
+
+function hideEditor() {
+    document.getElementById("editorEmpty").classList.remove("hidden");
+    document.getElementById("editorForm").classList.add("hidden");
+    currentPost = null;
+    isNew = false;
+}
+
+// ── NEW POST ───────────────────────────────────────────────────────────────
+document.getElementById("newPostBtn").onclick = () => {
+    currentPost = null;
+    isNew = true;
+    document.getElementById("fTitle").value      = "";
+    document.getElementById("fSlug").value       = "";
+    document.getElementById("fCategory").value   = "";
+    document.getElementById("fMatchLabel").value = "";
+    document.getElementById("fEmoji").value      = "🏏";
+    document.getElementById("fAuthor").value     = "Cricket Experts";
+    document.getElementById("fExcerpt").value    = "";
+    document.getElementById("fContent").value    = "";
+    document.getElementById("fImgCaption").value = "";
+    document.getElementById("fImgUrl").value     = "";
+    isPublished = false;
+    coverImgUrl = "";
+    clearImgPreview();
+    updatePublishToggle();
+    updateSlugPreview();
+    updateContentCount();
+    updateStatusBadge();
+    showEditor();
+    renderSidebar();
+    document.getElementById("fTitle").focus();
 };
 
-window.viewPost = (slug, category) => {
-  window.open(`/blog-post.html?slug=${slug}`, "_blank");
+// ── SAVE ───────────────────────────────────────────────────────────────────
+async function savePost() {
+    if (saveInProgress) return;
+    saveInProgress = true;
+
+    const saveBtn  = document.getElementById("saveBtn");
+    const saveBtn2 = document.getElementById("saveBtn2");
+    [saveBtn, saveBtn2].forEach(b => { b.disabled = true; b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; });
+
+    try {
+        const payload = {
+            title:             document.getElementById("fTitle").value.trim()      || null,
+            slug:              document.getElementById("fSlug").value.trim()       || generateSlug(document.getElementById("fTitle").value),
+            category:          document.getElementById("fCategory").value          || null,
+            match_label:       document.getElementById("fMatchLabel").value.trim() || null,
+            cover_emoji:       document.getElementById("fEmoji").value.trim()      || "🏏",
+            author:            document.getElementById("fAuthor").value.trim()     || "Cricket Experts",
+            excerpt:           document.getElementById("fExcerpt").value.trim()    || "",
+            content:           document.getElementById("fContent").value           || "",
+            image_caption:     document.getElementById("fImgCaption").value.trim() || null,
+            cover_image_url:   document.getElementById("fImgUrl").value.trim()     || null,
+            published:         isPublished,
+        };
+
+        // Validate slug is unique if new or slug changed
+        if (!payload.slug) {
+            payload.slug = "article-" + Date.now();
+        }
+
+        let result;
+        if (isNew) {
+            const { data, error } = await supabase
+                .from("blog_posts")
+                .insert([payload])
+                .select()
+                .single();
+            if (error) throw error;
+            result = data;
+            isNew = false;
+            currentPost = result;
+            showToast("Article created!", "success");
+        } else {
+            const { data, error } = await supabase
+                .from("blog_posts")
+                .update(payload)
+                .eq("id", currentPost.id)
+                .select()
+                .single();
+            if (error) throw error;
+            result = data;
+            currentPost = result;
+            showToast("Saved!", "success");
+        }
+
+        await loadPosts();
+        updateStatusBadge();
+        renderSidebar();
+
+    } catch (err) {
+        showToast("Save failed: " + err.message, "error");
+    } finally {
+        saveInProgress = false;
+        [saveBtn, saveBtn2].forEach(b => { b.disabled = false; b.innerHTML = '<i class="fas fa-save"></i> Save'; });
+    }
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────
+document.getElementById("deleteBtn").onclick = () => {
+    if (!currentPost) return;
+    document.getElementById("confirmText").textContent = `Delete "${currentPost.title || "Untitled"}"? This cannot be undone.`;
+    document.getElementById("confirmOverlay").classList.remove("hidden");
 };
 
-window.togglePublish = async (id, current) => {
-  const { error } = await supabase
-    .from("blog_posts")
-    .update({ published: !current })
-    .eq("id", id);
-  if (error) { showToast("Failed: " + error.message, "error"); return; }
-  showToast(current ? "Post unpublished" : "Post published", "success");
-  loadPosts();
+document.getElementById("confirmCancel").onclick = () => {
+    document.getElementById("confirmOverlay").classList.add("hidden");
 };
 
-window.deletePost = async (id) => {
-  if (!confirm("Delete this post permanently?")) return;
-  const { error } = await supabase.from("blog_posts").delete().eq("id", id);
-  if (error) { showToast("Failed: " + error.message, "error"); return; }
-  showToast("Deleted", "success");
-  loadPosts();
+document.getElementById("confirmOk").onclick = async () => {
+    document.getElementById("confirmOverlay").classList.add("hidden");
+    if (!currentPost) return;
+    try {
+        const { error } = await supabase
+            .from("blog_posts")
+            .delete()
+            .eq("id", currentPost.id);
+        if (error) throw error;
+        showToast("Article deleted", "warn");
+        hideEditor();
+        await loadPosts();
+    } catch (err) {
+        showToast("Delete failed: " + err.message, "error");
+    }
 };
 
-/* ── Toast ────────────────────────────────────────────────────── */
+// ── DUPLICATE ──────────────────────────────────────────────────────────────
+document.getElementById("dupBtn").onclick = async () => {
+    if (!currentPost) return;
+    try {
+        const dupPayload = {
+            title:           (currentPost.title || "Untitled") + " (Copy)",
+            slug:            (currentPost.slug || "article") + "-copy-" + Date.now(),
+            category:        currentPost.category        || null,
+            match_label:     currentPost.match_label     || null,
+            cover_emoji:     currentPost.cover_emoji     || "🏏",
+            author:          currentPost.author          || "Cricket Experts",
+            excerpt:         currentPost.excerpt         || "",
+            content:         currentPost.content         || "",
+            image_caption:   currentPost.image_caption   || null,
+            cover_image_url: currentPost.cover_image_url || null,
+            published:       false,
+        };
+        const { data, error } = await supabase
+            .from("blog_posts")
+            .insert([dupPayload])
+            .select()
+            .single();
+        if (error) throw error;
+        showToast("Duplicated as draft!", "success");
+        await loadPosts();
+        loadPostIntoEditor(data.id);
+    } catch (err) {
+        showToast("Duplicate failed: " + err.message, "error");
+    }
+};
+
+// ── IMAGE UPLOAD ───────────────────────────────────────────────────────────
+document.getElementById("imgFileInput").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast("Image must be under 5MB", "error"); return; }
+
+    document.getElementById("imgUploadZone").classList.add("hidden");
+    document.getElementById("imgLoadingWrap").classList.remove("hidden");
+
+    try {
+        const ext      = file.name.split(".").pop();
+        const filename = `blog/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+            .from("blog-images")
+            .upload(filename, file, { cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+
+        const { data } = supabase.storage.from("blog-images").getPublicUrl(filename);
+        coverImgUrl = data.publicUrl;
+        document.getElementById("fImgUrl").value = coverImgUrl;
+        showImgPreview(coverImgUrl);
+        showToast("Image uploaded!", "success");
+    } catch (err) {
+        showToast("Upload failed: " + err.message + " — paste URL manually", "error");
+        document.getElementById("imgUploadZone").classList.remove("hidden");
+    } finally {
+        document.getElementById("imgLoadingWrap").classList.add("hidden");
+        e.target.value = "";
+    }
+});
+
+// Manual URL input
+document.getElementById("fImgUrl").addEventListener("input", e => {
+    const url = e.target.value.trim();
+    if (url) {
+        coverImgUrl = url;
+        showImgPreview(url);
+    } else {
+        coverImgUrl = "";
+        clearImgPreview();
+    }
+});
+
+document.getElementById("imgRemoveBtn").onclick = () => {
+    coverImgUrl = "";
+    document.getElementById("fImgUrl").value = "";
+    clearImgPreview();
+};
+
+// Drag and drop
+const uploadZone = document.getElementById("imgUploadZone");
+uploadZone.addEventListener("dragover", e => { e.preventDefault(); uploadZone.classList.add("drag"); });
+uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag"));
+uploadZone.addEventListener("drop", e => {
+    e.preventDefault();
+    uploadZone.classList.remove("drag");
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        document.getElementById("imgFileInput").files = e.dataTransfer.files;
+        document.getElementById("imgFileInput").dispatchEvent(new Event("change"));
+    }
+});
+
+function showImgPreview(url) {
+    document.getElementById("imgUploadZone").classList.add("hidden");
+    document.getElementById("imgLoadingWrap").classList.add("hidden");
+    document.getElementById("imgPreview").src = url;
+    document.getElementById("imgPreviewWrap").classList.remove("hidden");
+}
+
+function clearImgPreview() {
+    document.getElementById("imgUploadZone").classList.remove("hidden");
+    document.getElementById("imgPreviewWrap").classList.add("hidden");
+    document.getElementById("imgPreview").src = "";
+}
+
+// ── TOOLBAR ────────────────────────────────────────────────────────────────
+document.getElementById("toolbar").addEventListener("click", e => {
+    const btn = e.target.closest(".tb-btn");
+    if (!btn) return;
+
+    const ta    = document.getElementById("fContent");
+    const start = ta.selectionStart;
+    const end   = ta.selectionEnd;
+    const sel   = ta.value.substring(start, end);
+    let insert  = "";
+
+    if (btn.dataset.tag) {
+        const tag = btn.dataset.tag;
+        insert = sel ? `<${tag}>${sel}</${tag}>` : `<${tag}>Heading here</${tag}>`;
+    } else if (btn.dataset.wrap) {
+        insert = `${btn.dataset.wrap}${sel || "selected text"}${btn.dataset.endwrap}`;
+    } else if (btn.dataset.insert) {
+        insert = btn.dataset.insert;
+    }
+
+    if (insert) {
+        ta.setRangeText(insert, start, end, "end");
+        ta.focus();
+        updateContentCount();
+    }
+});
+
+// ── PREVIEW ────────────────────────────────────────────────────────────────
+function openPreview() {
+    const title    = document.getElementById("fTitle").value;
+    const content  = document.getElementById("fContent").value;
+    const cat      = document.getElementById("fCategory").value;
+    const emoji    = document.getElementById("fEmoji").value;
+    const imgUrl   = document.getElementById("fImgUrl").value;
+    const imgCap   = document.getElementById("fImgCaption").value;
+
+    const overlay  = document.getElementById("previewOverlay");
+    const body     = document.getElementById("previewBody");
+    const meta     = document.getElementById("previewMeta");
+    const coverImg = document.getElementById("previewCoverImg");
+    const coverCap = document.getElementById("previewCoverCaption");
+
+    body.innerHTML = `<h1>${emoji ? emoji + " " : ""}${title || "Untitled"}</h1>${content || "<p>No content yet.</p>"}`;
+    meta.innerHTML = cat ? `<span class="preview-cat-badge">${CAT_LABELS[cat] || cat}</span><span class="preview-date">${new Date().toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span>` : "";
+
+    if (imgUrl) {
+        coverImg.src = imgUrl;
+        coverImg.classList.remove("hidden");
+        if (imgCap) { coverCap.textContent = imgCap; coverCap.classList.remove("hidden"); }
+        else coverCap.classList.add("hidden");
+    } else {
+        coverImg.classList.add("hidden");
+        coverCap.classList.add("hidden");
+    }
+
+    overlay.classList.remove("hidden");
+}
+
+document.getElementById("previewBtn").onclick  = openPreview;
+document.getElementById("previewBtn2").onclick = openPreview;
+document.getElementById("previewClose").onclick = () => document.getElementById("previewOverlay").classList.add("hidden");
+document.getElementById("previewOverlay").addEventListener("click", e => {
+    if (e.target === document.getElementById("previewOverlay")) document.getElementById("previewOverlay").classList.add("hidden");
+});
+
+// ── PUBLISH TOGGLE ─────────────────────────────────────────────────────────
+document.getElementById("publishToggle").onclick = () => {
+    isPublished = !isPublished;
+    updatePublishToggle();
+    updateStatusBadge();
+};
+
+function updatePublishToggle() {
+    const toggle = document.getElementById("publishToggle");
+    const label  = document.getElementById("publishLabel");
+    toggle.classList.toggle("on", isPublished);
+    label.textContent = isPublished ? "Published — visible on site" : "Draft — hidden from site";
+}
+
+function updateStatusBadge() {
+    const badge = document.getElementById("statusBadge");
+    badge.className = `status-badge ${isPublished ? "sb-published" : "sb-draft"}`;
+    badge.textContent = isPublished ? "Published" : "Draft";
+}
+
+// ── SLUG ────────────────────────────────────────────────────────────────────
+document.getElementById("fTitle").addEventListener("input", e => {
+    const slugEl = document.getElementById("fSlug");
+    if (!slugEl.dataset.manual) {
+        slugEl.value = generateSlug(e.target.value);
+    }
+    updateSlugPreview();
+});
+
+document.getElementById("fSlug").addEventListener("input", e => {
+    e.target.dataset.manual = "1";
+    updateSlugPreview();
+});
+
+function generateSlug(title) {
+    return (title || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 80) || "article-" + Date.now();
+}
+
+function updateSlugPreview() {
+    const s = document.getElementById("fSlug").value;
+    document.getElementById("slugPreview").innerHTML = `URL: <span>/blog-post.html?slug=${s || "..."}</span>`;
+}
+
+// ── CONTENT COUNT ──────────────────────────────────────────────────────────
+function updateContentCount() {
+    const len = document.getElementById("fContent").value.length;
+    document.getElementById("contentCount").textContent = `${len.toLocaleString()} characters`;
+}
+document.getElementById("fContent").addEventListener("input", updateContentCount);
+
+// ── SAVE BUTTONS ───────────────────────────────────────────────────────────
+document.getElementById("saveBtn").onclick  = savePost;
+document.getElementById("saveBtn2").onclick = savePost;
+
+// Keyboard shortcut Ctrl+S
+document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        if (currentPost || isNew) savePost();
+    }
+});
+
+// ── SIDEBAR LISTENERS ──────────────────────────────────────────────────────
+function setupListeners() {
+    document.getElementById("sidebarSearch").addEventListener("input", e => {
+        searchTerm = e.target.value;
+        renderSidebar();
+    });
+
+    document.getElementById("sidebarFilters").addEventListener("click", e => {
+        const btn = e.target.closest(".sf-btn");
+        if (!btn) return;
+        document.querySelectorAll(".sf-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterActive = btn.dataset.filter;
+        renderSidebar();
+    });
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
 function showToast(msg, type = "success") {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `show ${type}`;
-  setTimeout(() => { t.className = ""; }, 3000);
+    const c = document.getElementById("toastContainer");
+    const t = document.createElement("div");
+    t.className = `toast${type === "error" ? " error" : type === "warn" ? " warn" : ""}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => {
+        t.classList.add("fade-out");
+        t.addEventListener("transitionend", () => t.remove(), { once: true });
+    }, 3500);
 }
 </script>
-
-
 </body>
 </html>
