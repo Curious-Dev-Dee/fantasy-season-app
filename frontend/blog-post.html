@@ -99,8 +99,21 @@ const sb = createClient(
   "https://tuvqgcosbweljslbfgqc.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
 );
-const CATS = {"ipl-news":"IPL News","team-news":"Team News","match-preview":"Match Preview","fantasy-preview":"Fantasy Preview","post-match-review":"Post Match Review","player-spotlight":"Player Spotlight"};
-const PAGES = {"ipl-news":"ipl-news.html","team-news":"team-news.html","match-preview":"match-preview.html","fantasy-preview":"fantasy-preview.html","post-match-review":"post-match-review.html","player-spotlight":"player-spotlight.html"};
+const CATS = {
+  "ipl-news": "IPL News",
+  "team-news": "Team News",
+  "match-preview": "Match Hub",       // previews + reviews
+  "fantasy-preview": "Fantasy Preview",
+  "player-spotlight": "Player Spotlight",
+};
+
+const PAGES = {
+  "ipl-news": "ipl-news.html",
+  "team-news": "team-news.html",
+  "match-preview": "match-preview.html",
+  "fantasy-preview": "fantasy-preview.html",
+  "player-spotlight": "player-spotlight.html",
+};
 
 const slug = new URLSearchParams(location.search).get("slug");
 if (!slug) { showErr(); } else { loadArticle(slug); }
