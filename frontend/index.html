@@ -601,9 +601,8 @@
     <span class="strip-eyebrow">Latest from Cricket Experts</span>
     <a href="ipl-news.html" class="strip-see-all">See all →</a>
   </div>
+
   <div class="articles-grid" id="articlesGrid">
-    <!-- Loading skeleton -->
-      <div class="articles-grid" id="articlesGrid">
     <!-- One real static article (always visible even if JS fails) -->
     <a href="blog-post.html?slug=ipl-2026-opening-match-preview" class="art-card">
       <div class="art-emoji">🏏</div>
@@ -621,8 +620,6 @@
     <!-- Loading skeleton for JS-loaded posts -->
     <div class="sk-card"></div>
     <div class="sk-card"></div>
-  </div>
-
   </div>
 </div>
 
@@ -957,7 +954,7 @@
     if (navBtn)    navBtn.disabled    = on;
     if (btxt)  btxt.textContent = on ? "Connecting…" : "Play Free";
     if (bspin) bspin.classList.toggle("on", on);
-    if (navBtn) navBtn.textContent = on ? "Connecting…" : "Sign In";
+  if (navBtn) navBtn.textContent = on ? "Connecting…" : "Play Fantasy League";
   }
 
   function showErr(msg) {
