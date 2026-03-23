@@ -193,7 +193,13 @@ body.loading-state .app-container        { display: none !important; }
     color: var(--text-primary);
 }
 
-.di-icon { font-size: 11px; }
+.di-icon {
+    font-size: 11px;
+    color: var(--text-faint);
+    width: 13px;
+    text-align: center;
+    flex-shrink: 0;
+}
 .di-max  { color: var(--text-faint); }
 
 .dashboard-item.negative {
