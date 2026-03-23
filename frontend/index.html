@@ -29,6 +29,29 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
+
+        .hero-ctas {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 auto 22px;
+      flex-wrap: wrap;
+    }
+
+    .hero-play-btn {
+      background: var(--g);
+      color: #000;
+    }
+
+    .hero-play-btn:hover:not(:disabled) {
+      background: var(--g);
+    }
+
+    .hero-read-btn {
+      border-color: rgba(255,255,255,0.25);
+      color: var(--white);
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -492,12 +515,13 @@
       Cricket Experts
     </div>
     <button class="nav-signin-btn" id="navSignInBtn" aria-label="Sign in with Google">
-      Sign In
+      Play Fantasy League
     </button>
   </div>
   <div class="nav-row2">
     <a href="#fantasy"           class="on">Fantasy</a>
     <a href="#latest">Latest</a>
+    <a href="ipl-news.html">Blogs</a>
     <a href="fantasy-preview.html">Previews</a>
     <a href="match-preview.html">Match</a>
     <a href="team-news.html">Team News</a>
@@ -528,6 +552,20 @@
   <p class="hero-tagline">
     <strong>Everything IPL 2026 in one place.</strong> Season-long fantasy league, daily match previews, team news, post-match reviews and player analysis — <strong>all free</strong>, no paid tips, no subscriptions.
   </p>
+
+
+    <!-- Hero main actions -->
+  <div class="hero-ctas">
+    <!-- Left: play fantasy (same as Sign In / Play button) -->
+    <button type="button" class="nav-signin-btn hero-play-btn" id="heroPlayBtn">
+      Play Free Fantasy Season
+    </button>
+
+    <!-- Right: read articles (goes to your article list or today’s preview) -->
+    <a href="ipl-news.html" class="nav-signin-btn hero-read-btn">
+      Read Today’s Preview
+    </a>
+  </div>
 
   <!-- Topic pills — SEO anchors + navigation -->
   <div class="topic-pills">
@@ -928,6 +966,7 @@
 
   bottomBtn?.addEventListener("click", doLogin);
   navBtn?.addEventListener("click", doLogin);
+    heroBtn?.addEventListener("click", doLogin);
 
   /* ── Spots counter ──────────────────────────────────────────── */
   async function initSpots() {
