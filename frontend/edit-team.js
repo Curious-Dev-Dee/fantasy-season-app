@@ -203,6 +203,9 @@ function renderTeamDots() {
                 dot.classList.add("filled", "no-logo");
                 dot.textContent = team?.short_code?.[0] || "?";
             }
+        } else if (i === 10) {
+            dot.classList.add("no-logo", "dot-eleven");
+            dot.textContent = "11";
         }
 
         frag.appendChild(dot);
