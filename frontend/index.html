@@ -603,10 +603,26 @@
   </div>
   <div class="articles-grid" id="articlesGrid">
     <!-- Loading skeleton -->
+      <div class="articles-grid" id="articlesGrid">
+    <!-- One real static article (always visible even if JS fails) -->
+    <a href="blog-post.html?slug=ipl-2026-opening-match-preview" class="art-card">
+      <div class="art-emoji">🏏</div>
+      <div class="art-cat">Fantasy Preview</div>
+      <div class="art-title">IPL 2026: Opening Match Fantasy Preview</div>
+      <div class="art-excerpt">
+        Best XI, captain choices and differential picks for the first game of IPL 2026.
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="art-date">TBA</span>
+        <span class="art-arrow">Read →</span>
+      </div>
+    </a>
+
+    <!-- Loading skeleton for JS-loaded posts -->
     <div class="sk-card"></div>
     <div class="sk-card"></div>
-    <div class="sk-card"></div>
-    <div class="sk-card"></div>
+  </div>
+
   </div>
 </div>
 
@@ -883,7 +899,12 @@
 <div class="cta-bar hidden" id="ctaBar">
   <div class="cta-copy">
     <div class="cta-head" id="ctaHead">Join the Fantasy League</div>
-    <div class="cta-sub"  id="ctaSub">IPL 2026 · Free · 84 matches</div>
+    <div class="cta-sub"  id="ctaSub">
+      Free season-long league + daily IPL previews & fantasy tips.
+      <a href="#latest" style="color:var(--dim);text-decoration:underline;text-underline-offset:2px;">
+        Read tips →
+      </a>
+    </div>
   </div>
   <button class="google-btn" id="googleLoginBtn" aria-label="Sign in with Google">
     <i class="g-badge">G</i>
