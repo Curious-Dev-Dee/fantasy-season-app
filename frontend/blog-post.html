@@ -10,6 +10,8 @@
 <meta property="og:title" id="ogTitle" content="Cricket Experts">
 <meta property="og:description" id="ogDesc" content="">
 <meta property="og:image" id="ogImg" content="https://fantasy-season-app.vercel.app/favicon.png">
+<meta property="og:url" id="ogUrl" content="https://fantasy-season-app.vercel.app/">
+
 <link rel="canonical" id="canonical" href="https://fantasy-season-app.vercel.app/">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -60,7 +62,7 @@ a{text-decoration:none;color:inherit}
 <body>
 <nav class="nav">
   <button class="back" id="backBtn">← <span id="backLbl">Back</span></button>
-  <div class="brand">Cricket Experts</div>
+<a class="brand" href="/">Cricket Experts</a>
 </nav>
 <div class="wrap">
   <div id="skeleton">
@@ -110,12 +112,16 @@ async function loadArticle(slug) {
     if (error || !post) { showErr(); return; }
 
     // SEO
-    document.getElementById("pageTitle").textContent = (post.title || "Article") + " · Cricket Experts";
-    document.getElementById("pageDesc").content      = post.excerpt || "";
-    document.getElementById("ogTitle").content       = post.title  || "Cricket Experts";
-    document.getElementById("ogDesc").content        = post.excerpt || "";
-    document.getElementById("canonical").href        = `https://fantasy-season-app.vercel.app/blog-post.html?slug=${slug}`;
-    if (post.cover_image) document.getElementById("ogImg").content = post.cover_image;
+    const articleUrl = `https://fantasy-season-app.vercel.app/blog-post.html?slug=${slug}`;
+
+document.getElementById("pageTitle").textContent = (post.title || "Article") + " · Cricket Experts";
+document.getElementById("pageDesc").content      = post.excerpt || "";
+document.getElementById("ogTitle").content       = post.title  || "Cricket Experts";
+document.getElementById("ogDesc").content        = post.excerpt || "";
+document.getElementById("canonical").href        = articleUrl;
+document.getElementById("ogUrl").content         = articleUrl;
+if (post.cover_image) document.getElementById("ogImg").content = post.cover_image;
+
 
     // Back nav
     const catPage = PAGES[post.category] || "/";
