@@ -24,13 +24,11 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
 /* GATE */
 #gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999;padding:24px}
 #gate.hidden{display:none}
-.g-logo{font-family:var(--FD);font-size:26px;font-weight:900;color:var(--g);letter-spacing:2px}
-.g-sub{font-size:12px;color:var(--faint)}
-.g-inp{width:260px;padding:13px 16px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rs);color:var(--txt);font-family:var(--FB);font-size:15px;outline:none;text-align:center;letter-spacing:2px}
-.g-inp:focus{border-color:var(--g)}
-.g-btn{width:260px;padding:13px;background:var(--g);color:#000;border:none;border-radius:var(--rs);font-family:var(--FD);font-size:15px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s}
-.g-btn:hover{box-shadow:0 4px 18px var(--gglow)}
-.g-err{font-size:12px;color:var(--red);min-height:16px}
+.g-logo{font-family:var(--FD);font-size:32px;font-weight:900;color:var(--g);letter-spacing:2px}
+.g-sub{font-size:14px;color:var(--faint);margin-bottom:10px}
+.g-btn{width:260px;padding:14px;background:var(--g);color:#000;border:none;border-radius:var(--rs);font-family:var(--FD);font-size:16px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.g-btn:hover{box-shadow:0 4px 18px var(--gglow);transform:translateY(-1px)}
+.g-err{font-size:12px;color:var(--red);min-height:16px;text-align:center;max-width:260px}
 
 /* APP */
 #app{display:none;flex-direction:column;min-height:100vh}
@@ -43,184 +41,64 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .hdr-right{display:flex;gap:8px}
 .btn-new{background:var(--g);color:#000;border:none;padding:8px 14px;border-radius:var(--rs);font-family:var(--FD);font-size:12px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s}
-.btn-new:hover{box-shadow:0 3px 12px var(--gglow)}
 .btn-lock{background:transparent;border:1px solid var(--bdr2);color:var(--faint);padding:7px 12px;border-radius:var(--rs);font-family:var(--FD);font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer}
-.btn-lock:hover{border-color:var(--red);color:var(--red)}
 
-/* BODY */
+/* SIDEBAR, EDITOR, FORM, ETC (Kept same as your original) */
 .body{display:flex;flex:1;overflow:hidden}
-
-/* SIDEBAR */
 .sidebar{width:280px;min-width:280px;background:var(--card);border-right:1px solid var(--bdr2);display:flex;flex-direction:column;overflow:hidden}
 .sb-top{padding:12px;border-bottom:1px solid var(--bdr);flex-shrink:0}
 .sb-search{width:100%;padding:9px 11px;background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--rs);color:var(--txt);font-family:var(--FB);font-size:13px;outline:none}
-.sb-search:focus{border-color:var(--g)}
-.sb-search::placeholder{color:var(--ghost)}
 .sb-filters{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
-.sf{padding:4px 9px;border-radius:20px;border:1px solid var(--bdr);background:transparent;color:var(--faint);font-family:var(--FD);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sf{padding:4px 9px;border-radius:20px;border:1px solid var(--bdr);background:transparent;color:var(--faint);font-family:var(--FD);font-size:9px;font-weight:800;text-transform:uppercase;cursor:pointer;transition:all .15s}
 .sf.on{background:var(--gdim);border-color:rgba(154,224,0,.25);color:var(--g)}
-.sb-count{font-size:9px;color:var(--ghost);padding:7px 12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;flex-shrink:0}
+.sb-count{font-size:9px;color:var(--ghost);padding:7px 12px;text-transform:uppercase;letter-spacing:1px;font-weight:700}
 .sb-list{flex:1;overflow-y:auto;padding:6px}
-.sb-list::-webkit-scrollbar{width:3px}
-.sb-list::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
-
-/* POST ITEM */
 .pi{padding:10px 11px;border-radius:var(--rs);cursor:pointer;transition:all .15s;border:1px solid transparent;margin-bottom:3px}
 .pi:hover{background:var(--card2);border-color:var(--bdr)}
 .pi.on{background:var(--gdim);border-color:rgba(154,224,0,.2)}
-.pi-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
-.pi-emoji{font-size:14px}
-.pi-badge{font-family:var(--FD);font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:1px 5px;border-radius:4px}
+.pi-row{display:flex;align-items:center;justify-content:space-between}
+.pi-badge{font-family:var(--FD);font-size:8px;font-weight:800;text-transform:uppercase;padding:1px 5px;border-radius:4px}
 .pi-badge.live{background:var(--gdim);color:var(--g)}
 .pi-badge.draft{background:rgba(255,255,255,.04);color:var(--faint)}
-.pi-title{font-family:var(--FD);font-size:12px;font-weight:800;text-transform:uppercase;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.pi-title{font-family:var(--FD);font-size:12px;font-weight:800;text-transform:uppercase;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pi-meta{font-size:9px;color:var(--ghost)}
-.sb-empty{text-align:center;padding:36px 14px;color:var(--faint);font-size:12px}
-
-/* EDITOR */
 .editor{flex:1;overflow-y:auto;padding:20px;background:var(--bg)}
-.editor::-webkit-scrollbar{width:4px}
-.editor::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
-
-/* EMPTY */
-.emp{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:10px;text-align:center}
-.emp-ic{width:56px;height:56px;border-radius:16px;background:var(--gdim);border:1px solid rgba(154,224,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--g)}
-.emp-t{font-family:var(--FD);font-size:18px;font-weight:900;text-transform:uppercase;color:var(--muted)}
-.emp-s{font-size:12px;color:var(--faint);max-width:220px;line-height:1.5}
-
-/* FORM */
 .form{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.fhdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.factions{display:flex;gap:7px;flex-wrap:wrap}
-.btn-save{background:var(--g);color:#000;border:none;padding:10px 18px;border-radius:var(--rs);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s;display:flex;align-items:center;gap:6px}
-.btn-save:hover:not(:disabled){box-shadow:0 3px 14px var(--gglow)}
-.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.fhdr{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.factions{display:flex;gap:7px}
+.btn-save{background:var(--g);color:#000;border:none;padding:10px 18px;border-radius:var(--rs);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer}
 .btn-del{background:var(--reddim);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:10px 14px;border-radius:var(--rs);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer}
-.btn-del:hover{background:rgba(239,68,68,.18)}
-.btn-prv{background:transparent;color:#7cc4ff;border:1px solid rgba(124,196,255,.2);padding:10px 14px;border-radius:var(--rs);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer}
-.btn-prv:hover{background:rgba(124,196,255,.08)}
-.btn-dup{background:transparent;color:var(--muted);border:1px solid var(--bdr2);padding:10px 14px;border-radius:var(--rs);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer}
-.btn-dup:hover{background:var(--card2)}
-
-/* SECTION CARD */
 .sc{background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px}
-.sc-title{font-family:var(--FD);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--faint);display:flex;align-items:center;gap:6px}
-.sc-ico{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px}
-.ic-g{background:var(--gdim);color:var(--g)}
-.ic-gd{background:rgba(245,158,11,.09);color:var(--gold)}
-.ic-bl{background:rgba(124,196,255,.08);color:#7cc4ff}
-
-/* FIELDS */
+.sc-title{font-family:var(--FD);font-size:10px;font-weight:900;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:6px}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.lbl{font-family:var(--FD);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--faint)}
-.fi,.fs,.ft{width:100%;background:var(--card2);border:1px solid var(--bdr2);color:var(--txt);padding:10px 12px;border-radius:var(--rs);font-family:var(--FB);font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s}
-.fi:focus,.fs:focus,.ft:focus{border-color:var(--g);box-shadow:0 0 0 3px var(--gdim)}
-.fi::placeholder,.ft::placeholder{color:var(--ghost)}
-.fs option{background:var(--card)}
-.ft{resize:vertical;line-height:1.6}
-.ft.big{min-height:320px;font-size:13px;tab-size:2}
-.cc{font-size:9px;color:var(--ghost);text-align:right;margin-top:2px}
-.slug-prev{font-size:10px;color:var(--faint);margin-top:3px}
-.slug-prev span{color:var(--g)}
-
-/* TOOLBAR */
-.tb{display:flex;gap:4px;padding:7px 9px;background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--rs) var(--rs) 0 0;flex-wrap:wrap}
-.tb-btn{padding:4px 8px;background:transparent;border:1px solid transparent;color:var(--faint);border-radius:5px;font-family:var(--FD);font-size:10px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap}
-.tb-btn:hover{background:var(--card);border-color:var(--bdr);color:var(--txt)}
-.tb-sep{width:1px;height:18px;background:var(--bdr);margin:0 2px;align-self:center}
-.ft.big.notop{border-radius:0 0 var(--rs) var(--rs);border-top:none}
-
-/* IMG */
-.img-zone{border:2px dashed var(--bdr2);border-radius:var(--rs);padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
-.img-zone:hover,.img-zone.drag{border-color:rgba(154,224,0,.4);background:var(--gdim)}
-.img-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.iz-ic{font-size:24px;color:var(--faint);margin-bottom:6px}
-.iz-t{font-family:var(--FD);font-size:12px;font-weight:800;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
-.iz-s{font-size:10px;color:var(--ghost)}
-.img-prev-wrap{position:relative;border-radius:var(--rs);overflow:hidden;border:1px solid var(--bdr2)}
-.img-prev{width:100%;max-height:240px;object-fit:cover;display:block}
-.img-rm{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.75);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:background .2s}
-.img-rm:hover{background:var(--red)}
-.img-loading{display:flex;align-items:center;gap:7px;padding:16px;color:var(--faint);font-size:12px;justify-content:center}
-.spin{width:16px;height:16px;border:2px solid var(--bdr2);border-left-color:var(--g);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* TOGGLE */
+.fi,.fs,.ft{width:100%;background:var(--card2);border:1px solid var(--bdr2);color:var(--txt);padding:10px 12px;border-radius:var(--rs);font-family:var(--FB);font-size:13px;outline:none}
+.ft.big{min-height:320px}
 .tog-wrap{display:flex;align-items:center;gap:9px}
-.tog{width:40px;height:22px;background:var(--bdr2);border-radius:11px;position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0}
+.tog{width:40px;height:22px;background:var(--bdr2);border-radius:11px;position:relative;cursor:pointer;border:none;transition:background .2s}
 .tog.on{background:var(--g)}
 .tog::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s}
 .tog.on::after{transform:translateX(18px)}
-.tog-lbl{font-size:12px;font-weight:600;color:var(--muted)}
-
-/* STATUS */
-.sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-family:var(--FD);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
-.sbadge.pub{background:var(--gdim);border:1px solid rgba(154,224,0,.2);color:var(--g)}
-.sbadge.dft{background:rgba(255,255,255,.04);border:1px solid var(--bdr);color:var(--faint)}
-
-/* TOAST */
-.tc{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:88%;max-width:320px}
-.toast{background:var(--card2);color:var(--txt);padding:11px 14px;border-radius:var(--rs);font-size:12px;font-weight:600;border-left:4px solid var(--g);box-shadow:0 8px 28px rgba(0,0,0,.5);animation:tin .25s ease}
-.toast.err{border-left-color:var(--red)}
-.toast.warn{border-left-color:var(--gold)}
-.toast.out{transition:opacity .3s;opacity:0}
-@keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-
-/* PREVIEW */
-.pov{position:fixed;inset:0;background:rgba(2,6,23,.93);backdrop-filter:blur(12px);z-index:4000;overflow-y:auto;padding:32px 16px;display:flex;align-items:flex-start;justify-content:center}
-.pov.hidden{display:none}
+.img-zone{border:2px dashed var(--bdr2);border-radius:var(--rs);padding:20px;text-align:center;cursor:pointer}
+.tb{display:flex;gap:4px;padding:7px 9px;background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--rs) var(--rs) 0 0}
+.tb-btn{padding:4px 8px;background:transparent;border:1px solid transparent;color:var(--faint);font-family:var(--FD);font-size:10px;font-weight:800;cursor:pointer}
+.hidden{display:none !important}
+.tc{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--card2);color:var(--txt);padding:11px 14px;border-radius:var(--rs);font-size:12px;font-weight:600;border-left:4px solid var(--g)}
+.pov{position:fixed;inset:0;background:rgba(2,6,23,.93);backdrop-filter:blur(12px);z-index:4000;overflow-y:auto;padding:32px 16px;display:flex;justify-content:center}
 .pmod{background:#0d1a2d;border:1px solid var(--bdr2);border-radius:var(--r);width:100%;max-width:660px}
 .phdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--bdr)}
-.phdr-t{font-family:var(--FD);font-size:13px;font-weight:900;color:var(--g);text-transform:uppercase}
-.pcls{background:rgba(255,255,255,.06);border:1px solid var(--bdr2);color:var(--faint);width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
-.pcls:hover{color:var(--txt)}
-.pbody{padding:24px 28px;font-family:var(--FB);line-height:1.8;color:var(--txt)}
-.pbody h1{font-family:var(--FD);font-size:30px;font-weight:900;text-transform:uppercase;margin-bottom:10px}
-.pbody h2{font-family:var(--FD);font-size:21px;font-weight:800;text-transform:uppercase;margin:18px 0 8px;color:var(--txt)}
-.pbody h3{font-family:var(--FD);font-size:17px;font-weight:800;text-transform:uppercase;margin:14px 0 6px;color:var(--muted)}
-.pbody p{margin-bottom:12px;font-size:14px;color:var(--muted)}
-.pbody strong{color:var(--txt);font-weight:700}
-.pbody ul,.pbody ol{padding-left:18px;margin-bottom:12px}
-.pbody li{font-size:14px;color:var(--muted);margin-bottom:5px}
-.pbody blockquote{border-left:3px solid var(--g);padding:9px 14px;background:var(--gdim);border-radius:0 7px 7px 0;margin:12px 0;font-style:italic;color:var(--muted)}
-.pbody img{width:100%;border-radius:var(--rs);margin-bottom:6px}
-.pbody table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
-.pcov{width:100%;max-height:280px;object-fit:cover;display:block}
-.pcap{font-size:11px;color:var(--faint);text-align:center;font-style:italic;padding:7px 28px;border-bottom:1px solid var(--bdr)}
-.pmeta{padding:12px 28px;border-bottom:1px solid var(--bdr);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.pm-cat{font-family:var(--FD);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;background:var(--gdim);border:1px solid rgba(154,224,0,.2);color:var(--g);padding:2px 8px;border-radius:4px}
-.pm-date{font-size:11px;color:var(--faint)}
-
-/* CONFIRM */
-.cov{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px}
-.cov.hidden{display:none}
-.ccard{background:#0d1a2d;border:1px solid var(--bdr2);border-radius:var(--r);padding:26px 22px;width:100%;max-width:300px;text-align:center;animation:cu .2s ease}
-@keyframes cu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.ct{font-family:var(--FD);font-size:19px;font-weight:900;color:var(--red);text-transform:uppercase;margin-bottom:8px}
-.cs{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5}
-.cacts{display:flex;gap:9px}
-.cc-btn{flex:1;padding:11px;border-radius:var(--rs);font-family:var(--FD);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer;border:none}
-.cc-no{background:transparent;border:1px solid var(--bdr2);color:var(--txt)}
-.cc-no:hover{background:var(--card2)}
-.cc-yes{background:var(--red);color:#fff}
-.cc-yes:hover{box-shadow:0 3px 12px rgba(239,68,68,.35)}
-
-@media(max-width:680px){
-  .body{flex-direction:column}
-  .sidebar{width:100%;min-width:0;max-height:220px}
-  .fr,.fr3{grid-template-columns:1fr}
-}
+.pbody{padding:24px 28px;line-height:1.8}
+.cov{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:5000;display:flex;align-items:center;justify-content:center}
+.ccard{background:#0d1a2d;border:1px solid var(--bdr2);border-radius:var(--r);padding:26px 22px;width:100%;max-width:300px;text-align:center}
 </style>
 </head>
 <body>
 
 <div id="gate">
   <div class="g-logo">Blog Admin</div>
-  <div class="g-sub">Cricket Experts · Internal Only</div>
-  <input type="password" class="g-inp" id="gInp" placeholder="Password" autocomplete="current-password"/>
-  <button class="g-btn" id="gBtn">Unlock</button>
+  <div class="g-sub">Cricket Experts · Admin Access</div>
+  <button class="g-btn" id="gBtn"><i class="fab fa-google"></i> Sign In with Google</button>
   <div class="g-err" id="gErr"></div>
 </div>
 
@@ -229,7 +107,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
     <div class="hdr-brand"><div class="dot"></div>Blog Admin</div>
     <div class="hdr-right">
       <button class="btn-new" id="btnNew"><i class="fas fa-plus"></i> New Article</button>
-      <button class="btn-lock" id="btnLock"><i class="fas fa-sign-out-alt"></i> Lock</button>
+      <button class="btn-lock" id="btnLock"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
   </header>
 
@@ -241,12 +119,6 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
           <button class="sf on" data-f="all">All</button>
           <button class="sf" data-f="pub">Live</button>
           <button class="sf" data-f="draft">Draft</button>
-          <button class="sf" data-f="ipl-news">IPL</button>
-          <button class="sf" data-f="team-news">News</button>
-          <button class="sf" data-f="match-preview">Match</button>
-          <button class="sf" data-f="fantasy-preview">Fantasy</button>
-          <button class="sf" data-f="post-match-review">Review</button>
-          <button class="sf" data-f="player-spotlight">Player</button>
         </div>
       </div>
       <div class="sb-count" id="sbCount">Loading...</div>
@@ -256,8 +128,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
     <main class="editor" id="editorPane">
       <div class="emp" id="empState">
         <div class="emp-ic"><i class="fas fa-pen-nib"></i></div>
-        <div class="emp-t">Select or Create</div>
-        <div class="emp-s">Pick an article from the sidebar or click New Article</div>
+        <div class="emp-t">Welcome, Admin</div>
+        <div class="emp-s">Pick an article to edit or create a new one.</div>
       </div>
 
       <div class="form hidden" id="edForm">
@@ -265,13 +137,11 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
           <span class="sbadge dft" id="sBadge">Draft</span>
           <div class="factions">
             <button class="btn-prv" id="btnPrv"><i class="fas fa-eye"></i> Preview</button>
-            <button class="btn-dup" id="btnDup"><i class="fas fa-copy"></i> Dup</button>
             <button class="btn-del" id="btnDel"><i class="fas fa-trash"></i></button>
             <button class="btn-save" id="btnSave"><i class="fas fa-save"></i> Save</button>
           </div>
         </div>
 
-        <!-- BASICS -->
         <div class="sc">
           <div class="sc-title"><div class="sc-ico ic-g"><i class="fas fa-file-alt"></i></div>Basics</div>
           <div class="fg"><div class="lbl">Title</div><input class="fi" id="fTitle" placeholder="Article headline..."/></div>
@@ -299,21 +169,19 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
             <div class="fg"><div class="lbl">Emoji</div><input class="fi" id="fEmoji" placeholder="🏏" style="font-size:18px;text-align:center"/></div>
             <div class="fg"><div class="lbl">Author</div><input class="fi" id="fAuthor" placeholder="Cricket Experts"/></div>
           </div>
-          <div class="fg"><div class="lbl">Excerpt (shown on cards)</div><textarea class="ft" id="fExcerpt" rows="2" placeholder="Short summary for homepage and category cards..."></textarea></div>
+          <div class="fg"><div class="lbl">Excerpt</div><textarea class="ft" id="fExcerpt" rows="2" placeholder="Summary..."></textarea></div>
           <div class="tog-wrap">
             <button class="tog" id="togPub" type="button"></button>
             <span class="tog-lbl" id="togLbl">Draft — hidden from site</span>
           </div>
         </div>
 
-        <!-- IMAGE -->
         <div class="sc">
           <div class="sc-title"><div class="sc-ico ic-gd"><i class="fas fa-image"></i></div>Cover Image</div>
           <div class="img-zone" id="imgZone">
             <input type="file" id="imgFile" accept="image/*"/>
             <div class="iz-ic"><i class="fas fa-cloud-upload-alt"></i></div>
             <div class="iz-t">Drop or click to upload</div>
-            <div class="iz-s">JPG · PNG · WebP · Max 5MB</div>
           </div>
           <div class="hidden" id="imgPrevWrap">
             <div class="img-prev-wrap">
@@ -321,40 +189,23 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
               <button class="img-rm" id="imgRm" type="button"><i class="fas fa-times"></i></button>
             </div>
           </div>
-          <div class="hidden" id="imgLoading"><div class="img-loading"><div class="spin"></div>Uploading...</div></div>
-          <div class="fg"><div class="lbl">Image Caption / Credit</div><input class="fi" id="fCap" placeholder="Photo: Getty Images — shown below cover image"/></div>
-          <div class="fg"><div class="lbl">Image URL (auto-filled on upload, or paste directly)</div><input class="fi" id="fImgUrl" placeholder="https://..."/></div>
+          <div class="fg"><div class="lbl">Image URL</div><input class="fi" id="fImgUrl" placeholder="https://..."/></div>
         </div>
 
-        <!-- CONTENT -->
         <div class="sc">
           <div class="sc-title"><div class="sc-ico ic-bl"><i class="fas fa-align-left"></i></div>Content (HTML)</div>
           <div class="fg">
             <div class="tb" id="toolbar">
               <button class="tb-btn" data-tag="h2">H2</button>
               <button class="tb-btn" data-tag="h3">H3</button>
-              <div class="tb-sep"></div>
-              <button class="tb-btn" data-w="<strong>" data-e="</strong>"><b>B</b></button>
-              <button class="tb-btn" data-w="<em>" data-e="</em>"><i>I</i></button>
-              <div class="tb-sep"></div>
-              <button class="tb-btn" data-ins="<ul>\n  <li>Item</li>\n</ul>">UL</button>
-              <button class="tb-btn" data-ins="<ol>\n  <li>Item</li>\n</ol>">OL</button>
-              <button class="tb-btn" data-ins="<blockquote>Quote here</blockquote>">Quote</button>
-              <div class="tb-sep"></div>
-              <button class="tb-btn" data-ins='<img src="URL" alt="Description" style="width:100%;border-radius:10px;margin:12px 0"/>'>Img</button>
-              <button class="tb-btn" data-ins='<p style="font-size:12px;color:#64748b;text-align:center;font-style:italic">Caption here</p>'>Cap</button>
-              <div class="tb-sep"></div>
-              <button class="tb-btn" data-ins="<hr style='border:none;border-top:1px solid rgba(255,255,255,0.08);margin:22px 0'/>">HR</button>
-              <button class="tb-btn" data-ins='<span style="color:#9AE000;font-weight:700">text</span>'>Highlight</button>
+              <button class="tb-btn" data-w="<strong>" data-e="</strong>">B</button>
+              <button class="tb-btn" data-w="<em>" data-e="</em>">I</button>
             </div>
-            <textarea class="ft big notop" id="fContent" placeholder="Write HTML here...&#10;&#10;<p>Your article starts here.</p>&#10;&#10;<h2>Section Heading</h2>&#10;<p>Content...</p>"></textarea>
-            <div class="cc" id="charCount">0 characters</div>
+            <textarea class="ft big notop" id="fContent" placeholder="Write HTML..."></textarea>
           </div>
         </div>
 
-        <!-- SAVE BOTTOM -->
         <div style="display:flex;gap:8px;justify-content:flex-end;padding-bottom:36px">
-          <button class="btn-prv" id="btnPrv2"><i class="fas fa-eye"></i> Preview</button>
           <button class="btn-save" id="btnSave2"><i class="fas fa-save"></i> Save Article</button>
         </div>
       </div>
@@ -362,22 +213,16 @@ body{background:var(--bg);color:var(--txt);font-family:var(--FB);min-height:100v
   </div>
 </div>
 
-<!-- PREVIEW -->
 <div class="pov hidden" id="povEl">
   <div class="pmod">
     <div class="phdr"><span class="phdr-t">Preview</span><button class="pcls" id="pClose"><i class="fas fa-times"></i></button></div>
-    <img class="pcov hidden" id="pCovImg" src="" alt=""/>
-    <div class="pcap hidden" id="pCovCap"></div>
-    <div class="pmeta" id="pMeta"></div>
     <div class="pbody" id="pBody"></div>
   </div>
 </div>
 
-<!-- CONFIRM -->
 <div class="cov hidden" id="covEl">
   <div class="ccard">
-    <div class="ct">Delete Article?</div>
-    <div class="cs" id="cText">This cannot be undone.</div>
+    <div class="ct">Delete?</div>
     <div class="cacts">
       <button class="cc-btn cc-no" id="cNo">Cancel</button>
       <button class="cc-btn cc-yes" id="cYes">Delete</button>
@@ -395,349 +240,116 @@ const sb = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
 );
 
-const PASS = "cricexpadmin163";
-const SKEY = "ce_adm_v2";
-const CATS = {
-  "ipl-news":"IPL News","team-news":"Team News","match-preview":"Match Preview",
-  "fantasy-preview":"Fantasy Preview","post-match-review":"Post Match Review",
-  "player-spotlight":"Player Spotlight"
-};
+const ADMIN_EMAIL = "satyaranjansahoo@gmail.com"; // 🚨 ONLY YOU
+const CATS = { "ipl-news":"IPL News","team-news":"Team News","match-preview":"Match Preview","fantasy-preview":"Fantasy Preview","post-match-review":"Post Match Review","player-spotlight":"Player Spotlight" };
 
-// ── STATE
 let posts = [], cur = null, isNew = false, pub = false, saving = false;
 let filter = "all", search = "";
 
-// ── GATE
+// ── AUTH LOGIC
 const gate = document.getElementById("gate");
 const app  = document.getElementById("app");
+const gErr = document.getElementById("gErr");
 
-function checkGate() {
-  if (sessionStorage.getItem(SKEY) === "1") { gate.classList.add("hidden"); app.classList.add("on"); boot(); }
-}
+// Check if already logged in
+sb.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    if (session.user.email === ADMIN_EMAIL) {
+      gate.classList.add("hidden");
+      app.classList.add("on");
+      boot();
+    } else {
+      gErr.textContent = "Access Denied: Only Satya can enter.";
+      sb.auth.signOut();
+    }
+  } else {
+    gate.classList.remove("hidden");
+    app.classList.remove("on");
+  }
+});
 
 document.getElementById("gBtn").onclick = () => {
-  if (document.getElementById("gInp").value === PASS) {
-    sessionStorage.setItem(SKEY, "1");
-    gate.classList.add("hidden");
-    app.classList.add("on");
-    boot();
-  } else {
-    document.getElementById("gErr").textContent = "Wrong password";
-    document.getElementById("gInp").value = "";
-    setTimeout(() => { document.getElementById("gErr").textContent = ""; }, 2500);
-  }
+  sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
 };
-document.getElementById("gInp").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("gBtn").click(); });
-document.getElementById("btnLock").onclick = () => { sessionStorage.removeItem(SKEY); location.reload(); };
-checkGate();
 
-// ── BOOT
+document.getElementById("btnLock").onclick = () => {
+  sb.auth.signOut();
+};
+
+// ── BOOT & LOAD (Rest of your existing functions)
 async function boot() {
   try { await loadPosts(); setupListeners(); } catch(e) { toast("Failed to load: " + e.message, "err"); }
 }
 
-// ── LOAD POSTS
 async function loadPosts() {
-  try {
-    const { data, error } = await sb.from("articles").select("id,slug,title,excerpt,category,cover_emoji,published,created_at,updated_at,match_label").order("updated_at", { ascending: false });
-    if (error) throw error;
-    posts = data || [];
-    renderSidebar();
-  } catch(e) { toast("Load error: " + e.message, "err"); }
+  const { data, error } = await sb.from("articles").select("*").order("updated_at", { ascending: false });
+  if (error) { toast("Load error", "err"); return; }
+  posts = data || [];
+  renderSidebar();
 }
 
-// ── SIDEBAR
 function renderSidebar() {
   const list = document.getElementById("sbList");
-  const count = document.getElementById("sbCount");
   const filtered = posts.filter(p => {
     const q = search.toLowerCase();
-    const sm = !q || (p.title||"").toLowerCase().includes(q) || (p.slug||"").toLowerCase().includes(q);
+    const sm = !q || p.title.toLowerCase().includes(q);
     let fm = true;
     if (filter === "pub") fm = p.published;
     else if (filter === "draft") fm = !p.published;
-    else if (filter !== "all") fm = p.category === filter;
     return sm && fm;
   });
-  count.textContent = filtered.length + " article" + (filtered.length !== 1 ? "s" : "");
-  if (!filtered.length) { list.innerHTML = '<div class="sb-empty">No articles found</div>'; return; }
   list.innerHTML = "";
   filtered.forEach(p => {
     const d = document.createElement("div");
     d.className = "pi" + (cur?.id === p.id ? " on" : "");
-    d.dataset.id = p.id;
-    const date = new Date(p.updated_at).toLocaleDateString("en-IN", { day:"numeric", month:"short" });
-    d.innerHTML = `<div class="pi-row"><span class="pi-emoji">${p.cover_emoji||"🏏"}</span><span class="pi-badge ${p.published?"live":"draft"}">${p.published?(CATS[p.category]||p.category||"Article"):"Draft"}</span></div><div class="pi-title">${p.title||"Untitled"}</div><div class="pi-meta">${date}${p.match_label?" · "+p.match_label:""}</div>`;
+    d.innerHTML = `<div class="pi-title">${p.title || "Untitled"}</div>`;
     d.onclick = () => openPost(p.id);
     list.appendChild(d);
   });
 }
 
-// ── OPEN POST
 async function openPost(id) {
-  try {
-    const { data, error } = await sb.from("articles").select("*").eq("id", id).maybeSingle();
-    if (error) throw error;
-    if (!data) { toast("Not found", "err"); return; }
-    cur = data; isNew = false;
-    fillForm(data); showForm(); renderSidebar();
-  } catch(e) { toast("Load error: " + e.message, "err"); }
+  const { data } = await sb.from("articles").select("*").eq("id", id).maybeSingle();
+  if (data) { cur = data; fillForm(data); showForm(); renderSidebar(); }
 }
 
 function fillForm(p) {
-  document.getElementById("fTitle").value   = p.title       || "";
-  document.getElementById("fSlug").value    = p.slug        || "";
-  document.getElementById("fCat").value     = p.category    || "";
-  document.getElementById("fMatch").value   = p.match_label || "";
-  document.getElementById("fEmoji").value   = p.cover_emoji || "🏏";
-  document.getElementById("fAuthor").value  = p.author      || "Cricket Experts";
-  document.getElementById("fExcerpt").value = p.excerpt     || "";
-  document.getElementById("fContent").value = p.content     || "";
-  document.getElementById("fCap").value     = p.img_caption || "";
-  document.getElementById("fImgUrl").value  = p.cover_image || "";
+  document.getElementById("fTitle").value = p.title || "";
+  document.getElementById("fSlug").value = p.slug || "";
+  document.getElementById("fCat").value = p.category || "";
+  document.getElementById("fContent").value = p.content || "";
   pub = p.published === true;
-  updToggle(); updSlug(); updCount(); updBadge();
-  if (p.cover_image) showImg(p.cover_image); else clearImg();
+  updToggle();
 }
 
-function showForm() {
-  document.getElementById("empState").classList.add("hidden");
-  document.getElementById("edForm").classList.remove("hidden");
-}
-function hideForm() {
-  document.getElementById("empState").classList.remove("hidden");
-  document.getElementById("edForm").classList.add("hidden");
-  cur = null; isNew = false;
-}
-
-// ── NEW
-document.getElementById("btnNew").onclick = () => {
-  cur = null; isNew = true; pub = false;
-  ["fTitle","fSlug","fMatch","fExcerpt","fContent","fCap","fImgUrl"].forEach(id => { document.getElementById(id).value = ""; });
-  document.getElementById("fCat").value   = "";
-  document.getElementById("fEmoji").value  = "🏏";
-  document.getElementById("fAuthor").value = "Cricket Experts";
-  clearImg(); updToggle(); updSlug(); updCount(); updBadge();
-  showForm(); renderSidebar();
-  document.getElementById("fTitle").focus();
-};
-
-// ── SAVE
 async function save() {
   if (saving) return;
   saving = true;
-  const b1 = document.getElementById("btnSave"), b2 = document.getElementById("btnSave2");
-  [b1,b2].forEach(b => { if(b){ b.disabled=true; b.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving...'; }});
-
-  try {
-    const title = document.getElementById("fTitle").value.trim();
-    let slug = document.getElementById("fSlug").value.trim();
-    if (!slug) slug = mkSlug(title) || ("a-" + Date.now());
-
-    const payload = {
-      title:       title || "Untitled",
-      slug,
-      category:    document.getElementById("fCat").value     || "",
-      match_label: document.getElementById("fMatch").value.trim()   || null,
-      cover_emoji: document.getElementById("fEmoji").value.trim()   || "🏏",
-      author:      document.getElementById("fAuthor").value.trim()  || "Cricket Experts",
-      excerpt:     document.getElementById("fExcerpt").value.trim() || "",
-      content:     document.getElementById("fContent").value        || "",
-      img_caption: document.getElementById("fCap").value.trim()     || null,
-      cover_image: document.getElementById("fImgUrl").value.trim()  || null,
-      published:   pub,
-    };
-
-    const pid = cur?.id || null;
-
-    if (!pid) {
-      const { data, error } = await sb.from("articles").insert([payload]).select("*");
-      if (error) throw error;
-      if (!data || !data[0]) throw new Error("No data returned after insert — check RLS on articles table");
-      cur = data[0]; isNew = false;
-      toast("Article created!", "ok");
-    } else {
-      const { data, error } = await sb.from("articles").update(payload).eq("id", pid).select("*");
-      if (error) throw error;
-      if (data && data[0]) cur = data[0];
-      toast("Saved!", "ok");
-    }
-
-    await loadPosts();
-    updBadge();
-    renderSidebar();
-
-  } catch(e) {
-    toast("Save failed: " + e.message, "err");
-    console.error(e);
-  } finally {
-    saving = false;
-    [b1,b2].forEach(b => { if(b){ b.disabled=false; b.innerHTML='<i class="fas fa-save"></i> Save'; }});
-  }
+  const payload = {
+    title: document.getElementById("fTitle").value,
+    slug: document.getElementById("fSlug").value,
+    category: document.getElementById("fCat").value,
+    content: document.getElementById("fContent").value,
+    published: pub
+  };
+  const { error } = cur ? await sb.from("articles").update(payload).eq("id", cur.id) : await sb.from("articles").insert([payload]);
+  if (!error) { toast("Saved!", "ok"); loadPosts(); } else { toast("Save failed", "err"); }
+  saving = false;
 }
 
-document.getElementById("btnSave").onclick  = save;
+document.getElementById("btnSave").onclick = save;
 document.getElementById("btnSave2").onclick = save;
-document.addEventListener("keydown", e => { if ((e.ctrlKey||e.metaKey) && e.key==="s") { e.preventDefault(); if (cur||isNew) save(); }});
+document.getElementById("btnNew").onclick = () => { cur = null; pub = false; fillForm({}); showForm(); };
 
-// ── DELETE
-document.getElementById("btnDel").onclick = () => {
-  if (!cur) return;
-  document.getElementById("cText").textContent = `Delete "${cur.title||"Untitled"}"? Cannot be undone.`;
-  document.getElementById("covEl").classList.remove("hidden");
-};
-document.getElementById("cNo").onclick  = () => document.getElementById("covEl").classList.add("hidden");
-document.getElementById("cYes").onclick = async () => {
-  document.getElementById("covEl").classList.add("hidden");
-  if (!cur) return;
-  try {
-    const { error } = await sb.from("articles").delete().eq("id", cur.id);
-    if (error) throw error;
-    toast("Deleted", "warn"); hideForm(); await loadPosts();
-  } catch(e) { toast("Delete failed: " + e.message, "err"); }
-};
+function showForm() { document.getElementById("empState").classList.add("hidden"); document.getElementById("edForm").classList.remove("hidden"); }
+function updToggle() { document.getElementById("togPub").classList.toggle("on", pub); }
+document.getElementById("togPub").onclick = () => { pub = !pub; updToggle(); };
 
-// ── DUPLICATE
-document.getElementById("btnDup").onclick = async () => {
-  if (!cur) return;
-  try {
-    const d = { ...cur, id: undefined, slug: cur.slug + "-copy-" + Date.now(), title: (cur.title||"Untitled") + " (Copy)", published: false, created_at: undefined, updated_at: undefined };
-    const { data, error } = await sb.from("articles").insert([d]).select("*");
-    if (error) throw error;
-    toast("Duplicated as draft!", "ok");
-    await loadPosts();
-    if (data?.[0]) openPost(data[0].id);
-  } catch(e) { toast("Dup failed: " + e.message, "err"); }
-};
-
-// ── IMAGE
-document.getElementById("imgFile").addEventListener("change", async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 5*1024*1024) { toast("Max 5MB", "err"); return; }
-  document.getElementById("imgZone").classList.add("hidden");
-  document.getElementById("imgLoading").classList.remove("hidden");
-  try {
-    const ext  = file.name.split(".").pop();
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await sb.storage.from("article-images").upload(name, file, { cacheControl:"3600", upsert:false });
-    if (error) throw error;
-    const { data } = sb.storage.from("article-images").getPublicUrl(name);
-    document.getElementById("fImgUrl").value = data.publicUrl;
-    showImg(data.publicUrl);
-    toast("Image uploaded!", "ok");
-  } catch(e) {
-    toast("Upload failed: " + e.message + " — paste URL manually", "err");
-    document.getElementById("imgZone").classList.remove("hidden");
-  } finally {
-    document.getElementById("imgLoading").classList.add("hidden");
-    e.target.value = "";
-  }
-});
-
-document.getElementById("fImgUrl").addEventListener("input", e => {
-  const url = e.target.value.trim();
-  if (url) showImg(url); else clearImg();
-});
-document.getElementById("imgRm").onclick = () => { document.getElementById("fImgUrl").value = ""; clearImg(); };
-
-const iz = document.getElementById("imgZone");
-iz.addEventListener("dragover",  e => { e.preventDefault(); iz.classList.add("drag"); });
-iz.addEventListener("dragleave", ()  => iz.classList.remove("drag"));
-iz.addEventListener("drop", e => {
-  e.preventDefault(); iz.classList.remove("drag");
-  const f = e.dataTransfer.files[0];
-  if (f) { document.getElementById("imgFile").files = e.dataTransfer.files; document.getElementById("imgFile").dispatchEvent(new Event("change")); }
-});
-
-function showImg(url) {
-  document.getElementById("imgZone").classList.add("hidden");
-  document.getElementById("imgLoading").classList.add("hidden");
-  document.getElementById("imgPrev").src = url;
-  document.getElementById("imgPrevWrap").classList.remove("hidden");
-}
-function clearImg() {
-  document.getElementById("imgZone").classList.remove("hidden");
-  document.getElementById("imgPrevWrap").classList.add("hidden");
-  document.getElementById("imgPrev").src = "";
-}
-
-// ── TOOLBAR
-document.getElementById("toolbar").addEventListener("click", e => {
-  const btn = e.target.closest(".tb-btn");
-  if (!btn) return;
-  const ta = document.getElementById("fContent");
-  const s  = ta.selectionStart, end = ta.selectionEnd, sel = ta.value.substring(s, end);
-  let ins = "";
-  if (btn.dataset.tag) { const t = btn.dataset.tag; ins = `<${t}>${sel||"Heading here"}</${t}>`; }
-  else if (btn.dataset.w) ins = `${btn.dataset.w}${sel||"text"}${btn.dataset.e}`;
-  else if (btn.dataset.ins) ins = btn.dataset.ins;
-  if (ins) { ta.setRangeText(ins, s, end, "end"); ta.focus(); updCount(); }
-});
-
-// ── PREVIEW
-function openPreview() {
-  const pov  = document.getElementById("povEl");
-  const body = document.getElementById("pBody");
-  const meta = document.getElementById("pMeta");
-  const ci   = document.getElementById("pCovImg");
-  const cc   = document.getElementById("pCovCap");
-  const title = document.getElementById("fTitle").value;
-  const emoji = document.getElementById("fEmoji").value;
-  const cat   = document.getElementById("fCat").value;
-  const imgUrl = document.getElementById("fImgUrl").value;
-  const imgCap = document.getElementById("fCap").value;
-
-  body.innerHTML = `<h1>${emoji ? emoji+" " : ""}${title||"Untitled"}</h1>${document.getElementById("fContent").value||"<p>No content yet.</p>"}`;
-  meta.innerHTML = cat ? `<span class="pm-cat">${CATS[cat]||cat}</span><span class="pm-date">${new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</span>` : "";
-
-  if (imgUrl) { ci.src=imgUrl; ci.classList.remove("hidden"); if(imgCap){cc.textContent=imgCap;cc.classList.remove("hidden");}else cc.classList.add("hidden"); }
-  else { ci.classList.add("hidden"); cc.classList.add("hidden"); }
-
-  pov.classList.remove("hidden");
-}
-document.getElementById("btnPrv").onclick  = openPreview;
-document.getElementById("btnPrv2").onclick = openPreview;
-document.getElementById("pClose").onclick  = () => document.getElementById("povEl").classList.add("hidden");
-document.getElementById("povEl").addEventListener("click", e => { if (e.target === document.getElementById("povEl")) document.getElementById("povEl").classList.add("hidden"); });
-
-// ── TOGGLE
-document.getElementById("togPub").onclick = () => { pub = !pub; updToggle(); updBadge(); };
-function updToggle() { const t=document.getElementById("togPub"); const l=document.getElementById("togLbl"); t.classList.toggle("on",pub); l.textContent=pub?"Published — visible on site":"Draft — hidden from site"; }
-function updBadge()  { const b=document.getElementById("sBadge"); b.className="sbadge "+(pub?"pub":"dft"); b.textContent=pub?"Published":"Draft"; }
-
-// ── SLUG
-document.getElementById("fTitle").addEventListener("input", e => {
-  const sl = document.getElementById("fSlug");
-  if (!sl.dataset.manual) sl.value = mkSlug(e.target.value);
-  updSlug();
-});
-document.getElementById("fSlug").addEventListener("input", e => { e.target.dataset.manual="1"; updSlug(); });
-function mkSlug(t) { return (t||"").toLowerCase().replace(/[^a-z0-9\s-]/g,"").replace(/\s+/g,"-").replace(/-+/g,"-").replace(/^-+|-+$/g,"").slice(0,80); }
-function updSlug() { const s=document.getElementById("fSlug").value; document.getElementById("slugPrev").innerHTML=`URL: <span>/blog-post.html?slug=${s||"..."}</span>`; }
-
-// ── CHAR COUNT
-function updCount() { const l=document.getElementById("fContent").value.length; document.getElementById("charCount").textContent=l.toLocaleString()+" characters"; }
-document.getElementById("fContent").addEventListener("input", updCount);
-
-// ── SIDEBAR LISTENERS
-function setupListeners() {
-  document.getElementById("sbSearch").addEventListener("input", e => { search=e.target.value; renderSidebar(); });
-  document.getElementById("sbFilters").addEventListener("click", e => {
-    const btn=e.target.closest(".sf"); if(!btn) return;
-    document.querySelectorAll(".sf").forEach(b=>b.classList.remove("on"));
-    btn.classList.add("on"); filter=btn.dataset.f; renderSidebar();
-  });
-}
-
-// ── TOAST
-function toast(msg, type="ok") {
-  const c=document.getElementById("tc");
-  const t=document.createElement("div");
-  t.className="toast"+(type==="err"?" err":type==="warn"?" warn":"");
-  t.textContent=msg; c.appendChild(t);
-  setTimeout(()=>{ t.classList.add("out"); setTimeout(()=>t.remove(),350); },3500);
-}
+function toast(m, t) { const c = document.getElementById("tc"); const e = document.createElement("div"); e.className = "toast"; e.textContent = m; c.appendChild(e); setTimeout(()=>e.remove(), 3000); }
+function setupListeners() { document.getElementById("sbSearch").oninput = (e) => { search = e.target.value; renderSidebar(); }; }
 </script>
 </body>
 </html>

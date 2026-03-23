@@ -89,6 +89,9 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 <script type="module">
+  import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.0.6/+esm';
+
+
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const sb = createClient(
   "https://tuvqgcosbweljslbfgqc.supabase.co",
@@ -156,7 +159,7 @@ async function loadArticle(slug) {
 
     // Content — stored as HTML, render directly
     const contentDiv = document.createElement("div");
-    contentDiv.innerHTML = post.content || "";
+contentDiv.innerHTML = DOMPurify.sanitize(post.content || "");
     bodyEl.appendChild(contentDiv);
 
     document.getElementById("artWrap").classList.remove("hidden");
