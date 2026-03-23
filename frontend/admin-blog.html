@@ -713,13 +713,13 @@ category:          document.getElementById("fCategory").value          || "ipl-n
 
         let result;
         if (isNew) {
-            const { data, error } = await supabase
+const { data, error } = await supabase
                 .from("blog_posts")
                 .insert([payload])
-                .select()
-                .single();
+                .select("*");
             if (error) throw error;
-            result = data;
+            result = data?.[0];
+            if (!result) throw new Error("Insert succeeded but no data returned — check RLS policies on blog_posts");
             isNew = false;
             currentPost = result;
             showToast("Article created!", "success");
@@ -728,10 +728,9 @@ category:          document.getElementById("fCategory").value          || "ipl-n
                 .from("blog_posts")
                 .update(payload)
                 .eq("id", currentPost.id)
-                .select()
-                .single();
+                .select("*");
             if (error) throw error;
-            result = data;
+            result = data?.[0];
             currentPost = result;
             showToast("Saved!", "success");
         }
