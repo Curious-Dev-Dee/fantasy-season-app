@@ -695,7 +695,7 @@ async function savePost() {
         const payload = {
             title:             document.getElementById("fTitle").value.trim()      || null,
             slug:              document.getElementById("fSlug").value.trim()       || generateSlug(document.getElementById("fTitle").value),
-            category:          document.getElementById("fCategory").value          || null,
+category:          document.getElementById("fCategory").value          || "ipl-news",
             match_label:       document.getElementById("fMatchLabel").value.trim() || null,
             cover_emoji:       document.getElementById("fEmoji").value.trim()      || "🏏",
             author:            document.getElementById("fAuthor").value.trim()     || "Cricket Experts",
@@ -1042,7 +1042,7 @@ function showToast(msg, type = "success") {
     c.appendChild(t);
     setTimeout(() => {
         t.classList.add("fade-out");
-        t.addEventListener("transitionend", () => t.remove(), { once: true });
+        setTimeout(() => t.remove(), 400);
     }, 3500);
 }
 </script>
