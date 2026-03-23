@@ -9,7 +9,6 @@ const googleBtn     = document.getElementById("googleLoginBtn");
 const btnText       = googleBtn?.querySelector(".btn-text");
 const spinner       = googleBtn?.querySelector(".spinner");
 const errorEl       = document.getElementById("authError");
-  const heroBtn   = document.getElementById("heroPlayBtn");
 
 
 /* ── REGISTRATION GUARD ──────────────────────────────────────────────────
