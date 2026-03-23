@@ -1,120 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title id="pageTitle">Cricket Experts</title>
-  <meta name="description" id="pageDesc" content="IPL 2026 cricket articles from Cricket Experts.">
-  <meta name="robots" content="index, follow">
-  <meta property="og:image" content="https://fantasy-season-app.vercel.app/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <script async src="https://gizokraijaw.net/vignette.min.js" data-zone="10742556"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Fantasy Previews 2026 · Cricket Experts</title>
+<meta name="description" content="Best XI picks, captain differentials and must-haves for every IPL 2026 match.">
+<meta name="robots" content="index,follow">
+<meta property="og:image" content="https://fantasy-season-app.vercel.app/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<script async src="https://gizokraijaw.net/vignette.min.js" data-zone="10742556"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--g:#9AE000;--gdim:rgba(154,224,0,0.09);--ink:#020617;--card:#0d1625;--bdr:rgba(255,255,255,0.08);--muted:#94a3b8;--FD:'Barlow Condensed',sans-serif;--FB:'DM Sans',sans-serif}
+body{background:var(--ink);color:#f0f4f8;font-family:var(--FB);min-height:100vh;padding-bottom:40px}
+a{text-decoration:none;color:inherit}
+.nav{position:sticky;top:0;z-index:100;background:rgba(2,6,23,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px;padding:0 16px;height:50px}
+.back{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-weight:600;background:transparent;border:none;cursor:pointer;padding:0;font-family:var(--FB)}
+.back:hover{color:#f0f4f8}
+.brand{font-family:var(--FD);font-size:16px;font-weight:900;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-left:auto}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px}
+.ph{margin-bottom:22px}
+.ph-cat{display:inline-flex;align-items:center;gap:6px;background:var(--gdim);border:1px solid rgba(154,224,0,.2);border-radius:20px;padding:4px 12px;font-family:var(--FD);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g);margin-bottom:12px}
+.ph-title{font-family:var(--FD);font-size:clamp(26px,8vw,42px);font-weight:900;text-transform:uppercase;line-height:1;margin-bottom:8px}
+.ph-desc{font-size:14px;color:var(--muted);line-height:1.6}
+.ad-slot{background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.06);border-radius:10px;padding:12px;text-align:center;margin:16px 0;min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.grid{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px;display:flex;gap:14px;cursor:pointer;transition:border-color .2s,transform .15s}
+.card:hover{border-color:rgba(154,224,0,.25);transform:translateY(-1px)}
+.card-img{width:80px;height:80px;border-radius:10px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.04)}
+.card-emoji{font-size:26px;flex-shrink:0;margin-top:2px}
+.card-body{flex:1;min-width:0}
+.card-title{font-family:var(--FD);font-size:17px;font-weight:800;text-transform:uppercase;line-height:1.15;margin-bottom:5px;color:#f0f4f8}
+.card-exc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-meta{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.card-date{font-size:11px;color:var(--muted)}
+.match-pill{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:2px 8px;font-family:var(--FD);font-size:10px;font-weight:700;color:#f59e0b}
+.card-arrow{font-size:11px;color:var(--g);margin-left:auto}
+.sk{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px;height:110px;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.empty{text-align:center;padding:56px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:32px;margin-bottom:10px}
+</style>
 </head>
 <body>
+<nav class="nav">
+  <button class="back" onclick="window.location.href='/'">← Home</button>
+  <div class="brand">Cricket Experts</div>
+</nav>
+<div class="wrap">
+  <div class="ph">
+    <div class="ph-cat">🏏 Fantasy Preview</div>
+    <h1 class="ph-title">IPL 2026<br>Fantasy Previews</h1>
+    <p class="ph-desc">Best XI picks, captain differentials and must-haves for every IPL 2026 match.</p>
+  </div>
+  <div class="ad-slot">Advertisement</div>
+  <div class="grid" id="grid">
+    <div class="sk"></div><div class="sk"></div><div class="sk"></div>
+  </div>
+</div>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-const supabase = createClient(
-  "https://tuvqgcosbweljslbfgqc.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
-);
-const CATS = {
-  "fantasy-preview":   {label:"Fantasy Previews",   emoji:"🏏", desc:"Best XI picks, captain differentials and must-haves for every IPL 2026 match."},
-  "match-preview":     {label:"Match Previews",      emoji:"🔭", desc:"Pitch analysis, venue stats, head-to-head records and key battles."},
-  "team-news":         {label:"IPL Team News",       emoji:"📰", desc:"Injury updates, squad changes and probable playing XIs before toss."},
-  "post-match-review": {label:"Post Match Reviews",  emoji:"📊", desc:"Full match analysis, player ratings and key talking points after every game."},
-  "player-spotlight":  {label:"Player Spotlight",    emoji:"⭐", desc:"In-depth profiles of IPL 2026 players worth watching and picking."},
-  "ipl-news":          {label:"IPL News",            emoji:"🚨", desc:"Latest breaking news, transfers and updates from IPL 2026."},
-};
-const slug = "fantasy-preview";
-const cfg  = CATS[slug];
-document.title = cfg.label + " · IPL 2026 · Cricket Experts";
-document.getElementById("pageDesc").content = cfg.desc;
-document.body.innerHTML = buildShell(cfg);
-const { data } = await supabase
-  .from("blog_posts")
-  .select("id, slug, title, excerpt, cover_emoji, match_label, created_at, views")
-  .eq("category", slug)
-  .eq("published", true)
-  .order("created_at", { ascending: false })
-  .limit(30);
-renderCards(data || []);
-
-function buildShell(cfg) {
-  return `<style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{--g:#9AE000;--g-dim:rgba(154,224,0,0.09);--ink:#020617;--card:#0d1625;--bdr:rgba(255,255,255,0.08);--muted:#94a3b8;--FD:'Barlow Condensed',sans-serif;--FB:'Inter',sans-serif;}
-    body{background:var(--ink);color:#f0f4f8;font-family:var(--FB);min-height:100vh;padding-bottom:40px}
-    a{text-decoration:none;color:inherit}
-    .top-nav{position:sticky;top:0;z-index:100;background:rgba(2,6,23,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px;padding:0 16px;height:50px;}
-    .back-btn{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-weight:600;background:transparent;border:none;cursor:pointer;padding:0;}
-    .back-btn:hover{color:#f0f4f8}
-    .nav-brand{font-family:var(--FD);font-size:16px;font-weight:900;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-left:auto}
-    .page-wrap{max-width:680px;margin:0 auto;padding:24px 16px}
-    .page-header{margin-bottom:24px}
-    .page-cat{display:inline-flex;align-items:center;gap:6px;background:var(--g-dim);border:1px solid rgba(154,224,0,0.2);border-radius:20px;padding:4px 12px;font-family:var(--FD);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g);margin-bottom:12px;}
-    .page-title{font-family:var(--FD);font-size:clamp(28px,8vw,44px);font-weight:900;text-transform:uppercase;line-height:1;margin-bottom:8px;}
-    .page-desc{font-size:14px;color:var(--muted);line-height:1.6}
-    .cards-grid{display:flex;flex-direction:column;gap:12px}
-    .card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:16px;display:flex;gap:14px;cursor:pointer;transition:border-color 0.2s,transform 0.15s;}
-    .card:hover{border-color:rgba(154,224,0,0.25);transform:translateY(-1px)}
-    .card-emoji{font-size:28px;flex-shrink:0;margin-top:2px}
-    .card-body{flex:1;min-width:0}
-    .card-title{font-family:var(--FD);font-size:17px;font-weight:800;text-transform:uppercase;line-height:1.15;margin-bottom:6px;color:#f0f4f8}
-    .card-excerpt{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px}
-    .card-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .card-date{font-size:11px;color:var(--muted)}
-    .match-pill{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:6px;padding:2px 8px;font-family:var(--FD);font-size:10px;font-weight:700;color:#f59e0b;}
-    .card-arrow{font-size:11px;color:var(--g);margin-left:auto}
-    .empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px}
-    .ad-slot{background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.06);border-radius:10px;padding:12px;text-align:center;margin:16px 0;min-height:80px;display:flex;align-items:center;justify-content:center;}
-  </style>
-  <nav class="top-nav">
-    <button class="back-btn" onclick="window.location.href='/'">← Home</button>
-    <div class="nav-brand">Cricket Experts</div>
-  </nav>
-  <div class="page-wrap">
-    <div class="page-header">
-      <div class="page-cat">${cfg.emoji} ${cfg.label}</div>
-      <h1 class="page-title">IPL 2026<br>${cfg.label}</h1>
-      <p class="page-desc">${cfg.desc}</p>
-    </div>
-    <div class="ad-slot"><!-- Ad --></div>
-    <div class="cards-grid" id="cardsGrid"><div class="empty">Loading articles…</div></div>
-  </div>`;
-}
-
-function renderCards(posts) {
-  const grid = document.getElementById("cardsGrid");
-  if (!posts.length) {
-    grid.innerHTML = '<div class="empty">No articles yet. Check back soon!</div>';
-    return;
-  }
+const sb = createClient("https://tuvqgcosbweljslbfgqc.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo");
+const grid = document.getElementById("grid");
+try {
+  const { data, error } = await sb.from("articles").select("id,slug,title,excerpt,cover_emoji,cover_image,match_label,created_at").eq("category","fantasy-preview").eq("published",true).order("created_at",{ascending:false}).limit(30);
+  if (error) throw error;
   grid.innerHTML = "";
-  posts.forEach(p => {
+  if (!data?.length) { grid.innerHTML='<div class="empty"><div class="empty-icon">🚨</div>No articles yet — check back soon!</div>'; return; }
+  data.forEach(p => {
     const card = document.createElement("div");
     card.className = "card";
     card.onclick = () => window.location.href = `blog-post.html?slug=${p.slug}`;
     const date = new Date(p.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
-    card.innerHTML = `
-      <div class="card-emoji">${p.cover_emoji}</div>
-      <div class="card-body">
-        <div class="card-title">${p.title}</div>
-        <div class="card-excerpt">${p.excerpt}</div>
-        <div class="card-meta">
-          <span class="card-date">${date}</span>
-          ${p.match_label ? `<span class="match-pill">🏟️ ${p.match_label}</span>` : ""}
-          <span class="card-arrow">Read →</span>
-        </div>
-      </div>`;
+    card.innerHTML = p.cover_image
+      ? `<img class="card-img" src="${p.cover_image}" alt="${p.title||""}" loading="lazy"/><div class="card-body"><div class="card-title">${p.title||"Untitled"}</div><div class="card-exc">${p.excerpt||""}</div><div class="card-meta"><span class="card-date">${date}</span>${p.match_label?`<span class="match-pill">🏟️ ${p.match_label}</span>`:""}<span class="card-arrow">Read →</span></div></div>`
+      : `<div class="card-emoji">${p.cover_emoji||"🏏"}</div><div class="card-body"><div class="card-title">${p.title||"Untitled"}</div><div class="card-exc">${p.excerpt||""}</div><div class="card-meta"><span class="card-date">${date}</span>${p.match_label?`<span class="match-pill">🏟️ ${p.match_label}</span>`:""}<span class="card-arrow">Read →</span></div></div>`;
     grid.appendChild(card);
   });
-}
+} catch(e) { grid.innerHTML='<div class="empty">Failed to load articles. Try refreshing.</div>'; console.error(e); }
 </script>
-
 <script type="module" src="ad-manager.js"></script>
-
 </body>
 </html>

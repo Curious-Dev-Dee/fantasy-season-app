@@ -1,339 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title id="pageTitle">Cricket Experts</title>
-  <meta name="description" id="pageDesc" content="IPL 2026 fantasy cricket tips, match previews and team news.">
-  <meta name="robots" content="index, follow">
-  <meta property="og:type" content="article">
-  <meta property="og:title" id="ogTitle" content="Cricket Experts">
-  <meta property="og:description" id="ogDesc" content="">
-  <meta property="og:image" content="https://fantasy-season-app.vercel.app/favicon.png">
-  <link rel="canonical" id="canonicalLink" href="https://fantasy-season-app.vercel.app/">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Monetag ad script -->
-  <script async src="https://gizokraijaw.net/vignette.min.js" data-zone="10742556"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --g:#9AE000;--g-dim:rgba(154,224,0,0.09);--ink:#020617;
-      --card:#0d1625;--bdr:rgba(255,255,255,0.08);--muted:#94a3b8;
-      --FD:'Barlow Condensed',sans-serif;--FB:'Inter',sans-serif;
-    }
-    body{background:var(--ink);color:#f0f4f8;font-family:var(--FB);min-height:100vh}
-    a{text-decoration:none;color:inherit}
-
-    .top-nav{
-      position:sticky;top:0;z-index:100;
-      background:rgba(2,6,23,0.95);backdrop-filter:blur(16px);
-      border-bottom:1px solid var(--bdr);
-      display:flex;align-items:center;gap:12px;
-      padding:0 16px;height:50px;
-    }
-    .back-btn{
-      display:flex;align-items:center;gap:6px;
-      color:var(--muted);font-size:13px;font-weight:600;
-      background:transparent;border:none;cursor:pointer;padding:0;
-    }
-    .back-btn:hover{color:#f0f4f8}
-    .back-arrow{font-size:16px}
-    .nav-brand{font-family:var(--FD);font-size:16px;font-weight:900;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-left:auto}
-
-    /* AD SLOT */
-    .ad-slot{
-      background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.06);
-      border-radius:10px;padding:12px;text-align:center;margin:20px 0;
-      min-height:90px;display:flex;align-items:center;justify-content:center;
-    }
-
-    .article-wrap{max-width:680px;margin:0 auto;padding:24px 16px 60px}
-
-    /* Loading */
-    .skeleton{animation:pulse 1.5s ease-in-out infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-    .sk-line{height:14px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:10px}
-
-    /* Article header */
-    .article-cat{
-      display:inline-flex;align-items:center;gap:6px;
-      background:var(--g-dim);border:1px solid rgba(154,224,0,0.2);
-      border-radius:20px;padding:4px 12px;
-      font-family:var(--FD);font-size:11px;font-weight:700;
-      text-transform:uppercase;letter-spacing:1px;color:var(--g);
-      margin-bottom:14px;
-    }
-    .article-title{
-      font-family:var(--FD);font-size:clamp(28px,7vw,42px);font-weight:900;
-      line-height:1.05;text-transform:uppercase;letter-spacing:-0.3px;
-      margin-bottom:14px;
-    }
-    .article-meta{
-      display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-      margin-bottom:20px;padding-bottom:20px;
-      border-bottom:1px solid var(--bdr);
-    }
-    .meta-item{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
-    .match-pill{
-      background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);
-      border-radius:8px;padding:3px 10px;
-      font-family:var(--FD);font-size:11px;font-weight:700;color:#f59e0b;
-    }
-
-    /* Article content — markdown rendered */
-    .article-body{font-size:15px;line-height:1.8;color:#cbd5e1}
-    .article-body h2{
-      font-family:var(--FD);font-size:24px;font-weight:800;
-      text-transform:uppercase;color:#f0f4f8;
-      margin:28px 0 10px;letter-spacing:0.2px;
-    }
-    .article-body h3{
-      font-family:var(--FD);font-size:19px;font-weight:800;
-      color:var(--g);margin:22px 0 8px;text-transform:uppercase;
-    }
-    .article-body p{margin-bottom:16px}
-    .article-body strong{color:#f0f4f8;font-weight:700}
-    .article-body em{font-style:italic;color:#94a3b8}
-    .article-body ul,.article-body ol{padding-left:20px;margin-bottom:16px}
-    .article-body li{margin-bottom:6px}
-    .article-body blockquote{
-      border-left:3px solid var(--g);padding:10px 16px;
-      background:rgba(154,224,0,0.04);border-radius:0 8px 8px 0;
-      margin:16px 0;color:#94a3b8;font-style:italic;
-    }
-    .article-body hr{border:none;border-top:1px solid var(--bdr);margin:24px 0}
-    .article-body code{
-      background:rgba(255,255,255,0.06);padding:2px 6px;
-      border-radius:4px;font-size:13px;color:#9AE000;
-    }
-
-    /* Back to category */
-    .back-to-cat{
-      display:inline-flex;align-items:center;gap:8px;
-      background:var(--card);border:1px solid var(--bdr);border-radius:10px;
-      padding:10px 16px;font-size:13px;font-weight:600;color:var(--muted);
-      margin-top:32px;transition:border-color 0.2s;cursor:pointer;
-    }
-    .back-to-cat:hover{border-color:rgba(255,255,255,0.15);color:#f0f4f8}
-
-    /* Error */
-    .error-state{text-align:center;padding:60px 20px;color:var(--muted)}
-    .error-state h2{font-family:var(--FD);font-size:28px;font-weight:900;color:#f0f4f8;text-transform:uppercase;margin-bottom:10px}
-
-    .hidden{display:none!important}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title id="pageTitle">Cricket Experts</title>
+<meta name="description" id="pageDesc" content="IPL 2026 cricket articles from Cricket Experts.">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="article">
+<meta property="og:title" id="ogTitle" content="Cricket Experts">
+<meta property="og:description" id="ogDesc" content="">
+<meta property="og:image" id="ogImg" content="https://fantasy-season-app.vercel.app/favicon.png">
+<link rel="canonical" id="canonical" href="https://fantasy-season-app.vercel.app/">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<script async src="https://gizokraijaw.net/vignette.min.js" data-zone="10742556"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--g:#9AE000;--gdim:rgba(154,224,0,0.09);--ink:#020617;--card:#0d1625;--bdr:rgba(255,255,255,0.08);--muted:#94a3b8;--FD:'Barlow Condensed',sans-serif;--FB:'DM Sans',sans-serif}
+body{background:var(--ink);color:#f0f4f8;font-family:var(--FB);min-height:100vh}
+a{text-decoration:none;color:inherit}
+.nav{position:sticky;top:0;z-index:100;background:rgba(2,6,23,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px;padding:0 16px;height:50px}
+.back{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-weight:600;background:transparent;border:none;cursor:pointer;padding:0;font-family:var(--FB)}
+.back:hover{color:#f0f4f8}
+.brand{font-family:var(--FD);font-size:16px;font-weight:900;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-left:auto}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px 60px}
+.sk-line{height:14px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:10px;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.art-cat{display:inline-flex;align-items:center;gap:6px;background:var(--gdim);border:1px solid rgba(154,224,0,.2);border-radius:20px;padding:4px 12px;font-family:var(--FD);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g);margin-bottom:14px}
+.art-title{font-family:var(--FD);font-size:clamp(26px,7vw,40px);font-weight:900;line-height:1.05;text-transform:uppercase;letter-spacing:-0.3px;margin-bottom:12px}
+.art-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--bdr)}
+.meta-item{font-size:12px;color:var(--muted)}
+.match-pill{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:3px 10px;font-family:var(--FD);font-size:11px;font-weight:700;color:#f59e0b}
+.cover-img{width:100%;max-height:380px;object-fit:cover;border-radius:12px;display:block;margin-bottom:0}
+.cover-cap{font-size:12px;color:#64748b;text-align:center;font-style:italic;padding:8px 12px 16px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-top:none;border-radius:0 0 12px 12px;margin-bottom:16px}
+.art-body{font-size:15px;line-height:1.85;color:#cbd5e1}
+.art-body h2{font-family:var(--FD);font-size:23px;font-weight:800;text-transform:uppercase;color:#f0f4f8;margin:26px 0 9px;letter-spacing:.2px}
+.art-body h3{font-family:var(--FD);font-size:18px;font-weight:800;color:var(--g);margin:20px 0 7px;text-transform:uppercase}
+.art-body p{margin-bottom:14px}
+.art-body strong{color:#f0f4f8;font-weight:700}
+.art-body em{font-style:italic;color:#94a3b8}
+.art-body ul,.art-body ol{padding-left:20px;margin-bottom:14px}
+.art-body li{margin-bottom:5px}
+.art-body blockquote{border-left:3px solid var(--g);padding:10px 16px;background:rgba(154,224,0,.04);border-radius:0 8px 8px 0;margin:14px 0;color:#94a3b8;font-style:italic}
+.art-body hr{border:none;border-top:1px solid var(--bdr);margin:22px 0}
+.art-body img{width:100%;border-radius:10px;margin:10px 0}
+.art-body table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+.art-body table th,.art-body table td{padding:9px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+.art-body table thead{background:rgba(154,224,0,.08)}
+.ad-slot{background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.06);border-radius:10px;padding:12px;text-align:center;margin:18px 0;min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.back-cat{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--muted);margin-top:28px;transition:border-color .2s;cursor:pointer}
+.back-cat:hover{border-color:rgba(255,255,255,.18);color:#f0f4f8}
+.err{text-align:center;padding:60px 20px;color:var(--muted)}
+.err h2{font-family:var(--FD);font-size:26px;font-weight:900;color:#f0f4f8;text-transform:uppercase;margin-bottom:10px}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
-
-<nav class="top-nav">
-  <button class="back-btn" id="backBtn">
-    <span class="back-arrow">←</span>
-    <span id="backLabel">Back</span>
-  </button>
-  <div class="nav-brand">Cricket Experts</div>
+<nav class="nav">
+  <button class="back" id="backBtn">← <span id="backLbl">Back</span></button>
+  <div class="brand">Cricket Experts</div>
 </nav>
-
-<div class="article-wrap">
-
-  <!-- Loading skeleton -->
+<div class="wrap">
   <div id="skeleton">
-    <div class="sk-line skeleton" style="width:30%;margin-bottom:16px"></div>
-    <div class="sk-line skeleton" style="width:90%;height:32px;margin-bottom:8px"></div>
-    <div class="sk-line skeleton" style="width:70%;height:32px;margin-bottom:20px"></div>
-    <div class="sk-line skeleton" style="width:50%;margin-bottom:24px"></div>
-    <div class="sk-line skeleton"></div>
-    <div class="sk-line skeleton" style="width:95%"></div>
-    <div class="sk-line skeleton" style="width:88%"></div>
-    <div class="sk-line skeleton" style="width:92%"></div>
+    <div class="sk-line" style="width:28%;margin-bottom:16px"></div>
+    <div class="sk-line" style="width:88%;height:30px;margin-bottom:7px"></div>
+    <div class="sk-line" style="width:65%;height:30px;margin-bottom:20px"></div>
+    <div class="sk-line" style="width:45%;margin-bottom:22px"></div>
+    <div class="sk-line"></div><div class="sk-line" style="width:94%"></div>
+    <div class="sk-line" style="width:87%"></div><div class="sk-line" style="width:91%"></div>
   </div>
-
-  <!-- Ad slot top -->
-  <div class="ad-slot hidden" id="adTop"></div>
-
-  <!-- Article content -->
-  <div id="articleContent" class="hidden">
-    <div class="article-cat" id="articleCat"></div>
-    <h1 class="article-title" id="articleTitle"></h1>
-    <div class="article-meta">
-      <span class="meta-item" id="articleDate"></span>
-      <span class="meta-item" id="articleAuthor"></span>
-      <span class="match-pill hidden" id="articleMatch"></span>
+  <div class="hidden" id="artWrap">
+    <div class="art-cat" id="artCat"></div>
+    <h1 class="art-title" id="artTitle"></h1>
+    <div class="art-meta">
+      <span class="meta-item" id="artDate"></span>
+      <span class="meta-item" id="artAuthor"></span>
+      <span class="match-pill hidden" id="artMatch"></span>
     </div>
-
-    <!-- Ad slot mid (before content) -->
-    <div class="ad-slot" id="adMid"></div>
-
-    <div class="article-body" id="articleBody"></div>
-
-    <!-- Ad slot bottom -->
-    <div class="ad-slot" id="adBottom"></div>
-
-    <a class="back-to-cat" id="backToCat">← More articles</a>
+    <div class="ad-slot">Advertisement</div>
+    <div id="artBody" class="art-body"></div>
+    <div class="ad-slot">Advertisement</div>
+    <a class="back-cat" id="backCat">← More articles</a>
   </div>
-
-  <!-- Error -->
-  <div id="errorState" class="hidden">
-    <div class="error-state">
-      <h2>Article Not Found</h2>
-      <p>This article may have been removed or the link is incorrect.</p>
-      <a href="/" style="color:var(--g);margin-top:16px;display:inline-block">← Back to home</a>
-    </div>
+  <div class="hidden" id="errWrap">
+    <div class="err"><h2>Article Not Found</h2><p>This article may have been removed or the link is incorrect.</p><a href="/" style="color:var(--g);margin-top:16px;display:inline-block">← Back to home</a></div>
   </div>
-
 </div>
-
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-const supabase = createClient(
+const sb = createClient(
   "https://tuvqgcosbweljslbfgqc.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
 );
+const CATS = {"ipl-news":"IPL News","team-news":"Team News","match-preview":"Match Preview","fantasy-preview":"Fantasy Preview","post-match-review":"Post Match Review","player-spotlight":"Player Spotlight"};
+const PAGES = {"ipl-news":"ipl-news.html","team-news":"team-news.html","match-preview":"match-preview.html","fantasy-preview":"fantasy-preview.html","post-match-review":"post-match-review.html","player-spotlight":"player-spotlight.html"};
 
-const CAT_LABELS = {
-  "fantasy-preview":    "Fantasy Preview",
-  "match-preview":      "Match Preview",
-  "team-news":          "Team News",
-  "post-match-review":  "Post Match Review",
-  "player-spotlight":   "Player Spotlight",
-  "ipl-news":           "IPL News",
-};
-
-const CAT_PAGES = {
-  "fantasy-preview":    "fantasy-preview.html",
-  "match-preview":      "match-preview.html",
-  "team-news":          "team-news.html",
-  "post-match-review":  "post-match-review.html",
-  "player-spotlight":   "player-spotlight.html",
-  "ipl-news":           "ipl-news.html",
-};
-
-/* ── Get slug from URL ─────────────────────────────────────────── */
 const slug = new URLSearchParams(location.search).get("slug");
-
-if (!slug) {
-  showError();
-} else {
-  loadArticle(slug);
-}
+if (!slug) { showErr(); } else { loadArticle(slug); }
 
 async function loadArticle(slug) {
-  const { data: post, error } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("published", true)
-    .maybeSingle();
+  try {
+    const { data: post, error } = await sb.from("articles").select("*").eq("slug", slug).eq("published", true).maybeSingle();
+    document.getElementById("skeleton").style.display = "none";
+    if (error || !post) { showErr(); return; }
 
-  document.getElementById("skeleton").style.display = "none";
+    // SEO
+    document.getElementById("pageTitle").textContent = (post.title || "Article") + " · Cricket Experts";
+    document.getElementById("pageDesc").content      = post.excerpt || "";
+    document.getElementById("ogTitle").content       = post.title  || "Cricket Experts";
+    document.getElementById("ogDesc").content        = post.excerpt || "";
+    document.getElementById("canonical").href        = `https://fantasy-season-app.vercel.app/blog-post.html?slug=${slug}`;
+    if (post.cover_image) document.getElementById("ogImg").content = post.cover_image;
 
-  if (error || !post) { showError(); return; }
+    // Back nav
+    const catPage = PAGES[post.category] || "/";
+    const catLabel = CATS[post.category] || "Articles";
+    document.getElementById("backBtn").onclick = () => window.location.href = catPage;
+    document.getElementById("backLbl").textContent = catLabel;
+    const bc = document.getElementById("backCat");
+    bc.href = catPage;
+    bc.textContent = "← More " + catLabel;
 
-  // Update SEO meta tags
-  document.getElementById("pageTitle").textContent = `${post.title} · Cricket Experts`;
-  document.getElementById("pageDesc").content      = post.excerpt;
-  document.getElementById("ogTitle").content       = post.title;
-  document.getElementById("ogDesc").content        = post.excerpt;
-  document.getElementById("canonicalLink").href    = `https://fantasy-season-app.vercel.app/blog-post.html?slug=${slug}`;
+    // Populate
+    const catEl = document.getElementById("artCat");
+    catEl.textContent = (post.cover_emoji ? post.cover_emoji + " " : "") + (CATS[post.category] || post.category || "Article");
 
-  // Back button
-  const catPage = CAT_PAGES[post.category] || "/";
-  document.getElementById("backBtn").onclick  = () => window.location.href = catPage;
-  document.getElementById("backLabel").textContent = CAT_LABELS[post.category] || "Back";
-  document.getElementById("backToCat").href   = catPage;
-  document.getElementById("backToCat").textContent = `← More ${CAT_LABELS[post.category] || "articles"}`;
+    document.getElementById("artTitle").textContent = post.title || "";
+    document.getElementById("artDate").textContent  = "📅 " + new Date(post.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+    document.getElementById("artAuthor").textContent = "✍️ " + (post.author || "Cricket Experts");
 
-  // Populate article
-  const catEl = document.getElementById("articleCat");
-  catEl.textContent = `${post.cover_emoji} ${CAT_LABELS[post.category] || post.category}`;
-
-  document.getElementById("articleTitle").textContent = post.title;
-
-  const dateEl = document.getElementById("articleDate");
-  dateEl.textContent = "📅 " + new Date(post.created_at).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric"
-  });
-
-  document.getElementById("articleAuthor").textContent = "✍️ " + post.author;
-
-  if (post.match_label) {
-    const matchEl = document.getElementById("articleMatch");
-    matchEl.textContent = "🏟️ " + post.match_label;
-    matchEl.classList.remove("hidden");
-  }
-
-// Cover image
-    if (post.cover_image_url) {
-        const imgWrap = document.createElement("div");
-        imgWrap.style.cssText = "margin-bottom:20px;border-radius:12px;overflow:hidden";
-        const img = document.createElement("img");
-        img.src = post.cover_image_url;
-        img.alt = post.title || "Cover image";
-        img.style.cssText = "width:100%;display:block;max-height:400px;object-fit:cover";
-        imgWrap.appendChild(img);
-        if (post.image_caption) {
-            const cap = document.createElement("p");
-            cap.textContent = post.image_caption;
-            cap.style.cssText = "font-size:12px;color:#64748b;text-align:center;font-style:italic;padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-top:none;border-radius:0 0 12px 12px";
-            imgWrap.appendChild(cap);
-        }
-        document.getElementById("articleContent").insertBefore(
-            imgWrap,
-            document.getElementById("articleBody")
-        );
+    if (post.match_label) {
+      const me = document.getElementById("artMatch");
+      me.textContent = "🏟️ " + post.match_label;
+      me.classList.remove("hidden");
     }
 
-    // Render content — stored as HTML so use innerHTML directly
-    document.getElementById("articleBody").innerHTML = post.content || "";
+    // Cover image
+    const bodyEl = document.getElementById("artBody");
+    if (post.cover_image) {
+      const img = document.createElement("img");
+      img.src = post.cover_image;
+      img.alt = post.title || "Cover image";
+      img.className = "cover-img";
+      img.loading = "lazy";
+      bodyEl.appendChild(img);
+      if (post.img_caption) {
+        const cap = document.createElement("div");
+        cap.className = "cover-cap";
+        cap.textContent = post.img_caption;
+        bodyEl.appendChild(cap);
+      }
+    }
 
-  // Show ads
-  document.getElementById("adTop").classList.remove("hidden");
+    // Content — stored as HTML, render directly
+    const contentDiv = document.createElement("div");
+    contentDiv.innerHTML = post.content || "";
+    bodyEl.appendChild(contentDiv);
 
-  document.getElementById("articleContent").classList.remove("hidden");
+    document.getElementById("artWrap").classList.remove("hidden");
 
-  // Increment view count (fire and forget)
-  supabase.from("blog_posts").update({ views: (post.views || 0) + 1 }).eq("id", post.id);
+    // View count — fire and forget
+    try { sb.from("articles").update({ views: (post.views || 0) + 1 }).eq("id", post.id); } catch(_) {}
+
+  } catch(err) {
+    document.getElementById("skeleton").style.display = "none";
+    showErr();
+    console.error(err);
+  }
 }
 
-/* ── Simple markdown renderer ──────────────────────────────────── */
-function renderContent(text) {
-  return text
-    // Escape HTML
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    // Headings
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm,  "<h2>$1</h2>")
-    // Bold + italic
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g,     "<em>$1</em>")
-    // Blockquote
-    .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
-    // Horizontal rule
-    .replace(/^---$/gm, "<hr>")
-    // Unordered list
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/gs, m => `<ul>${m}</ul>`)
-    // Paragraphs — double newlines
-    .split(/\n\n+/)
-    .map(block => {
-      block = block.trim();
-      if (!block) return "";
-      if (/^<(h[23]|ul|ol|blockquote|hr)/.test(block)) return block;
-      return `<p>${block.replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("\n");
-}
-
-function showError() {
+function showErr() {
   document.getElementById("skeleton").style.display = "none";
-  document.getElementById("errorState").classList.remove("hidden");
+  document.getElementById("errWrap").classList.remove("hidden");
 }
 </script>
-
 <script type="module" src="ad-manager.js"></script>
-
 </body>
 </html>

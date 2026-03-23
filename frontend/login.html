@@ -975,11 +975,10 @@
     }
   }
 
-  /* ── Latest articles ────────────────────────────────────────── */
-  async function loadLatestArticles() {
+async function loadLatestArticles() {
     const grid = document.getElementById("articlesGrid");
     const { data } = await supabase
-      .from("blog_posts")
+      .from("articles")
       .select("slug, title, excerpt, category, cover_emoji, created_at")
       .eq("published", true)
       .order("created_at", { ascending: false })
