@@ -30,7 +30,7 @@ function loadMonetagAd() {
 
     const script        = document.createElement("script");
     script.dataset.zone = AD_ZONE;
-    script.src          = "https://gizokraijaw.net/vignette.min.js";
+script.src          = "https://izcle.com/vignette.min.js";
     script.async        = true;
     document.body.appendChild(script);
 }
