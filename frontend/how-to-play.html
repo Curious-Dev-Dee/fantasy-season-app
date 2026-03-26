@@ -375,11 +375,11 @@
       padding: 4px 10px; border-radius: 20px;
       border: 1px solid;
     }
-    .req-chip.wk   { color: #f0a500; border-color: rgba(240,165,0,0.3); background: rgba(240,165,0,0.07); }
-    .req-chip.bat  { color: #22c55e; border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.07); }
-    .req-chip.ar   { color: var(--cyan); border-color: rgba(0,242,255,0.3); background: rgba(0,242,255,0.07); }
+    .req-chip.wk    { color: #f0a500; border-color: rgba(240,165,0,0.3); background: rgba(240,165,0,0.07); }
+    .req-chip.bat   { color: #22c55e; border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.07); }
+    .req-chip.ar    { color: var(--cyan); border-color: rgba(0,242,255,0.3); background: rgba(0,242,255,0.07); }
     .req-chip.bowl { color: var(--purple); border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.07); }
-    .req-chip.os   { color: var(--muted); border-color: var(--bdr2); background: rgba(255,255,255,0.04); }
+    .req-chip.os    { color: var(--muted); border-color: var(--bdr2); background: rgba(255,255,255,0.04); }
 
     /* ── FAQ ── */
     .faq-item {
@@ -511,14 +511,12 @@
       text-align: center;
     }
 
-    .sb-item {}
     .sb-num {
       font-family: var(--FD);
       font-size: 26px; font-weight: 900;
       color: var(--g); line-height: 1;
     }
     .sb-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-    .sb-div { display: none; }
 
     /* ── INLINE BADGE ── */
     .inline-badge {
@@ -553,7 +551,6 @@
 
 <body>
 
-<!-- ══ HEADER ════════════════════════════════════════════════════════ -->
 <header class="page-header">
   <div class="header-row">
     <a href="more.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
@@ -562,22 +559,21 @@
   </div>
   <nav class="nav-tabs" role="tablist">
     <button class="nav-tab active" onclick="showTab('overview',  this)" role="tab">Overview</button>
-    <button class="nav-tab"        onclick="showTab('team',      this)" role="tab">Your Team</button>
-    <button class="nav-tab"        onclick="showTab('scoring',   this)" role="tab">Scoring</button>
-    <button class="nav-tab"        onclick="showTab('boosters',  this)" role="tab">Boosters</button>
-    <button class="nav-tab"        onclick="showTab('funzone',   this)" role="tab">Fun Zone</button>
-    <button class="nav-tab"        onclick="showTab('faq',       this)" role="tab">FAQ</button>
+    <button class="nav-tab"         onclick="showTab('team',      this)" role="tab">Your Team</button>
+    <button class="nav-tab"         onclick="showTab('scoring',   this)" role="tab">Scoring</button>
+    <button class="nav-tab"         onclick="showTab('boosters',  this)" role="tab">Boosters</button>
+    <button class="nav-tab"         onclick="showTab('funzone',   this)" role="tab">Fun Zone</button>
+    <button class="nav-tab"         onclick="showTab('faq',       this)" role="tab">FAQ</button>
   </nav>
 </header>
 
 <div class="content">
 
-<!-- ══ OVERVIEW ══════════════════════════════════════════════════════ -->
 <div id="panel-overview" class="tab-panel active">
   <div class="section-wrap">
 
     <div class="stats-banner">
-      <div class="sb-item"><div class="sb-num">84</div><div class="sb-label">Matches</div></div>
+      <div class="sb-item"><div class="sb-num">74</div><div class="sb-label">Matches</div></div>
       <div class="sb-item"><div class="sb-num">7</div><div class="sb-label">Boosters</div></div>
       <div class="sb-item"><div class="sb-num">Free</div><div class="sb-label">Always</div></div>
     </div>
@@ -589,7 +585,7 @@
       </div>
       <div class="card-body">
         <div class="rule-row">
-          <span class="rule-label">Not a pick-and-forget app. You manage one squad across the full IPL 2026 season — all 84 matches. Your decisions in Match 1 follow you all the way to Match 84.</span>
+          <span class="rule-label">Not a pick-and-forget app. You manage one squad across the full IPL 2026 season — all 74 matches. Your decisions in Match 1 follow you all the way to Match 74.</span>
         </div>
       </div>
     </div>
@@ -637,20 +633,18 @@
             </div>
           </div>
           <div class="step">
-    <div class="step-num">5</div>
-    <div class="step-content">
-        <div class="step-title">Top 2 Win Real Prizes</div>
-        <div class="step-desc">
-            Finish the season at the top of the Overall Leaderboard and win real prizes sponsored by our partners.
-        </div>
-        <div style="margin-top:10px;background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(154,224,0,0.05));border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 12px;">
-            <div style="font-size:12px;color:var(--muted);line-height:1.8;">
-                🥇 <strong style="color:#f59e0b">Rank 1</strong> — Premium T-Shirt · <strong style="color:#9AE000">All That Trend</strong><br>
-                🥈 <strong style="color:#94a3b8">Rank 2</strong> — Premium Sports Cap · <strong style="color:#9AE000">Friends Fancy Store</strong>
+            <div class="step-num">5</div>
+            <div class="step-content">
+                <div class="step-title">Top 2 Win Real Prizes</div>
+                <div class="step-desc">Finish the season at the top of the Overall Leaderboard and win real prizes sponsored by our partners.</div>
+                <div style="margin-top:10px;background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(154,224,0,0.05));border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 12px;">
+                    <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+                        🥇 <strong style="color:#f59e0b">Rank 1</strong> — Premium T-Shirt · <strong style="color:#9AE000">All That Trend</strong><br>
+                        🥈 <strong style="color:#94a3b8">Rank 2</strong> — Premium Sports Cap · <strong style="color:#9AE000">Friends Fancy Store</strong>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
+          </div>
         </div>
       </div>
     </div>
@@ -662,7 +656,6 @@
   </div>
 </div>
 
-<!-- ══ YOUR TEAM ══════════════════════════════════════════════════════ -->
 <div id="panel-team" class="tab-panel">
   <div class="section-wrap">
 
@@ -672,42 +665,15 @@
         <span class="card-title">Squad Rules</span>
       </div>
       <div class="card-body">
-        <div class="rule-row">
-          <span class="rule-label">Total budget</span>
-          <span class="pts">100 Credits</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Squad size</span>
-          <span class="pts">11 Players</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Wicketkeeper (WK)</span>
-          <span class="pts">Min 1</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Batters (BAT)</span>
-          <span class="pts">Min 3</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">All-Rounders (AR)</span>
-          <span class="pts">Min 1</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Bowlers (BOWL)</span>
-          <span class="pts">Min 3</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Overseas players</span>
-          <span class="pts">Max 4</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Captain</span>
-          <span class="pts">× 2.0</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Vice-Captain</span>
-          <span class="pts">× 1.5</span>
-        </div>
+        <div class="rule-row"><span class="rule-label">Total budget</span><span class="pts">100 Credits</span></div>
+        <div class="rule-row"><span class="rule-label">Squad size</span><span class="pts">11 Players</span></div>
+        <div class="rule-row"><span class="rule-label">Wicketkeeper (WK)</span><span class="pts">Min 1</span></div>
+        <div class="rule-row"><span class="rule-label">Batters (BAT)</span><span class="pts">Min 3</span></div>
+        <div class="rule-row"><span class="rule-label">All-Rounders (AR)</span><span class="pts">Min 1</span></div>
+        <div class="rule-row"><span class="rule-label">Bowlers (BOWL)</span><span class="pts">Min 3</span></div>
+        <div class="rule-row"><span class="rule-label">Overseas players</span><span class="pts">Max 4</span></div>
+        <div class="rule-row"><span class="rule-label">Captain</span><span class="pts">× 2.0</span></div>
+        <div class="rule-row"><span class="rule-label">Vice-Captain</span><span class="pts">× 1.5</span></div>
       </div>
     </div>
 
@@ -727,19 +693,19 @@
             <div class="phase-note">Build freely</div>
           </div>
           <div class="phase-card">
-            <div class="phase-label">Matches 2 – 80</div>
+            <div class="phase-label">Matches 2 – 70</div>
             <div class="phase-matches">League Stage</div>
-            <div class="phase-subs">145 Subs</div>
+            <div class="phase-subs">130 Subs</div>
             <div class="phase-note">Total budget</div>
           </div>
           <div class="phase-card highlight-phase">
-            <div class="phase-label">Match 81</div>
+            <div class="phase-label">Match 71</div>
             <div class="phase-matches">Playoff Start</div>
             <div class="phase-subs">∞ Free</div>
             <div class="phase-note">Full reset</div>
           </div>
           <div class="phase-card">
-            <div class="phase-label">Matches 82 – 84</div>
+            <div class="phase-label">Matches 72 – 74</div>
             <div class="phase-matches">Playoffs</div>
             <div class="phase-subs">10 Subs</div>
             <div class="phase-note">Tight budget</div>
@@ -759,9 +725,7 @@
       </div>
       <div class="card-body">
         <div class="rule-row">
-          <span class="rule-label">Predict a match winner correctly
-            <small>In the Fun Zone → Predict tab</small>
-          </span>
+          <span class="rule-label">Predict a match winner correctly<small>In the Fun Zone → Predict tab</small></span>
           <span class="pts gold">+1 ⭐</span>
         </div>
         <div class="rule-row">
@@ -780,12 +744,8 @@
         <span class="card-title">When Teams Lock</span>
       </div>
       <div class="card-body">
-        <div class="rule-row">
-          <span class="rule-label">Teams lock at the exact match start time. Once locked, no changes until the next match.</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">If a match is delayed (rain, DLS), the countdown updates automatically to the new time.</span>
-        </div>
+        <div class="rule-row"><span class="rule-label">Teams lock at the exact match start time. Once locked, no changes until the next match.</span></div>
+        <div class="rule-row"><span class="rule-label">If a match is delayed (rain, DLS), the countdown updates automatically to the new time.</span></div>
         <div class="highlight red-hl" style="margin-top:4px;">
           <strong>⚠️ If you haven't saved before lock time</strong>, your last saved team is used. Always save your changes!
         </div>
@@ -795,7 +755,6 @@
   </div>
 </div>
 
-<!-- ══ SCORING ════════════════════════════════════════════════════════ -->
 <div id="panel-scoring" class="tab-panel">
   <div class="section-wrap">
 
@@ -805,42 +764,16 @@
         <span class="card-title">Batting</span>
       </div>
       <div class="card-body">
+        <div class="rule-row"><span class="rule-label">Per run scored</span><span class="pts">+1</span></div>
+        <div class="rule-row"><span class="rule-label">Boundary bonus (each 4)</span><span class="pts">+1</span></div>
+        <div class="rule-row"><span class="rule-label">Six bonus (each 6)</span><span class="pts">+2</span></div>
+        <div class="rule-row"><span class="rule-label">30 run milestone</span><span class="pts">+5</span></div>
+        <div class="rule-row"><span class="rule-label">50 run milestone</span><span class="pts">+10</span></div>
+        <div class="rule-row"><span class="rule-label">75 run milestone</span><span class="pts">+15</span></div>
+        <div class="rule-row"><span class="rule-label">100 run milestone</span><span class="pts">+20</span></div>
+        <div class="rule-row"><span class="rule-label">Duck (0 runs and out)</span><span class="pts neg">−2</span></div>
         <div class="rule-row">
-          <span class="rule-label">Per run scored</span>
-          <span class="pts">+1</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Boundary bonus (each 4)</span>
-          <span class="pts">+1</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Six bonus (each 6)</span>
-          <span class="pts">+2</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">30 run milestone</span>
-          <span class="pts">+5</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">50 run milestone</span>
-          <span class="pts">+10</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">75 run milestone</span>
-          <span class="pts">+15</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">100 run milestone</span>
-          <span class="pts">+20</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Duck (0 runs and out)</span>
-          <span class="pts neg">−2</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Strike Rate bonus
-            <small>Runs minus balls faced — positive if aggressive, negative if slow</small>
-          </span>
+          <span class="rule-label">Strike Rate bonus<small>Runs minus balls faced — positive if aggressive, negative if slow</small></span>
           <span class="pts cyan">Dynamic</span>
         </div>
 
@@ -871,32 +804,12 @@
         <span class="card-title">Bowling</span>
       </div>
       <div class="card-body">
-        <div class="rule-row">
-          <span class="rule-label">First wicket</span>
-          <span class="pts">+20</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Each additional wicket</span>
-          <span class="pts">+25</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Maiden over</span>
-          <span class="pts">+10</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Economy ≤ 6.0
-            <small>Min 2 overs bowled</small>
-          </span>
-          <span class="pts">+8</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Economy 6.1 – 9.0</span>
-          <span class="pts">+4</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Economy &gt; 9.0</span>
-          <span class="pts neg">−4</span>
-        </div>
+        <div class="rule-row"><span class="rule-label">First wicket</span><span class="pts">+20</span></div>
+        <div class="rule-row"><span class="rule-label">Each additional wicket</span><span class="pts">+25</span></div>
+        <div class="rule-row"><span class="rule-label">Maiden over</span><span class="pts">+10</span></div>
+        <div class="rule-row"><span class="rule-label">Economy ≤ 6.0<small>Min 2 overs bowled</small></span><span class="pts">+8</span></div>
+        <div class="rule-row"><span class="rule-label">Economy 6.1 – 9.0</span><span class="pts">+4</span></div>
+        <div class="rule-row"><span class="rule-label">Economy &gt; 9.0</span><span class="pts neg">−4</span></div>
 
         <div style="margin-top:10px;">
           <div class="calc-box">
@@ -916,28 +829,11 @@
         <span class="card-title">Fielding & Bonuses</span>
       </div>
       <div class="card-body">
-        <div class="rule-row">
-          <span class="rule-label">Catch</span>
-          <span class="pts">+8</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Stumping</span>
-          <span class="pts">+8</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Run out (direct or assisted)</span>
-          <span class="pts">+8</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Involvement bonus
-            <small>Any player who contributed earns this</small>
-          </span>
-          <span class="pts">+4</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Player of the Match</span>
-          <span class="pts gold">+20</span>
-        </div>
+        <div class="rule-row"><span class="rule-label">Catch</span><span class="pts">+8</span></div>
+        <div class="rule-row"><span class="rule-label">Stumping</span><span class="pts">+8</span></div>
+        <div class="rule-row"><span class="rule-label">Run out (direct or assisted)</span><span class="pts">+8</span></div>
+        <div class="rule-row"><span class="rule-label">Involvement bonus<small>Any player who contributed earns this</small></span><span class="pts">+4</span></div>
+        <div class="rule-row"><span class="rule-label">Player of the Match</span><span class="pts gold">+20</span></div>
       </div>
     </div>
 
@@ -947,14 +843,8 @@
         <span class="card-title">C / VC Multipliers</span>
       </div>
       <div class="card-body">
-        <div class="rule-row">
-          <span class="rule-label">Captain</span>
-          <span class="pts">× 2.0</span>
-        </div>
-        <div class="rule-row">
-          <span class="rule-label">Vice-Captain</span>
-          <span class="pts">× 1.5</span>
-        </div>
+        <div class="rule-row"><span class="rule-label">Captain</span><span class="pts">× 2.0</span></div>
+        <div class="rule-row"><span class="rule-label">Vice-Captain</span><span class="pts">× 1.5</span></div>
         <div class="highlight" style="margin-top:4px;">
           Multipliers apply to the player's <strong>total base points</strong> for that match. A captain scoring 100 pts earns you <strong>200 pts</strong>. Choosing C/VC wisely is the biggest lever in the game.
         </div>
@@ -964,107 +854,77 @@
   </div>
 </div>
 
-<!-- ══ BOOSTERS ═══════════════════════════════════════════════════════ -->
 <div id="panel-boosters" class="tab-panel">
   <div class="section-wrap">
 
     <div class="highlight cyan-hl">
-      <strong>7 unique boosters, each usable once per season.</strong> Only available during the League Stage — Matches 2 to 80. Pick the right moment. Once the match locks with a booster active, it's burned forever.
+      <strong>7 unique boosters, each usable once per season.</strong> Only available during the League Stage — Matches 2 to 70. Pick the right moment. Once the match locks with a booster active, it's burned forever.
     </div>
 
     <div class="booster-grid">
-
       <div class="booster-card">
-        <div class="booster-top">
-          <div class="booster-emoji">🚀</div>
-          <div class="booster-name">Total 2X</div>
-        </div>
+        <div class="booster-top"><div class="booster-emoji">🚀</div><div class="booster-name">Total 2X</div></div>
         <div class="booster-desc">Every player in your XI earns double points this match.</div>
         <span class="booster-tag">Best for strong all-round XI</span>
       </div>
 
       <div class="booster-card">
-        <div class="booster-top">
-          <div class="booster-emoji">👑</div>
-          <div class="booster-name">Captain 3X</div>
-        </div>
+        <div class="booster-top"><div class="booster-emoji">👑</div><div class="booster-name">Captain 3X</div></div>
         <div class="booster-desc">Your Captain earns 3× points instead of the usual 2×.</div>
         <span class="booster-tag">Best when captain is in form</span>
       </div>
 
       <div class="booster-card">
-        <div class="booster-top">
-          <div class="booster-emoji">🇮🇳</div>
-          <div class="booster-name">Indian 2X</div>
-        </div>
+        <div class="booster-top"><div class="booster-emoji">🇮🇳</div><div class="booster-name">Indian 2X</div></div>
         <div class="booster-desc">All Indian players (non-overseas) earn double points.</div>
         <span class="booster-tag">Best for India-heavy XI</span>
       </div>
 
       <div class="booster-card">
-        <div class="booster-top">
-          <div class="booster-emoji">✈️</div>
-          <div class="booster-name">Overseas 2X</div>
-        </div>
+        <div class="booster-top"><div class="booster-emoji">✈️</div><div class="booster-name">Overseas 2X</div></div>
         <div class="booster-desc">All overseas players earn double points this match.</div>
         <span class="booster-tag">Best for OS-heavy XI</span>
       </div>
 
       <div class="booster-card">
-        <div class="booster-top">
-          <div class="booster-emoji">🧢</div>
-          <div class="booster-name">Uncapped 2X</div>
-        </div>
+        <div class="booster-top"><div class="booster-emoji">🧢</div><div class="booster-name">Uncapped 2X</div></div>
         <div class="booster-desc">All uncapped (domestic) players earn double points.</div>
         <span class="booster-tag">Best for uncapped picks</span>
       </div>
 
       <div class="booster-card">
-        <div class="booster-top">
-          <div class="booster-emoji">🏆</div>
-          <div class="booster-name">MOM 2X</div>
-        </div>
-        <div class="booster-desc">The Player of the Match earns double points — if you have them in your XI.</div>
+        <div class="booster-top"><div class="booster-emoji">🏆</div><div class="booster-name">MOM 2X</div></div>
+        <div class="booster-desc">The Player of the Match earns double points — if in your XI.</div>
         <span class="booster-tag">High risk, high reward</span>
       </div>
 
       <div class="booster-card" style="grid-column:1/-1;">
-        <div class="booster-top">
-          <div class="booster-emoji">🆓</div>
-          <div class="booster-name">Free 11</div>
-        </div>
-        <div class="booster-desc">All substitutions you make for this match cost 0 subs. Change your entire XI if you want — nothing is deducted from your budget.</div>
-        <span class="booster-tag">Best when you want heavy rotation</span>
+        <div class="booster-top"><div class="booster-emoji">🆓</div><div class="booster-name">Free 11</div></div>
+        <div class="booster-desc">All substitutions for this match cost 0 subs. Change your entire squad for free.</div>
+        <span class="booster-tag">Best for heavy rotation</span>
       </div>
-
     </div>
 
     <div class="highlight red-hl">
-      <strong>⚠️ Booster Rules:</strong> One booster per match. Each can only be used once all season. Boosters only work in Matches 2–80. If a match is abandoned, your booster is automatically refunded.
+      <strong>⚠️ Booster Rules:</strong> One booster per match. Each can only be used once all season. Boosters only work in Matches 2–70. If a match is abandoned, your booster is automatically refunded.
     </div>
 
   </div>
 </div>
 
-<!-- ══ FUN ZONE ════════════════════════════════════════════════════════ -->
 <div id="panel-funzone" class="tab-panel">
   <div class="section-wrap">
 
     <div class="highlight gold-hl">
-      <strong>3 bonus ways to compete</strong> — all free, all optional. Fun Zone doesn't affect your main fantasy score but gives you extra ways to win and earn free subs.
+      <strong>3 bonus ways to compete</strong> — all free, all optional. Fun Zone doesn't affect your main fantasy score but gives extra ways to win.
     </div>
 
     <div class="funzone-grid">
-
       <div class="fz-card">
         <div class="fz-icon">🔮</div>
         <div>
           <div class="fz-title">Predict</div>
-          <div class="fz-desc">
-            Before each match, pick the winner. Correct prediction earns <strong style="color:var(--gold)">1 ⭐ Star</strong>. Collect <strong style="color:var(--gold)">10 Stars</strong> and you automatically get <strong style="color:var(--g)">+1 free sub</strong> added to your main game budget.
-            <br><br>
-            Stars accumulate all season — 10 stars = 1 sub, 20 stars = 2 subs, 30 stars = 3 subs and so on.
-          </div>
+          <div class="fz-desc">Before each match, pick the winner. Correct prediction earns <strong style="color:var(--gold)">1 ⭐ Star</strong>. Collect <strong style="color:var(--gold)">10 Stars</strong> for <strong style="color:var(--g)">+1 free sub</strong>.</div>
           <span class="fz-tag">🔗 Directly affects your main subs budget</span>
         </div>
       </div>
@@ -1073,12 +933,8 @@
         <div class="fz-icon">⭐</div>
         <div>
           <div class="fz-title">All Stars XI</div>
-          <div class="fz-desc">
-            Before Match 1 locks, pick a special XI that stays <strong style="color:var(--white)">locked for the entire season</strong>. You can never change it. Your All Stars earn points every match across all 84 games on a completely separate leaderboard.
-            <br><br>
-            Same squad rules apply — 100 credits, C/VC multipliers, role minimums. No boosters.
-          </div>
-          <span class="fz-tag">⏰ Lock before Match 1 — no second chances</span>
+          <div class="fz-desc">Before Match 1 locks, pick a special XI that stays <strong style="color:var(--white)">locked for the entire season</strong>. Your All Stars earn points every match across all 74 games.</div>
+          <span class="fz-tag">⏰ Lock before Match 1</span>
         </div>
       </div>
 
@@ -1086,125 +942,36 @@
         <div class="fz-icon">📅</div>
         <div>
           <div class="fz-title">Daily XI</div>
-          <div class="fz-desc">
-            For each match, pick your best 11 from <strong style="color:var(--white)">only the two teams playing that day</strong>. One entry per match, locked after saving. Compete on a per-match leaderboard and track your Season Average Rank across all matches.
-            <br><br>
-            The player with the lowest average rank across the season is the Daily XI champion.
-          </div>
+          <div class="fz-desc">For each match, pick your best 11 from <strong style="color:var(--white)">only the two teams playing that day</strong>. Compete on a per-match leaderboard.</div>
           <span class="fz-tag">🆕 Fresh challenge every match</span>
         </div>
       </div>
-
     </div>
 
   </div>
 </div>
 
-<!-- ══ FAQ ════════════════════════════════════════════════════════════ -->
 <div id="panel-faq" class="tab-panel">
   <div class="section-wrap">
-
     <div id="faq-list" style="display:flex;flex-direction:column;gap:8px;">
-
-      <div class="faq-item">
-        <div class="faq-q">Can I change my team name after signing up? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">No. Your team name and full name are locked permanently once you set them during your first sign-in. Choose wisely!</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">What happens if I run out of subs? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">You won't be able to save a team that would cost more subs than you have remaining. The Save button will show <strong>"NOT ENOUGH SUBS"</strong>. You can still change your Captain/VC without using subs.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">Does changing C/VC cost a sub? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">No. You can change your Captain and Vice-Captain as many times as you want without spending any subs. Only swapping a player in or out of your XI costs subs.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">What is the free uncapped swap? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Each match, <strong>one uncapped player swap is free</strong> — it doesn't count toward your subs. An uncapped player is an Indian domestic player who hasn't represented India. Look for the 🧢 badge in the player pool.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">What if a match is abandoned or rained off? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">
-          If a match is <strong>abandoned before a ball is bowled</strong>, any subs you used for that match are refunded, your booster is refunded, and the match doesn't count for fantasy. It's like it never happened.
-          <br><br>
-          If a match is <strong>delayed</strong> (rain break, then resumes), the countdown updates to the new start time and you can keep editing your team until then.
-        </div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">When do I get my subs reset for playoffs? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Match 81 is a <strong>free unlimited reset</strong> — you can change your entire XI without using any subs. After Match 81 locks, you start the playoff stage with a fresh budget of <strong>10 subs</strong> for Matches 82–84.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">How does the Free 11 booster work exactly? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">When Free 11 is active, <strong>all substitutions for that specific match cost 0 subs</strong>. You can change your entire squad and nothing is deducted. This is different from the Match 1/81 reset — Free 11 is a one-time booster you choose to use.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">Can I use a booster in the playoffs? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">No. Boosters are only available during the <strong>League Stage — Matches 2 to 80</strong>. The booster shelf is hidden completely during playoffs.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">How are All Stars points calculated? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Your All Stars XI earns fantasy points every match using the same scoring system — with C/VC multipliers applied. No boosters apply. Points accumulate automatically across all 84 matches on a separate All Stars leaderboard.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">What is the Strike Rate points system? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">
-          SR Points = <strong>Runs minus Balls Faced</strong>. If your batter scores 60 off 40 balls, they earn +20 SR points. If they score 10 off 25 balls, they lose −15 points. This rewards aggressive T20 batting heavily.
-          <div class="faq-note">⚡ A hard-hitting innings can earn 20–30 extra points just from SR alone.</div>
-        </div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">What is a private league? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Create a private league and share the invite code with friends. You compete on a separate leaderboard among just your group — while still playing on the global leaderboard too. Create or join from the Home page.</div></div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">How do I see my match history? <i class="fas fa-chevron-down faq-chevron"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Tap the History button on your Team View page. You'll see every match you've played, your score and subs used per match, with a full player breakdown for each game. Tap any player to see their individual point log.</div></div>
-      </div>
-
-<div class="faq-item">
-    <div class="faq-q">Are there prizes? <i class="fas fa-chevron-down faq-chevron"></i></div>
-    <div class="faq-a"><div class="faq-a-inner">
-        Yes! Real prizes for the top 2 on the <strong>Overall Leaderboard</strong> at season end:
-        <br><br>
-        🥇 <strong style="color:#f59e0b">Rank 1</strong> — Premium T-Shirt by <strong style="color:#9AE000">All That Trend</strong><br>
-        🥈 <strong style="color:#94a3b8">Rank 2</strong> — Premium Sports Cap by <strong style="color:#9AE000">Friends Fancy Store</strong>
-        <br><br>
-        No entry fee. No real money. Prizes are for the Overall Leaderboard only — not private leagues.
-        <div class="faq-note">🏆 Finish top 2 overall to win.</div>
-    </div></div>
-</div>
-
-
-
+      <div class="faq-item"><div class="faq-q">Can I change my team name? <i class="fas fa-chevron-down faq-chevron"></i></div><div class="faq-a"><div class="faq-a-inner">No. Your team name and full name are locked permanently once you set them.</div></div></div>
+      <div class="faq-item"><div class="faq-q">What happens if I run out of subs? <i class="fas fa-chevron-down faq-chevron"></i></div><div class="faq-a"><div class="faq-a-inner">You won't be able to save a team that costs more subs than you have left. The button will show <strong>"NOT ENOUGH SUBS"</strong>.</div></div></div>
+      <div class="faq-item"><div class="faq-q">Does changing C/VC cost a sub? <i class="fas fa-chevron-down faq-chevron"></i></div><div class="faq-a"><div class="faq-a-inner">No. Only swapping a player in or out of your XI costs subs.</div></div></div>
+      <div class="faq-item"><div class="faq-q">When do I get my subs reset? <i class="fas fa-chevron-down faq-chevron"></i></div><div class="faq-a"><div class="faq-a-inner">Match 71 is a <strong>free unlimited reset</strong>. After Match 71, you get a fresh budget of <strong>10 subs</strong> for Matches 72–74.</div></div></div>
+      <div class="faq-item"><div class="faq-q">Can I use a booster in playoffs? <i class="fas fa-chevron-down faq-chevron"></i></div><div class="faq-a"><div class="faq-a-inner">No. Boosters only work in <strong>League Stage — Matches 2 to 70</strong>.</div></div></div>
+      <div class="faq-item"><div class="faq-q">What are All Stars points? <i class="fas fa-chevron-down faq-chevron"></i></div><div class="faq-a"><div class="faq-a-inner">Points accumulate automatically across all 74 matches on a separate All Stars leaderboard.</div></div></div>
+    </div>
   </div>
 </div>
 
-</div><!-- end .content -->
-
-<script>
+</div><script>
   function showTab(tabId, btn) {
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
     document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
     document.getElementById("panel-" + tabId).classList.add("active");
     btn.classList.add("active");
-
-    // Scroll active tab into view
     btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }
-
-  // FAQ accordion
   document.querySelectorAll(".faq-q").forEach(q => {
     q.addEventListener("click", () => {
       const item = q.parentElement;
