@@ -2,10 +2,10 @@ import { supabase } from "./supabase.js";
 import { authReady } from "./auth-state.js";
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const LEAGUE_STAGE_END       = 80;
-const PLAYOFF_START_MATCH    = 81;
+const LEAGUE_STAGE_END       = 70;
+const PLAYOFF_START_MATCH    = 71;
 const BOOSTER_WINDOW_START   = 2;
-const BOOSTER_WINDOW_END     = 80;
+const BOOSTER_WINDOW_END     = 70;
 const ROLE_PRIORITY          = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
 const MATCH_SHIFT_DELAY_MS   = 30000; // 30s after lock before moving to next match
 
@@ -14,7 +14,7 @@ let state = {
     allPlayers:        [],
     selectedPlayers:   [],
     lockedPlayerIds:   [],
-    baseSubsRemaining: 145,
+    baseSubsRemaining: 130,
     captainId:         null,
     viceCaptainId:     null,
     activeBooster:     "NONE",
@@ -111,7 +111,7 @@ async function init(user) {
 
         state.realTeamsMap      = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
         state.allPlayers        = players || [];
-        state.baseSubsRemaining = dashData?.subs_remaining ?? 145;
+        state.baseSubsRemaining = dashData?.subs_remaining ?? 130;
         state.usedBoosters      = boosterData?.used_boosters ?? [];
         state.lockedPlayerIds   = lastLock?.user_match_team_players?.map(p => p.player_id) || [];
 

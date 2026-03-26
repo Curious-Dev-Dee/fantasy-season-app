@@ -170,7 +170,7 @@ if (overallRankHeader) {
         if (dash.subs_remaining === 999) {
 if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "var(--accent)"; }
         } else {
-            if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 145; subsElement.style.color = ""; }
+            if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 130; subsElement.style.color = ""; }
         }
 
         
@@ -178,7 +178,7 @@ if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "v
 const progressFill = document.getElementById("seasonProgressFill");
 const progressLabel = document.getElementById("seasonProgressLabel");
 if (progressFill && dash.current_match_number != null) {
-    const total = 84;
+    const total = 74;
     const current = Math.min(dash.current_match_number, total);
     const pct = Math.round((current / total) * 100);
 requestAnimationFrame(() => {
