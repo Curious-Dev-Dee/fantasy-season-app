@@ -114,32 +114,47 @@ function renderMatches() {
         return;
     }
 
-    // Three groups:
-    // 1. LIVE — locked but points not yet processed
-    // 2. Upcoming — soonest first
-    // 3. Results — locked + points processed, or abandoned
     const live     = filtered.filter(m => m.status === "locked" && !m.points_processed);
     const upcoming = filtered.filter(m => m.status === "upcoming");
-    const results  = filtered.filter(m =>
+    const results  = filtered.filter(m => 
         (m.status === "locked" && m.points_processed) || m.status === "abandoned"
     );
 
-    // Sort upcoming soonest first, results most recent first
     upcoming.sort((a, b) => new Date(a.actual_start_time) - new Date(b.actual_start_time));
     results.sort((a, b) => new Date(b.actual_start_time) - new Date(a.actual_start_time));
 
+    // 1. Render LIVE Matches
     if (live.length) {
-        matchesContainer.appendChild(buildGroupHeader("🔴 Live"));
+        matchesContainer.appendChild(buildGroupHeader("🔴 Live Now"));
         live.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
     }
+
+    // 2. Render UPCOMING Matches (Grouped by Date)
     if (upcoming.length) {
-        matchesContainer.appendChild(buildGroupHeader("Upcoming"));
-        upcoming.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
+        const groupedUpcoming = groupByDate(upcoming);
+        for (const [dateLabel, matches] of Object.entries(groupedUpcoming)) {
+            matchesContainer.appendChild(buildGroupHeader(dateLabel));
+            matches.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
+        }
     }
+
+    // 3. Render RESULTS (Grouped by Date)
     if (results.length) {
-        matchesContainer.appendChild(buildGroupHeader("Results"));
+        matchesContainer.appendChild(buildGroupHeader("Recent Results"));
         results.forEach(m => matchesContainer.appendChild(buildMatchCard(m)));
     }
+}
+
+// Helper to group matches by localized date string
+function groupByDate(matches) {
+    const groups = {};
+    matches.forEach(m => {
+        const d = new Date(m.actual_start_time);
+        const dateKey = d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", year: "numeric" });
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(m);
+    });
+    return groups;
 }
 
 /* ─── MATCH CARD ─────────────────────────────────────────────────────────── */
@@ -149,17 +164,15 @@ function buildMatchCard(match) {
     const logoA  = getLogoUrl(tA);
     const logoB  = getLogoUrl(tB);
 
-    const dateStr = new Date(match.actual_start_time).toLocaleString("en-IN", {
-        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-    });
+    const dt = new Date(match.actual_start_time);
+    const timeStr = dt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
 
     // Card
     const card     = document.createElement("article");
+    const isLive   = match.status === "locked" && !match.points_processed;
     card.className = `match-card status-${match.status}`;
-    card.style.cursor = "pointer";
-card.onclick = () => window.open("https://crex.com/live-matches", "_blank");
 
-    // Top accent bar — avoids border-left + border-radius conflict
+    // Top accent bar
     const bar      = document.createElement("div");
     bar.className  = "match-accent-bar";
     card.appendChild(bar);
@@ -174,13 +187,14 @@ card.onclick = () => window.open("https://crex.com/live-matches", "_blank");
 
     const num      = document.createElement("span");
     num.className  = "match-num";
-    num.textContent = `Match#${match.match_number}`;
+    num.textContent = `Match ${match.match_number}`;
 
-    const dateEl   = document.createElement("span");
-    dateEl.className = "match-date";
-    dateEl.textContent = dateStr;
+    const chip     = document.createElement("span");
+    chip.className = `status-chip ${isLive ? "chip-live" : `chip-${match.status}`}`;
+    chip.textContent = isLive ? "LIVE" : match.status.toUpperCase();
+    if (isLive) chip.innerHTML = `<span class="live-dot"></span> LIVE`;
 
-    meta.append(num, dateEl);
+    meta.append(num, chip);
 
     // ── Teams row ──
     const teamsRow = document.createElement("div");
@@ -190,33 +204,38 @@ card.onclick = () => window.open("https://crex.com/live-matches", "_blank");
 
     const vs       = document.createElement("div");
     vs.className   = "match-vs";
-    vs.textContent = "VS";
+    vs.innerHTML   = `<div class="vs-time">${timeStr}</div><div class="vs-badge">VS</div>`;
     teamsRow.appendChild(vs);
 
     teamsRow.appendChild(buildTeamSlot(tB, logoB));
 
-    // ── Venue ──
+    // ── Footer ──
+    const footer = document.createElement("div");
+    footer.className = "match-footer";
+
     const venue    = document.createElement("div");
     venue.className = "match-venue";
-
     const icon     = document.createElement("i");
     icon.className = "fas fa-map-marker-alt";
-
     const venueText = document.createElement("span");
-    // BUG FIX: textContent (not innerHTML) — venue is user-entered DB data
     venueText.textContent = match.venue ? escapeHtml(match.venue) : "Venue TBA";
-
     venue.append(icon, venueText);
 
-    // ── Status chip ──
-    const chip     = document.createElement("span");
-    const isLive   = match.status === "locked" && !match.points_processed;
-    chip.className = `status-chip ${isLive ? "chip-live" : `chip-${match.status}`}`;
-    chip.textContent = isLive ? "LIVE" : match.status.toUpperCase();
-    if (isLive) {
-        chip.innerHTML = `<span class="live-dot"></span> LIVE`;
+    // Explicit Action Button instead of whole-card click
+    const actionBtn = document.createElement("button");
+    actionBtn.className = "card-action-btn";
+    
+    if (isLive || match.status === "abandoned" || (match.status === "locked" && match.points_processed)) {
+        actionBtn.innerHTML = `Scorecard <i class="fas fa-external-link-alt"></i>`;
+        actionBtn.onclick = () => window.open("https://crex.com/live-matches", "_blank");
+    } else {
+        actionBtn.innerHTML = `Match Hub <i class="fas fa-arrow-right"></i>`;
+        actionBtn.onclick = () => window.location.href = "match-preview.html"; // Keeps them in your app!
     }
-    inner.append(meta, teamsRow, venue, chip);
+
+    footer.append(venue, actionBtn);
+
+    inner.append(meta, teamsRow, footer);
     card.appendChild(inner);
     return card;
 }
