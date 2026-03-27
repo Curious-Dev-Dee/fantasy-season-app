@@ -169,7 +169,10 @@ function buildMatchCard(match) {
 
     // Card
     const card     = document.createElement("article");
+    
+    // We declare isLive ONCE here
     const isLive   = match.status === "locked" && !match.points_processed;
+    
     card.className = `match-card status-${match.status}`;
 
     // Top accent bar
@@ -227,7 +230,7 @@ function buildMatchCard(match) {
     const diffMs = matchTimeMs - now;
     const thirtyMinsMs = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-    const isLive = match.status === "locked" && !match.points_processed;
+    // We removed the duplicate `isLive` from here. 
     const isFinished = match.status === "abandoned" || (match.status === "locked" && match.points_processed);
 
     // Explicit Action Button
