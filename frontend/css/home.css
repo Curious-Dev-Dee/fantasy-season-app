@@ -886,8 +886,14 @@ body.loaded #loadingOverlay {
   gap: 8px;
 }
 
-.prize-sponsor-cell:first-child {
+/* Update cell borders to create a clean 2x2 dividing line */
+.prize-sponsor-cell:nth-child(odd) {
   border-right: 1px solid var(--border);
+}
+
+.prize-sponsor-cell:nth-child(1),
+.prize-sponsor-cell:nth-child(2) {
+  border-bottom: 1px solid var(--border);
 }
 
 .att-logo, .ffs-logo {
@@ -918,6 +924,73 @@ body.loaded #loadingOverlay {
   font-size: 9px;
   color: var(--text-faint);
   font-style: italic;
+}
+
+/* -------------------------------------
+   NEW SPONSOR STYLES: RED ZONE 
+   ------------------------------------- */
+.rz-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rz-icon {
+  font-size: 26px;
+  color: #ef4444; 
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+}
+
+.rz-wordmark {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  /* Red and black fiery gradient text */
+  background: linear-gradient(180deg, #ff4d4d 0%, #8b0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.rz-tagline, .dd-tagline {
+  font-family: var(--font-body);
+  font-size: 9px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* -------------------------------------
+   NEW SPONSOR STYLES: DOWNTOWN DELIGHT 
+   ------------------------------------- */
+.dd-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.dd-icon {
+  font-size: 26px;
+  /* Gold gradient to match the uploaded image */
+  background: linear-gradient(180deg, #ffd700 0%, #ffa500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.3));
+}
+
+.dd-wordmark {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 900;
+  color: #ffd700; /* Matching gold */
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-align: center;
 }
 
 .ffs-monogram {
