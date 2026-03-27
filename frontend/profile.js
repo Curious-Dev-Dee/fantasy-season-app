@@ -164,7 +164,7 @@ document.getElementById("profAvatarInput")?.addEventListener("change", async (e)
 /* ── SIGN OUT ── */
 document.getElementById("profSignOutBtn")?.addEventListener("click", async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    window.location.href = "/index";
 });
 
 function setText(id, val) {
