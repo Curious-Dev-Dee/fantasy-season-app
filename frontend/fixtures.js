@@ -221,16 +221,42 @@ function buildMatchCard(match) {
     venueText.textContent = match.venue ? escapeHtml(match.venue) : "Venue TBA";
     venue.append(icon, venueText);
 
-    // Explicit Action Button instead of whole-card click
+    // Calculate exact time difference
+    const now = new Date().getTime();
+    const matchTimeMs = new Date(match.actual_start_time).getTime();
+    const diffMs = matchTimeMs - now;
+    const thirtyMinsMs = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+    const isLive = match.status === "locked" && !match.points_processed;
+    const isFinished = match.status === "abandoned" || (match.status === "locked" && match.points_processed);
+
+    // Explicit Action Button
     const actionBtn = document.createElement("button");
     actionBtn.className = "card-action-btn";
     
-    if (isLive || match.status === "abandoned" || (match.status === "locked" && match.points_processed)) {
-        actionBtn.innerHTML = `Scorecard <i class="fas fa-external-link-alt"></i>`;
+    if (isFinished) {
+        // 1. FINISHED MATCHES
+        actionBtn.innerHTML = `Scorecard <i class="fas fa-external-link-alt" style="font-size: 9px; margin-left: 4px;"></i>`;
         actionBtn.onclick = () => window.open("https://crex.com/live-matches", "_blank");
-    } else {
-        actionBtn.innerHTML = `Match Hub <i class="fas fa-arrow-right"></i>`;
-        actionBtn.onclick = () => window.location.href = "match-preview.html"; // Keeps them in your app!
+    } 
+    else if (isLive || (match.status === "upcoming" && diffMs <= 0)) {
+        // 2. LIVE MATCHES (Match has started)
+        actionBtn.innerHTML = `<span class="live-dot"></span> Live Scoreboard <i class="fas fa-external-link-alt" style="font-size: 9px; margin-left: 4px;"></i>`;
+        actionBtn.style.color = "var(--red)"; 
+        actionBtn.style.borderColor = "rgba(239, 68, 68, 0.3)";
+        actionBtn.onclick = () => window.open("https://crex.com/live-matches", "_blank");
+    } 
+    else if (match.status === "upcoming" && diffMs > 0 && diffMs <= thirtyMinsMs) {
+        // 3. TOSS WINDOW (30 mins before start)
+        actionBtn.innerHTML = `Check Playing XI <i class="fas fa-external-link-alt" style="font-size: 9px; margin-left: 4px;"></i>`;
+        actionBtn.style.color = "#fb923c"; // Orange color to grab attention
+        actionBtn.style.borderColor = "rgba(251, 146, 60, 0.3)";
+        actionBtn.onclick = () => window.open("https://crex.com/live-matches", "_blank");
+    } 
+    else {
+        // 4. UPCOMING MATCHES (> 30 mins away)
+        actionBtn.innerHTML = `Match Hub <i class="fas fa-arrow-right" style="font-size: 9px; margin-left: 4px;"></i>`;
+        actionBtn.onclick = () => window.location.href = "match-preview.html"; 
     }
 
     footer.append(venue, actionBtn);
