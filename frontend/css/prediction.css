@@ -1584,3 +1584,66 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── TEAM BUILDER OVERRIDES FOR FUN ZONE ──────────────────────── */
+.team-builder-ui {
+    background: var(--bg-card);
+    border: 1px solid var(--fun-cyan-bdr);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+/* Override sticky controls to sit relative inside the card */
+.team-builder-ui .sticky-controls {
+    position: relative;
+    top: 0;
+    z-index: 10;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 10px;
+}
+
+/* Make the Save Bar static inside the card */
+.team-builder-ui .save-bar {
+    position: static;
+    margin-top: 10px;
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    padding: 15px;
+    background: var(--bg-card-alt);
+    border-top: 1px solid var(--border);
+    transform: none;
+}
+
+.team-builder-ui .save-btn {
+    width: 100%;
+    background: var(--fun-cyan);
+    color: #000;
+}
+
+.team-builder-ui .save-btn:disabled {
+    background: var(--bg-card);
+    color: var(--text-faint);
+    border: 1px solid var(--border-subtle);
+}
+
+.team-builder-ui .player-list {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+/* Custom search input */
+.tb-search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(0,0,0,0.2);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    margin-top: 10px;
+    outline: none;
+}
+.tb-search-input:focus { border-color: var(--fun-cyan); }
