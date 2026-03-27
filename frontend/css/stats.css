@@ -437,3 +437,101 @@ body {
     .dropdown-arrow,
     .player-card { transition: none !important; animation: none !important; }
 }
+/* ─── TOURNAMENT INSIGHTS DASHBOARD ─────────────────── */
+.st-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--card-radius);
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.st-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.st-section-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+}
+
+.st-section-icon.gd { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+.st-section-icon.pu { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+
+.st-section-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Mini Player List */
+.st-player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.st-player-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+}
+
+.st-player-rank {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 12px; font-weight: 900;
+}
+.st-player-rank.r1 { background: var(--gold); color: #000; }
+.st-player-rank.r2 { background: var(--border-card); color: var(--text-primary); }
+.st-player-rank.r3 { background: rgba(245,158,11,0.2); color: var(--gold); }
+
+.st-player-info { flex: 1; }
+.st-player-name { display: block; font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-primary); text-transform: uppercase; margin-bottom: 2px;}
+.st-player-meta { display: block; font-size: 11px; color: var(--text-faint); }
+.st-player-pts { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--accent); }
+.st-player-pts-lbl { font-size: 10px; color: var(--text-dim); }
+
+/* Grid of Stat Leaders */
+.st-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.st-stat-cell {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+
+.st-stat-icon { font-size: 20px; margin-bottom: 2px; }
+.st-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--accent); line-height: 1; }
+.st-stat-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.st-stat-sub { font-family: var(--font-display); font-size: 12px; color: var(--white); font-weight: 700; text-transform: uppercase; margin-top: 4px;}
+
+.st-dir-header {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    letter-spacing: 1px;
+    margin: 24px 0 10px 4px;
+}
