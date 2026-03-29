@@ -436,6 +436,13 @@ inviteCodeEl.style.color = "var(--accent)";
         .order("total_points", { ascending: false })
         .limit(3);
 
+        const { data: myRow } = await supabase
+    .from("private_league_leaderboard")
+    .select("rank_in_league, total_points")
+    .eq("league_id", m.league_id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
     if (lb && containerEl) {
         containerEl.innerHTML = "";
         lb.forEach(row => {
@@ -462,18 +469,17 @@ ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
             containerEl.appendChild(rowDiv);
         });
 
-const userRow  = lb.find(r => r.user_id === userId);
 const rankSpan = document.getElementById("privateLeagueRank");
 if (rankSpan) {
-    if (userRow && userRow.total_points > 0) {
-        rankSpan.textContent = `#${userRow.rank_in_league}`;
+    if (myRow && myRow.total_points > 0) {
+        rankSpan.textContent = `#${myRow.rank_in_league}`;
         rankSpan.classList.remove("pre-season");
     } else {
         rankSpan.textContent = "Pre-Season";
         rankSpan.classList.add("pre-season");
     }
 }
-currentUserPrivateRank = userRow?.rank_in_league ?? Infinity;
+currentUserPrivateRank = myRow?.rank_in_league ?? Infinity;
     } else {
         currentUserPrivateRank = Infinity;
     }
