@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prizes — Cricket Experts IPL 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-page, #020617);
+      color: var(--text-primary, #f0f4f8);
+      font-family: var(--font-body, 'DM Sans', sans-serif);
+      min-height: 100vh;
+      padding-bottom: 100px;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── HEADER ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(2,6,23,0.95);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .back-btn {
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: var(--text-dim, #94a3b8);
+      font-size: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { background: rgba(154,224,0,0.08); border-color: rgba(154,224,0,0.25); color: #9AE000; }
+
+    .page-header-text { flex: 1; min-width: 0; }
+
+    .page-header-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 900;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: #9AE000; display: block; margin-bottom: 1px;
+    }
+
+    .page-header-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.3px;
+      color: var(--text-primary, #f0f4f8);
+      line-height: 1;
+    }
+
+    /* ── HERO BANNER ── */
+    .prizes-hero {
+      padding: 32px 16px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prizes-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(154,224,0,0.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(154,224,0,0.09);
+      border: 1px solid rgba(154,224,0,0.25);
+      border-radius: 20px; padding: 5px 13px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: #9AE000; margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(38px, 10vw, 56px);
+      font-weight: 900; line-height: 0.92;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .hero-title .grn { color: #9AE000; }
+    .hero-title .ital { font-style: italic; }
+
+    .hero-sub {
+      font-size: 13px;
+      color: var(--text-faint, #475569);
+      line-height: 1.6;
+      max-width: 320px; margin: 0 auto;
+    }
+
+    /* ── SECTION WRAPPER ── */
+    .prizes-wrap {
+      padding: 8px 16px 0;
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 900;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--text-faint, #475569);
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .section-eyebrow::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ── PRIZE CARD ── */
+    .prize-card {
+      background: #0d1625;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .prize-card-accent {
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+
+    .prize-card-body {
+      padding: 16px 18px 18px;
+    }
+
+    /* Rank badge row */
+    .rank-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .rank-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px; font-weight: 900;
+      line-height: 1; min-width: 40px;
+    }
+
+    .rank-badge.gold   { color: #f59e0b; text-shadow: 0 0 20px rgba(245,158,11,0.3); }
+    .rank-badge.silver { color: #94a3b8; text-shadow: 0 0 16px rgba(148,163,184,0.2); }
+    .rank-badge.bronze { color: #cd7c3f; text-shadow: 0 0 16px rgba(205,124,63,0.2); }
+
+    .rank-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-faint, #475569);
+    }
+
+    /* Prize rows inside a card */
+    .prize-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .prize-row:first-child { border-top: none; padding-top: 0; }
+
+    .prize-icon-wrap {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+
+    .prize-row-info { flex: 1; min-width: 0; }
+
+    .prize-row-what {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.3px;
+      color: #f0f4f8; line-height: 1.1; display: block;
+    }
+
+    .prize-row-by {
+      font-size: 11px; color: var(--text-faint, #475569);
+      display: block; margin-top: 2px; line-height: 1.4;
+    }
+
+    .prize-row-by strong { color: var(--text-dim, #94a3b8); font-weight: 600; }
+
+    .prize-amount {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px; font-weight: 900;
+      color: #9AE000; letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    /* ── TOP 3 CASH PODIUM ── */
+    .podium-card {
+      background: linear-gradient(145deg, #0d1625, #091220);
+      border: 1px solid rgba(245,158,11,0.20);
+      border-radius: 16px; overflow: hidden; position: relative;
+    }
+
+    .podium-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, #f59e0b, rgba(245,158,11,0.3));
+    }
+
+    .podium-card-body { padding: 16px 18px 18px; }
+
+    .podium-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .podium-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .podium-row:first-child { padding-top: 0; }
+
+    .podium-medal {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 900;
+      flex-shrink: 0;
+    }
+    .podium-medal.g { background: rgba(245,158,11,0.14); border: 1.5px solid rgba(245,158,11,0.35); color: #f59e0b; }
+    .podium-medal.s { background: rgba(148,163,184,0.10); border: 1.5px solid rgba(148,163,184,0.28); color: #94a3b8; }
+    .podium-medal.b { background: rgba(205,124,63,0.10);  border: 1.5px solid rgba(205,124,63,0.28);  color: #cd7c3f; }
+
+    .podium-info { flex: 1; min-width: 0; }
+    .podium-rank {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 800; text-transform: uppercase;
+      color: var(--text-faint, #475569); display: block; line-height: 1;
+      margin-bottom: 2px;
+    }
+    .podium-prize {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 800; text-transform: uppercase;
+      color: #f0f4f8; display: block;
+    }
+
+    .podium-cash {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px; font-weight: 900; flex-shrink: 0;
+    }
+    .podium-cash.g { color: #f59e0b; }
+    .podium-cash.s { color: #94a3b8; }
+    .podium-cash.b { color: #cd7c3f; }
+
+    /* ── ORGANISER CARD (medals) ── */
+    .organiser-card {
+      background: #0d1625;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; overflow: hidden; position: relative;
+    }
+
+    .organiser-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, #94a3b8, rgba(148,163,184,0.2));
+    }
+
+    .organiser-card-body { padding: 16px 18px 18px; }
+
+    .organiser-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .organiser-row:first-child { border-top: none; padding-top: 0; }
+
+    .organiser-medal {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .organiser-medal.g { background: rgba(245,158,11,0.12); }
+    .organiser-medal.s { background: rgba(148,163,184,0.08); }
+    .organiser-medal.b { background: rgba(205,124,63,0.08); }
+
+    .organiser-info { flex: 1; min-width: 0; }
+    .organiser-team {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 800;
+      text-transform: uppercase; color: #f0f4f8;
+      display: block; line-height: 1.1;
+    }
+    .organiser-manager {
+      font-size: 11px; color: var(--text-faint, #475569);
+      display: block; margin-top: 1px;
+    }
+
+    /* ── SPONSOR CARDS (bottom) ── */
+    .sponsor-section-card {
+      background: #0d1625;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+
+    .sponsor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .sponsor-block {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 12px 10px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; text-align: center;
+    }
+
+    .sponsor-icon-wrap {
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; margin-bottom: 2px;
+    }
+
+    .sponsor-block-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.3px;
+      color: #f0f4f8; line-height: 1.1;
+    }
+
+    .sponsor-block-tagline {
+      font-size: 9px; color: var(--text-faint, #475569);
+      font-style: italic; line-height: 1.3;
+    }
+
+    /* ── NOTE ── */
+    .prizes-note {
+      text-align: center;
+      font-size: 11px; color: var(--text-faint, #475569);
+      line-height: 1.6;
+      padding: 8px 16px 4px;
+      max-width: 500px; margin: 0 auto;
+    }
+
+    /* animations */
+    .fu { opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
+    .fu.vis { opacity: 1; transform: translateY(0); }
+    .fu:nth-child(2) { transition-delay: 0.06s; }
+    .fu:nth-child(3) { transition-delay: 0.12s; }
+    .fu:nth-child(4) { transition-delay: 0.18s; }
+    .fu:nth-child(5) { transition-delay: 0.24s; }
+    .fu:nth-child(6) { transition-delay: 0.30s; }
+    .fu:nth-child(7) { transition-delay: 0.36s; }
+    .fu:nth-child(8) { transition-delay: 0.42s; }
+  </style>
+
+  <script type="module" src="auth-guard.js"></script>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="page-header">
+  <button class="back-btn" onclick="history.back()" aria-label="Go back">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+  <div class="page-header-text">
+    <span class="page-header-eyebrow">IPL 2026 Fantasy</span>
+    <span class="page-header-title">Season Prizes</span>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="prizes-hero">
+  <div class="hero-pill">
+    <i class="fas fa-trophy" style="font-size:10px"></i>
+    Season-End Awards
+  </div>
+  <h1 class="hero-title">
+    Win Big.<br>
+    <span class="grn ital">Play Free.</span>
+  </h1>
+  <p class="hero-sub">Top performers at season end take home real prizes — cash, trophies, medals and more.</p>
+</div>
+
+<div class="prizes-wrap">
+
+  <!-- ── CASH PRIZES ── -->
+  <div>
+    <div class="section-eyebrow">💰 Cash Prizes</div>
+    <div class="podium-card fu">
+      <div class="podium-card-body">
+
+        <div class="podium-row">
+          <div class="podium-medal g">1</div>
+          <div class="podium-info">
+            <span class="podium-rank">Rank 1</span>
+            <span class="podium-prize">Cash Prize</span>
+          </div>
+          <span class="podium-cash g">₹1,200</span>
+        </div>
+
+        <div class="podium-row">
+          <div class="podium-medal s">2</div>
+          <div class="podium-info">
+            <span class="podium-rank">Rank 2</span>
+            <span class="podium-prize">Cash Prize</span>
+          </div>
+          <span class="podium-cash s">₹800</span>
+        </div>
+
+        <div class="podium-row">
+          <div class="podium-medal b">3</div>
+          <div class="podium-info">
+            <span class="podium-rank">Rank 3</span>
+            <span class="podium-prize">Cash Prize</span>
+          </div>
+          <span class="podium-cash b">₹500</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TROPHIES ── -->
+  <div>
+    <div class="section-eyebrow">🏆 Trophies · by Red Zone</div>
+    <div class="prize-card fu">
+      <div class="prize-card-accent" style="background: linear-gradient(90deg, #ef4444, rgba(239,68,68,0.2));"></div>
+      <div class="prize-card-body">
+
+        <div class="prize-row">
+          <div class="prize-icon-wrap" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25)">🏆</div>
+          <div class="prize-row-info">
+            <span class="prize-row-what">Gold Trophy</span>
+            <span class="prize-row-by">Rank 1 · Premium trophy by <strong>Red Zone</strong></span>
+          </div>
+        </div>
+
+        <div class="prize-row">
+          <div class="prize-icon-wrap" style="background:rgba(148,163,184,0.08);border:1px solid rgba(148,163,184,0.18)">🏆</div>
+          <div class="prize-row-info">
+            <span class="prize-row-what">Silver Trophy</span>
+            <span class="prize-row-by">Rank 2 · Premium trophy by <strong>Red Zone</strong></span>
+          </div>
+        </div>
+
+        <div class="prize-row">
+          <div class="prize-icon-wrap" style="background:rgba(205,124,63,0.08);border:1px solid rgba(205,124,63,0.2)">🏆</div>
+          <div class="prize-row-info">
+            <span class="prize-row-what">Bronze Trophy</span>
+            <span class="prize-row-by">Rank 3 · Premium trophy by <strong>Red Zone</strong></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MEDALS ── -->
+  <div>
+    <div class="section-eyebrow">🥇 Medals · by Cricket Experts</div>
+    <div class="organiser-card fu">
+      <div class="organiser-card-body">
+        <p style="font-size:12px;color:var(--text-faint,#475569);margin-bottom:12px;line-height:1.5;">
+          Top 3 managers receive official Cricket Experts medals, personally presented by the organising team.
+        </p>
+
+        <div class="organiser-row">
+          <div class="organiser-medal g">🥇</div>
+          <div class="organiser-info">
+            <span class="organiser-team">Team Slow Poison</span>
+            <span class="organiser-manager">Sanjeeb Patra · Organiser</span>
+          </div>
+        </div>
+
+        <div class="organiser-row">
+          <div class="organiser-medal s">🥈</div>
+          <div class="organiser-info">
+            <span class="organiser-team">Team Royal Challengers Cuttack</span>
+            <span class="organiser-manager">RK Biswal · Organiser</span>
+          </div>
+        </div>
+
+        <div class="organiser-row">
+          <div class="organiser-medal b">🥉</div>
+          <div class="organiser-info">
+            <span class="organiser-team">Team AvengersCTC</span>
+            <span class="organiser-manager">Dipak Sahoo · Organiser</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SPONSOR PRIZES ── -->
+  <div>
+    <div class="section-eyebrow">🎁 Sponsor Prizes</div>
+
+    <!-- T-Shirt -->
+    <div class="prize-card fu" style="margin-bottom:8px;">
+      <div class="prize-card-accent" style="background: linear-gradient(90deg, #a78bfa, rgba(167,139,250,0.2));"></div>
+      <div class="prize-card-body">
+        <div class="prize-row" style="padding-top:0;border-top:none;">
+          <div class="prize-icon-wrap" style="background:rgba(139,92,246,0.10);border:1px solid rgba(139,92,246,0.22)">👕</div>
+          <div class="prize-row-info">
+            <span class="prize-row-what">Funky T-Shirt</span>
+            <span class="prize-row-by">Rank 1 only · by <strong>All That Trend</strong></span>
+            <span class="prize-row-by" style="margin-top:2px;font-style:italic">Redefining Men's Style</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sports Cap -->
+    <div class="prize-card fu" style="margin-bottom:8px;">
+      <div class="prize-card-accent" style="background: linear-gradient(90deg, #06b6d4, rgba(6,182,212,0.2));"></div>
+      <div class="prize-card-body">
+        <div class="prize-row" style="padding-top:0;border-top:none;">
+          <div class="prize-icon-wrap" style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.20)">🧢</div>
+          <div class="prize-row-info">
+            <span class="prize-row-what">Premium Sports Cap</span>
+            <span class="prize-row-by">Rank 1 & Rank 2 · by <strong>Friends Fancy Store</strong></span>
+            <span class="prize-row-by" style="margin-top:2px;font-style:italic">Caps · Sunglasses · Watches</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Biryani -->
+    <div class="prize-card fu">
+      <div class="prize-card-accent" style="background: linear-gradient(90deg, #ef4444, rgba(239,68,68,0.2));"></div>
+      <div class="prize-card-body">
+        <div class="prize-row" style="padding-top:0;border-top:none;">
+          <div class="prize-icon-wrap" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.20)">🍛</div>
+          <div class="prize-row-info">
+            <span class="prize-row-what">Dum Biryani Treat</span>
+            <span class="prize-row-by">Rank 1 & Rank 2 · by <strong>Downtown Delight</strong></span>
+            <span class="prize-row-by" style="margin-top:2px;font-style:italic">Best Biryani in Bhubaneswar 🔥</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SPONSORS ── -->
+  <div>
+    <div class="section-eyebrow">🤝 Our Sponsors</div>
+    <div class="sponsor-section-card fu">
+      <div class="sponsor-grid">
+
+        <div class="sponsor-block">
+          <div class="sponsor-icon-wrap" style="background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.20)">👕</div>
+          <span class="sponsor-block-name">All That<br>Trend</span>
+          <span class="sponsor-block-tagline">Redefining Men's Style</span>
+        </div>
+
+        <div class="sponsor-block">
+          <div class="sponsor-icon-wrap" style="background:rgba(251,146,60,0.10);border:1px solid rgba(251,146,60,0.20)">🧢</div>
+          <span class="sponsor-block-name">Friends<br>Fancy Store</span>
+          <span class="sponsor-block-tagline">Caps · Sunglasses · Watches</span>
+        </div>
+
+        <div class="sponsor-block">
+          <div class="sponsor-icon-wrap" style="background:rgba(255,215,0,0.10);border:1px solid rgba(255,215,0,0.20)">🍛</div>
+          <span class="sponsor-block-name">Downtown<br>Delight</span>
+          <span class="sponsor-block-tagline">Best Biryani in Bhubaneswar</span>
+        </div>
+
+        <div class="sponsor-block">
+          <div class="sponsor-icon-wrap" style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.20)"><i class="fas fa-fire" style="color:#ef4444;font-size:15px"></i></div>
+          <span class="sponsor-block-name">Red<br>Zone</span>
+          <span class="sponsor-block-tagline">The Premium Club</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- note -->
+<p class="prizes-note fu" style="margin-top:16px;">
+  Prizes awarded at season end based on final leaderboard standings. All decisions by Cricket Experts are final. This is a fan-made platform — not affiliated with BCCI or IPL.
+</p>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="experts-dugout.html"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+  <a href="stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+</nav>
+
+<script>
+  const io = new IntersectionObserver(
+    entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("vis"); }),
+    { threshold: 0.08 }
+  );
+  document.querySelectorAll(".fu").forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
