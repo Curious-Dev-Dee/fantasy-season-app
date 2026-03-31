@@ -330,7 +330,46 @@ body.loaded #loadingOverlay {
     box-shadow: 0 0 12px rgba(124, 196, 255, 0.35);
 }
 
-/*
+
+/* ─── PLAYING STATUS RINGS ───────────────────────── */
+/* Applied to .player-circle, colours the avatar border */
+
+.player-circle.status-playing .avatar {
+    border-color: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.player-circle.status-impact .avatar {
+    border-color: #3b82f6;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
+}
+
+.player-circle.status-not-playing .avatar {
+    border-color: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
+    opacity: 0.55;
+}
+
+/* When captain/vc ring AND status ring both apply,
+   status ring wins (it has more info value) */
+.player-circle.captain.status-playing .avatar,
+.player-circle.vice-captain.status-playing .avatar {
+    border-color: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.player-circle.captain.status-impact .avatar,
+.player-circle.vice-captain.status-impact .avatar {
+    border-color: #3b82f6;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
+}
+
+.player-circle.captain.status-not-playing .avatar,
+.player-circle.vice-captain.status-not-playing .avatar {
+    border-color: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
+    opacity: 0.55;
+}/*
    CHANGE: team-init-label was 7px — below minimum readable size.
    Bumped to 9px. Still compact but actually legible on mobile.
 */

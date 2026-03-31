@@ -124,24 +124,31 @@ function calculateMatchTotal(players, statsMap, captainId, viceCaptainId, booste
 }
 
 /* ─── PLAYER CIRCLE ──────────────────────────────────────────────────────── */
-function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId = null, booster = "NONE", momId = null) {
+function buildPlayerCircle(
+    player, captainId, viceCaptainId,
+    statsMap, matchId = null, booster = "NONE", momId = null,
+    playerStatuses = {},  // NEW
+    matchTeamIds   = []   // NEW
+) {
     const wrapper = document.createElement("div");
     wrapper.className = "player-circle";
-    if (player.id === captainId)    wrapper.classList.add("captain");
+    if (player.id === captainId)     wrapper.classList.add("captain");
     if (player.id === viceCaptainId) wrapper.classList.add("vice-captain");
 
     if (matchId) {
         wrapper.style.cursor = "pointer";
-        wrapper.addEventListener("click", () => window.openPlayerPointLog(player.id, matchId));
+        wrapper.addEventListener("click", () =>
+            window.openPlayerPointLog(player.id, matchId)
+        );
     }
 
+    // ── C / VC BADGES (unchanged) ──────────────────────
     if (player.id === captainId) {
         const badge = document.createElement("div");
         badge.className   = "badge captain-badge";
         badge.textContent = "C";
         wrapper.appendChild(badge);
     }
-
     if (player.id === viceCaptainId) {
         const badge = document.createElement("div");
         badge.className   = "badge vice-badge";
@@ -149,9 +156,34 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
         wrapper.appendChild(badge);
     }
 
+    // ── PLAYING STATUS RING ─────────────────────────────
+    // Only show a ring if this player's real team is playing in this match
+    const playerInThisMatch = matchTeamIds.includes(player.real_team_id);
+
+    if (playerInThisMatch && Object.keys(playerStatuses).length > 0) {
+        let status = playerStatuses[player.id];  // "playing", "impact", "not-playing", or undefined
+
+        // Impact → upgrade to playing if they have any fantasy points
+        // (means they were promoted from impact list mid-game)
+        if (status === "impact" && statsMap && (statsMap[player.id] ?? 0) !== 0) {
+            status = "playing";
+        }
+
+        if (status === "playing") {
+            wrapper.classList.add("status-playing");
+        } else if (status === "impact") {
+            wrapper.classList.add("status-impact");
+        } else if (status === "not-playing") {
+            wrapper.classList.add("status-not-playing");
+        }
+        // undefined = no ring (player not in statuses yet, or not relevant)
+    }
+
+    // ── AVATAR ──────────────────────────────────────────
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-    avatar.style.backgroundImage = `url('${getPhotoUrl("player-photos", player.photo_url)}')`;
+    avatar.style.backgroundImage =
+        `url('${getPhotoUrl("player-photos", player.photo_url)}')`;
 
     const teamLabel = document.createElement("div");
     teamLabel.className   = "team-init-label";
@@ -160,14 +192,18 @@ function buildPlayerCircle(player, captainId, viceCaptainId, statsMap, matchId =
 
     const name = document.createElement("div");
     name.className   = "player-name";
-    name.textContent = player.name ? player.name.split(" ").pop() : "Player";
+    name.textContent = player.name
+        ? player.name.split(" ").pop()
+        : "Player";
 
     wrapper.append(avatar, name);
 
     if (statsMap) {
         const pts = document.createElement("div");
         pts.className   = "player-pts";
-        pts.textContent = `${calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, momId)} pts`;
+        pts.textContent = `${calculateDisplayedPlayerPoints(
+            player, statsMap, captainId, viceCaptainId, booster, momId
+        )} pts`;
         wrapper.appendChild(pts);
     }
 
@@ -495,7 +531,8 @@ async function loadLastLockedXI() {
 
     const { data: snapshot } = await supabase
         .from("user_match_teams")
-        .select("*, matches(man_of_the_match_id)")
+        // ADD: player_statuses, fantasy_points via matches
+        .select("*, matches(man_of_the_match_id, team_a_id, team_b_id, player_statuses)")
         .eq("user_id", userId)
         .eq("tournament_id", tournamentId)
         .order("locked_at", { ascending: false })
@@ -509,8 +546,15 @@ async function loadLastLockedXI() {
         return;
     }
 
-    const momId   = snapshot.matches?.man_of_the_match_id || null;
-    const booster = getAppliedBooster(snapshot);
+    const momId         = snapshot.matches?.man_of_the_match_id || null;
+    const booster       = getAppliedBooster(snapshot);
+    // NEW: extract statuses and match teams
+    const playerStatuses = snapshot.matches?.player_statuses || {};
+    const matchTeamIds   = [
+        snapshot.matches?.team_a_id,
+        snapshot.matches?.team_b_id,
+    ].filter(Boolean);
+
     updateBoosterIndicator(boosterIndicator, booster);
 
     const { data: teamPlayers } = await supabase
@@ -521,22 +565,49 @@ async function loadLastLockedXI() {
     const playerIds = (teamPlayers || []).map(p => p.player_id);
 
     const [{ data: players }, { data: stats }] = await Promise.all([
-        playerIds.length ? supabase.from("players").select("*").in("id", playerIds) : Promise.resolve({ data: [] }),
-        supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id),
+        playerIds.length
+            ? supabase.from("players").select("*").in("id", playerIds)
+            : Promise.resolve({ data: [] }),
+        supabase.from("player_match_stats")
+            .select("player_id, fantasy_points")
+            .eq("match_id", snapshot.match_id),
     ]);
 
-    const statsMap    = Object.fromEntries((stats || []).map(r => [r.player_id, r.fantasy_points]));
+    const statsMap   = Object.fromEntries(
+        (stats || []).map(r => [r.player_id, r.fantasy_points])
+    );
     const teamPlayers_ = players || [];
 
-    renderTeamLayout(teamPlayers_, snapshot.captain_id, snapshot.vice_captain_id, statsMap, teamContainer, snapshot.match_id, booster, momId);
+    renderTeamLayout(
+        teamPlayers_,
+        snapshot.captain_id,
+        snapshot.vice_captain_id,
+        statsMap,
+        teamContainer,
+        snapshot.match_id,
+        booster,
+        momId,
+        playerStatuses,  // NEW
+        matchTeamIds     // NEW
+    );
 
-    const fallback   = calculateMatchTotal(teamPlayers_, statsMap, snapshot.captain_id, snapshot.vice_captain_id, booster, momId);
+    const fallback   = calculateMatchTotal(
+        teamPlayers_, statsMap,
+        snapshot.captain_id, snapshot.vice_captain_id,
+        booster, momId
+    );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
     setTeamStatus(`${finalTotal} pts · ${snapshot.subs_used_for_match} subs used`);
 }
 
 /* ─── TEAM LAYOUT RENDERER ───────────────────────────────────────────────── */
-function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container, matchId = null, booster = "NONE", momId = null) {
+function renderTeamLayout(
+    players, captainId, viceCaptainId,
+    statsMap, container,
+    matchId = null, booster = "NONE", momId = null,
+    playerStatuses = {},   // NEW
+    matchTeamIds   = []    // NEW
+) {
     container.replaceChildren();
     for (const role of ["WK", "BAT", "AR", "BOWL"]) {
         const rolePlayers = players.filter(p => p.role === role);
@@ -549,7 +620,12 @@ function renderTeamLayout(players, captainId, viceCaptainId, statsMap, container
         const row = document.createElement("div");
         row.className = "player-row";
         rolePlayers.forEach(p => row.appendChild(
-            buildPlayerCircle(p, captainId, viceCaptainId, statsMap, matchId, booster, momId)
+            buildPlayerCircle(
+                p, captainId, viceCaptainId,
+                statsMap, matchId, booster, momId,
+                playerStatuses,  // NEW
+                matchTeamIds     // NEW
+            )
         ));
 
         section.appendChild(row);
@@ -647,37 +723,62 @@ window.viewMatchBreakdown = async snapshotId => {
     const breakdownOverlay   = document.getElementById("breakdownOverlay");
 
     breakdownOverlay.classList.remove("hidden");
-    // BUG FIX #13: Always reset scroll when opening a new breakdown
     breakdownOverlay.querySelector(".breakdown-body")?.scrollTo(0, 0);
     setSpinner(breakdownContainer);
 
     const [{ data: snapshot }, { data: teamPlayers }] = await Promise.all([
-        supabase.from("user_match_teams").select("*, matches(*)").eq("id", snapshotId).single(),
-        supabase.from("user_match_team_players").select("player_id").eq("user_match_team_id", snapshotId),
+        supabase.from("user_match_teams")
+            .select("*, matches(match_number, team_a_id, team_b_id, man_of_the_match_id, player_statuses)")
+            .eq("id", snapshotId)
+            .single(),
+        supabase.from("user_match_team_players")
+            .select("player_id")
+            .eq("user_match_team_id", snapshotId),
     ]);
 
     if (!snapshot) { setEmptyState(breakdownContainer, "Data unavailable."); return; }
 
-    const momId   = snapshot.matches?.man_of_the_match_id || null;
-    const booster = getAppliedBooster(snapshot);
+    const momId          = snapshot.matches?.man_of_the_match_id || null;
+    const booster        = getAppliedBooster(snapshot);
+    const playerStatuses = snapshot.matches?.player_statuses || {};
+    const matchTeamIds   = [
+        snapshot.matches?.team_a_id,
+        snapshot.matches?.team_b_id,
+    ].filter(Boolean);
+
     breakdownTitle.textContent = `Match ${snapshot.matches.match_number}`;
     updateBoosterIndicator(breakdownBooster, booster);
 
     const playerIds = (teamPlayers || []).map(p => p.player_id);
     const [{ data: players }, { data: stats }] = await Promise.all([
-        playerIds.length ? supabase.from("players").select("*").in("id", playerIds) : Promise.resolve({ data: [] }),
-        supabase.from("player_match_stats").select("player_id, fantasy_points").eq("match_id", snapshot.match_id),
+        playerIds.length
+            ? supabase.from("players").select("*").in("id", playerIds)
+            : Promise.resolve({ data: [] }),
+        supabase.from("player_match_stats")
+            .select("player_id, fantasy_points")
+            .eq("match_id", snapshot.match_id),
     ]);
 
-    const statsMap = Object.fromEntries((stats || []).map(s => [s.player_id, s.fantasy_points]));
+    const statsMap = Object.fromEntries(
+        (stats || []).map(s => [s.player_id, s.fantasy_points])
+    );
     const bPlayers = players || [];
 
-    renderTeamLayout(bPlayers, snapshot.captain_id, snapshot.vice_captain_id, statsMap, breakdownContainer, snapshot.match_id, booster, momId);
+    renderTeamLayout(
+        bPlayers,
+        snapshot.captain_id, snapshot.vice_captain_id,
+        statsMap,
+        breakdownContainer,
+        snapshot.match_id,
+        booster,
+        momId,
+        playerStatuses,
+        matchTeamIds
+    );
 
     const fallback   = calculateMatchTotal(bPlayers, statsMap, snapshot.captain_id, snapshot.vice_captain_id, booster, momId);
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
 
-    // BUG FIX #9: removed inline style — uses .breakdown-footer-text class
     breakdownFooter.innerHTML = `
         <span class="breakdown-pts">${finalTotal} pts</span>
         <span class="breakdown-subs">${snapshot.subs_used_for_match} subs</span>`;

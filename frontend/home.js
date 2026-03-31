@@ -25,7 +25,6 @@ const editButton             = document.getElementById("editXiBtn");
 const boosterStatusEl        = document.getElementById("boosterStatus");
 const profileModal           = document.getElementById("profileModal");
 const saveProfileBtn         = document.getElementById("saveProfileBtn");
-const modalFullName = null;
 const modalTeamName = document.getElementById("modalTeamName");
 const avatarInput            = document.getElementById("avatarInput");
 const modalPreview           = document.getElementById("modalAvatarPreview");
