@@ -110,9 +110,25 @@ async function init(user) {
         ]);
 
         state.realTeamsMap      = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
-        state.allPlayers        = players || [];
-        state.baseSubsRemaining = dashData?.subs_remaining ?? 130;
-        state.usedBoosters      = boosterData?.used_boosters ?? [];
+state.baseSubsRemaining = dashData?.subs_remaining ?? 130;
+state.usedBoosters      = boosterData?.used_boosters ?? [];
+
+// Compute real season points from match stats and merge into players
+const { data: seasonTotals } = await supabase
+    .from("player_match_stats")
+    .select("player_id, fantasy_points")
+    .eq("tournament_id", activeTournamentId);
+
+const seasonPtsMap = {};
+for (const row of seasonTotals || []) {
+    seasonPtsMap[row.player_id] = (seasonPtsMap[row.player_id] || 0) + (row.fantasy_points || 0);
+}
+
+state.allPlayers = (players || []).map(p => ({
+    ...p,
+    season_points: seasonPtsMap[p.id] || 0,
+}));
+
         state.lockedPlayerIds   = lastLock?.user_match_team_players?.map(p => p.player_id) || [];
 
         if (currentTeam) {
