@@ -1,7 +1,8 @@
 import { supabase } from "./supabase.js";
 
 let currentMatchId = null;
-let playerStatuses = {}; // Will hold { "player-uuid": "playing", "player-uuid": "impact" }
+let playerStatuses = {}; 
+let cachedPlayers = []; // NEW: Stores players so we don't re-download on every click
 
 async function init() {
     // 1. Get Active Tournament
@@ -20,8 +21,8 @@ async function init() {
     if (!match) return document.getElementById("matchTitle").textContent = "No Upcoming Matches";
     
     currentMatchId = match.id;
-    playerStatuses = match.player_statuses || {}; // Load existing data if any
-    document.getElementById("matchTitle").textContent = `Match ${match.match_number}: ${match.team_a.name} vs ${match.team_b.name}`;
+    playerStatuses = match.player_statuses || {}; 
+    document.getElementById("matchTitle").textContent = `Match ${match.match_number}:\n${match.team_a.name} vs ${match.team_b.name}`;
 
     // 3. Get Players for both teams
     const { data: players } = await supabase
@@ -29,20 +30,21 @@ async function init() {
         .select("id, name, real_team_id")
         .in("real_team_id", [match.team_a_id, match.team_b_id]);
 
-    renderPlayers(players);
+    cachedPlayers = players || [];
+    renderPlayers();
 }
 
-function renderPlayers(players) {
+function renderPlayers() {
     const list = document.getElementById("playerList");
     list.innerHTML = "";
 
-    players.forEach(p => {
+    cachedPlayers.forEach(p => {
         const status = playerStatuses[p.id] || "";
         const row = document.createElement("div");
         row.className = "player-row";
         row.innerHTML = `
-            <div><strong>${p.name}</strong></div>
-            <div>
+            <div class="player-name">${p.name}</div>
+            <div class="btn-group">
                 <button class="btn playing ${status === 'playing' ? 'active' : ''}" onclick="setStatus('${p.id}', 'playing')">Playing</button>
                 <button class="btn impact ${status === 'impact' ? 'active' : ''}" onclick="setStatus('${p.id}', 'impact')">Impact</button>
                 <button class="btn out ${status === 'not-playing' ? 'active' : ''}" onclick="setStatus('${p.id}', 'not-playing')">Out</button>
@@ -53,14 +55,15 @@ function renderPlayers(players) {
 }
 
 window.setStatus = (playerId, status) => {
-    // If clicking the same status, toggle it off. Otherwise, set it.
+    // Toggle logic: click the same button to turn it off, or pick a new one
     if (playerStatuses[playerId] === status) {
         delete playerStatuses[playerId];
     } else {
         playerStatuses[playerId] = status;
     }
-    // Re-render UI to update button highlighting
-    init(); 
+    
+    // NEW: Just re-draw the HTML, do NOT re-fetch the database!
+    renderPlayers(); 
 };
 
 document.getElementById("saveBtn").onclick = async () => {
@@ -73,8 +76,11 @@ document.getElementById("saveBtn").onclick = async () => {
         .update({ player_statuses: playerStatuses })
         .eq("id", currentMatchId);
 
-    if (error) alert("Error saving: " + error.message);
-    else alert("Saved Successfully! Edit page will now show dots.");
+    if (error) {
+        alert("Error saving: " + error.message);
+    } else {
+        alert("Saved Successfully! Check your Edit page now.");
+    }
     
     document.getElementById("saveBtn").textContent = "Save Lineups";
 };
