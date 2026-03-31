@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Playing XI</title>
+  <style>
+    body { font-family: sans-serif; background: #020617; color: white; padding: 20px; }
+    .player-row { display: flex; justify-content: space-between; background: #0d1625; padding: 10px; margin-bottom: 5px; border-radius: 8px; border: 1px solid #334155; }
+    .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; opacity: 0.4; }
+    .btn.active { opacity: 1; box-shadow: 0 0 10px currentColor; }
+    .btn.playing { background: #10b981; }
+    .btn.impact { background: #3b82f6; }
+    .btn.out { background: #ef4444; }
+    #saveBtn { margin-top: 20px; padding: 15px 30px; background: #9AE000; color: black; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; width: 100%; }
+  </style>
+  <script type="module" src="admin-xi.js"></script>
+</head>
+<body>
+  <h1 id="matchTitle">Loading Next Match...</h1>
+  <div id="playerList"></div>
+  <button id="saveBtn">Save Lineups</button>
+</body>
+</html>

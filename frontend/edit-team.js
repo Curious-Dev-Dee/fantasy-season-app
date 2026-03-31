@@ -350,10 +350,18 @@ function renderList(containerId, list, isMyXi, stats) {
         const isLocked = state.lockedPlayerIds.includes(p.id);
 
         const nextMatchInfo = getNextMatchLabel(p.real_team_id);
-const nextMatchHtml = nextMatchInfo
-    ? `<span class="p-next-match ${nextMatchInfo.urgent ? "urgent" : ""}">${nextMatchInfo.text}</span>`
-    : "";
+        const nextMatchHtml = nextMatchInfo
+            ? `<span class="p-next-match ${nextMatchInfo.urgent ? "urgent" : ""}">${nextMatchInfo.text}</span>`
+            : "";
 
+        // --- NEW: CHECK PLAYING XI STATUS ---
+        const currentMatch = state.matches[0];
+        const status = currentMatch?.player_statuses?.[p.id];
+        let statusDot = "";
+        if (status === "playing") statusDot = '<span class="status-dot playing" title="Playing"></span>';
+        else if (status === "impact") statusDot = '<span class="status-dot impact" title="Impact Player"></span>';
+        else if (status === "not-playing") statusDot = '<span class="status-dot not-playing" title="Not Playing"></span>';
+        // ------------------------------------
 
         const card = document.createElement("div");
         card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
@@ -368,8 +376,8 @@ const nextMatchHtml = nextMatchInfo
         <span class="p-team-badge">${p.team_short_code}</span>
     </div>
     <div class="player-info">
-        <strong class="p-name">${p.name}</strong>
-<span class="p-meta">${p.credit} Cr · ${p.selected_by_percent ?? "—"}% · ${p.season_points ?? 0} pts</span>
+        <strong class="p-name">${p.name} ${statusDot}</strong>
+        <span class="p-meta">${p.credit} Cr · ${p.selected_by_percent ?? "—"}% · ${p.season_points ?? 0} pts</span>
         ${isLocked ? '<span class="locked-badge">PREV</span>' : ""}
         ${nextMatchHtml}
     </div>

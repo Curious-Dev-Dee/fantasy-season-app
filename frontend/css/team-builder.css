@@ -1927,3 +1927,17 @@ body.loading-state .app-container        { display: none !important; }
     .player-card, .booster-card, .action-btn,
     .save-btn { transition: none !important; animation: none !important; }
 }
+
+/* ─── PLAYING XI STATUS DOTS ─────────────────────── */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+    box-shadow: 0 0 6px currentColor;
+}
+.status-dot.playing { color: #10b981; background-color: #10b981; }     /* Green */
+.status-dot.impact { color: #3b82f6; background-color: #3b82f6; }      /* Blue */
+.status-dot.not-playing { color: #ef4444; background-color: #ef4444; } /* Red */
