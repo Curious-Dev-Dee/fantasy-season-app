@@ -116,8 +116,8 @@ state.usedBoosters      = boosterData?.used_boosters ?? [];
 // Compute real season points from match stats and merge into players
 const { data: seasonTotals } = await supabase
     .from("player_match_stats")
-    .select("player_id, fantasy_points")
-    .eq("tournament_id", activeTournamentId);
+    .select("player_id, fantasy_points, matches!inner(tournament_id)")
+    .eq("matches.tournament_id", activeTournamentId);
 
 const seasonPtsMap = {};
 for (const row of seasonTotals || []) {
