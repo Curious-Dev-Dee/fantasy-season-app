@@ -252,9 +252,13 @@ async function initChat(userId, leagueId, tournamentId) {
 chatFab.onclick = () => {
     chatPanel.classList.add("show");
     chatBackdrop.classList.remove("hidden");
-    unreadBadge?.classList.add("hidden");
-    if (unreadBadge) unreadBadge.style.display = "none";
-    
+
+    // Force hide the badge when chat is opened
+    if (unreadBadge) {
+        unreadBadge.classList.add("hidden");
+        unreadBadge.style.display = "none";
+    }
+
     setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
 
     // Inject in-page push banner once when chat opens
@@ -416,14 +420,16 @@ function subscribeToChat(userId, leagueId) {
                 }
             }
 
-            newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
+ newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
             renderMessage(newMsg, userId);
 
- if (!chatPanel?.classList.contains("show")) {
-    unreadBadge?.classList.remove("hidden");
-    if (unreadBadge) unreadBadge.style.display = "block"; 
-}
-
+            // --- THIS IS THE EXACT FIX FOR THE BADGE ---
+            if (!chatPanel?.classList.contains("show")) {
+                if (unreadBadge) {
+                    unreadBadge.classList.remove("hidden");
+                    unreadBadge.style.display = "block";
+                }
+            }
         })
         .subscribe();
 }
