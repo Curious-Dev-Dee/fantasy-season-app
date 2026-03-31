@@ -44,9 +44,6 @@ if (leagueId) {
         .eq("league_id", leagueId);
     const h1 = document.getElementById("lbPageTitle");
     if (h1) h1.textContent = "League Standings";
-    // Hide prizes — private league has no season prizes
-    const prizesStrip = document.querySelector(".lb-prizes-strip");
-    if (prizesStrip) prizesStrip.style.display = "none";
 
     } else {
         query = supabase
@@ -252,11 +249,12 @@ async function initChat(userId, leagueId, tournamentId) {
         });
     }
 
-    chatFab.onclick = () => {
+chatFab.onclick = () => {
     chatPanel.classList.add("show");
     chatBackdrop.classList.remove("hidden");
     unreadBadge?.classList.add("hidden");
-    unreadBadge?.classList.remove("visible");
+    if (unreadBadge) unreadBadge.style.display = "none";
+    
     setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
 
     // Inject in-page push banner once when chat opens
@@ -421,10 +419,11 @@ function subscribeToChat(userId, leagueId) {
             newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
             renderMessage(newMsg, userId);
 
-            if (!chatPanel?.classList.contains("show")) {
+ if (!chatPanel?.classList.contains("show")) {
     unreadBadge?.classList.remove("hidden");
-    unreadBadge?.classList.add("visible");
+    if (unreadBadge) unreadBadge.style.display = "block"; 
 }
+
         })
         .subscribe();
 }
