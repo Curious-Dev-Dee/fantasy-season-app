@@ -198,7 +198,10 @@ function buildPlayerCircle(
 
     wrapper.append(avatar, name);
 
-    if (statsMap) {
+if (statsMap) {
+    // Only show points if this player's team is in this match
+    const playerInThisMatch = matchTeamIds.length === 0 || matchTeamIds.includes(player.real_team_id);
+    if (playerInThisMatch) {
         const pts = document.createElement("div");
         pts.className   = "player-pts";
         pts.textContent = `${calculateDisplayedPlayerPoints(
@@ -206,7 +209,7 @@ function buildPlayerCircle(
         )} pts`;
         wrapper.appendChild(pts);
     }
-
+}
     return wrapper;
 }
 
@@ -597,7 +600,17 @@ async function loadLastLockedXI() {
         booster, momId
     );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
-    setTeamStatus(`${finalTotal} pts · ${snapshot.subs_used_for_match} subs used`);
+
+    // Clear old status text
+    setTeamStatus("");
+
+    // Inject score chip into top-right of the field
+    const chip = document.createElement("div");
+    chip.className = "field-score-chip";
+    chip.innerHTML = `
+        <span class="fsc-pts">${finalTotal} pts</span>
+        <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>`;
+    teamContainer.appendChild(chip);
 }
 
 /* ─── TEAM LAYOUT RENDERER ───────────────────────────────────────────────── */
@@ -779,9 +792,16 @@ window.viewMatchBreakdown = async snapshotId => {
     const fallback   = calculateMatchTotal(bPlayers, statsMap, snapshot.captain_id, snapshot.vice_captain_id, booster, momId);
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
 
-    breakdownFooter.innerHTML = `
-        <span class="breakdown-pts">${finalTotal} pts</span>
-        <span class="breakdown-subs">${snapshot.subs_used_for_match} subs</span>`;
+    // Clear footer — score moves into the field chip instead
+    breakdownFooter.innerHTML = "";
+
+    // Inject score chip into top-right of breakdown field
+    const chip = document.createElement("div");
+    chip.className = "field-score-chip";
+    chip.innerHTML = `
+        <span class="fsc-pts">${finalTotal} pts</span>
+        <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>`;
+    breakdownContainer.appendChild(chip);
 };
 
 /* ─── PLAYER POINT LOG ───────────────────────────────────────────────────── */

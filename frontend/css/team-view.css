@@ -256,8 +256,42 @@ body.loaded #loadingOverlay {
 
 
 /* ─── TEAM FIELD ─────────────────────────────────── */
+/* Add position:relative to team-field so the chip anchors to it */
 .team-field {
     padding: 10px;
+    position: relative;
+}
+
+/* Score chip — top right corner of the field */
+.field-score-chip {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.fsc-pts {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent-glow);
+    line-height: 1;
+}
+
+.fsc-subs {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 7px;
+    border-radius: 6px;
 }
 
 .smaller-field {
@@ -332,44 +366,42 @@ body.loaded #loadingOverlay {
 
 
 /* ─── PLAYING STATUS RINGS ───────────────────────── */
-/* Applied to .player-circle, colours the avatar border */
-
 .player-circle.status-playing .avatar {
-    border-color: #10b981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    border: 3px solid #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 14px rgba(16, 185, 129, 0.5);
 }
 
 .player-circle.status-impact .avatar {
-    border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
+    border: 3px solid #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 14px rgba(59, 130, 246, 0.45);
 }
 
 .player-circle.status-not-playing .avatar {
-    border-color: #ef4444;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
-    opacity: 0.55;
+    border: 3px solid #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25), 0 0 10px rgba(239, 68, 68, 0.35);
+    opacity: 0.5;
 }
 
-/* When captain/vc ring AND status ring both apply,
-   status ring wins (it has more info value) */
+/* Status ring overrides C/VC ring when both apply */
 .player-circle.captain.status-playing .avatar,
 .player-circle.vice-captain.status-playing .avatar {
-    border-color: #10b981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    border: 3px solid #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 14px rgba(16, 185, 129, 0.5);
 }
 
 .player-circle.captain.status-impact .avatar,
 .player-circle.vice-captain.status-impact .avatar {
-    border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
+    border: 3px solid #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 14px rgba(59, 130, 246, 0.45);
 }
 
 .player-circle.captain.status-not-playing .avatar,
 .player-circle.vice-captain.status-not-playing .avatar {
-    border-color: #ef4444;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
-    opacity: 0.55;
-}/*
+    border: 3px solid #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25), 0 0 10px rgba(239, 68, 68, 0.35);
+    opacity: 0.5;
+}
+/*
    CHANGE: team-init-label was 7px — below minimum readable size.
    Bumped to 9px. Still compact but actually legible on mobile.
 */
