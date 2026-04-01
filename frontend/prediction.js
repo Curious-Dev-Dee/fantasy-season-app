@@ -1065,12 +1065,12 @@ function renderAllStarsPanel(lbRows) {
         });
 
         // View all button
-        const viewBtn = document.createElement("button");
-        viewBtn.className = "btn-view-all";
-        viewBtn.style.marginTop = "8px";
-        viewBtn.innerHTML = `Full All Stars Leaderboard <i class="fas fa-chevron-right"></i>`;
-        viewBtn.onclick   = () => openFullAllStarsLeaderboard();
-        lbSection.appendChild(viewBtn);
+const viewBtn = document.createElement("button");
+viewBtn.className = "btn-view-all";
+viewBtn.style.marginTop = "8px";
+viewBtn.innerHTML = `Full All Stars Leaderboard <i class="fas fa-chevron-right"></i>`;
+viewBtn.onclick   = () => openFullAllStarsLeaderboard();
+lbSection.appendChild(viewBtn);
     }
 
     panel.appendChild(lbSection);
@@ -1444,7 +1444,12 @@ pts.textContent = `${Number(row.avg_points).toFixed(1)} avg · ${row.matches_pla
         section.appendChild(el);
     });
 
-
+const viewBtn = document.createElement("button");
+viewBtn.className = "btn-view-all";
+viewBtn.style.marginTop = "8px";
+viewBtn.innerHTML = `Full Avg Points Table <i class="fas fa-chevron-right"></i>`;
+viewBtn.onclick = () => openFullDailyLeaderboard(null, "avg");
+section.appendChild(viewBtn);
 }
 
 async function openAllStarsTeam(userId, teamName) {
@@ -1702,20 +1707,20 @@ async function openFullDailyLeaderboard(matchId, type) {
                 .limit(100);
             rows = data;
         } else {
-const { data } = await supabase
-    .from("daily_season_avg_points_view")
-    .select("team_name, avg_points, matches_played, user_id")
-    .eq("tournament_id", currentTournamentId)
-    .order("avg_points", { ascending: false })
-    .limit(100);
+            const { data } = await supabase
+                .from("daily_season_avg_points_view")
+                .select("team_name, avg_points, matches_played, user_id")
+                .eq("tournament_id", currentTournamentId)
+                .order("avg_points", { ascending: false })
+                .limit(100);
             rows = data;
         }
 
         body.innerHTML = "";
         const title = document.createElement("p");
-        title.className   = "sheet-section-label";
+        title.className = "sheet-section-label";
         title.style.marginBottom = "12px";
-        title.textContent = type === "match" ? "Full Match Leaderboard" : "Season Average Rank";
+        title.textContent = type === "match" ? "Full Match Leaderboard" : "Avg Points Leaderboard";
         body.appendChild(title);
 
         if (!rows?.length) {
@@ -1723,44 +1728,39 @@ const { data } = await supabase
             return;
         }
 
-        // Inside openFullDailyLeaderboard, replace the avg rows.forEach:
-rows.forEach((row, i) => {
-    const el = document.createElement("div");
-    el.className = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
+        rows.forEach((row, i) => {
+            const el = document.createElement("div");
+            el.className = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
 
-    const rank = document.createElement("span");
-    rank.className   = "as-lb-rank";
-    rank.textContent = type === "match" ? `#${row.rank}` : `#${i + 1}`;
+            const rank = document.createElement("span");
+            rank.className = "as-lb-rank";
+            rank.textContent = type === "match" ? `#${row.rank}` : `#${i + 1}`;
 
-    const name = document.createElement("span");
-    name.className   = "as-lb-name";
-    name.textContent = row.team_name || "Expert";
+            const name = document.createElement("span");
+            name.className = "as-lb-name";
+            name.textContent = row.team_name || "Expert";
 
-    const pts = document.createElement("span");
-    pts.className = `as-lb-pts has-pts`;
+            const pts = document.createElement("span");
+            pts.className = "as-lb-pts has-pts";
 
-    if (type === "match") {
-        pts.textContent = `${row.total_daily_points} pts`;
-    } else {
-        const avg = row.avg_points
-            ? Number(row.avg_points).toFixed(1)
-            : row.matches_played > 0
-                ? (row.total_points / row.matches_played).toFixed(1)
-                : "0";
-pts.textContent = `${Number(row.avg_points).toFixed(1)} avg · ${row.matches_played}M`;    }
+            if (type === "match") {
+                pts.textContent = `${row.total_daily_points} pts`;
+            } else {
+                pts.textContent = `${Number(row.avg_points).toFixed(1)} avg · ${row.matches_played}M`;
+            }
 
-    if (type === "match") {
-        el.style.cursor = "pointer";
-        el.onclick = () => openDailyTeamSheet(row.user_id, matchId);
-        const arrow = document.createElement("i");
-        arrow.className   = "fas fa-chevron-right";
-        arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
-        el.append(rank, name, pts, arrow);
-    } else {
-        el.append(rank, name, pts);
-    }
+            if (type === "match") {
+                el.style.cursor = "pointer";
+                el.onclick = () => openDailyTeamSheet(row.user_id, matchId);
+                const arrow = document.createElement("i");
+                arrow.className = "fas fa-chevron-right";
+                arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
+                el.append(rank, name, pts, arrow);
+            } else {
+                el.append(rank, name, pts);
+            }
 
-    body.appendChild(el);
-});
+            body.appendChild(el);
+        });
     });
 }
