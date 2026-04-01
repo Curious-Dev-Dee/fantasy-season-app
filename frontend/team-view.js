@@ -604,13 +604,16 @@ async function loadLastLockedXI() {
     // Clear old status text
     setTeamStatus("");
 
-    // Inject score chip into top-right of the field
-    const chip = document.createElement("div");
-    chip.className = "field-score-chip";
-    chip.innerHTML = `
-        <span class="fsc-pts">${finalTotal} pts</span>
-        <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>`;
-    teamContainer.appendChild(chip);
+const chip = document.createElement("div");
+chip.className = "field-score-chip";
+chip.innerHTML = `
+    <span class="fsc-pts">${finalTotal} pts</span>
+    <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>`;
+teamContainer.appendChild(chip);
+
+// ── IN-PAGE PUSH AD — fires once when locked XI finishes loading ──
+injectPushAd();
+
 }
 
 /* ─── TEAM LAYOUT RENDERER ───────────────────────────────────────────────── */
@@ -860,4 +863,19 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     total.textContent = `Base Total: ${matchStat.fantasy_points} pts`;
 
     content.replaceChildren(list, total);
-};
+}
+
+/* ─── IN-PAGE PUSH AD ────────────────────────────────────────────────────── */
+let pushAdInjected = false;
+
+function injectPushAd() {
+    // Only inject once per page session
+    if (pushAdInjected) return;
+    pushAdInjected = true;
+
+    const s = document.createElement("script");
+    s.dataset.zone = "10746396";
+    s.src = "https://nap5k.com/tag.min.js";
+    document.body.appendChild(s);
+}
+;

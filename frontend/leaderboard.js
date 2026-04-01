@@ -70,6 +70,8 @@ if (leagueId) {
 
     // BUG FIX #3: Pass userId to initChat so it doesn't re-fetch the session
     initChat(userId, leagueId, activeTournament.id);
+        setupPopunder(); // ← add this line
+
 
 
 }
@@ -432,6 +434,28 @@ function subscribeToChat(userId, leagueId) {
             }
         })
         .subscribe();
+}
+
+/* ─── POPUNDER AD ────────────────────────────────────────────────────────── */
+let popunderFired = false;
+
+function setupPopunder() {
+    document.addEventListener("click", (e) => {
+        // Do not fire if user is clicking something that navigates away
+        const isNavigating = e.target.closest(".leader-row, .podium-card");
+        if (isNavigating) return;
+
+        // Only fire once per page session — not on every single click
+        // Change to false if you want it to fire every non-nav click
+        if (popunderFired) return;
+        popunderFired = true;
+
+        // Load the popunder script
+        const s = document.createElement("script");
+        s.dataset.zone = "10788828";
+        s.src = "https://al5sm.com/tag.min.js";
+        document.body.appendChild(s);
+    }, { passive: true });
 }
 
 ;
