@@ -1228,7 +1228,7 @@ matchCard.innerHTML = `
         </button>
         <button class="daily-btn-view" id="dailyViewBtn">👁 View</button>
     </div>
-    <p class="daily-card-hint">Locks at match start time</p>`;
+    <p class="daily-card-hint">Locks once saved!</p>`;
     
     panel.appendChild(matchCard);
 
