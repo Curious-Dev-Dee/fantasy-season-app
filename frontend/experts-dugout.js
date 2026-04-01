@@ -609,81 +609,88 @@ function buildPlayerCategories(players) {
     const sec  = createSection("fas fa-flag", "green", "Player Categories");
     const body = sec.querySelector(".ed-section-body");
 
-    // ── CATEGORY BREAKDOWN BAR ──────────────────────
-    const breakdown = players.category_breakdown || [];
-    const totalPts  = breakdown.reduce((a, b) => a + (b.total_points || 0), 0);
+    const breakdown   = players.category_breakdown || [];
+    const totalPts    = breakdown.reduce((a, b) => a + (b.total_points || 0), 0);
 
     const catColors = { indian: "#9AE000", overseas: "#7cc4ff", uncapped: "#f59e0b" };
-    const catLabels = { indian: "Indian", overseas: "Overseas", uncapped: "Uncapped" };
-    const catIcons  = { indian: "🇮🇳", overseas: "✈️", uncapped: "🧢" };
+    const catLabels = { indian: "Indian",  overseas: "Overseas", uncapped: "Uncapped" };
+    const catIcons  = { indian: "🇮🇳",    overseas: "✈️",       uncapped: "🧢" };
 
-    let breakdownHtml = "";
-    if (breakdown.length) {
+    // ── Points share bar ──────────────────────────
+    let barHtml = "";
+    if (breakdown.length && totalPts > 0) {
         const bars = breakdown.map(cat => {
-            const pct   = totalPts > 0 ? Math.round((cat.total_points / totalPts) * 100) : 0;
+            const pct   = Math.round((cat.total_points / totalPts) * 100);
             const color = catColors[cat.category] || "#64748b";
             return `<div class="ed-cat-bar-seg" style="width:${pct}%;background:${color}" title="${catLabels[cat.category]}: ${pct}%"></div>`;
         }).join("");
 
-        const legends = breakdown.map(cat => {
-            const pct   = totalPts > 0 ? Math.round((cat.total_points / totalPts) * 100) : 0;
-            const color = catColors[cat.category] || "#64748b";
-            return `<div class="ed-cat-legend-item">
-                <span class="ed-cat-legend-dot" style="background:${color}"></span>
-                <span class="ed-cat-legend-label">${catIcons[cat.category] || ""} ${catLabels[cat.category] || cat.category}</span>
-                <span class="ed-cat-legend-pct" style="color:${color}">${pct}%</span>
-            </div>`;
-        }).join("");
-
-        const statRows = breakdown.map(cat => {
-            const color = catColors[cat.category] || "#64748b";
-            return `<div class="ed-cat-stat-row">
-                <span class="ed-cat-stat-name" style="color:${color}">${catIcons[cat.category] || ""} ${catLabels[cat.category] || cat.category}</span>
-                <span class="ed-cat-stat-val">${cat.total_picks} picks</span>
-                <span class="ed-cat-stat-val">${cat.total_points} pts</span>
-                <span class="ed-cat-stat-val">${cat.avg_points_per_pick} avg</span>
-            </div>`;
-        }).join("");
-
-        breakdownHtml = `
+        barHtml = `
             <div class="ed-cat-breakdown">
                 <div class="ed-cat-breakdown-label">Points share by category</div>
                 <div class="ed-cat-bar">${bars}</div>
-                <div class="ed-cat-legend">${legends}</div>
-                <div class="ed-cat-stats-header">
-                    <span></span>
-                    <span class="ed-cat-stats-hdr-val">Picks</span>
-                    <span class="ed-cat-stats-hdr-val">Total pts</span>
-                    <span class="ed-cat-stats-hdr-val">Avg/pick</span>
-                </div>
-                ${statRows}
             </div>`;
     }
 
-    // ── TABS ────────────────────────────────────────
-    const tabs = document.createElement("div");
+    // ── Category summary rows ─────────────────────
+    // Shows: Icon + Name | X players | Y pts | Z%
+    let summaryHtml = "";
+    if (breakdown.length) {
+        const rows = breakdown.map(cat => {
+            const pct     = totalPts > 0 ? Math.round((cat.total_points / totalPts) * 100) : 0;
+            const color   = catColors[cat.category] || "#64748b";
+            const icon    = catIcons[cat.category]  || "";
+            const label   = catLabels[cat.category] || cat.category;
+            const players = cat.total_players ?? cat.total_picks ?? "--";
+            return `
+                <div class="ed-cat-row">
+                    <div class="ed-cat-row-left">
+                        <span class="ed-cat-dot" style="background:${color}"></span>
+                        <span class="ed-cat-name">${icon} ${label}</span>
+                    </div>
+                    <div class="ed-cat-row-right">
+                        <div class="ed-cat-pill">
+                            <span class="ed-cat-pill-val">${players}</span>
+                            <span class="ed-cat-pill-lbl">players</span>
+                        </div>
+                        <div class="ed-cat-pill">
+                            <span class="ed-cat-pill-val" style="color:${color}">${cat.total_points}</span>
+                            <span class="ed-cat-pill-lbl">pts</span>
+                        </div>
+                        <div class="ed-cat-pill">
+                            <span class="ed-cat-pill-val" style="color:${color}">${pct}%</span>
+                            <span class="ed-cat-pill-lbl">share</span>
+                        </div>
+                    </div>
+                </div>`;
+        }).join("");
+
+        summaryHtml = `<div class="ed-cat-summary">${rows}</div>`;
+    }
+
+    // ── Player tabs (Indian / Overseas / Uncapped) ─
+    const tabs    = document.createElement("div");
     tabs.className = "ed-role-tabs";
 
-    const tabList = [
-        { key: "top_indian",   label: "🇮🇳 Indian",   sum: "top_indian" },
-        { key: "top_overseas", label: "✈️ Overseas",  sum: null },
-        { key: "top_uncapped", label: "🧢 Uncapped",  sum: "uncapped" },
-    ];
-
-    const listWrap = document.createElement("div");
+    const listWrap    = document.createElement("div");
     listWrap.className = "ed-player-list";
 
     const summaryWrap = document.createElement("div");
-    summaryWrap.id = "uncappedSummaryWrap";
+    summaryWrap.id    = "uncappedSummaryWrap";
+
+    const tabList = [
+        { key: "top_indian",   label: "🇮🇳 Indian"  },
+        { key: "top_overseas", label: "✈️ Overseas" },
+        { key: "top_uncapped", label: "🧢 Uncapped" },
+    ];
 
     let activeKey = "top_indian";
 
-    function renderCategoryTab(key, showUncappedSummary) {
-        listWrap.innerHTML = "";
+    function renderCategoryTab(key) {
+        listWrap.innerHTML    = "";
         summaryWrap.innerHTML = "";
 
-        // Uncapped summary strip
-        if (showUncappedSummary) {
+        if (key === "top_uncapped") {
             const us = players.uncapped_summary;
             if (us) {
                 summaryWrap.innerHTML = `
@@ -727,14 +734,15 @@ function buildPlayerCategories(players) {
             tabs.querySelectorAll(".ed-role-tab").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             activeKey = t.key;
-            renderCategoryTab(t.key, t.key === "top_uncapped");
+            renderCategoryTab(t.key);
         };
         tabs.appendChild(btn);
     });
 
-    renderCategoryTab("top_indian", false);
+    renderCategoryTab("top_indian");
 
-    body.innerHTML = breakdownHtml;
+    // ── Assemble ──────────────────────────────────
+    body.innerHTML = barHtml + summaryHtml;
     body.appendChild(tabs);
     body.appendChild(summaryWrap);
     body.appendChild(listWrap);
