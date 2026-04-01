@@ -1768,3 +1768,33 @@ body {
     text-align: center;
     margin: 0;
 }
+
+/* ─── VIEW ALL BUTTON ────────────────────────────── */
+.btn-view-all {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--card-radius-sm);
+    border: 1px solid var(--fun-cyan-bdr);
+    background: var(--fun-cyan-dim);
+    color: var(--fun-cyan);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-view-all:hover {
+    background: rgba(0, 242, 255, 0.15);
+    box-shadow: 0 2px 10px var(--fun-cyan-glow);
+}
+
+.btn-view-all i {
+    font-size: 10px;
+    opacity: 0.7;
+}
