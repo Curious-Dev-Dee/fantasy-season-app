@@ -608,10 +608,40 @@ function buildMostPicked(players) {
     const sec  = createSection("fas fa-heart", "pu", "Most Loyal Players");
     const body = sec.querySelector(".ed-section-body");
     const list = players.most_picked || [];
-    if (!list.length) { body.innerHTML = '<div class="ed-no-data">No match data yet</div>'; return sec; }
-    const c = document.createElement("div"); c.className = "ed-player-list";
-    list.forEach((p, i) => c.appendChild(buildPlayerCard(p, i + 1, true)));
-    body.appendChild(c); return sec;
+    if (!list.length) { 
+        body.innerHTML = '<div class="ed-no-data">No match data yet</div>'; 
+        return sec; 
+    }
+    const c = document.createElement("div"); 
+    c.className = "ed-player-list";
+    list.forEach((p, i) => {
+        const card = document.createElement("div");
+        card.className = "ed-player-card";
+
+        const rankEl = document.createElement("div");
+        rankEl.className = `ed-player-rank r${i + 1}`;
+        rankEl.textContent = i + 1;
+
+        const info = document.createElement("div");
+        info.className = "ed-player-info";
+        info.innerHTML = `
+            <span class="ed-player-name">${p.name || "Unknown"}</span>
+            <span class="ed-player-meta">
+                ${p.role || ""} · 
+                played ${p.matches_played || 0} matches
+            </span>`;
+
+        const right = document.createElement("div");
+        right.style.textAlign = "right";
+        right.innerHTML = `
+            <span class="ed-player-pts">${p.total_points_earned || 0}</span>
+            <span class="ed-player-pts-lbl">pts earned</span>`;
+
+        card.append(rankEl, info, right);
+        c.appendChild(card);
+    });
+    body.appendChild(c); 
+    return sec;
 }
 
 function buildByRole(players) {
