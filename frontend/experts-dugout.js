@@ -485,7 +485,7 @@ function buildStreaks(d) {
             <div class="ed-streak-icon">🥶</div>
             <div class="ed-streak-val">${d.worst_streak || 0}</div>
             <div class="ed-streak-lbl">Worst Streak</div>
-            <div class="ed-streak-sub">Below 100 pts in a row</div>
+            <div class="ed-streak-sub">150 pts or below in a row</div>
         </div>
     </div>`;
     return sec;
@@ -842,25 +842,108 @@ async function loadCompare(uid1, uid2) {
     if (!result) return;
     result.innerHTML = '<div class="ed-no-data">Loading...</div>';
     try {
-        const [r1, r2] = await Promise.all([
-            supabase.from("team_lab_view").select("team_name,total_points,avg_score_per_match,best_match_score,matches_played,captain_success_rate,consistency_score").eq("user_id", uid1).eq("tournament_id", activeTournamentId).maybeSingle(),
-            supabase.from("team_lab_view").select("team_name,total_points,avg_score_per_match,best_match_score,matches_played,captain_success_rate,consistency_score").eq("user_id", uid2).eq("tournament_id", activeTournamentId).maybeSingle(),
+        const [r1, r2, p1, p2] = await Promise.all([
+            supabase.from("team_lab_view")
+                .select("team_name,total_points,avg_score_per_match,best_match_score,worst_match_score,matches_played,captain_success_rate,consistency_score,total_subs_used,boosters_remaining,booster_history")
+                .eq("user_id", uid1).eq("tournament_id", activeTournamentId).maybeSingle(),
+            supabase.from("team_lab_view")
+                .select("team_name,total_points,avg_score_per_match,best_match_score,worst_match_score,matches_played,captain_success_rate,consistency_score,total_subs_used,boosters_remaining,booster_history")
+                .eq("user_id", uid2).eq("tournament_id", activeTournamentId).maybeSingle(),
+            supabase.rpc("get_team_lab_players", { p_user_id: uid1, p_tournament_id: activeTournamentId }),
+            supabase.rpc("get_team_lab_players", { p_user_id: uid2, p_tournament_id: activeTournamentId }),
         ]);
-        const a = r1.data, b = r2.data;
-        if (!a || !b) { result.innerHTML = '<div class="ed-no-data">Could not load comparison</div>'; return; }
-        const row = (label, v1, v2) => {
-            const w1 = (v1 ?? 0) >= (v2 ?? 0);
-            return `<div class="ed-cmp-row"><div class="ed-cmp-val${w1?" win":""}">${v1??'--'}</div><div class="ed-cmp-label">${label}</div><div class="ed-cmp-val${!w1?" win":""}">${v2??'--'}</div></div>`;
+
+        const a  = r1.data;
+        const b  = r2.data;
+        const pa = p1.data;
+        const pb = p2.data;
+
+        if (!a || !b) {
+            result.innerHTML = '<div class="ed-no-data">Could not load comparison</div>';
+            return;
+        }
+
+        // ── Derived stats ──────────────────────────────────────────
+        const aBoosters     = 7 - (a.boosters_remaining ?? 7);
+        const bBoosters     = 7 - (b.boosters_remaining ?? 7);
+
+        const aBoosterHist  = a.booster_history || [];
+        const bBoosterHist  = b.booster_history || [];
+        const aBoosterPts   = aBoosterHist.reduce((s, x) => s + (x.points || 0), 0);
+        const bBoosterPts   = bBoosterHist.reduce((s, x) => s + (x.points || 0), 0);
+        const aAvgPerBoost  = aBoosters > 0 ? Math.round(aBoosterPts / aBoosters) : "--";
+        const bAvgPerBoost  = bBoosters > 0 ? Math.round(bBoosterPts / bBoosters) : "--";
+
+        const aAvgPerSub    = a.total_subs_used > 0
+            ? Math.round(a.total_points / a.total_subs_used)
+            : "--";
+        const bAvgPerSub    = b.total_subs_used > 0
+            ? Math.round(b.total_points / b.total_subs_used)
+            : "--";
+
+        const aUnique       = pa?.player_usage?.unique_players_appeared ?? "--";
+        const bUnique       = pb?.player_usage?.unique_players_appeared ?? "--";
+        const aAvgPerAppear = pa?.player_usage?.avg_pts_per_appearance  ?? "--";
+        const bAvgPerAppear = pb?.player_usage?.avg_pts_per_appearance  ?? "--";
+
+        // ── Row builder ────────────────────────────────────────────
+        // higher = better by default, pass higherIsBetter=false to flip
+        const row = (label, v1, v2, higherIsBetter = true) => {
+            const n1 = parseFloat(v1);
+            const n2 = parseFloat(v2);
+            let w1 = false, w2 = false;
+            if (!isNaN(n1) && !isNaN(n2)) {
+                if (higherIsBetter) { w1 = n1 >= n2; w2 = n2 >= n1; }
+                else                { w1 = n1 <= n2; w2 = n2 <= n1; }
+            }
+            return `
+                <div class="ed-cmp-row">
+                    <div class="ed-cmp-val${w1 ? " win" : ""}">${v1 ?? "--"}</div>
+                    <div class="ed-cmp-label">${label}</div>
+                    <div class="ed-cmp-val${w2 ? " win" : ""}">${v2 ?? "--"}</div>
+                </div>`;
         };
+
+        // ── Section header builder ─────────────────────────────────
+        const section = (label) => `
+            <div class="ed-cmp-section-label">${label}</div>`;
+
         result.innerHTML = `
-            <div class="ed-cmp-header"><div class="ed-cmp-team">${a.team_name||"Team A"}</div><div class="ed-cmp-vs">VS</div><div class="ed-cmp-team">${b.team_name||"Team B"}</div></div>
-            ${row("Total pts",a.total_points,b.total_points)}
-            ${row("Avg/match",a.avg_score_per_match,b.avg_score_per_match)}
-            ${row("Best match",a.best_match_score,b.best_match_score)}
-            ${row("Matches",a.matches_played,b.matches_played)}
-            ${row("Captain %",a.captain_success_rate,b.captain_success_rate)}
-            ${row("Consistency",a.consistency_score,b.consistency_score)}`;
-    } catch (err) { result.innerHTML = '<div class="ed-no-data">Failed to load comparison</div>'; }
+            <div class="ed-cmp-header">
+                <div class="ed-cmp-team">${a.team_name || "Team A"}</div>
+                <div class="ed-cmp-vs">VS</div>
+                <div class="ed-cmp-team">${b.team_name || "Team B"}</div>
+            </div>
+
+            ${section("📊 Season")}
+            ${row("Total Points",        a.total_points,          b.total_points)}
+            ${row("Matches Played",      a.matches_played,        b.matches_played)}
+            ${row("Avg / Match",         a.avg_score_per_match,   b.avg_score_per_match)}
+            ${row("Best Match",          a.best_match_score,      b.best_match_score)}
+            ${row("Worst Match",         a.worst_match_score,     b.worst_match_score)}
+            ${row("Consistency",         a.consistency_score,     b.consistency_score)}
+
+            ${section("👑 Captaincy")}
+            ${row("Captain Success %",   a.captain_success_rate,  b.captain_success_rate)}
+
+            ${section("🔄 Subs")}
+            ${row("Total Subs Used",     a.total_subs_used,       b.total_subs_used,       false)}
+            ${row("Pts / Sub",           aAvgPerSub,              bAvgPerSub)}
+
+            ${section("🚀 Boosters")}
+            ${row("Boosters Used",       aBoosters,               bBoosters,               false)}
+            ${row("Total Booster Pts",   aBoosterPts,             bBoosterPts)}
+            ${row("Avg Pts / Booster",   aAvgPerBoost,            bAvgPerBoost)}
+
+            ${section("👥 Players")}
+            ${row("Unique Players",      aUnique,                 bUnique)}
+            ${row("Avg Pts / Appearance",aAvgPerAppear,           bAvgPerAppear)}
+        `;
+
+    } catch (err) {
+        console.error("Compare error:", err);
+        result.innerHTML = '<div class="ed-no-data">Failed to load comparison</div>';
+    }
 }
 
 function buildShareCard(d, teamRow) {
@@ -1070,13 +1153,14 @@ function buildStrengthZone(d, players) {
         });
     }
 
-    if (worstStreak >= 3) {
-        weaknesses.push({
-            icon: "🥶",
-            title: "Cold Spells Problem",
-            desc: `You scored below 100 pts in ${worstStreak} matches in a row — a dangerous pattern.`
-        });
-    }
+    // REPLACE WITH:
+if (worstStreak >= 3) {
+    weaknesses.push({
+        icon: "🥶",
+        title: "Cold Spells Problem",
+        desc: `You scored 150 pts or below in ${worstStreak} matches in a row — a dangerous pattern.`
+    });
+}
 
     if (avg > 0 && worstMatch < avg * 0.4 && matchCount >= 3) {
         weaknesses.push({
