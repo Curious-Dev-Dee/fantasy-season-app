@@ -1456,10 +1456,9 @@ async function loadDailyAvgRank() {
 async function openAllStarsTeam(userId, teamName) {
     openBottomSheet(async (body) => {
 
-        // Step 1: get the team record
         const { data: team } = await supabase
             .from("user_allstar_teams")
-            .select("id, captain_id, vice_captain_id, user_profiles(team_name, team_photo_url)")
+            .select("id, captain_id, vice_captain_id")
             .eq("user_id", userId)
             .eq("tournament_id", currentTournamentId)
             .maybeSingle();
@@ -1471,36 +1470,35 @@ async function openAllStarsTeam(userId, teamName) {
             return;
         }
 
-        // Step 2: get their player IDs
-        const { data: teamPlayers } = await supabase
-            .from("user_allstar_team_players")
-            .select("player_id")
-            .eq("user_allstar_team_id", team.id);
+        const [profileRes, teamPlayersRes, ptsRes] = await Promise.all([
+            supabase.from("user_profiles")
+                .select("team_name, team_photo_url")
+                .eq("user_id", userId)
+                .maybeSingle(),
+            supabase.from("user_allstar_team_players")
+                .select("player_id")
+                .eq("user_allstar_team_id", team.id),
+            supabase.from("allstar_leaderboard_view")
+                .select("total_allstar_points")
+                .eq("user_id", userId)
+                .eq("tournament_id", currentTournamentId)
+                .maybeSingle(),
+        ]);
 
-        const playerIds = (teamPlayers || []).map(r => r.player_id);
+        const playerIds = (teamPlayersRes.data || []).map(r => r.player_id);
 
-        // Step 3: get their points from leaderboard
-        const { data: ptsData } = await supabase
-            .from("allstar_leaderboard_view")
-            .select("total_allstar_points")
-            .eq("user_id", userId)
-            .eq("tournament_id", currentTournamentId)
-            .maybeSingle();
-
-        // Step 4: get player details
         const { data: playerDetails } = playerIds.length
             ? await supabase.from("players")
                 .select("id, name, role, photo_url, real_teams!inner(short_code)")
                 .in("id", playerIds)
             : { data: [] };
 
-        const profile  = team.user_profiles;
+        const profile  = profileRes.data;
         const photo    = profile?.team_photo_url
             ? supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url).data.publicUrl
             : "images/default-avatar.png";
-        const totalPts = ptsData?.total_allstar_points || 0;
+        const totalPts = ptsRes.data?.total_allstar_points || 0;
 
-        // Header
         const hdr = document.createElement("div");
         hdr.className = "sheet-team-hdr";
         hdr.innerHTML = `
@@ -1511,7 +1509,6 @@ async function openAllStarsTeam(userId, teamName) {
             </div>`;
         body.appendChild(hdr);
 
-        // Players with C/VC flags
         const players = (playerDetails || []).map(p => ({
             ...p,
             short_code: p.real_teams?.short_code || "TBA",
@@ -1606,10 +1603,9 @@ async function openFullAllStarsLeaderboard() {
 async function openDailyTeamSheet(userId, matchId) {
     openBottomSheet(async (body) => {
 
-        // Step 1: get team record
         const { data: team } = await supabase
             .from("user_daily_teams")
-            .select("id, captain_id, vice_captain_id, user_profiles(team_name, team_photo_url)")
+            .select("id, captain_id, vice_captain_id")
             .eq("user_id", userId)
             .eq("match_id", matchId)
             .maybeSingle();
@@ -1621,29 +1617,30 @@ async function openDailyTeamSheet(userId, matchId) {
             return;
         }
 
-        // Step 2: get player IDs
-        const { data: teamPlayers } = await supabase
-            .from("user_daily_team_players")
-            .select("player_id")
-            .eq("user_daily_team_id", team.id);
-
-        const playerIds = (teamPlayers || []).map(r => r.player_id);
-
-        // Step 3: get points and player details in parallel
-        const [ptsRes, playersRes] = await Promise.all([
-            supabase.from("user_match_points")
-                .select("total_points")
+        const [profileRes, teamPlayersRes, ptsRes] = await Promise.all([
+            supabase.from("user_profiles")
+                .select("team_name, team_photo_url")
+                .eq("user_id", userId)
+                .maybeSingle(),
+            supabase.from("user_daily_team_players")
+                .select("player_id")
+                .eq("user_daily_team_id", team.id),
+            supabase.from("daily_match_leaderboard_view")
+                .select("total_daily_points")
                 .eq("user_id", userId)
                 .eq("match_id", matchId)
                 .maybeSingle(),
-            playerIds.length
-                ? supabase.from("players")
-                    .select("id, name, role, photo_url, real_teams!inner(short_code)")
-                    .in("id", playerIds)
-                : Promise.resolve({ data: [] }),
         ]);
 
-        const profile = team.user_profiles;
+        const playerIds = (teamPlayersRes.data || []).map(r => r.player_id);
+
+        const { data: playerDetails } = playerIds.length
+            ? await supabase.from("players")
+                .select("id, name, role, photo_url, real_teams!inner(short_code)")
+                .in("id", playerIds)
+            : { data: [] };
+
+        const profile = profileRes.data;
         const photo   = profile?.team_photo_url
             ? supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url).data.publicUrl
             : "images/default-avatar.png";
@@ -1654,11 +1651,11 @@ async function openDailyTeamSheet(userId, matchId) {
             <div class="sheet-team-avatar" style="background-image:url('${photo}')"></div>
             <div>
                 <div class="sheet-player-name">${profile?.team_name || "Expert"}</div>
-                <div class="sheet-player-pts">${ptsRes.data?.total_points ?? "—"} pts this match</div>
+                <div class="sheet-player-pts">${ptsRes.data?.total_daily_points ?? "—"} pts this match</div>
             </div>`;
         body.appendChild(hdr);
 
-        const players = (playersRes.data || []).map(p => ({
+        const players = (playerDetails || []).map(p => ({
             ...p,
             short_code: p.real_teams?.short_code || "TBA",
             isC:  p.id === team.captain_id,
