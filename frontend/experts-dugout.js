@@ -632,8 +632,9 @@ function buildMostPicked(players) {
         info.innerHTML = `
             <span class="ed-player-name">${p.name || "Unknown"}</span>
             <span class="ed-player-meta">
-                ${p.role || ""} · played ${p.matches_played || 0} of ${p.matches_in_team || 0} matches
-            </span>`;
+${p.role || ""} · played ${p.matches_played || 0} matches
+
+</span>`;
 
         const right = document.createElement("div");
         right.style.textAlign = "right";
