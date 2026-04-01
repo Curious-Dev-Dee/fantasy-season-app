@@ -553,29 +553,10 @@ function buildPlayerUsage(players, d) {
     const sec  = createSection("fas fa-users-line", "pu", "Player Usage");
     const body = sec.querySelector(".ed-section-body");
 
-    const u           = players.player_usage || {};
-    const totalUsed   = u.total_players_used  || 0;
-    const whoPlayed   = u.players_who_played  || 0;
-    const appearances = u.total_appearances   || 0;
-    const matchCount  = Number(d.matches_played ?? 0);
-    const totalPts    = Number(d.total_points  ?? 0);
-
-    // Avg players used per match = total appearances / matches played
-    // (appearances counts each player slot each match, so 11 per match ideally)
-    const avgPerMatch = matchCount > 0
-        ? (appearances / matchCount).toFixed(1)
-        : "--";
-
-    // Avg points per distinct player used
-    const avgPtsPerPlayer = totalUsed > 0
-        ? Math.round(totalPts / totalUsed)
-        : "--";
-
-    // Bench rate = players selected but never played / total selected
-    const neverPlayed = totalUsed - whoPlayed;
-    const benchPct    = totalUsed > 0
-        ? Math.round((neverPlayed / totalUsed) * 100)
-        : 0;
+    const u            = players.player_usage || {};
+    const totalUsed    = u.total_players_used            || 0;
+    const avgPlayed    = u.avg_players_played_per_match   || "--";
+    const avgPtsPlayer = u.avg_pts_per_player_used        || "--";
 
     body.innerHTML = `
         <div class="ed-stat-grid" style="margin-bottom:10px">
@@ -584,35 +565,22 @@ function buildPlayerUsage(players, d) {
                 <span class="ed-stat-lbl">Total Players Used</span>
             </div>
             <div class="ed-stat-cell">
-                <span class="ed-stat-val bl">${avgPerMatch}</span>
-                <span class="ed-stat-lbl">Avg Per Match</span>
+                <span class="ed-stat-val bl">${avgPlayed}</span>
+                <span class="ed-stat-lbl">Avg Played / Match</span>
             </div>
             <div class="ed-stat-cell">
-                <span class="ed-stat-val gd">${avgPtsPerPlayer}</span>
+                <span class="ed-stat-val gd">${avgPtsPlayer}</span>
                 <span class="ed-stat-lbl">Avg Pts / Player</span>
             </div>
         </div>
-        <div class="ed-usage-row">
-            <div class="ed-usage-cell">
-                <span class="ed-usage-icon">✅</span>
-                <div class="ed-usage-info">
-                    <span class="ed-usage-val">${whoPlayed}</span>
-                    <span class="ed-usage-lbl">Players who actually played</span>
-                </div>
+        <div style="background:var(--bg-card-alt);border:1px solid var(--border-subtle);border-radius:10px;padding:10px 12px;">
+            <div style="font-family:var(--font-body);font-size:11px;color:var(--text-faint);line-height:1.6">
+                <i class="fas fa-circle-info" style="color:var(--accent);margin-right:5px"></i>
+                <strong style="color:var(--text-dim)">${avgPlayed} players</strong> from your squad of 11 actually played per match on average.
+                Across the season you used <strong style="color:var(--text-dim)">${totalUsed} different players</strong>,
+                each earning an average of <strong style="color:var(--gold)">${avgPtsPlayer} pts</strong> for your team.
             </div>
-            <div class="ed-usage-cell">
-                <span class="ed-usage-icon">🪑</span>
-                <div class="ed-usage-info">
-                    <span class="ed-usage-val rd">${neverPlayed}</span>
-                    <span class="ed-usage-lbl">Players who never played</span>
-                </div>
-            </div>
-        </div>
-        ${benchPct > 20 ? `
-        <div class="ed-usage-warning">
-            <i class="fas fa-triangle-exclamation"></i>
-            ${benchPct}% of your selected players never played a single ball — check your squad selection.
-        </div>` : ""}`;
+        </div>`;
 
     return sec;
 }
