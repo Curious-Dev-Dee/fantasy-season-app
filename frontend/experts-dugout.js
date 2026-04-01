@@ -29,13 +29,24 @@ async function init() {
         currentLeagueId = member?.league_id || null;
 
         if (!currentLeagueId) {
-            const lb = document.getElementById("toggleLeague");
-            if (lb) { lb.disabled = true; lb.style.opacity = "0.4"; }
-        }
+    // User has no league — hide the toggle row completely
+    const toggleRow = document.querySelector(".ed-toggle-row");
+    if (toggleRow) toggleRow.style.display = "none";
+    // Stay in overall mode (default)
+    currentMode = "overall";
+} else {
+    // User has a league — default to league mode
+    currentMode = "league";
+    // Update button active states to reflect league being selected
+    const overallBtn = document.getElementById("toggleOverall");
+    const leagueBtn  = document.getElementById("toggleLeague");
+    if (overallBtn) overallBtn.classList.remove("active");
+    if (leagueBtn)  leagueBtn.classList.add("active");
+}
 
-        setupListeners();
-    setupInfoPanel();
-        await loadTeamList();
+setupListeners();
+setupInfoPanel();
+await loadTeamList();
 
         const sel = document.getElementById("teamSelector");
         if (sel && currentUserId) {
