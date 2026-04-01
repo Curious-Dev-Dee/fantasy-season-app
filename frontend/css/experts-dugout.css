@@ -689,3 +689,62 @@ body.loading-state .app-container    { display: none !important; }
     letter-spacing: 0.3px;
     margin-top: 2px;
 }
+
+/* ─── PLAYER USAGE CARD ──────────────────────────── */
+.ed-usage-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ed-usage-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card-alt);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.ed-usage-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.ed-usage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ed-usage-val {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+}
+
+.ed-usage-val.rd { color: var(--red); }
+
+.ed-usage-lbl {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text-faint);
+}
+
+.ed-usage-warning {
+    margin-top: 8px;
+    background: rgba(245,158,11,0.06);
+    border: 1px solid rgba(245,158,11,0.20);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--gold);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+}

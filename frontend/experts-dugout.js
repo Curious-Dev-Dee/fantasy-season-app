@@ -141,7 +141,13 @@ async function loadDugout(userId) {
         content.appendChild(buildCaptainStats(d));
         content.appendChild(buildBoosterROI(d));
         content.appendChild(buildH2H(d, userId));
-if (players) { content.appendChild(buildTopScorers(players)); content.appendChild(buildMostPicked(players)); content.appendChild(buildByRole(players)); content.appendChild(buildPlayerCategories(players)); }
+if (players) {
+    content.appendChild(buildTopScorers(players));
+    content.appendChild(buildMostPicked(players));
+    content.appendChild(buildPlayerUsage(players, d));
+    content.appendChild(buildByRole(players));
+    content.appendChild(buildPlayerCategories(players));
+}
         content.appendChild(buildCompareSection(userId));
         content.appendChild(buildStrengthZone(d, players));
         content.appendChild(buildShareCard(d, teamRow));
@@ -540,6 +546,74 @@ function buildH2H(d, userId) {
         </div>
         <div class="ed-h2h-bar"><div class="ed-h2h-fill" style="width:${pct}%"></div></div>
         <div class="ed-h2h-note">You beat rank 1 in ${pct}% of matches</div>`;
+    return sec;
+}
+
+function buildPlayerUsage(players, d) {
+    const sec  = createSection("fas fa-users-line", "pu", "Player Usage");
+    const body = sec.querySelector(".ed-section-body");
+
+    const u           = players.player_usage || {};
+    const totalUsed   = u.total_players_used  || 0;
+    const whoPlayed   = u.players_who_played  || 0;
+    const appearances = u.total_appearances   || 0;
+    const matchCount  = Number(d.matches_played ?? 0);
+    const totalPts    = Number(d.total_points  ?? 0);
+
+    // Avg players used per match = total appearances / matches played
+    // (appearances counts each player slot each match, so 11 per match ideally)
+    const avgPerMatch = matchCount > 0
+        ? (appearances / matchCount).toFixed(1)
+        : "--";
+
+    // Avg points per distinct player used
+    const avgPtsPerPlayer = totalUsed > 0
+        ? Math.round(totalPts / totalUsed)
+        : "--";
+
+    // Bench rate = players selected but never played / total selected
+    const neverPlayed = totalUsed - whoPlayed;
+    const benchPct    = totalUsed > 0
+        ? Math.round((neverPlayed / totalUsed) * 100)
+        : 0;
+
+    body.innerHTML = `
+        <div class="ed-stat-grid" style="margin-bottom:10px">
+            <div class="ed-stat-cell">
+                <span class="ed-stat-val pu">${totalUsed}</span>
+                <span class="ed-stat-lbl">Total Players Used</span>
+            </div>
+            <div class="ed-stat-cell">
+                <span class="ed-stat-val bl">${avgPerMatch}</span>
+                <span class="ed-stat-lbl">Avg Per Match</span>
+            </div>
+            <div class="ed-stat-cell">
+                <span class="ed-stat-val gd">${avgPtsPerPlayer}</span>
+                <span class="ed-stat-lbl">Avg Pts / Player</span>
+            </div>
+        </div>
+        <div class="ed-usage-row">
+            <div class="ed-usage-cell">
+                <span class="ed-usage-icon">✅</span>
+                <div class="ed-usage-info">
+                    <span class="ed-usage-val">${whoPlayed}</span>
+                    <span class="ed-usage-lbl">Players who actually played</span>
+                </div>
+            </div>
+            <div class="ed-usage-cell">
+                <span class="ed-usage-icon">🪑</span>
+                <div class="ed-usage-info">
+                    <span class="ed-usage-val rd">${neverPlayed}</span>
+                    <span class="ed-usage-lbl">Players who never played</span>
+                </div>
+            </div>
+        </div>
+        ${benchPct > 20 ? `
+        <div class="ed-usage-warning">
+            <i class="fas fa-triangle-exclamation"></i>
+            ${benchPct}% of your selected players never played a single ball — check your squad selection.
+        </div>` : ""}`;
+
     return sec;
 }
 
