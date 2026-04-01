@@ -1206,31 +1206,30 @@ function renderDailyPanel() {
         ? bucket.getPublicUrl(match.team_b.photo_name).data.publicUrl
         : "images/default-team.png";
 
-    matchCard.innerHTML = `
-        <div class="match-card-header">
-            <span class="match-badge">DAILY XI</span>
-            <p class="match-venue" style="font-size:11px;color:var(--text-faint);margin:0;">Pick from these 2 teams only</p>
+matchCard.innerHTML = `
+    <div class="daily-card-badge">DAILY XI</div>
+    <div class="daily-card-vs-row">
+        <div class="daily-card-team">
+            <div class="daily-card-logo" style="background-image:url('${logoA}')"></div>
+            <span class="daily-card-team-name">${match.team_a.short_code}</span>
         </div>
-        <div class="match-vs-row">
-            <div class="team-logo" style="background-image:url('${logoA}');width:52px;height:52px;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>
-            <div class="match-center" style="flex:1;text-align:center;">
-                <h2 class="match-teams" style="font-family:var(--font-display);font-size:26px;font-weight:900;margin:0 0 4px;">
-                    ${match.team_a.short_code} vs ${match.team_b.short_code}
-                </h2>
-                <p style="font-family:var(--font-body);font-size:11px;color:var(--text-faint);margin:0;">
-                    ${dailyState.isLocked ? "✅ Team locked" : "Not submitted yet"}
-                </p>
-            </div>
-            <div class="team-logo" style="background-image:url('${logoB}');width:52px;height:52px;background-size:contain;background-repeat:no-repeat;background-position:center;"></div>
+        <div class="daily-card-center">
+            <span class="daily-card-vs">VS</span>
+            <span class="daily-card-status">${dailyState.isLocked ? "✅ Team locked" : "Not submitted yet"}</span>
         </div>
-        <div class="match-actions">
-            <button class="btn-primary" id="dailyEditBtn" style="flex:1.4;">
-                ${dailyState.isLocked ? "🔒 Locked" : "Edit XI"}
-            </button>
-            <button class="btn-secondary" id="dailyViewBtn" style="flex:1;">View</button>
+        <div class="daily-card-team">
+            <div class="daily-card-logo" style="background-image:url('${logoB}')"></div>
+            <span class="daily-card-team-name">${match.team_b.short_code}</span>
         </div>
-        <p class="btn-hint">Locks at match start time</p>`;
-
+    </div>
+    <div class="daily-card-actions">
+        <button class="daily-btn-locked" id="dailyEditBtn">
+            ${dailyState.isLocked ? "🔒 Locked" : "✏️ Edit XI"}
+        </button>
+        <button class="daily-btn-view" id="dailyViewBtn">👁 View</button>
+    </div>
+    <p class="daily-card-hint">Locks at match start time</p>`;
+    
     panel.appendChild(matchCard);
 
     // ── EDITOR (hidden by default, shown on Edit tap) ──

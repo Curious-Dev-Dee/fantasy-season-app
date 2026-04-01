@@ -1647,3 +1647,124 @@ body {
     outline: none;
 }
 .tb-search-input:focus { border-color: var(--fun-cyan); }
+
+/* ─── DAILY MATCH CARD ───────────────────────────── */
+.daily-card-badge {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: var(--fun-cyan);
+    background: var(--fun-cyan-dim);
+    border: 1px solid var(--fun-cyan-bdr);
+    border-radius: var(--pill-radius);
+    padding: 3px 10px;
+    margin-bottom: 14px;
+}
+
+.daily-card-vs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.daily-card-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.daily-card-logo {
+    width: 60px;
+    height: 60px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.daily-card-team-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text-primary);
+    text-transform: uppercase;
+}
+
+.daily-card-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 0 12px;
+}
+
+.daily-card-vs {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--fun-cyan);
+}
+
+.daily-card-status {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text-faint);
+    white-space: nowrap;
+}
+
+.daily-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.daily-btn-locked {
+    flex: 1.4;
+    padding: 13px;
+    border-radius: var(--btn-radius);
+    border: none;
+    background: var(--fun-cyan);
+    color: #000;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.daily-btn-locked:hover {
+    box-shadow: 0 4px 14px var(--fun-cyan-glow);
+}
+
+.daily-btn-view {
+    flex: 1;
+    padding: 13px;
+    border-radius: var(--btn-radius);
+    border: 1px solid var(--border-card);
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.daily-btn-view:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.daily-card-hint {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text-faint);
+    text-align: center;
+    margin: 0;
+}
