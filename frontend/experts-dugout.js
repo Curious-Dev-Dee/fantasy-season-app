@@ -143,6 +143,7 @@ async function loadDugout(userId) {
         content.appendChild(buildH2H(d, userId));
 if (players) { content.appendChild(buildTopScorers(players)); content.appendChild(buildMostPicked(players)); content.appendChild(buildByRole(players)); content.appendChild(buildPlayerCategories(players)); }
         content.appendChild(buildCompareSection(userId));
+        content.appendChild(buildStrengthZone(d, players));
         content.appendChild(buildShareCard(d, teamRow));
     } catch (err) {
         console.error("Dugout load error:", err);
@@ -839,6 +840,201 @@ function showToast(msg, type = "success") {
     const t = document.createElement("div");
     t.className = `toast ${type}`; t.textContent = msg; c.appendChild(t);
     setTimeout(() => { t.classList.add("fade-out"); t.addEventListener("transitionend", () => t.remove(), { once: true }); }, 3000);
+}
+
+function buildStrengthZone(d, players) {
+    const sec  = createSection("fas fa-shield-halved", "green", "Strong & Weak Zones");
+    const body = sec.querySelector(".ed-section-body");
+
+    const strengths = [];
+    const weaknesses = [];
+
+    const avg         = Number(d.avg_score_per_match  ?? 0);
+    const last3       = Number(d.avg_score_last_3     ?? 0);
+    const capRate     = Number(d.captain_success_rate ?? 0);
+    const consistency = Number(d.consistency_score    ?? 0);
+    const bestStreak  = Number(d.best_streak          ?? 0);
+    const worstStreak = Number(d.worst_streak         ?? 0);
+    const worstMatch  = Number(d.worst_match_score    ?? 0);
+    const boostersRem = Number(d.boosters_remaining   ?? 7);
+    const matchCount  = Number(d.matches_played       ?? 0);
+
+    // ── Booster best score ──
+    const boosterHistory = d.booster_history || [];
+    const bestBoosterPts = boosterHistory.length
+        ? Math.max(...boosterHistory.map(b => b.points || 0))
+        : 0;
+
+    // ── Category breakdown for Indian/Overseas split ──
+    const breakdown   = players?.category_breakdown || [];
+    const totalCatPts = breakdown.reduce((a, b) => a + (b.total_points || 0), 0);
+    const indianPct   = totalCatPts > 0
+        ? (breakdown.find(c => c.category === "indian")?.total_points || 0) / totalCatPts * 100
+        : 0;
+    const overseasPct = totalCatPts > 0
+        ? (breakdown.find(c => c.category === "overseas")?.total_points || 0) / totalCatPts * 100
+        : 0;
+
+    // ════════════════════════════════
+    //  STRENGTH CHECKS
+    // ════════════════════════════════
+
+    if (capRate >= 70) {
+        strengths.push({
+            icon: "👑",
+            title: "Elite Captaincy",
+            desc: `Your captain outperformed the match average in ${capRate}% of matches.`
+        });
+    }
+
+    if (consistency >= 70) {
+        strengths.push({
+            icon: "🎯",
+            title: "Rock Solid Consistency",
+            desc: `Consistency score of ${consistency}/100 — you deliver match after match.`
+        });
+    }
+
+    if (avg > 0 && last3 > avg) {
+        strengths.push({
+            icon: "🔥",
+            title: "Red Hot Form",
+            desc: `Your last 3 match average (${last3} pts) is above your season average (${avg} pts).`
+        });
+    }
+
+    if (bestStreak >= 3) {
+        strengths.push({
+            icon: "💥",
+            title: "Explosive Scorer",
+            desc: `You scored 250+ pts in ${bestStreak} matches in a row — a powerful streak.`
+        });
+    }
+
+    if (indianPct > 55) {
+        strengths.push({
+            icon: "🇮🇳",
+            title: "Strong Indian Core",
+            desc: `${indianPct.toFixed(0)}% of your points come from Indian players — a reliable base.`
+        });
+    }
+
+    if (worstMatch > 150 && matchCount >= 3) {
+        strengths.push({
+            icon: "🛡️",
+            title: "No Bad Days",
+            desc: `Even your worst match scored ${worstMatch} pts — your floor is impressively high.`
+        });
+    }
+
+    if (bestBoosterPts > 0 && avg > 0 && bestBoosterPts > avg * 1.3) {
+        strengths.push({
+            icon: "🚀",
+            title: "Booster Timing Master",
+            desc: `Your best booster match scored ${bestBoosterPts} pts — well above your season average.`
+        });
+    }
+
+    // ════════════════════════════════
+    //  WEAKNESS CHECKS
+    // ════════════════════════════════
+
+    if (capRate > 0 && capRate < 50) {
+        weaknesses.push({
+            icon: "👎",
+            title: "Poor Captaincy Choices",
+            desc: `Your captain only beat the match average ${capRate}% of the time. Reconsider your captain picks.`
+        });
+    }
+
+    if (consistency > 0 && consistency < 50) {
+        weaknesses.push({
+            icon: "📉",
+            title: "Very Inconsistent",
+            desc: `Consistency score of ${consistency}/100 — your scores swing wildly match to match.`
+        });
+    }
+
+    if (avg > 0 && last3 > 0 && last3 < avg * 0.8) {
+        weaknesses.push({
+            icon: "❄️",
+            title: "Dropping Form",
+            desc: `Your last 3 avg (${last3} pts) is significantly below your season average (${avg} pts).`
+        });
+    }
+
+    if (worstStreak >= 3) {
+        weaknesses.push({
+            icon: "🥶",
+            title: "Cold Spells Problem",
+            desc: `You scored below 100 pts in ${worstStreak} matches in a row — a dangerous pattern.`
+        });
+    }
+
+    if (avg > 0 && worstMatch < avg * 0.4 && matchCount >= 3) {
+        weaknesses.push({
+            icon: "💣",
+            title: "Crashes Hard",
+            desc: `Your worst match (${worstMatch} pts) is extremely low compared to your average — you have big dips.`
+        });
+    }
+
+    if (boostersRem > 4 && matchCount > 5) {
+        weaknesses.push({
+            icon: "⚠️",
+            title: "Underusing Boosters",
+            desc: `You still have ${boostersRem} boosters left after ${matchCount} matches — you are leaving points on the table.`
+        });
+    }
+
+    if (overseasPct > 55 && matchCount >= 3) {
+        weaknesses.push({
+            icon: "✈️",
+            title: "Overseas Dependent",
+            desc: `${overseasPct.toFixed(0)}% of your points come from overseas players — risky if they have a bad run.`
+        });
+    }
+
+    // ── Cap at 3 each ──
+    const topStrengths = strengths.slice(0, 3);
+    const topWeaknesses = weaknesses.slice(0, 3);
+
+    // ── Handle no data case ──
+    if (!topStrengths.length && !topWeaknesses.length) {
+        body.innerHTML = '<div class="ed-no-data">Not enough match data yet to analyse zones</div>';
+        return sec;
+    }
+
+    // ── Build HTML ──
+    const buildZoneItems = (list) => list.map(item => `
+        <div class="ed-zone-item">
+            <span class="ed-zone-icon">${item.icon}</span>
+            <div class="ed-zone-info">
+                <div class="ed-zone-title">${item.title}</div>
+                <div class="ed-zone-desc">${item.desc}</div>
+            </div>
+        </div>
+    `).join("");
+
+    body.innerHTML = `
+        ${topStrengths.length ? `
+        <div class="ed-zone-block strong">
+            <div class="ed-zone-header">
+                <i class="fas fa-circle-check"></i> Strong Zone
+            </div>
+            ${buildZoneItems(topStrengths)}
+        </div>` : ""}
+
+        ${topWeaknesses.length ? `
+        <div class="ed-zone-block weak" style="${topStrengths.length ? 'margin-top:10px' : ''}">
+            <div class="ed-zone-header">
+                <i class="fas fa-circle-exclamation"></i> Weak Zone
+            </div>
+            ${buildZoneItems(topWeaknesses)}
+        </div>` : ""}
+    `;
+
+    return sec;
 }
 
 function setupInfoPanel() {
