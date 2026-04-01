@@ -414,16 +414,43 @@ function buildRankJourney(d) {
 function buildSubsTrends(d) {
     const sec  = createSection("fas fa-exchange-alt", "bl", "Subs Analysis");
     const body = sec.querySelector(".ed-section-body");
+
+    // Calculate avg subs per match from existing data
+    const totalSubs   = Number(d.total_subs_used ?? 0);
+    const matchCount  = Number(d.matches_played ?? 0);
+    const avgPerMatch = matchCount > 0
+        ? (totalSubs / matchCount).toFixed(1)
+        : "--";
+
     body.innerHTML = `
-        <div style="background:#111e30;border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;margin-bottom:8px">
-            <span class="ed-stat-val bl" style="font-size:24px">${d.total_subs_used ?? 0}</span>
-            <span class="ed-stat-lbl">Total Subs Used</span>
+        <div class="ed-stat-grid two-col" style="margin-bottom:10px">
+            <div class="ed-stat-cell">
+                <span class="ed-stat-val bl">${avgPerMatch}</span>
+                <span class="ed-stat-lbl">Avg Subs / Match</span>
+            </div>
+            <div class="ed-stat-cell">
+                <span class="ed-stat-val wh">${totalSubs}</span>
+                <span class="ed-stat-lbl">Total Subs Used</span>
+            </div>
         </div>
         <div class="ed-trend-row">
-            <div class="ed-trend-cell"><span class="ed-trend-label">Last 3</span><span class="ed-trend-val">${d.avg_subs_last_3 ?? "--"}</span><span class="ed-trend-sub">avg subs</span></div>
-            <div class="ed-trend-cell"><span class="ed-trend-label">Last 6</span><span class="ed-trend-val">${d.avg_subs_last_6 ?? "--"}</span><span class="ed-trend-sub">avg subs</span></div>
-            <div class="ed-trend-cell"><span class="ed-trend-label">Last 10</span><span class="ed-trend-val">${d.avg_subs_last_10 ?? "--"}</span><span class="ed-trend-sub">avg subs</span></div>
+            <div class="ed-trend-cell">
+                <span class="ed-trend-label">Last 3</span>
+                <span class="ed-trend-val">${d.avg_subs_last_3 ?? "--"}</span>
+                <span class="ed-trend-sub">avg subs</span>
+            </div>
+            <div class="ed-trend-cell">
+                <span class="ed-trend-label">Last 6</span>
+                <span class="ed-trend-val">${d.avg_subs_last_6 ?? "--"}</span>
+                <span class="ed-trend-sub">avg subs</span>
+            </div>
+            <div class="ed-trend-cell">
+                <span class="ed-trend-label">Last 10</span>
+                <span class="ed-trend-val">${d.avg_subs_last_10 ?? "--"}</span>
+                <span class="ed-trend-sub">avg subs</span>
+            </div>
         </div>`;
+
     return sec;
 }
 
