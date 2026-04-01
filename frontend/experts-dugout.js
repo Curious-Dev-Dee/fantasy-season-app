@@ -553,32 +553,41 @@ function buildPlayerUsage(players, d) {
     const sec  = createSection("fas fa-users-line", "pu", "Player Usage");
     const body = sec.querySelector(".ed-section-body");
 
-    const u            = players.player_usage || {};
-    const totalUsed    = u.total_players_used            || 0;
-    const avgPlayed    = u.avg_players_played_per_match   || "--";
-    const avgPtsPlayer = u.avg_pts_per_player_used        || "--";
+    const u = players.player_usage || {};
+
+    const uniquePlayers      = u.unique_players_appeared      ?? "--";
+    const totalAppearances   = u.total_appearances            ?? "--";
+    const avgPerMatch        = u.avg_appearances_per_match    ?? "--";
+    const avgPtsPerAppear    = u.avg_pts_per_appearance       ?? "--";
 
     body.innerHTML = `
-        <div class="ed-stat-grid" style="margin-bottom:10px">
+        <div class="ed-stat-grid two-col" style="margin-bottom:10px">
             <div class="ed-stat-cell">
-                <span class="ed-stat-val pu">${totalUsed}</span>
-                <span class="ed-stat-lbl">Total Players Used</span>
+                <span class="ed-stat-val pu">${uniquePlayers}</span>
+                <span class="ed-stat-lbl">Unique Players Appeared</span>
             </div>
             <div class="ed-stat-cell">
-                <span class="ed-stat-val bl">${avgPlayed}</span>
-                <span class="ed-stat-lbl">Avg Played / Match</span>
+                <span class="ed-stat-val wh">${totalAppearances}</span>
+                <span class="ed-stat-lbl">Total Appearances</span>
+            </div>
+        </div>
+        <div class="ed-stat-grid two-col" style="margin-bottom:12px">
+            <div class="ed-stat-cell">
+                <span class="ed-stat-val bl">${avgPerMatch}</span>
+                <span class="ed-stat-lbl">Avg Appearances / Match</span>
             </div>
             <div class="ed-stat-cell">
-                <span class="ed-stat-val gd">${avgPtsPlayer}</span>
-                <span class="ed-stat-lbl">Avg Pts / Player</span>
+                <span class="ed-stat-val gd">${avgPtsPerAppear}</span>
+                <span class="ed-stat-lbl">Avg Pts / Appearance</span>
             </div>
         </div>
         <div style="background:var(--bg-card-alt);border:1px solid var(--border-subtle);border-radius:10px;padding:10px 12px;">
             <div style="font-family:var(--font-body);font-size:11px;color:var(--text-faint);line-height:1.6">
                 <i class="fas fa-circle-info" style="color:var(--accent);margin-right:5px"></i>
-                <strong style="color:var(--text-dim)">${avgPlayed} players</strong> from your squad of 11 actually played per match on average.
-                Across the season you used <strong style="color:var(--text-dim)">${totalUsed} different players</strong>,
-                each earning an average of <strong style="color:var(--gold)">${avgPtsPlayer} pts</strong> for your team.
+                Out of all players you picked, <strong style="color:var(--text-dim)">${uniquePlayers} unique players</strong>
+                actually took the field. They made <strong style="color:var(--text-dim)">${totalAppearances} total appearances</strong>
+                across the season — averaging <strong style="color:var(--text-dim)">${avgPerMatch} per match</strong>
+                and earning <strong style="color:var(--gold)">${avgPtsPerAppear} pts per appearance</strong>.
             </div>
         </div>`;
 
