@@ -1399,11 +1399,11 @@ async function loadDailyAvgRank() {
     // Compute avg points per match from user_match_points joined to daily teams
     // Group by user, sum points, count matches, divide
     const { data: rows } = await supabase
-        .from("daily_season_avg_rank_view")
-.select("team_name, avg_rank, matches_played, user_id")
-        .eq("tournament_id", currentTournamentId)
-        .order("avg_points", { ascending: false })  // highest avg first
-        .limit(3);
+    .from("daily_season_avg_points_view")
+    .select("team_name, avg_points, matches_played, user_id")
+    .eq("tournament_id", currentTournamentId)
+    .order("avg_points", { ascending: false })
+    .limit(3);
 
     section.innerHTML = "";
     const titleRow = document.createElement("div");
@@ -1439,18 +1439,12 @@ async function loadDailyAvgRank() {
             : row.matches_played > 0
                 ? (row.total_points / row.matches_played).toFixed(1)
                 : "0";
-pts.textContent = `Avg Rank #${Number(row.avg_rank).toFixed(1)} · ${row.matches_played}M`;
-
+pts.textContent = `${Number(row.avg_points).toFixed(1)} avg · ${row.matches_played}M`;
         el.append(rank, name, pts);
         section.appendChild(el);
     });
 
-    const viewBtn = document.createElement("button");
-    viewBtn.className   = "btn-view-all";
-    viewBtn.style.marginTop = "8px";
-    viewBtn.innerHTML   = `Full Avg Points Table <i class="fas fa-chevron-right"></i>`;
-    viewBtn.onclick     = () => openFullDailyLeaderboard(null, "avg");
-    section.appendChild(viewBtn);
+
 }
 
 async function openAllStarsTeam(userId, teamName) {
@@ -1708,12 +1702,12 @@ async function openFullDailyLeaderboard(matchId, type) {
                 .limit(100);
             rows = data;
         } else {
-            const { data } = await supabase
-                .from("daily_season_avg_rank_view")
-                .select("team_name, avg_rank, matches_played, user_id")
-                .eq("tournament_id", currentTournamentId)
-                .order("avg_rank", { ascending: true })
-                .limit(100);
+const { data } = await supabase
+    .from("daily_season_avg_points_view")
+    .select("team_name, avg_points, matches_played, user_id")
+    .eq("tournament_id", currentTournamentId)
+    .order("avg_points", { ascending: false })
+    .limit(100);
             rows = data;
         }
 
@@ -1753,8 +1747,7 @@ rows.forEach((row, i) => {
             : row.matches_played > 0
                 ? (row.total_points / row.matches_played).toFixed(1)
                 : "0";
-        pts.textContent = `${avg} avg · ${row.matches_played}M`;
-    }
+pts.textContent = `${Number(row.avg_points).toFixed(1)} avg · ${row.matches_played}M`;    }
 
     if (type === "match") {
         el.style.cursor = "pointer";
