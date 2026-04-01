@@ -279,45 +279,135 @@ function buildRankJourney(d) {
     const sec  = createSection("fas fa-route", "bl", "Rank Journey");
     const body = sec.querySelector(".ed-section-body");
     const journey = d.rank_journey || [];
-    if (!journey.length) { body.innerHTML = '<div class="ed-no-data">Not enough data yet</div>'; return sec; }
+
+    if (!journey.length) {
+        body.innerHTML = '<div class="ed-no-data">Not enough data yet</div>';
+        return sec;
+    }
+
     const sorted = [...journey].sort((a, b) => a.match_number - b.match_number);
-    body.innerHTML = `<div class="ed-rank-journey-wrap"><canvas id="rankChart"></canvas></div>`;
+
+    // If only one match, we can't draw a line — show a simple message instead
+    if (sorted.length === 1) {
+        body.innerHTML = `
+            <div style="text-align:center;padding:14px 0">
+                <div style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--accent)">#${sorted[0].rank}</div>
+                <div style="font-family:var(--font-body);font-size:11px;color:var(--text-faint);margin-top:4px">Rank after Match ${sorted[0].match_number}</div>
+                <div style="font-family:var(--font-body);font-size:10px;color:var(--text-faint);margin-top:8px;font-style:italic">Play more matches to see your rank journey</div>
+            </div>`;
+        return sec;
+    }
+
+    body.innerHTML = `<div class="ed-rank-journey-wrap"><canvas id="rankChart"></canvas></div>
+        <div style="font-family:var(--font-body);font-size:10px;color:var(--text-faint);text-align:center;margin-top:6px;font-style:italic">
+            Lower on chart = better rank · Gold dot = Rank 1
+        </div>`;
+
     setTimeout(() => {
         const canvas = document.getElementById("rankChart");
         if (!canvas) return;
+
         const dpr = window.devicePixelRatio || 1;
-        const W = canvas.offsetWidth || 300, H = 90;
-        canvas.width = W * dpr; canvas.height = H * dpr;
+        const W   = canvas.offsetWidth || 300;
+        const H   = 110;
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
         const ctx = canvas.getContext("2d");
         ctx.scale(dpr, dpr);
+
         const ranks = sorted.map(r => r.rank);
-        const maxR  = Math.max(...ranks, 1);
-        const pL = 22, pR = 8, pT = 8, pB = 18;
-        const cW = W - pL - pR, cH = H - pT - pB;
+        const minR  = Math.min(...ranks);   // best rank (lowest number)
+        const maxR  = Math.max(...ranks);   // worst rank (highest number)
+        const range = Math.max(maxR - minR, 1); // avoid divide by zero
+
+        const pL = 28, pR = 10, pT = 12, pB = 22;
+        const cW = W - pL - pR;
+        const cH = H - pT - pB;
+
         ctx.clearRect(0, 0, W, H);
-        [1, Math.ceil(maxR / 2), maxR].forEach(r => {
-            const y = pT + Math.round(((r - 1) / Math.max(maxR - 1, 1)) * cH);
-            ctx.strokeStyle = "rgba(255,255,255,0.04)"; ctx.lineWidth = 0.5;
-            ctx.beginPath(); ctx.moveTo(pL, y); ctx.lineTo(W - pR, y); ctx.stroke();
-            ctx.fillStyle = "rgba(100,116,139,0.6)"; ctx.font = "600 7px sans-serif"; ctx.textAlign = "right";
-            ctx.fillText(`#${r}`, pL - 3, y + 3);
+
+        // ── Grid lines (3 levels) ──
+        const gridRanks = minR === maxR
+            ? [minR]
+            : [minR, Math.round((minR + maxR) / 2), maxR];
+
+        gridRanks.forEach(r => {
+            // Rank 1 (best) = top of chart (y = pT)
+            // Worst rank    = bottom of chart (y = pT + cH)
+            const y = pT + Math.round(((r - minR) / range) * cH);
+            ctx.strokeStyle = "rgba(255,255,255,0.04)";
+            ctx.lineWidth   = 0.5;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(pL, y);
+            ctx.lineTo(W - pR, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle  = "rgba(100,116,139,0.7)";
+            ctx.font       = "600 7px sans-serif";
+            ctx.textAlign  = "right";
+            ctx.fillText(`#${r}`, pL - 4, y + 3);
         });
+
+        // ── Line ──
         ctx.beginPath();
         sorted.forEach((pt, i) => {
             const x = pL + (i / Math.max(sorted.length - 1, 1)) * cW;
-            const y = pT + Math.round(((pt.rank - 1) / Math.max(maxR - 1, 1)) * cH);
-            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            const y = pT + Math.round(((pt.rank - minR) / range) * cH);
+            if (i === 0) ctx.moveTo(x, y);
+            else         ctx.lineTo(x, y);
         });
-        ctx.strokeStyle = "#9AE000"; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
+        ctx.strokeStyle = "rgba(154,224,0,0.6)";
+        ctx.lineWidth   = 2;
+        ctx.lineJoin    = "round";
+        ctx.stroke();
+
+        // ── Fill under line ──
+        ctx.beginPath();
         sorted.forEach((pt, i) => {
             const x = pL + (i / Math.max(sorted.length - 1, 1)) * cW;
-            const y = pT + Math.round(((pt.rank - 1) / Math.max(maxR - 1, 1)) * cH);
-            ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
-            ctx.fillStyle = pt.rank === 1 ? "#f59e0b" : "#9AE000"; ctx.fill();
-            ctx.fillStyle = "rgba(100,116,139,0.6)"; ctx.font = "600 7px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(`M${pt.match_number}`, x, H - 4);
+            const y = pT + Math.round(((pt.rank - minR) / range) * cH);
+            if (i === 0) ctx.moveTo(x, y);
+            else         ctx.lineTo(x, y);
         });
+        const lastX = pL + cW;
+        const firstX = pL;
+        const bottomY = pT + cH;
+        ctx.lineTo(lastX, bottomY);
+        ctx.lineTo(firstX, bottomY);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, pT, 0, pT + cH);
+        grad.addColorStop(0,   "rgba(154,224,0,0.15)");
+        grad.addColorStop(1,   "rgba(154,224,0,0)");
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // ── Dots + labels ──
+        sorted.forEach((pt, i) => {
+            const x = pL + (i / Math.max(sorted.length - 1, 1)) * cW;
+            const y = pT + Math.round(((pt.rank - minR) / range) * cH);
+
+            // Dot
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = pt.rank === 1 ? "#f59e0b" : "#9AE000";
+            ctx.fill();
+
+            // Rank label above dot
+            ctx.fillStyle  = pt.rank === 1 ? "#f59e0b" : "rgba(154,224,0,0.9)";
+            ctx.font       = "700 8px sans-serif";
+            ctx.textAlign  = "center";
+            ctx.fillText(`#${pt.rank}`, x, y - 8);
+
+            // Match label below chart
+            ctx.fillStyle = "rgba(100,116,139,0.7)";
+            ctx.font      = "600 7px sans-serif";
+            ctx.fillText(`M${pt.match_number}`, x, H - 5);
+        });
+
     }, 60);
+
     return sec;
 }
 
