@@ -939,17 +939,18 @@ async function loadAllStarsPanel() {
         match1?.points_processed === true
     );
 
+    // Always fetch the full player pool for the leaderboard sheet viewer
     const { data: players } = await supabase
         .from("player_pool_view")
         .select("*")
         .eq("is_active", true)
         .eq("tournament_id", currentTournamentId);
-
     allStarsState.allPlayers = players || [];
 
+    // Fetch user's own team with full player details
     const { data: existing } = await supabase
         .from("user_allstar_teams")
-        .select("*, user_allstar_team_players(player_id)")
+        .select("id, captain_id, vice_captain_id, user_allstar_team_players(player_id)")
         .eq("user_id", currentUserId)
         .eq("tournament_id", currentTournamentId)
         .maybeSingle();
@@ -959,7 +960,13 @@ async function loadAllStarsPanel() {
         allStarsState.captainId      = existing.captain_id;
         allStarsState.vcId           = existing.vice_captain_id;
         const savedIds = existing.user_allstar_team_players.map(p => p.player_id);
+        // Pull from allPlayers which we already loaded
         allStarsState.selected = allStarsState.allPlayers.filter(p => savedIds.includes(p.id));
+    } else {
+        allStarsState.existingTeamId = null;
+        allStarsState.captainId      = null;
+        allStarsState.vcId           = null;
+        allStarsState.selected       = [];
     }
 
     const { data: lbRows } = await supabase
@@ -977,61 +984,96 @@ function renderAllStarsPanel(lbRows) {
     if (!panel) return;
     panel.innerHTML = "";
 
-    if (allStarsState.isLocked && allStarsState.selected.length > 0) {
+    const hasTeam   = allStarsState.selected.length > 0;
+    const isLocked  = allStarsState.isLocked;
+
+    if (isLocked && hasTeam) {
+        // Show pitch view — team is locked, no editing
         renderPitchCard(panel, allStarsState, "⭐ My All Stars XI", "Locked for the season");
-    } else {
+
+    } else if (!isLocked && hasTeam) {
+        // Match 1 not locked yet — show editor with saved team pre-filled
+        const editNote = document.createElement("div");
+        editNote.style.cssText = "background:var(--accent-dim);border:1px solid var(--border-accent);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-family:var(--font-body);font-size:12px;color:var(--accent);";
+        editNote.textContent = "⚠️ Match 1 hasn't started yet — you can still edit your All Stars XI.";
+        panel.appendChild(editNote);
+
         const wrap = document.createElement("div");
         wrap.innerHTML = getEditorHTML('as');
         panel.appendChild(wrap);
         bindBuilderListeners(allStarsState, 'as', saveAllStars);
         updateBuilderUI(allStarsState, 'as');
+
+    } else if (!isLocked && !hasTeam) {
+        // No team saved yet and Match 1 not locked — show builder
+        const wrap = document.createElement("div");
+        wrap.innerHTML = getEditorHTML('as');
+        panel.appendChild(wrap);
+        bindBuilderListeners(allStarsState, 'as', saveAllStars);
+        updateBuilderUI(allStarsState, 'as');
+
+    } else {
+        // Locked but no team saved — missed the window
+        const missed = document.createElement("div");
+        missed.style.cssText = "background:var(--bg-card);border:1px solid var(--border-card);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;";
+        missed.innerHTML = `
+            <p style="font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--text-faint);margin:0 0 6px;">All Stars Closed</p>
+            <p style="font-family:var(--font-body);font-size:12px;color:var(--text-faint);margin:0;">The window to pick your All Stars XI has passed.</p>`;
+        panel.appendChild(missed);
     }
 
-    const lbWrap = document.createElement("div");
-    lbWrap.style.marginTop = "20px";
-    
-    const section = document.createElement("div");
-    section.className = "as-lb-section";
-    const title = document.createElement("p");
-    title.className = "as-section-label";
-    title.textContent = "All Stars Leaderboard";
-    section.appendChild(title);
+    // Leaderboard — always shown below
+    const lbSection = document.createElement("div");
+    lbSection.className = "as-lb-section";
+    lbSection.style.marginTop = "20px";
+
+    const titleRow = document.createElement("div");
+    titleRow.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;";
+    titleRow.innerHTML = `<p class="as-section-label" style="margin:0;">All Stars Leaderboard</p>`;
+    lbSection.appendChild(titleRow);
 
     if (!lbRows.length) {
         const empty = document.createElement("p");
-        empty.className = "empty-msg";
+        empty.className   = "empty-msg";
         empty.textContent = "Rankings appear after Match 1 is processed.";
-        section.appendChild(empty);
+        lbSection.appendChild(empty);
     } else {
         lbRows.forEach(row => {
-    const el       = document.createElement("div");
-    el.className   = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
-    el.style.cursor = "pointer";  // ADD
-    el.onclick = () => openAllStarsTeam(row.user_id, row.team_name);  // ADD
+            const el = document.createElement("div");
+            el.className    = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
+            el.style.cursor = "pointer";
+            el.onclick      = () => openAllStarsTeam(row.user_id, row.team_name);
 
-    const rank = document.createElement("span");
-    rank.className   = "as-lb-rank";
-    rank.textContent = `#${row.rank}`;
+            const rank = document.createElement("span");
+            rank.className   = "as-lb-rank";
+            rank.textContent = `#${row.rank}`;
 
-    const name = document.createElement("span");
-    name.className   = "as-lb-name";
-    name.textContent = row.team_name || "Expert";
+            const name = document.createElement("span");
+            name.className   = "as-lb-name";
+            name.textContent = row.team_name || "Expert";
 
-    const pts = document.createElement("span");
-    pts.className   = `as-lb-pts${row.total_allstar_points > 0 ? " has-pts" : ""}`;
-    pts.textContent = `${row.total_allstar_points} pts`;
+            const pts = document.createElement("span");
+            pts.className   = `as-lb-pts${row.total_allstar_points > 0 ? " has-pts" : ""}`;
+            pts.textContent = `${row.total_allstar_points} pts`;
 
-    // ADD chevron hint
-    const arrow = document.createElement("i");
-    arrow.className = "fas fa-chevron-right";
-    arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
+            const arrow = document.createElement("i");
+            arrow.className   = "fas fa-chevron-right";
+            arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
 
-    el.append(rank, name, pts, arrow);
-    section.appendChild(el);
-});
+            el.append(rank, name, pts, arrow);
+            lbSection.appendChild(el);
+        });
+
+        // View all button
+        const viewBtn = document.createElement("button");
+        viewBtn.className = "btn-view-all";
+        viewBtn.style.marginTop = "8px";
+        viewBtn.innerHTML = `Full All Stars Leaderboard <i class="fas fa-chevron-right"></i>`;
+        viewBtn.onclick   = () => openFullAllStarsLeaderboard();
+        lbSection.appendChild(viewBtn);
     }
-    lbWrap.appendChild(section);
-    panel.appendChild(lbWrap);
+
+    panel.appendChild(lbSection);
 }
 
 async function saveAllStars() {
@@ -1354,17 +1396,19 @@ async function loadDailyAvgRank() {
     const section = document.getElementById("dailyAvgRank");
     if (!section) return;
 
+    // Compute avg points per match from user_match_points joined to daily teams
+    // Group by user, sum points, count matches, divide
     const { data: rows } = await supabase
         .from("daily_season_avg_rank_view")
-        .select("team_name, avg_rank, matches_played, user_id")
+        .select("team_name, avg_points, matches_played, total_points, user_id")
         .eq("tournament_id", currentTournamentId)
-        .order("avg_rank", { ascending: true })
-        .limit(3);  // top 3 only
+        .order("avg_points", { ascending: false })  // highest avg first
+        .limit(3);
 
     section.innerHTML = "";
     const titleRow = document.createElement("div");
     titleRow.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;";
-    titleRow.innerHTML = `<p class="as-section-label" style="margin:0;">Season Average Rank</p>`;
+    titleRow.innerHTML = `<p class="as-section-label" style="margin:0;">Avg Points Per Match</p>`;
     section.appendChild(titleRow);
 
     if (!rows?.length) {
@@ -1388,49 +1432,73 @@ async function loadDailyAvgRank() {
         name.textContent = row.team_name || "Expert";
 
         const pts = document.createElement("span");
-        pts.className   = "as-lb-pts";
-        pts.textContent = `Avg #${Number(row.avg_rank).toFixed(1)} · ${row.matches_played}M`;
+        pts.className   = "as-lb-pts has-pts";
+        // Show avg points · matches played
+        const avg = row.avg_points
+            ? Number(row.avg_points).toFixed(1)
+            : row.matches_played > 0
+                ? (row.total_points / row.matches_played).toFixed(1)
+                : "0";
+        pts.textContent = `${avg} avg · ${row.matches_played}M`;
 
         el.append(rank, name, pts);
         section.appendChild(el);
     });
 
-    // View full avg rank button
     const viewBtn = document.createElement("button");
     viewBtn.className   = "btn-view-all";
     viewBtn.style.marginTop = "8px";
-    viewBtn.innerHTML   = `Full Average Rank Table <i class="fas fa-chevron-right"></i>`;
+    viewBtn.innerHTML   = `Full Avg Points Table <i class="fas fa-chevron-right"></i>`;
     viewBtn.onclick     = () => openFullDailyLeaderboard(null, "avg");
     section.appendChild(viewBtn);
 }
 
 async function openAllStarsTeam(userId, teamName) {
     openBottomSheet(async (body) => {
-        const [teamRes, ptsRes] = await Promise.all([
-            supabase.from("user_allstar_teams")
-                .select("*, user_profiles(team_name, team_photo_url), user_allstar_team_players(player_id, players(id, name, role, photo_url, team:real_teams!inner(short_code)))")
-                .eq("user_id", userId)
-                .eq("tournament_id", currentTournamentId)
-                .maybeSingle(),
-            supabase.from("allstar_leaderboard_view")
-                .select("total_allstar_points")
-                .eq("user_id", userId)
-                .eq("tournament_id", currentTournamentId)
-                .maybeSingle(),
-        ]);
+
+        // Step 1: get the team record
+        const { data: team } = await supabase
+            .from("user_allstar_teams")
+            .select("id, captain_id, vice_captain_id, user_profiles(team_name, team_photo_url)")
+            .eq("user_id", userId)
+            .eq("tournament_id", currentTournamentId)
+            .maybeSingle();
 
         body.innerHTML = "";
-        const team = teamRes.data;
+
         if (!team) {
             body.innerHTML = `<p class="sheet-empty">No All Stars team found.</p>`;
             return;
         }
 
+        // Step 2: get their player IDs
+        const { data: teamPlayers } = await supabase
+            .from("user_allstar_team_players")
+            .select("player_id")
+            .eq("user_allstar_team_id", team.id);
+
+        const playerIds = (teamPlayers || []).map(r => r.player_id);
+
+        // Step 3: get their points from leaderboard
+        const { data: ptsData } = await supabase
+            .from("allstar_leaderboard_view")
+            .select("total_allstar_points")
+            .eq("user_id", userId)
+            .eq("tournament_id", currentTournamentId)
+            .maybeSingle();
+
+        // Step 4: get player details
+        const { data: playerDetails } = playerIds.length
+            ? await supabase.from("players")
+                .select("id, name, role, photo_url, real_teams!inner(short_code)")
+                .in("id", playerIds)
+            : { data: [] };
+
         const profile  = team.user_profiles;
         const photo    = profile?.team_photo_url
             ? supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url).data.publicUrl
             : "images/default-avatar.png";
-        const totalPts = ptsRes.data?.total_allstar_points || 0;
+        const totalPts = ptsData?.total_allstar_points || 0;
 
         // Header
         const hdr = document.createElement("div");
@@ -1443,11 +1511,12 @@ async function openAllStarsTeam(userId, teamName) {
             </div>`;
         body.appendChild(hdr);
 
-        // Players grouped by role
-        const players = (team.user_allstar_team_players || []).map(r => ({
-            ...r.players,
-            isC:  r.player_id === team.captain_id,
-            isVC: r.player_id === team.vice_captain_id,
+        // Players with C/VC flags
+        const players = (playerDetails || []).map(p => ({
+            ...p,
+            short_code: p.real_teams?.short_code || "TBA",
+            isC:  p.id === team.captain_id,
+            isVC: p.id === team.vice_captain_id,
         }));
 
         const roleLabels = { WK: "Wicket-Keeper", BAT: "Batters", AR: "All-Rounders", BOWL: "Bowlers" };
@@ -1468,14 +1537,14 @@ async function openAllStarsTeam(userId, teamName) {
                 const row = document.createElement("div");
                 row.className = "sheet-player-row";
                 row.innerHTML = `
-                    <div class="sheet-row-avatar" style="background-image:url('${pPhoto}');background-size:cover;"></div>
+                    <div class="sheet-row-avatar" style="background-image:url('${pPhoto}');background-size:cover;background-position:center;"></div>
                     <div class="sheet-row-info">
                         <div class="sheet-row-name-row">
                             <span class="sheet-row-name">${p.name || "Unknown"}</span>
                             ${p.isC  ? `<span class="sheet-role-badge c">C</span>`  : ""}
                             ${p.isVC ? `<span class="sheet-role-badge vc">VC</span>` : ""}
                         </div>
-                        <span class="sheet-row-meta">${p.role} · ${p.team?.short_code || "TBA"}</span>
+                        <span class="sheet-row-meta">${p.role} · ${p.short_code}</span>
                     </div>`;
                 body.appendChild(row);
             });
@@ -1483,27 +1552,96 @@ async function openAllStarsTeam(userId, teamName) {
     });
 }
 
+async function openFullAllStarsLeaderboard() {
+    openBottomSheet(async (body) => {
+        body.innerHTML = `<div class="sheet-spinner"></div>`;
+
+        const { data: rows } = await supabase
+            .from("allstar_leaderboard_view")
+            .select("user_id, team_name, total_allstar_points, rank")
+            .eq("tournament_id", currentTournamentId)
+            .order("rank", { ascending: true })
+            .limit(100);
+
+        body.innerHTML = "";
+        const title = document.createElement("p");
+        title.className      = "sheet-section-label";
+        title.style.marginBottom = "12px";
+        title.textContent    = "Full All Stars Leaderboard";
+        body.appendChild(title);
+
+        if (!rows?.length) {
+            body.innerHTML += `<p class="sheet-empty">No data yet.</p>`;
+            return;
+        }
+
+        rows.forEach(row => {
+            const el = document.createElement("div");
+            el.className    = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
+            el.style.cursor = "pointer";
+            el.onclick      = () => openAllStarsTeam(row.user_id, row.team_name);
+
+            const rank = document.createElement("span");
+            rank.className   = "as-lb-rank";
+            rank.textContent = `#${row.rank}`;
+
+            const name = document.createElement("span");
+            name.className   = "as-lb-name";
+            name.textContent = row.team_name || "Expert";
+
+            const pts = document.createElement("span");
+            pts.className   = `as-lb-pts${row.total_allstar_points > 0 ? " has-pts" : ""}`;
+            pts.textContent = `${row.total_allstar_points} pts`;
+
+            const arrow = document.createElement("i");
+            arrow.className   = "fas fa-chevron-right";
+            arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
+
+            el.append(rank, name, pts, arrow);
+            body.appendChild(el);
+        });
+    });
+}
+
 async function openDailyTeamSheet(userId, matchId) {
     openBottomSheet(async (body) => {
-        const [teamRes, ptsRes] = await Promise.all([
-            supabase.from("user_daily_teams")
-                .select("*, user_profiles(team_name, team_photo_url), user_daily_team_players(player_id, players(id, name, role, photo_url, team:real_teams!inner(short_code)))")
-                .eq("user_id", userId)
-                .eq("match_id", matchId)
-                .maybeSingle(),
+
+        // Step 1: get team record
+        const { data: team } = await supabase
+            .from("user_daily_teams")
+            .select("id, captain_id, vice_captain_id, user_profiles(team_name, team_photo_url)")
+            .eq("user_id", userId)
+            .eq("match_id", matchId)
+            .maybeSingle();
+
+        body.innerHTML = "";
+
+        if (!team) {
+            body.innerHTML = `<p class="sheet-empty">No Daily XI found for this match.</p>`;
+            return;
+        }
+
+        // Step 2: get player IDs
+        const { data: teamPlayers } = await supabase
+            .from("user_daily_team_players")
+            .select("player_id")
+            .eq("user_daily_team_id", team.id);
+
+        const playerIds = (teamPlayers || []).map(r => r.player_id);
+
+        // Step 3: get points and player details in parallel
+        const [ptsRes, playersRes] = await Promise.all([
             supabase.from("user_match_points")
                 .select("total_points")
                 .eq("user_id", userId)
                 .eq("match_id", matchId)
                 .maybeSingle(),
+            playerIds.length
+                ? supabase.from("players")
+                    .select("id, name, role, photo_url, real_teams!inner(short_code)")
+                    .in("id", playerIds)
+                : Promise.resolve({ data: [] }),
         ]);
-
-        body.innerHTML = "";
-        const team = teamRes.data;
-        if (!team) {
-            body.innerHTML = `<p class="sheet-empty">No Daily XI found for this match.</p>`;
-            return;
-        }
 
         const profile = team.user_profiles;
         const photo   = profile?.team_photo_url
@@ -1516,14 +1654,15 @@ async function openDailyTeamSheet(userId, matchId) {
             <div class="sheet-team-avatar" style="background-image:url('${photo}')"></div>
             <div>
                 <div class="sheet-player-name">${profile?.team_name || "Expert"}</div>
-                <div class="sheet-player-pts">${ptsRes.data?.total_points || "—"} pts this match</div>
+                <div class="sheet-player-pts">${ptsRes.data?.total_points ?? "—"} pts this match</div>
             </div>`;
         body.appendChild(hdr);
 
-        const players = (team.user_daily_team_players || []).map(r => ({
-            ...r.players,
-            isC:  r.player_id === team.captain_id,
-            isVC: r.player_id === team.vice_captain_id,
+        const players = (playersRes.data || []).map(p => ({
+            ...p,
+            short_code: p.real_teams?.short_code || "TBA",
+            isC:  p.id === team.captain_id,
+            isVC: p.id === team.vice_captain_id,
         }));
 
         const roleLabels = { WK: "Wicket-Keeper", BAT: "Batters", AR: "All-Rounders", BOWL: "Bowlers" };
@@ -1543,14 +1682,14 @@ async function openDailyTeamSheet(userId, matchId) {
                 const row = document.createElement("div");
                 row.className = "sheet-player-row";
                 row.innerHTML = `
-                    <div class="sheet-row-avatar" style="background-image:url('${pPhoto}');background-size:cover;"></div>
+                    <div class="sheet-row-avatar" style="background-image:url('${pPhoto}');background-size:cover;background-position:center;"></div>
                     <div class="sheet-row-info">
                         <div class="sheet-row-name-row">
                             <span class="sheet-row-name">${p.name || "Unknown"}</span>
                             ${p.isC  ? `<span class="sheet-role-badge c">C</span>`  : ""}
                             ${p.isVC ? `<span class="sheet-role-badge vc">VC</span>` : ""}
                         </div>
-                        <span class="sheet-row-meta">${p.role} · ${p.team?.short_code || "TBA"}</span>
+                        <span class="sheet-row-meta">${p.role} · ${p.short_code}</span>
                     </div>`;
                 body.appendChild(row);
             });
@@ -1593,38 +1732,45 @@ async function openFullDailyLeaderboard(matchId, type) {
             return;
         }
 
-        rows.forEach((row, i) => {
-            const el = document.createElement("div");
-            el.className    = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
-            if (type === "match") {
-                el.style.cursor = "pointer";
-                el.onclick = () => openDailyTeamSheet(row.user_id, matchId);
-            }
+        // Inside openFullDailyLeaderboard, replace the avg rows.forEach:
+rows.forEach((row, i) => {
+    const el = document.createElement("div");
+    el.className = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
 
-            const rank = document.createElement("span");
-            rank.className   = "as-lb-rank";
-            rank.textContent = type === "match" ? `#${row.rank}` : `#${i + 1}`;
+    const rank = document.createElement("span");
+    rank.className   = "as-lb-rank";
+    rank.textContent = type === "match" ? `#${row.rank}` : `#${i + 1}`;
 
-            const name = document.createElement("span");
-            name.className   = "as-lb-name";
-            name.textContent = row.team_name || "Expert";
+    const name = document.createElement("span");
+    name.className   = "as-lb-name";
+    name.textContent = row.team_name || "Expert";
 
-            const pts = document.createElement("span");
-            pts.className   = `as-lb-pts${(row.total_daily_points > 0 || type === "avg") ? " has-pts" : ""}`;
-            pts.textContent = type === "match"
-                ? `${row.total_daily_points} pts`
-                : `Avg #${Number(row.avg_rank).toFixed(1)}`;
+    const pts = document.createElement("span");
+    pts.className = `as-lb-pts has-pts`;
 
-            if (type === "match") {
-                const arrow = document.createElement("i");
-                arrow.className = "fas fa-chevron-right";
-                arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
-                el.append(rank, name, pts, arrow);
-            } else {
-                el.append(rank, name, pts);
-            }
+    if (type === "match") {
+        pts.textContent = `${row.total_daily_points} pts`;
+    } else {
+        const avg = row.avg_points
+            ? Number(row.avg_points).toFixed(1)
+            : row.matches_played > 0
+                ? (row.total_points / row.matches_played).toFixed(1)
+                : "0";
+        pts.textContent = `${avg} avg · ${row.matches_played}M`;
+    }
 
-            body.appendChild(el);
-        });
+    if (type === "match") {
+        el.style.cursor = "pointer";
+        el.onclick = () => openDailyTeamSheet(row.user_id, matchId);
+        const arrow = document.createElement("i");
+        arrow.className   = "fas fa-chevron-right";
+        arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
+        el.append(rank, name, pts, arrow);
+    } else {
+        el.append(rank, name, pts);
+    }
+
+    body.appendChild(el);
+});
     });
 }
