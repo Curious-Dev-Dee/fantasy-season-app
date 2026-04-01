@@ -608,12 +608,15 @@ function buildMostPicked(players) {
     const sec  = createSection("fas fa-heart", "pu", "Most Loyal Players");
     const body = sec.querySelector(".ed-section-body");
     const list = players.most_picked || [];
-    if (!list.length) { 
-        body.innerHTML = '<div class="ed-no-data">No match data yet</div>'; 
-        return sec; 
+
+    if (!list.length) {
+        body.innerHTML = '<div class="ed-no-data">No match data yet</div>';
+        return sec;
     }
-    const c = document.createElement("div"); 
+
+    const c = document.createElement("div");
     c.className = "ed-player-list";
+
     list.forEach((p, i) => {
         const card = document.createElement("div");
         card.className = "ed-player-card";
@@ -624,11 +627,12 @@ function buildMostPicked(players) {
 
         const info = document.createElement("div");
         info.className = "ed-player-info";
+        // matches_played = times they actually played (points != 0)
+        // matches_in_team = times you picked them
         info.innerHTML = `
             <span class="ed-player-name">${p.name || "Unknown"}</span>
             <span class="ed-player-meta">
-                ${p.role || ""} · 
-                played ${p.matches_played || 0} matches
+                ${p.role || ""} · played ${p.matches_played || 0} of ${p.matches_in_team || 0} matches
             </span>`;
 
         const right = document.createElement("div");
@@ -640,7 +644,8 @@ function buildMostPicked(players) {
         card.append(rankEl, info, right);
         c.appendChild(card);
     });
-    body.appendChild(c); 
+
+    body.appendChild(c);
     return sec;
 }
 
