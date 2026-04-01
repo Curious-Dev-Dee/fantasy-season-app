@@ -1400,7 +1400,7 @@ async function loadDailyAvgRank() {
     // Group by user, sum points, count matches, divide
     const { data: rows } = await supabase
         .from("daily_season_avg_rank_view")
-        .select("team_name, avg_points, matches_played, total_points, user_id")
+.select("team_name, avg_rank, matches_played, user_id")
         .eq("tournament_id", currentTournamentId)
         .order("avg_points", { ascending: false })  // highest avg first
         .limit(3);
@@ -1439,7 +1439,7 @@ async function loadDailyAvgRank() {
             : row.matches_played > 0
                 ? (row.total_points / row.matches_played).toFixed(1)
                 : "0";
-        pts.textContent = `${avg} avg · ${row.matches_played}M`;
+pts.textContent = `Avg Rank #${Number(row.avg_rank).toFixed(1)} · ${row.matches_played}M`;
 
         el.append(rank, name, pts);
         section.appendChild(el);
