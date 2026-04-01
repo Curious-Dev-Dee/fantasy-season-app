@@ -762,3 +762,188 @@ body.loading-state .app-container    { display: none !important; }
     margin-bottom: 2px;
     text-align: center;
 }
+
+/* ─── MOMENTUM SCORE ─────────────────────────────── */
+.ed-momentum-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+.ed-momentum-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.ed-momentum-grade {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+}
+.ed-momentum-total {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.ed-momentum-info {
+    flex: 1;
+}
+.ed-momentum-emoji {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+.ed-momentum-desc {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 3px;
+}
+.ed-momentum-sub {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+    line-height: 1.4;
+}
+.ed-momentum-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--bg-card-alt);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+.ed-momentum-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ed-momentum-bar-label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+    width: 90px;
+    flex-shrink: 0;
+}
+.ed-momentum-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border-card);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.ed-momentum-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s var(--ease-out);
+}
+.ed-momentum-bar-val {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--text-dim);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ─── DEAD WEIGHT ────────────────────────────────── */
+.ed-dw-warning {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--red);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ed-dw-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ed-dw-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card-alt);
+    border: 1px solid rgba(239,68,68,0.15);
+    border-radius: 10px;
+    padding: 9px 11px;
+    gap: 8px;
+}
+.ed-dw-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.ed-dw-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.ed-dw-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.ed-dw-name {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ed-dw-meta {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 1px;
+}
+.ed-dw-pts {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text-faint);
+    flex-shrink: 0;
+}
+.ed-dw-pts.neg {
+    color: var(--red);
+}
+.ed-dw-clean {
+    text-align: center;
+    padding: 16px 0;
+}
+.ed-dw-clean-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+.ed-dw-clean-text {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.ed-dw-clean-sub {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text-faint);
+}

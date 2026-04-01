@@ -129,28 +129,30 @@ async function loadDugout(userId) {
         const teamRow   = allTeams.find(t => t.user_id === userId);
         const avatarUrl = d.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(d.team_photo_url).data.publicUrl : null;
 
-        content.innerHTML = "";
-        content.appendChild(buildHero(d, teamRow, avatarUrl, userId));
-        content.appendChild(buildFormIndicator(d));
-        content.appendChild(buildOverview(d));
-        content.appendChild(buildScoreTrends(d, history));
-        content.appendChild(buildRankJourney(d));
-        content.appendChild(buildSubsTrends(d));
-        content.appendChild(buildBestWorst(d));
-        content.appendChild(buildStreaks(d));
-        content.appendChild(buildCaptainStats(d));
-        content.appendChild(buildBoosterROI(d));
-        content.appendChild(buildH2H(d, userId));
+content.innerHTML = "";
+content.appendChild(buildHero(d, teamRow, avatarUrl, userId));
+content.appendChild(buildStrengthZone(d, players));
+content.appendChild(buildMomentumScore(d));
+content.appendChild(buildFormIndicator(d));
+content.appendChild(buildOverview(d));
+content.appendChild(buildScoreTrends(d, history));
+content.appendChild(buildRankJourney(d));
+content.appendChild(buildBestWorst(d));
+content.appendChild(buildStreaks(d));
+content.appendChild(buildSubsTrends(d));
+content.appendChild(buildCaptainStats(d));
+content.appendChild(buildBoosterROI(d));
+content.appendChild(buildH2H(d, userId));
 if (players) {
+    content.appendChild(buildDeadWeight(players));
+    content.appendChild(buildPlayerUsage(players, d));
     content.appendChild(buildTopScorers(players));
     content.appendChild(buildMostPicked(players));
-    content.appendChild(buildPlayerUsage(players, d));
     content.appendChild(buildByRole(players));
     content.appendChild(buildPlayerCategories(players));
 }
-        content.appendChild(buildCompareSection(userId));
-        content.appendChild(buildStrengthZone(d, players));
-        content.appendChild(buildShareCard(d, teamRow));
+content.appendChild(buildCompareSection(userId));
+content.appendChild(buildShareCard(d, teamRow));
     } catch (err) {
         console.error("Dugout load error:", err);
         content.innerHTML = `<div class="ed-empty-state"><div class="ed-empty-icon"><i class="fas fa-exclamation-triangle"></i></div><p class="ed-empty-title">Failed to load</p><p class="ed-empty-sub">Check your connection and try again</p></div>`;
@@ -944,6 +946,159 @@ async function loadCompare(uid1, uid2) {
         console.error("Compare error:", err);
         result.innerHTML = '<div class="ed-no-data">Failed to load comparison</div>';
     }
+}
+
+function buildMomentumScore(d) {
+    const sec  = createSection("fas fa-bolt-lightning", "green", "Momentum Score");
+    const body = sec.querySelector(".ed-section-body");
+
+    const avg         = Number(d.avg_score_per_match  ?? 0);
+    const last3       = Number(d.avg_score_last_3     ?? 0);
+    const last6       = Number(d.avg_score_last_6     ?? 0);
+    const consistency = Number(d.consistency_score    ?? 0);
+    const matchCount  = Number(d.matches_played       ?? 0);
+
+    // Need at least 3 matches to calculate
+    if (matchCount < 3 || !avg) {
+        body.innerHTML = '<div class="ed-no-data">Play at least 3 matches to see your momentum score</div>';
+        return sec;
+    }
+
+    // ── Component 1: Form trend (0-40 pts) ──
+    // How much better/worse is your last 3 vs last 6
+    // If last3 > last6 you are trending up
+    let formScore = 20; // neutral baseline
+    if (last3 > 0 && last6 > 0) {
+        const trendPct = ((last3 - last6) / last6) * 100;
+        if      (trendPct >= 20)  formScore = 40;
+        else if (trendPct >= 10)  formScore = 35;
+        else if (trendPct >= 0)   formScore = 28;
+        else if (trendPct >= -10) formScore = 15;
+        else                      formScore = 5;
+    }
+
+    // ── Component 2: Consistency (0-30 pts) ──
+    const consistencyScore = Math.round((consistency / 100) * 30);
+
+    // ── Component 3: Recent vs season avg (0-30 pts) ──
+    // Is your last 3 above your season average
+    let recentScore = 15; // neutral
+    if (last3 > 0 && avg > 0) {
+        const pct = ((last3 - avg) / avg) * 100;
+        if      (pct >= 20)  recentScore = 30;
+        else if (pct >= 10)  recentScore = 25;
+        else if (pct >= 0)   recentScore = 18;
+        else if (pct >= -10) recentScore = 10;
+        else                 recentScore = 3;
+    }
+
+    const total = Math.min(100, formScore + consistencyScore + recentScore);
+
+    // ── Grade ──
+    let grade, gradeColor, gradeDesc, gradeEmoji;
+    if      (total >= 80) { grade = "A+"; gradeColor = "#9AE000"; gradeDesc = "Unstoppable right now";     gradeEmoji = "🚀"; }
+    else if (total >= 65) { grade = "A";  gradeColor = "#9AE000"; gradeDesc = "Strong upward momentum";    gradeEmoji = "📈"; }
+    else if (total >= 50) { grade = "B";  gradeColor = "#f59e0b"; gradeDesc = "Steady — holding your own"; gradeEmoji = "➡️"; }
+    else if (total >= 35) { grade = "C";  gradeColor = "#fb923c"; gradeDesc = "Losing ground recently";    gradeEmoji = "📉"; }
+    else                  { grade = "D";  gradeColor = "#ef4444"; gradeDesc = "Form has dropped sharply";  gradeEmoji = "🥶"; }
+
+    // ── Component breakdown bars ──
+    const bar = (label, score, max, color) => `
+        <div class="ed-momentum-bar-row">
+            <div class="ed-momentum-bar-label">${label}</div>
+            <div class="ed-momentum-bar-track">
+                <div class="ed-momentum-bar-fill" style="width:${Math.round((score/max)*100)}%;background:${color}"></div>
+            </div>
+            <div class="ed-momentum-bar-val">${score}/${max}</div>
+        </div>`;
+
+    body.innerHTML = `
+        <div class="ed-momentum-wrap">
+            <div class="ed-momentum-circle" style="border-color:${gradeColor}">
+                <div class="ed-momentum-grade" style="color:${gradeColor}">${grade}</div>
+                <div class="ed-momentum-total" style="color:${gradeColor}">${total}/100</div>
+            </div>
+            <div class="ed-momentum-info">
+                <div class="ed-momentum-emoji">${gradeEmoji}</div>
+                <div class="ed-momentum-desc" style="color:${gradeColor}">${gradeDesc}</div>
+                <div class="ed-momentum-sub">Based on your last 3 matches vs season</div>
+            </div>
+        </div>
+        <div class="ed-momentum-bars">
+            ${bar("Form Trend",   formScore,        40, gradeColor)}
+            ${bar("Consistency",  consistencyScore, 30, gradeColor)}
+            ${bar("Recent Form",  recentScore,      30, gradeColor)}
+        </div>`;
+
+    return sec;
+}
+
+function buildDeadWeight(players) {
+    const sec  = createSection("fas fa-skull", "rd", "Dead Weight Alert");
+    const body = sec.querySelector(".ed-section-body");
+
+    // Dead weight = picked multiple times but played 0 times
+    // OR played but total points earned is 0 or negative
+    const allPlayers = [
+        ...(players.top_scorers   || []),
+        ...(players.most_picked   || []),
+        ...(players.top_wk        || []),
+        ...(players.top_bat       || []),
+        ...(players.top_ar        || []),
+        ...(players.top_bowl      || []),
+        ...(players.top_indian    || []),
+        ...(players.top_overseas  || []),
+        ...(players.top_uncapped  || []),
+    ];
+
+    // Deduplicate by name
+    const seen = new Set();
+    const unique = allPlayers.filter(p => {
+        if (seen.has(p.name)) return false;
+        seen.add(p.name);
+        return true;
+    });
+
+    // Dead weight = picked 2+ times but matches_played is 0
+    // OR picked 2+ times and total points <= 0
+    const dead = unique.filter(p =>
+        (p.matches_in_team >= 2) &&
+        (p.matches_played === 0 || p.total_points_earned <= 0)
+    );
+
+    if (!dead.length) {
+        body.innerHTML = `
+            <div class="ed-dw-clean">
+                <div class="ed-dw-clean-icon">✅</div>
+                <div class="ed-dw-clean-text">No dead weight found!</div>
+                <div class="ed-dw-clean-sub">Every player you picked regularly contributed points.</div>
+            </div>`;
+        return sec;
+    }
+
+    const rows = dead.map(p => `
+        <div class="ed-dw-row">
+            <div class="ed-dw-left">
+                <span class="ed-dw-icon">💀</span>
+                <div class="ed-dw-info">
+                    <span class="ed-dw-name">${p.name}</span>
+                    <span class="ed-dw-meta">${p.role} · picked ${p.matches_in_team} times · played ${p.matches_played} times</span>
+                </div>
+            </div>
+            <div class="ed-dw-pts ${p.total_points_earned <= 0 ? "neg" : ""}">
+                ${p.total_points_earned} pts
+            </div>
+        </div>`
+    ).join("");
+
+    body.innerHTML = `
+        <div class="ed-dw-warning">
+            <i class="fas fa-triangle-exclamation"></i>
+            ${dead.length} player${dead.length > 1 ? "s" : ""} took up squad slots without contributing
+        </div>
+        <div class="ed-dw-list">${rows}</div>`;
+
+    return sec;
 }
 
 function buildShareCard(d, teamRow) {
