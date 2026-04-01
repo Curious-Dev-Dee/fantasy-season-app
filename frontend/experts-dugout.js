@@ -899,15 +899,27 @@ window.shareStats = async () => {
 function buildPlayerCard(p, rank, showMatches = false) {
     const card = document.createElement("div");
     card.className = "ed-player-card";
+
     const rankEl = document.createElement("div");
     rankEl.className = `ed-player-rank r${rank}`;
     rankEl.textContent = rank;
+
     const info = document.createElement("div");
     info.className = "ed-player-info";
-    info.innerHTML = `<span class="ed-player-name">${p.name||"Unknown"}</span><span class="ed-player-meta">${showMatches?`${p.matches_in_team||0} matches in team`:`${p.role||""} · ${p.matches_in_team||0} matches`}</span>`;
+
+    // always show matches_played (points != 0), not matches_in_team
+    info.innerHTML = `
+        <span class="ed-player-name">${p.name || "Unknown"}</span>
+        <span class="ed-player-meta">
+            ${p.role || ""} · played ${p.matches_played || p.matches_in_team || 0} matches
+        </span>`;
+
     const right = document.createElement("div");
     right.style.textAlign = "right";
-    right.innerHTML = `<span class="ed-player-pts">${p.total_points_earned||0}</span><span class="ed-player-pts-lbl">pts earned</span>`;
+    right.innerHTML = `
+        <span class="ed-player-pts">${p.total_points_earned || 0}</span>
+        <span class="ed-player-pts-lbl">pts earned</span>`;
+
     card.append(rankEl, info, right);
     return card;
 }
