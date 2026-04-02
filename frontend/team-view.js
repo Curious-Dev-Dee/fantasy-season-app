@@ -380,10 +380,10 @@ async function init() {
         const { data: teamData } = await supabase.from("real_teams").select("id, short_code");
         realTeamsMap = Object.fromEntries((teamData || []).map(t => [t.id, t.short_code]));
 
-        const user       = currentSession.user;
-        const urlParams  = new URLSearchParams(window.location.search);
-        const scoutUid   = urlParams.get("uid");
-        const scoutName  = urlParams.get("name");
+        const user      = currentSession.user;
+        const urlParams = new URLSearchParams(window.location.search);
+        const scoutUid  = urlParams.get("uid");
+        const scoutName = urlParams.get("name");
 
         const { data: activeTournament } = await supabase
             .from("active_tournament").select("*").maybeSingle();
@@ -392,7 +392,7 @@ async function init() {
 
         if (scoutUid && scoutUid !== user.id) {
             // ── SCOUT MODE ──────────────────────────────────────────────────
-            userId     = scoutUid;
+            userId      = scoutUid;
             isScoutMode = true;
 
             const { data: profile } = await supabase
@@ -410,14 +410,13 @@ async function init() {
                 supabase.from("private_league_leaderboard").select("rank_in_league").eq("user_id", scoutUid).maybeSingle(),
             ]);
 
-applyRankFlair(null, viewTitle,
-    getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
+            applyRankFlair(null, viewTitle,
+                getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
 
-// ── SCOUT VIEW TRACKING ──────────────────────
-logTeamView(scoutUid);          // log this view (non-blocking)
+            logTeamView(scoutUid); // non-blocking
 
-tabUpcoming.style.display = "none";
-tabLocked.classList.add("active");
+            tabUpcoming.style.display = "none";
+            tabLocked.classList.add("active");
 
         } else {
             // ── OWN TEAM MODE ────────────────────────────────────────────────
@@ -432,17 +431,19 @@ tabLocked.classList.add("active");
             viewTitle.textContent = profileRes.data?.team_name || "My XI";
             applyRankFlair(null, viewTitle,
                 getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
+
+            // Own team → Current XI tab is default
+            tabUpcoming.classList.add("active");
+            tabLocked.classList.remove("active");
         }
 
+        // ── LOAD INITIAL VIEW + TABS ─────────────────────────────────────
+        await Promise.allSettled([
+            setupMatchTabs(),
+            isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
+        ]);
 
-
-// For own team: locked XI tab needs to load too so chip exists for view count
-if (!isScoutMode) {
-    await loadLastLockedXI();
-}
-
-
-setupHistoryListeners();
+        setupHistoryListeners();
 
     } catch (err) {
         console.error("Init error:", err);
@@ -450,7 +451,6 @@ setupHistoryListeners();
         revealApp();
     }
 }
-
 /* ─── MATCH TABS ─────────────────────────────────────────────────────────── */
 async function setupMatchTabs() {
     if (!isScoutMode) {
