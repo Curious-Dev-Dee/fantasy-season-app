@@ -870,3 +870,26 @@ body.loaded #loadingOverlay {
     .tier-silver::after { animation: none !important; }
     .overlay-content    { animation: none !important; }
 }
+
+/* Make chip space-between so left and right sit on opposite ends */
+.field-score-chip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fsc-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.fsc-views {
+    font-size: 12px;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.fsc-views i { font-size: 11px; }

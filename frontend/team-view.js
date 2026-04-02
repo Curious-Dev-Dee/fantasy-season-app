@@ -338,6 +338,28 @@ setTimeout(() => {
     }
 }, 3000);
 
+async function logTeamView(viewedUserId) {
+    const user = currentSession?.user;
+    if (!user || user.id === viewedUserId) return; // skip self views
+
+    await supabase
+        .from("team_profile_views")
+        .insert({
+            viewed_user_id: viewedUserId,
+            viewer_user_id: user.id
+        });
+}
+
+async function loadTeamViewCount(viewedUserId) {
+    const { data } = await supabase
+        .rpc("get_team_view_count", { target_user_id: viewedUserId });
+
+    const bar = document.getElementById("scoutViewBar");
+    const el  = document.getElementById("scoutViewCount");
+    if (bar) bar.classList.remove("hidden");
+    if (el)  el.textContent = `${data ?? 0} scouts`;
+}
+
 /* ─── INIT ───────────────────────────────────────────────────────────────── */
 // BUG FIX #1: Replaced direct supabase.auth.getSession() with authReady.
 // auth-guard.js handles redirect to login if no session exists.
@@ -388,11 +410,15 @@ async function init() {
                 supabase.from("private_league_leaderboard").select("rank_in_league").eq("user_id", scoutUid).maybeSingle(),
             ]);
 
-            applyRankFlair(null, viewTitle,
-                getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
+applyRankFlair(null, viewTitle,
+    getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
 
-            tabUpcoming.style.display = "none";
-            tabLocked.classList.add("active");
+// ── SCOUT VIEW TRACKING ──────────────────────
+logTeamView(scoutUid);          // log this view (non-blocking)
+loadTeamViewCount(scoutUid);    // show count to the viewer
+
+tabUpcoming.style.display = "none";
+tabLocked.classList.add("active");
 
         } else {
             // ── OWN TEAM MODE ────────────────────────────────────────────────
@@ -606,9 +632,18 @@ async function loadLastLockedXI() {
 
 const chip = document.createElement("div");
 chip.className = "field-score-chip";
+
+// In scout mode — show view count on left, pts/subs on right
+const viewCountHtml = isScoutMode
+    ? `<span class="fsc-views" id="scoutViewCount"><i class="fas fa-eye"></i> —</span>`
+    : `<span></span>`; // empty left side for own team
+
 chip.innerHTML = `
-    <span class="fsc-pts">${finalTotal} pts</span>
-    <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>`;
+    ${viewCountHtml}
+    <div class="fsc-right">
+        <span class="fsc-pts">${finalTotal} pts</span>
+        <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>
+    </div>`;
 teamContainer.appendChild(chip);
 
 // ── IN-PAGE PUSH AD — fires once when locked XI finishes loading ──
