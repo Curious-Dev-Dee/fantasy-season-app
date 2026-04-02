@@ -454,11 +454,6 @@ if (isScoutMode) {
 }
 
 
-if (!isScoutMode) {
-    await loadLastLockedXI();   // build chip so view count has a target
-    await loadCurrentXI();      // switch back to current XI as default view
-}
-
 setupHistoryListeners();
 
     } catch (err) {
