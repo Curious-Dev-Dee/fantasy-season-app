@@ -351,14 +351,12 @@ async function logTeamView(viewedUserId) {
 }
 
 async function loadTeamViewCount(viewedUserId) {
-    const { data, error } = await supabase   // ← make sure BOTH data and error are here
+    const { data, error } = await supabase
         .rpc("get_team_view_count", { target_user_id: viewedUserId });
 
     console.log("view count result:", data, "error:", error);
 
-    const bar = document.getElementById("scoutViewBar");
-    const el  = document.getElementById("scoutViewCount");
-    if (bar) bar.classList.remove("hidden");
+    const el = document.getElementById("scoutViewCount");
     if (el) el.textContent = `👁️ ${data ?? 0} views`;
 }
 
@@ -436,21 +434,11 @@ tabLocked.classList.add("active");
                 getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
         }
 
-await Promise.allSettled([
-    setupMatchTabs(),
-    isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
-]);
+
 
 // For own team: locked XI tab needs to load too so chip exists for view count
 if (!isScoutMode) {
     await loadLastLockedXI();
-}
-
-// Now chip exists in both modes — safe to update
-if (isScoutMode) {
-    loadTeamViewCount(scoutUid);
-} else {
-    loadTeamViewCount(userId);
 }
 
 
@@ -657,6 +645,9 @@ chip.innerHTML = `
         <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>
     </div>`;
 teamContainer.appendChild(chip);
+
+loadTeamViewCount(userId);
+
 
 // ── IN-PAGE PUSH AD — fires once when locked XI finishes loading ──
 injectPushAd();
