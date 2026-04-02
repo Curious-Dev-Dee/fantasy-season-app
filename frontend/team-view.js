@@ -354,6 +354,9 @@ async function loadTeamViewCount(viewedUserId) {
     const { data } = await supabase
         .rpc("get_team_view_count", { target_user_id: viewedUserId });
 
+            console.log("view count result:", data, "error:", error);  // ← add this
+
+
     const bar = document.getElementById("scoutViewBar");
     const el  = document.getElementById("scoutViewCount");
     if (bar) bar.classList.remove("hidden");
