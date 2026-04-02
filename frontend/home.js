@@ -113,39 +113,51 @@ async function startDashboard(userId) {
    FANTASY TIPS TEASER CARD
 ══════════════════════════════════════════════════════ */
 async function loadFantasyTipsCard(upcomingMatch) {
-    const card   = document.getElementById("tipsCard");
+    const card    = document.getElementById("tipsCard");
     const titleEl = document.getElementById("tipsCardTitle");
     const subEl   = document.getElementById("tipsCardSub");
     const ctaBtn  = document.getElementById("tipsCtaBtn");
     if (!card || !upcomingMatch) return;
 
-    const matchLabel = `${upcomingMatch.team_a_code} vs ${upcomingMatch.team_b_code}`;
+    const teamA = upcomingMatch.team_a_code;  // "KKR"
+    const teamB = upcomingMatch.team_b_code;  // "SRH"
 
+    // Check articles table for a published fantasy-preview article for this match
     const { data: article } = await supabase
         .from("articles")
-        .select("slug, title, published")
-        .eq("match_label", matchLabel)
+        .select("slug")
         .eq("published", true)
+        .eq("category", "fantasy-preview")
+        .ilike("match_label", `%${teamA}%${teamB}%`)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
     card.classList.remove("hidden");
 
     if (article) {
-        titleEl.textContent = `${matchLabel}`;
-        subEl.textContent   = "Expert picks, captain & vice-captain choices";
+        // ✅ Article found — show live CTA
+        titleEl.textContent = `${teamA} vs ${teamB} Fantasy Tips`;
+        subEl.textContent   = "Captain picks, player analysis & match prediction";
+        card.classList.remove("tips-soon");
         card.classList.add("tips-live");
         if (ctaBtn) {
-            ctaBtn.textContent = "";
-            ctaBtn.innerHTML   = `Read <i class="fas fa-chevron-right"></i>`;
-            ctaBtn.onclick = () => window.location.href = `article.html?slug=${article.slug}`;
+            ctaBtn.innerHTML           = `Read <i class="fas fa-chevron-right"></i>`;
+            ctaBtn.style.pointerEvents = "";
+            ctaBtn.onclick = () => {
+                window.location.href = `/blog-post?slug=${article.slug}`;
+            };
         }
     } else {
-        titleEl.textContent = `${matchLabel}`;
-        subEl.textContent   = "Our experts are analyzing this match — check back soon!";
+        // ⏳ No article yet — show Coming Soon
+        titleEl.textContent = `${teamA} vs ${teamB} Fantasy Tips`;
+        subEl.textContent   = "Our experts are analyzing this match — tips coming soon!";
+        card.classList.remove("tips-live");
         card.classList.add("tips-soon");
         if (ctaBtn) {
-            ctaBtn.innerHTML = `Coming Soon`;
-            ctaBtn.onclick   = null;
+            ctaBtn.innerHTML           = `Coming Soon`;
+            ctaBtn.style.pointerEvents = "none";
+            ctaBtn.onclick             = null;
         }
     }
 }
@@ -233,8 +245,6 @@ requestAnimationFrame(() => {
                 matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
             }
 
-                loadFantasyTipsCard(dash.upcoming_match); // ← ADD THIS
-
 
             const venueEl = document.getElementById("matchVenue");
             if (venueEl) {
@@ -267,6 +277,8 @@ requestAnimationFrame(() => {
             }
 
             startCountdown(match.actual_start_time);
+                loadFantasyTipsCard(match);  // ← ADD THIS ONE LINE
+
 
         } else {
             if (matchTeamsElement) matchTeamsElement.textContent = "No Upcoming Matches";
