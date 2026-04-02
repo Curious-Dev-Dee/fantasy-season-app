@@ -484,8 +484,8 @@ async function setupMatchTabs() {
             .limit(1)
             .maybeSingle();
 
-      if (upcoming) {
-            currentMatchId = upcoming.id;  // ← ADD THIS LINE
+        if (upcoming) {
+            currentMatchId = upcoming.id;  // ← own team: next upcoming match
             tabUpcoming.textContent       = `${realTeamsMap[upcoming.team_a_id] || "TBA"} vs ${realTeamsMap[upcoming.team_b_id] || "TBA"} – Edit`;
             tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
@@ -503,8 +503,15 @@ async function setupMatchTabs() {
     if (lastLocked) {
         const { data: matchInfo } = await supabase
             .from("matches").select("*").eq("id", lastLocked.match_id).single();
+
         if (matchInfo) {
             tabLocked.textContent = `${realTeamsMap[matchInfo.team_a_id] || "TBA"} vs ${realTeamsMap[matchInfo.team_b_id] || "TBA"} – Locked`;
+
+            // ← For scout mode (no upcoming tab), use last locked match as currentMatchId
+            // ← For own team with no upcoming match found, also fallback to last locked
+            if (!currentMatchId) {
+                currentMatchId = lastLocked.match_id;
+            }
         }
     }
 
@@ -517,7 +524,6 @@ async function setupMatchTabs() {
         });
     });
 }
-
 /* ─── COUNTDOWN ──────────────────────────────────────────────────────────── */
 function startCountdown(startTime) {
     if (countdownInterval) clearInterval(countdownInterval);
