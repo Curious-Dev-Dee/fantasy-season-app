@@ -152,19 +152,23 @@ function renderStatsDashboard(players, isSearching) {
 
     // Only show Insights if we aren't actively searching for a specific name
     if (!isSearching) {
-        statsContainer.appendChild(buildTopPerformers(players));
-        statsContainer.appendChild(buildStatLeaders(players));
-        
-        const dirHeader = document.createElement("h3");
-        dirHeader.className = "st-dir-header";
-        dirHeader.textContent = "Player Directory";
-        statsContainer.appendChild(dirHeader);
-    }
+    statsContainer.appendChild(buildTopPerformers(players));
+    statsContainer.appendChild(buildMonetagAd());               // ← AD #1 (after top earners)
+    statsContainer.appendChild(buildStatLeaders(players));
 
-    // Always show the Player Directory accordion list at the bottom
-    players.forEach((player, idx) => {
-        statsContainer.appendChild(buildPlayerCard(player, idx + 1));
-    });
+    const dirHeader = document.createElement("h3");
+    dirHeader.className = "st-dir-header";
+    dirHeader.textContent = "Player Directory";
+    statsContainer.appendChild(dirHeader);
+}
+
+// Always show the Player Directory accordion list at the bottom
+players.forEach((player, idx) => {
+    statsContainer.appendChild(buildPlayerCard(player, idx + 1));
+});
+
+statsContainer.appendChild(buildMonetagAd());                   // ← AD #2 (after full player list)
+
 }
 
 function updateSubtitle(playerCount, maxMatches) {
@@ -249,6 +253,32 @@ function buildStatLeaders(players) {
             </div>
         </div>`;
     return sec;
+}
+
+function buildMonetagAd() {
+    const wrap = document.createElement("div");
+    wrap.className = "st-section";
+    wrap.style.cssText = "margin: 12px 0; padding: 0;";
+
+    const body = document.createElement("div");
+    body.className = "st-section-body";
+    body.style.cssText = "display:flex; justify-content:center; align-items:center; padding: 10px 0; min-height: 60px;";
+
+    const holder = document.createElement("div");
+    holder.style.cssText = "width:100%; text-align:center;";
+
+    if (!document.querySelector('script[data-zone="225656"]')) {
+        const s = document.createElement("script");
+        s.src = "https://quge5.com/88/tag.min.js";
+        s.async = true;
+        s.setAttribute("data-zone", "225656");
+        s.setAttribute("data-cfasync", "false");
+        holder.appendChild(s);
+    }
+
+    body.appendChild(holder);
+    wrap.appendChild(body);
+    return wrap;
 }
 
 /* ─── PLAYER DIRECTORY CARD ────────────────────────────────────────────── */
