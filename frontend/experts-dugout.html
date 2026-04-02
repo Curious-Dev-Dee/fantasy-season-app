@@ -14,6 +14,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="favicon.png">
   <script type="module" src="auth-guard.js"></script>
+  <!-- Vercel Analytics -->
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMYSEG9XNL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BMYSEG9XNL');
+  </script>
 </head>
 <body class="loading-state">
 
@@ -39,15 +50,7 @@
       <button class="ed-info-btn" id="infoBtn" aria-label="How analytics work">
         <i class="fas fa-circle-info"></i>
       </button>
-      <script defer src="/_vercel/insights/script.js"></script>
-      <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-BMYSEG9XNL"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-BMYSEG9XNL');
-</script>
+      
     </header>
 
 <!-- INFO POPUP -->
