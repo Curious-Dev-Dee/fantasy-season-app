@@ -351,11 +351,10 @@ async function logTeamView(viewedUserId) {
 }
 
 async function loadTeamViewCount(viewedUserId) {
-    const { data } = await supabase
+    const { data, error } = await supabase   // ← make sure BOTH data and error are here
         .rpc("get_team_view_count", { target_user_id: viewedUserId });
 
-            console.log("view count result:", data, "error:", error);  // ← add this
-
+    console.log("view count result:", data, "error:", error);
 
     const bar = document.getElementById("scoutViewBar");
     const el  = document.getElementById("scoutViewCount");
