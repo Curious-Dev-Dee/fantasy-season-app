@@ -441,11 +441,22 @@ await Promise.allSettled([
     isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
 ]);
 
-// Show view count for both scout and own team
+// For own team: locked XI tab needs to load too so chip exists for view count
+if (!isScoutMode) {
+    await loadLastLockedXI();
+}
+
+// Now chip exists in both modes — safe to update
 if (isScoutMode) {
     loadTeamViewCount(scoutUid);
 } else {
     loadTeamViewCount(userId);
+}
+
+
+if (!isScoutMode) {
+    await loadLastLockedXI();   // build chip so view count has a target
+    await loadCurrentXI();      // switch back to current XI as default view
 }
 
 setupHistoryListeners();
