@@ -263,17 +263,37 @@ body.loaded #loadingOverlay {
 }
 
 /* Score chip — top right corner of the field */
+/* Score chip — overlaid on field */
 .field-score-chip {
     position: absolute;
     top: 10px;
     right: 12px;
+    left: 12px;           /* ← add this so it spans full width */
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;  /* ← change from column to row */
+    justify-content: space-between;
+    align-items: center;
     gap: 3px;
     z-index: 10;
     pointer-events: none;
 }
+
+.fsc-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.fsc-views {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.fsc-views i { font-size: 11px; }
 
 .fsc-pts {
     font-family: var(--font-display);
@@ -872,24 +892,4 @@ body.loaded #loadingOverlay {
 }
 
 /* Make chip space-between so left and right sit on opposite ends */
-.field-score-chip {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
-.fsc-right {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.fsc-views {
-    font-size: 12px;
-    color: var(--text-faint);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.fsc-views i { font-size: 11px; }
