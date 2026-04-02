@@ -200,16 +200,15 @@ function buildPlayerCircle(
     wrapper.append(avatar, name);
 
 if (statsMap) {
-    // Only show points if this player's team is in this match
     const playerInThisMatch = matchTeamIds.length === 0 || matchTeamIds.includes(player.real_team_id);
     if (playerInThisMatch) {
-        const pts = document.createElement("div");
-        pts.className   = "player-pts";
-        pts.textContent = `${calculateDisplayedPlayerPoints(
-            player, statsMap, captainId, viceCaptainId, booster, momId
-        )} pts`;
+        const pts   = document.createElement("div");
+        const score = calculateDisplayedPlayerPoints(player, statsMap, captainId, viceCaptainId, booster, momId);
+        pts.textContent = score > 0 ? `${score} pts` : `— pts`;
+        pts.className   = "player-pts " + (score >= 40 ? "pts-high" : score >= 15 ? "pts-mid" : "pts-low");
         wrapper.appendChild(pts);
     }
+
 }
     return wrapper;
 }
