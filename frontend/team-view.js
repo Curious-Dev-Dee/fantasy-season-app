@@ -651,23 +651,20 @@ async function loadLastLockedXI() {
         viewData = data;
     }
 
-    const isMostScouted = viewData?.match_rank === 1;
 
     // ── Build chip with view data already available ──
     const chip = document.createElement("div");
     chip.className = "field-score-chip";
 
-    chip.innerHTML = `
-        <div class="fsc-left">
-            <span class="fsc-views-count">👁️ ${viewData?.match_views ?? 0}</span>
-            ${isMostScouted
-                ? `<span class="fsc-most-scouted">🏆 Most Viewed</span>`
-                : ``}
-        </div>
-        <div class="fsc-right">
-            <span class="fsc-pts">${finalTotal} pts</span>
-            <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>
-        </div>`;
+chip.innerHTML = `
+    <div class="fsc-left">
+        <span class="fsc-views-count">👁️ ${viewData?.match_views ?? 0}</span>
+    </div>
+    <div class="fsc-right">
+        <span class="fsc-pts">${finalTotal} pts</span>
+        <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>
+    </div>`;
+
     teamContainer.appendChild(chip);
 
     // ── All-time view at bottom ──
