@@ -37,6 +37,9 @@ body, html {
 /* ─── CRICKET FIELD BACKGROUND ───────────────────── */
 .team-view-app {
     min-height: 100vh;
+    max-width: 480px;          /* ← ADD: cap at mobile width */
+    margin: 0 auto;            /* ← ADD: center on desktop */
+    position: relative;        /* ← ADD */
     background:
         repeating-linear-gradient(
             90deg,
@@ -53,6 +56,22 @@ body, html {
         );
 }
 
+/* Desktop — show as phone frame */
+@media (min-width: 520px) {
+    body {
+        background: #0a0a0a;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+    }
+
+    .team-view-app {
+        min-height: 100dvh;
+        box-shadow:
+            0 0 0 1px rgba(255,255,255,0.06),
+            0 24px 80px rgba(0,0,0,0.8);
+    }
+}
 
 /* ─── LOADING OVERLAY ────────────────────────────── */
 #loadingOverlay {
@@ -294,11 +313,13 @@ body.loaded #loadingOverlay {
 /* ─── TEAM FIELD ─────────────────────────────────── */
 /* Add position:relative to team-field so the chip anchors to it */
 .team-field {
-    padding: 10px;
+    padding: 10px 10px 0;
     position: relative;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
-/* Pitch strip down the center */
 .team-field::before {
     content: '';
     position: absolute;
@@ -397,16 +418,20 @@ body.loaded #loadingOverlay {
     gap: 10px;
 }
 
-.role-section { margin-bottom: 22px; }
+.role-section {
+    position: relative;
+    z-index: 1;
+    margin-bottom: clamp(10px, 3vw, 22px);
+}
 
 .role-title {
     text-align: center;
     font-family: var(--font-display);
-    font-size: 9px;
+    font-size: clamp(8px, 2vw, 9px);
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 3px;
-    margin-bottom: 12px;
+    margin-bottom: clamp(6px, 2vw, 12px);
     color: rgba(255, 255, 255, 0.30);
     display: flex;
     align-items: center;
@@ -414,7 +439,6 @@ body.loaded #loadingOverlay {
     padding: 0 16px;
 }
 
-/* Lines on either side of the role label */
 .role-title::before,
 .role-title::after {
     content: '';
@@ -433,12 +457,12 @@ body.loaded #loadingOverlay {
 .player-row {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: clamp(4px, 2vw, 10px);
     flex-wrap: wrap;
 }
 
 .player-circle {
-    width: 76px;
+    width: clamp(60px, 16vw, 80px);
     text-align: center;
     position: relative;
     transition: transform 0.1s ease;
@@ -447,7 +471,8 @@ body.loaded #loadingOverlay {
 .player-circle:active { transform: scale(0.94); }
 
 .avatar {
-    width: 54px; height: 54px;
+    width:  clamp(44px, 12vw, 60px);
+    height: clamp(44px, 12vw, 60px);
     border-radius: 50%;
     margin: 0 auto 6px;
     background: #0f2f22 center/cover;
@@ -525,7 +550,7 @@ body.loaded #loadingOverlay {
 
 .player-name {
     font-family: var(--font-body);
-    font-size: 10px;
+    font-size: clamp(9px, 2.5vw, 11px);
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
