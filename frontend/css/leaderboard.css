@@ -398,7 +398,6 @@ body {
 }
 
 
-/* ─── CHAT FAB ───────────────────────────────────── */
 .chat-fab {
     position: fixed;
     bottom: calc(var(--nav-height) + 16px);
@@ -418,8 +417,54 @@ body {
     transition: var(--transition);
 }
 
+/* Pulse ring around FAB */
+.chat-fab::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0.5;
+    animation: chatPulse 2s ease-in-out infinite;
+}
+
+/* "CHAT" label that peeks out from the left */
+.chat-fab::after {
+    content: 'CHAT';
+    position: absolute;
+    right: 58px;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px var(--accent-glow);
+    animation: labelFloat 3s ease-in-out infinite;
+}
+
+@keyframes chatPulse {
+    0%, 100% { transform: scale(1);    opacity: 0.5; }
+    50%       { transform: scale(1.35); opacity: 0;   }
+}
+
+@keyframes labelFloat {
+    0%, 100% { opacity: 1;   transform: translateX(0); }
+    50%       { opacity: 0.7; transform: translateX(-3px); }
+}
+
 .chat-fab:hover  { transform: scale(1.06); box-shadow: 0 6px 24px var(--accent-glow); }
 .chat-fab:active { transform: scale(0.92); }
+
+/* Stop animations once chat is opened — add .chat-opened class via JS */
+.chat-fab.chat-opened::before,
+.chat-fab.chat-opened::after {
+    animation: none;
+    opacity: 0;
+}
 
 .unread-badge {
     position: absolute;
