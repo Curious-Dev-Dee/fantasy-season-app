@@ -112,7 +112,7 @@ async function startDashboard(userId) {
 /* ══════════════════════════════════════════════════════
    FANTASY TIPS TEASER CARD
 ══════════════════════════════════════════════════════ */
-async function loadFantasyTipsCard(upcomingMatch) {
+async function loadFantasyTipsCard(upcomingMatch, matchNumber) {
     const card    = document.getElementById("tipsCard");
     const titleEl = document.getElementById("tipsCardTitle");
     const subEl   = document.getElementById("tipsCardSub");
@@ -122,13 +122,14 @@ async function loadFantasyTipsCard(upcomingMatch) {
     const teamA = upcomingMatch.team_a_code;  // "KKR"
     const teamB = upcomingMatch.team_b_code;  // "SRH"
 
-    // Check articles table for a published fantasy-preview article for this match
+    // Use match number to find the EXACT article — avoids picking up old matches
     const { data: article } = await supabase
         .from("articles")
         .select("slug")
         .eq("published", true)
         .eq("category", "fantasy-preview")
-        .ilike("match_label", `%${teamA}%${teamB}%`)
+        .ilike("match_label", `%Match ${matchNumber}%`)  // ← "Match 6" or "Match 32"
+        .ilike("match_label", `%${teamA}%`)              // ← extra safety: team name check
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -136,7 +137,6 @@ async function loadFantasyTipsCard(upcomingMatch) {
     card.classList.remove("hidden");
 
     if (article) {
-        // ✅ Article found — show live CTA
         titleEl.textContent = `${teamA} vs ${teamB} Fantasy Tips`;
         subEl.textContent   = "Captain picks, player analysis & match prediction";
         card.classList.remove("tips-soon");
@@ -149,7 +149,6 @@ async function loadFantasyTipsCard(upcomingMatch) {
             };
         }
     } else {
-        // ⏳ No article yet — show Coming Soon
         titleEl.textContent = `${teamA} vs ${teamB} Fantasy Tips`;
         subEl.textContent   = "Our experts are analyzing this match — tips coming soon!";
         card.classList.remove("tips-live");
@@ -277,7 +276,7 @@ requestAnimationFrame(() => {
             }
 
             startCountdown(match.actual_start_time);
-                loadFantasyTipsCard(match);  // ← ADD THIS ONE LINE
+    loadFantasyTipsCard(match, dash.current_match_number);  // ← pass match number too
 
 
         } else {
