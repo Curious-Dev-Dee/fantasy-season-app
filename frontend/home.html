@@ -140,13 +140,23 @@
 <section class="card tips-teaser-card hidden" id="tipsCard">
   <div class="tips-card-glow"></div>
   <div class="tips-card-inner">
-    <div class="tips-card-icon">🧠</div>
+
+    <!-- Icon: relevant cricket/tips icon, not a brain -->
+    <div class="tips-card-icon">
+      <i class="fas fa-lightbulb"></i>
+    </div>
+
     <div class="tips-card-body">
       <span class="card-eyebrow">Fantasy Tips</span>
       <h3 class="tips-card-title" id="tipsCardTitle">Loading tips...</h3>
       <p class="tips-card-sub" id="tipsCardSub"></p>
     </div>
-    <div class="tips-card-arrow"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Labeled CTA button — more instructive than a bare chevron -->
+    <button class="tips-cta-btn" id="tipsCtaBtn" aria-label="Read fantasy tips">
+      Read <i class="fas fa-chevron-right"></i>
+    </button>
+
   </div>
 </section>
 

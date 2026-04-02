@@ -113,14 +113,14 @@ async function startDashboard(userId) {
    FANTASY TIPS TEASER CARD
 ══════════════════════════════════════════════════════ */
 async function loadFantasyTipsCard(upcomingMatch) {
-    const card    = document.getElementById("tipsCard");
+    const card   = document.getElementById("tipsCard");
     const titleEl = document.getElementById("tipsCardTitle");
     const subEl   = document.getElementById("tipsCardSub");
+    const ctaBtn  = document.getElementById("tipsCtaBtn");
     if (!card || !upcomingMatch) return;
 
     const matchLabel = `${upcomingMatch.team_a_code} vs ${upcomingMatch.team_b_code}`;
 
-    // Check if an article is published for this match
     const { data: article } = await supabase
         .from("articles")
         .select("slug, title, published")
@@ -131,16 +131,22 @@ async function loadFantasyTipsCard(upcomingMatch) {
     card.classList.remove("hidden");
 
     if (article) {
-        titleEl.textContent = `Fantasy Tips: ${matchLabel}`;
-        subEl.textContent   = "Expert picks, captain choices & more — read now!";
+        titleEl.textContent = `${matchLabel}`;
+        subEl.textContent   = "Expert picks, captain & vice-captain choices";
         card.classList.add("tips-live");
-        card.onclick = () => window.location.href = `article.html?slug=${article.slug}`;
+        if (ctaBtn) {
+            ctaBtn.textContent = "";
+            ctaBtn.innerHTML   = `Read <i class="fas fa-chevron-right"></i>`;
+            ctaBtn.onclick = () => window.location.href = `article.html?slug=${article.slug}`;
+        }
     } else {
-        titleEl.textContent = `Fantasy Tips: ${matchLabel}`;
-        subEl.textContent   = "Coming soon! Our experts are analyzing this match.";
+        titleEl.textContent = `${matchLabel}`;
+        subEl.textContent   = "Our experts are analyzing this match — check back soon!";
         card.classList.add("tips-soon");
-        card.onclick = null;
-        card.style.cursor = "default";
+        if (ctaBtn) {
+            ctaBtn.innerHTML = `Coming Soon`;
+            ctaBtn.onclick   = null;
+        }
     }
 }
 /* ══════════════════════════════════════════════════════
