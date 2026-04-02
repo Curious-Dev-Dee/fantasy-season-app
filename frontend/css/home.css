@@ -1247,6 +1247,19 @@ body.loaded #loadingOverlay {
 
 /* Published — glowing green border + accent title */
 .tips-teaser-card.tips-live .tips-card-title { color: var(--accent); }
+.tips-teaser-card.tips-live .tips-cta-btn {
+    background: var(--accent);
+    color: #000;
+    font-size: 13px;
+    padding: 10px 16px;
+    box-shadow: 0 0 12px var(--accent-glow);
+    font-weight: 900;
+}
+
+.tips-teaser-card.tips-live .tips-cta-btn:hover {
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: scale(1.03);
+}
 .tips-teaser-card.tips-live {
     border-color: var(--border-accent);
     box-shadow: 0 0 0 1px rgba(154,224,0,0.18);

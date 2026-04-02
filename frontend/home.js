@@ -137,8 +137,8 @@ async function loadFantasyTipsCard(upcomingMatch, matchNumber) {
     card.classList.remove("hidden");
 
     if (article) {
-        titleEl.textContent = `${teamA} vs ${teamB} Fantasy Tips`;
-        subEl.textContent   = "Captain picks, player analysis & match prediction";
+titleEl.textContent = `${teamA} vs ${teamB} — Best XI & Captain Picks`;
+subEl.textContent   = "Don't lock your team before reading this ⚡";
         card.classList.remove("tips-soon");
         card.classList.add("tips-live");
         if (ctaBtn) {
