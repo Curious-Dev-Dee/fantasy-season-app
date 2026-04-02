@@ -357,7 +357,7 @@ async function loadTeamViewCount(viewedUserId) {
     const bar = document.getElementById("scoutViewBar");
     const el  = document.getElementById("scoutViewCount");
     if (bar) bar.classList.remove("hidden");
-    if (el)  el.textContent = `${data ?? 0} scouts`;
+    if (el) el.textContent = `👁️ ${data ?? 0} views`;
 }
 
 /* ─── INIT ───────────────────────────────────────────────────────────────── */
@@ -434,16 +434,19 @@ tabLocked.classList.add("active");
                 getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
         }
 
-        await Promise.allSettled([
-            setupMatchTabs(),
-            isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
-        ]);
+await Promise.allSettled([
+    setupMatchTabs(),
+    isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
+]);
 
-        // Now DOM chip exists — safe to update view count
+// Show view count for both scout and own team
 if (isScoutMode) {
     loadTeamViewCount(scoutUid);
+} else {
+    loadTeamViewCount(userId);
 }
-        setupHistoryListeners();
+
+setupHistoryListeners();
 
     } catch (err) {
         console.error("Init error:", err);
