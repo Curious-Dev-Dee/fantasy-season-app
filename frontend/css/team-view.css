@@ -908,65 +908,7 @@ body.loaded #loadingOverlay {
 
 /* Make chip space-between so left and right sit on opposite ends */
 
-/* ─── FIELD SCORE CHIP ───────────────────────────── */
-.field-score-chip {
-    position: absolute;
-    top: 10px;
-    left: 12px;
-    right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 0, 0, 0.42);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 6px 12px;
-    z-index: 10;
-    pointer-events: none;
-}
 
-.fsc-left {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.fsc-views-count {
-    font-family: var(--font-body);
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 0.02em;
-}
-
-.fsc-right {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-}
-
-.fsc-pts {
-    font-family: var(--font-display);
-    font-size: 16px;
-    font-weight: 900;
-    color: var(--accent);
-    text-shadow: 0 0 10px var(--accent-glow);
-    line-height: 1;
-}
-
-.fsc-subs {
-    font-family: var(--font-body);
-    font-size: 10px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.07);
-    padding: 2px 7px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
 
 .all-time-views-bar {
     text-align: center;
