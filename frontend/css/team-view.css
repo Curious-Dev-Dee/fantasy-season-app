@@ -265,10 +265,8 @@ body.loaded #loadingOverlay {
 /* Score chip — top right corner of the field */
 /* Score chip — overlaid on field */
 .field-score-chip {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    left: 12px;           /* ← add this so it spans full width */
+    position: relative;   /* ← was absolute */
+    margin: 12px 12px 0;  /* ← replaces top/left/right */
     display: flex;
     flex-direction: row;  /* ← change from column to row */
     justify-content: space-between;
