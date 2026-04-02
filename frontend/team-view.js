@@ -59,10 +59,27 @@ function updateBoosterIndicator(element, booster) {
 /* ─── DOM HELPERS ────────────────────────────────────────────────────────── */
 function setEmptyState(container, message) {
     if (!container) return;
-    const p = document.createElement("p");
-    p.className   = "empty-msg";
-    p.textContent = message;
-    container.replaceChildren(p);
+
+    const iconMap = {
+        "Team not created yet."      : "🏗️",
+        "No players selected yet."   : "👤",
+        "Not playing yet."           : "💤",
+        "No season history yet."     : "📋",
+        "Data unavailable."          : "⚠️",
+    };
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "empty-msg";
+
+    const icon = document.createElement("span");
+    icon.textContent = iconMap[message] || "🏏";
+    icon.style.fontSize = "32px";
+
+    const text = document.createElement("span");
+    text.textContent = message;
+
+    wrapper.append(icon, text);
+    container.replaceChildren(wrapper);
 }
 
 function setSpinner(container) {
@@ -846,7 +863,7 @@ window.viewMatchBreakdown = async snapshotId => {
 
     breakdownOverlay.classList.remove("hidden");
     breakdownOverlay.querySelector(".breakdown-body")?.scrollTo(0, 0);
-    setSpinner(breakdownContainer);
+setSkeletonXI(breakdownContainer);
 
     const [{ data: snapshot }, { data: teamPlayers }] = await Promise.all([
         supabase.from("user_match_teams")

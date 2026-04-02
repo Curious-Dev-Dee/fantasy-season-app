@@ -1072,3 +1072,23 @@ body.loaded #loadingOverlay {
     margin: 0 auto 12px;
 }
 
+/* ─── EMPTY STATES ───────────────────────────────── */
+.empty-msg {
+    font-family: var(--font-body);
+    color: var(--text-faint);
+    font-size: 14px;
+    text-align: center;
+    padding: 40px 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.empty-msg::before {
+    content: '🏏';
+    font-size: 32px;
+    display: block;
+    opacity: 0.5;
+}
