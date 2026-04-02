@@ -639,10 +639,8 @@ async function loadLastLockedXI() {
 const chip = document.createElement("div");
 chip.className = "field-score-chip";
 
-// In scout mode — show view count on left, pts/subs on right
-const viewCountHtml = isScoutMode
-    ? `<span class="fsc-views" id="scoutViewCount"><i class="fas fa-eye"></i> —</span>`
-    : `<span></span>`; // empty left side for own team
+// Both modes get the element — scout shows others' views, owner shows how many scouted them
+const viewCountHtml = `<span class="fsc-views" id="scoutViewCount"><i class="fas fa-eye"></i> —</span>`;
 
 chip.innerHTML = `
     ${viewCountHtml}
