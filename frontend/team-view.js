@@ -415,7 +415,6 @@ applyRankFlair(null, viewTitle,
 
 // ── SCOUT VIEW TRACKING ──────────────────────
 logTeamView(scoutUid);          // log this view (non-blocking)
-loadTeamViewCount(scoutUid);    // show count to the viewer
 
 tabUpcoming.style.display = "none";
 tabLocked.classList.add("active");
@@ -440,6 +439,10 @@ tabLocked.classList.add("active");
             isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
         ]);
 
+        // Now DOM chip exists — safe to update view count
+if (isScoutMode) {
+    loadTeamViewCount(scoutUid);
+}
         setupHistoryListeners();
 
     } catch (err) {
