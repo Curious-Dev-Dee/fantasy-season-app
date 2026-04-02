@@ -1013,3 +1013,62 @@ body.loaded #loadingOverlay {
     border-radius: 20px;
     letter-spacing: 0.03em;
 }
+
+/* ─── SKELETON LOADER ────────────────────────────── */
+@keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.10) 50%,
+        rgba(255,255,255,0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    border-radius: 6px;
+}
+
+.skeleton-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.skeleton-player {
+    width: 76px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.skeleton-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+}
+
+.skeleton-name {
+    width: 48px;
+    height: 9px;
+    border-radius: 4px;
+}
+
+.skeleton-pts {
+    width: 36px;
+    height: 9px;
+    border-radius: 4px;
+}
+
+.skeleton-role-label {
+    width: 60px;
+    height: 8px;
+    border-radius: 4px;
+    margin: 0 auto 12px;
+}
+

@@ -72,6 +72,51 @@ function setSpinner(container) {
     container.replaceChildren(d);
 }
 
+function setSkeletonXI(container) {
+    if (!container) return;
+    container.replaceChildren();
+
+    // WK:1, BAT:4, AR:3, BOWL:3 — typical XI layout
+    const layout = [
+        { role: "WK",   count: 1 },
+        { role: "BAT",  count: 4 },
+        { role: "AR",   count: 2 },
+        { role: "BOWL", count: 4 },
+    ];
+
+    layout.forEach(({ count }) => {
+        const section = document.createElement("div");
+        section.className = "role-section";
+
+        const label = document.createElement("div");
+        label.className = "skeleton-role-label skeleton";
+        section.appendChild(label);
+
+        const row = document.createElement("div");
+        row.className = "skeleton-row";
+
+        for (let i = 0; i < count; i++) {
+            const player = document.createElement("div");
+            player.className = "skeleton-player";
+
+            const avatar = document.createElement("div");
+            avatar.className = "skeleton-avatar skeleton";
+
+            const name = document.createElement("div");
+            name.className = "skeleton-name skeleton";
+
+            const pts = document.createElement("div");
+            pts.className = "skeleton-pts skeleton";
+
+            player.append(avatar, name, pts);
+            row.appendChild(player);
+        }
+
+        section.appendChild(row);
+        container.appendChild(section);
+    });
+}
+
 function setTeamStatus(message = "") {
     if (!teamStatus) return;
     teamStatus.textContent = message;
@@ -528,7 +573,7 @@ async function loadCurrentXI() {
 
     clearInterval(countdownInterval);
     countdownContainer.classList.add("hidden");   // ← ADD
-    teamContainer.replaceChildren();              // ← ADD: wipes locked XI chip
+setSkeletonXI(teamContainer);
     setTeamStatus("");
 
     if (tabUpcoming.dataset.startTime) {
@@ -567,6 +612,7 @@ async function loadCurrentXI() {
 /* ─── LAST LOCKED XI ─────────────────────────────────────────────────────── */
 async function loadLastLockedXI() {
     clearInterval(countdownInterval);
+    setSkeletonXI(teamContainer);
     countdownContainer.classList.add("hidden");
 
     const { data: snapshot } = await supabase
