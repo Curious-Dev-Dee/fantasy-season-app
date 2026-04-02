@@ -30,6 +30,7 @@ let countdownInterval;
 let isScoutMode = false;
 let realTeamsMap = {};
 let currentSession = null; // set by authReady so we don't call getSession() twice
+let currentMatchId = null;  // ← ADD HERE
 
 
 /* ─── BOOSTER HELPERS ────────────────────────────────────────────────────── */
@@ -338,28 +339,40 @@ setTimeout(() => {
     }
 }, 3000);
 
-async function logTeamView(viewedUserId) {
+async function logTeamView(viewedUserId, matchId) {
     const user = currentSession?.user;
-    if (!user || user.id === viewedUserId) return; // skip self views
+    if (!user || user.id === viewedUserId) return;
 
-    await supabase
-        .from("team_profile_views")
-        .insert({
-            viewed_user_id: viewedUserId,
-            viewer_user_id: user.id
-        });
+    await supabase.from("team_profile_views").insert({
+        viewed_user_id: viewedUserId,
+        viewer_user_id: user.id,
+        match_id: matchId   // ← new
+    });
 }
 
 async function loadTeamViewCount(viewedUserId) {
-    const { data, error } = await supabase
-        .rpc("get_team_view_count", { target_user_id: viewedUserId });
+    if (!currentMatchId) return;
 
-    console.log("view count result:", data, "error:", error);
+    const { data } = await supabase.rpc("get_team_view_counts", {
+        target_user_id:   viewedUserId,
+        current_match_id: currentMatchId
+    });
 
-    const el = document.getElementById("scoutViewCount");
-    if (el) el.textContent = `👁️ ${data ?? 0} views`;
+    if (!data) return;
+
+    // ── Match view chip (inside locked XI chip)
+    const matchEl = document.getElementById("scoutViewCount");
+    if (matchEl) {
+        const badge = data.match_rank === 1
+            ? ` <span class="most-scouted-badge" title="Most Viewed This Match">🏆</span>`
+            : "";
+        matchEl.innerHTML = `👁️ ${data.match_views} this match${badge}`;
+    }
+
+    // ── All-time view (bottom of page)
+    const allTimeEl = document.getElementById("allTimeViewCount");
+    if (allTimeEl) allTimeEl.textContent = `👁️ ${data.all_time_views} all time`;
 }
-
 /* ─── INIT ───────────────────────────────────────────────────────────────── */
 // BUG FIX #1: Replaced direct supabase.auth.getSession() with authReady.
 // auth-guard.js handles redirect to login if no session exists.
@@ -390,7 +403,7 @@ async function init() {
         if (!activeTournament) return;
         tournamentId = activeTournament.id;
 
-        if (scoutUid && scoutUid !== user.id) {
+               if (scoutUid && scoutUid !== user.id) {
             // ── SCOUT MODE ──────────────────────────────────────────────────
             userId      = scoutUid;
             isScoutMode = true;
@@ -413,7 +426,7 @@ async function init() {
             applyRankFlair(null, viewTitle,
                 getEffectiveRank(overallRes.data?.rank ?? Infinity, privateRes.data?.rank_in_league ?? Infinity));
 
-            logTeamView(scoutUid); // non-blocking
+            // ← logTeamView removed from here (currentMatchId not set yet)
 
             tabUpcoming.style.display = "none";
             tabLocked.classList.add("active");
@@ -438,10 +451,16 @@ async function init() {
         }
 
         // ── LOAD INITIAL VIEW + TABS ─────────────────────────────────────
+        // setupMatchTabs() sets currentMatchId — must run before logTeamView
         await Promise.allSettled([
             setupMatchTabs(),
             isScoutMode ? loadLastLockedXI() : loadCurrentXI(),
         ]);
+
+        // ← NOW currentMatchId is set, safe to log the scout view
+        if (isScoutMode) {
+            logTeamView(scoutUid, currentMatchId);
+        }
 
         setupHistoryListeners();
 
@@ -451,6 +470,7 @@ async function init() {
         revealApp();
     }
 }
+
 /* ─── MATCH TABS ─────────────────────────────────────────────────────────── */
 async function setupMatchTabs() {
     if (!isScoutMode) {
@@ -464,7 +484,8 @@ async function setupMatchTabs() {
             .limit(1)
             .maybeSingle();
 
-        if (upcoming) {
+      if (upcoming) {
+            currentMatchId = upcoming.id;  // ← ADD THIS LINE
             tabUpcoming.textContent       = `${realTeamsMap[upcoming.team_a_id] || "TBA"} vs ${realTeamsMap[upcoming.team_b_id] || "TBA"} – Edit`;
             tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
