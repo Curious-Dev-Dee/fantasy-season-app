@@ -135,6 +135,7 @@ content.appendChild(buildStrengthZone(d, players));
 content.appendChild(buildMomentumScore(d));
 content.appendChild(buildFormIndicator(d));
 content.appendChild(buildOverview(d));
+content.appendChild(buildMonetagAd());                          // ← AD #1 (mid-page)
 content.appendChild(buildScoreTrends(d, history));
 content.appendChild(buildRankJourney(d));
 content.appendChild(buildBestWorst(d));
@@ -152,7 +153,9 @@ if (players) {
     content.appendChild(buildPlayerCategories(players));
 }
 content.appendChild(buildCompareSection(userId));
+content.appendChild(buildMonetagAd());                          // ← AD #2 (bottom)
 content.appendChild(buildShareCard(d, teamRow));
+
     } catch (err) {
         console.error("Dugout load error:", err);
         content.innerHTML = `<div class="ed-empty-state"><div class="ed-empty-icon"><i class="fas fa-exclamation-triangle"></i></div><p class="ed-empty-title">Failed to load</p><p class="ed-empty-sub">Check your connection and try again</p></div>`;
@@ -1133,6 +1136,33 @@ window.shareStats = async () => {
         showToast("Stats copied to clipboard!", "success");
     }
 };
+
+
+function buildMonetagAd() {
+    const wrap = document.createElement("div");
+    wrap.className = "ed-section";
+    wrap.style.cssText = "margin: 12px 0; padding: 0;";
+
+    const body = document.createElement("div");
+    body.className = "ed-section-body";
+    body.style.cssText = "display:flex; justify-content:center; align-items:center; padding: 10px 0; min-height: 60px;";
+
+    const holder = document.createElement("div");
+    holder.style.cssText = "width:100%; text-align:center;";
+
+    if (!document.querySelector('script[data-zone="225656"]')) {
+        const s = document.createElement("script");
+        s.src = "https://quge5.com/88/tag.min.js";
+        s.async = true;
+        s.setAttribute("data-zone", "225656");
+        s.setAttribute("data-cfasync", "false");
+        holder.appendChild(s);
+    }
+
+    body.appendChild(holder);
+    wrap.appendChild(body);
+    return wrap;
+}
 
 function buildPlayerCard(p, rank, showMatches = false) {
     const card = document.createElement("div");
