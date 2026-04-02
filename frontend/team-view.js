@@ -350,29 +350,6 @@ async function logTeamView(viewedUserId, matchId) {
     });
 }
 
-async function loadTeamViewCount(viewedUserId) {
-    if (!currentMatchId) return;
-
-    const { data } = await supabase.rpc("get_team_view_counts", {
-        target_user_id:   viewedUserId,
-        current_match_id: currentMatchId
-    });
-
-    if (!data) return;
-
-    // ── Match view chip (inside locked XI chip)
-    const matchEl = document.getElementById("scoutViewCount");
-    if (matchEl) {
-        const badge = data.match_rank === 1
-            ? ` <span class="most-scouted-badge" title="Most Viewed This Match">🏆</span>`
-            : "";
-        matchEl.innerHTML = `👁️ ${data.match_views} this match${badge}`;
-    }
-
-    // ── All-time view (bottom of page)
-    const allTimeEl = document.getElementById("allTimeViewCount");
-    if (allTimeEl) allTimeEl.textContent = `👁️ ${data.all_time_views} all time`;
-}
 /* ─── INIT ───────────────────────────────────────────────────────────────── */
 // BUG FIX #1: Replaced direct supabase.auth.getSession() with authReady.
 // auth-guard.js handles redirect to login if no session exists.
@@ -551,8 +528,14 @@ async function loadCurrentXI() {
     if (isScoutMode) return;
 
     clearInterval(countdownInterval);
+    countdownContainer.classList.add("hidden");   // ← ADD
+    teamContainer.replaceChildren();              // ← ADD: wipes locked XI chip
     setTeamStatus("");
-    if (tabUpcoming.dataset.startTime) startCountdown(tabUpcoming.dataset.startTime);
+
+    if (tabUpcoming.dataset.startTime) {
+        countdownContainer.classList.remove("hidden");
+        startCountdown(tabUpcoming.dataset.startTime);
+    }
 
     const [{ data: userTeam }, { data: pointsData }] = await Promise.all([
         supabase.from("user_fantasy_teams").select("*").eq("user_id", userId).eq("tournament_id", tournamentId).maybeSingle(),
@@ -656,28 +639,44 @@ async function loadLastLockedXI() {
     );
     const finalTotal = await fetchUserMatchTotal(snapshot.match_id) ?? fallback;
 
-    // Clear old status text
-    setTeamStatus("");
+        setTeamStatus("");
 
-const chip = document.createElement("div");
-chip.className = "field-score-chip";
+    // ── Fetch view counts FIRST so chip can use the data ──
+    let viewData = null;
+    if (currentMatchId) {
+        const { data } = await supabase.rpc("get_team_view_counts", {
+            target_user_id:   userId,
+            current_match_id: currentMatchId
+        });
+        viewData = data;
+    }
 
-// Both modes get the element — scout shows others' views, owner shows how many scouted them
-const viewCountHtml = `<span class="fsc-views" id="scoutViewCount"><i class="fas fa-eye"></i> —</span>`;
+    const isMostScouted = viewData?.match_rank === 1;
 
-chip.innerHTML = `
-    ${viewCountHtml}
-    <div class="fsc-right">
-        <span class="fsc-pts">${finalTotal} pts</span>
-        <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>
-    </div>`;
-teamContainer.appendChild(chip);
+    // ── Build chip with view data already available ──
+    const chip = document.createElement("div");
+    chip.className = "field-score-chip";
 
-loadTeamViewCount(userId);
+    chip.innerHTML = `
+        <div class="fsc-left">
+            <span class="fsc-views-count">👁️ ${viewData?.match_views ?? 0}</span>
+            ${isMostScouted
+                ? `<span class="fsc-most-scouted">🏆 Most Viewed</span>`
+                : ``}
+        </div>
+        <div class="fsc-right">
+            <span class="fsc-pts">${finalTotal} pts</span>
+            <span class="fsc-subs">${snapshot.subs_used_for_match} subs</span>
+        </div>`;
+    teamContainer.appendChild(chip);
 
+    // ── All-time view at bottom ──
+    const allTimeBar = document.getElementById("allTimeViewBar");
+    const allTimeEl  = document.getElementById("allTimeViewCount");
+    if (allTimeBar) allTimeBar.classList.remove("hidden");
+    if (allTimeEl)  allTimeEl.textContent = `👁️ ${viewData?.all_time_views ?? 0} all time`;
 
-// ── IN-PAGE PUSH AD — fires once when locked XI finishes loading ──
-injectPushAd();
+    injectPushAd();
 
 }
 
