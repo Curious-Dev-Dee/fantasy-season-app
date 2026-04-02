@@ -262,6 +262,36 @@ body.loaded #loadingOverlay {
     position: relative;
 }
 
+/* Pitch strip down the center */
+.team-field::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 52px;
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(210, 180, 120, 0.07) 10%,
+        rgba(210, 180, 120, 0.11) 50%,
+        rgba(210, 180, 120, 0.07) 90%,
+        transparent 100%
+    );
+    border-left: 1px solid rgba(210, 180, 120, 0.08);
+    border-right: 1px solid rgba(210, 180, 120, 0.08);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Keep player content above the pitch strip */
+.role-section {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 22px;
+}
+
 /* Score chip — top right corner of the field */
 /* Score chip — overlaid on field */
 .field-score-chip {
@@ -339,9 +369,27 @@ body.loaded #loadingOverlay {
     font-size: 9px;
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 2.5px;
+    letter-spacing: 3px;
     margin-bottom: 12px;
-    color: rgba(255, 255, 255, 0.40);
+    color: rgba(255, 255, 255, 0.30);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+}
+
+/* Lines on either side of the role label */
+.role-title::before,
+.role-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.10),
+        transparent
+    );
 }
 
 
