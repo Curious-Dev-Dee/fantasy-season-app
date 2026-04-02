@@ -110,6 +110,40 @@ async function startDashboard(userId) {
 }
 
 /* ══════════════════════════════════════════════════════
+   FANTASY TIPS TEASER CARD
+══════════════════════════════════════════════════════ */
+async function loadFantasyTipsCard(upcomingMatch) {
+    const card    = document.getElementById("tipsCard");
+    const titleEl = document.getElementById("tipsCardTitle");
+    const subEl   = document.getElementById("tipsCardSub");
+    if (!card || !upcomingMatch) return;
+
+    const matchLabel = `${upcomingMatch.team_a_code} vs ${upcomingMatch.team_b_code}`;
+
+    // Check if an article is published for this match
+    const { data: article } = await supabase
+        .from("articles")
+        .select("slug, title, published")
+        .eq("match_label", matchLabel)
+        .eq("published", true)
+        .maybeSingle();
+
+    card.classList.remove("hidden");
+
+    if (article) {
+        titleEl.textContent = `Fantasy Tips: ${matchLabel}`;
+        subEl.textContent   = "Expert picks, captain choices & more — read now!";
+        card.classList.add("tips-live");
+        card.onclick = () => window.location.href = `article.html?slug=${article.slug}`;
+    } else {
+        titleEl.textContent = `Fantasy Tips: ${matchLabel}`;
+        subEl.textContent   = "Coming soon! Our experts are analyzing this match.";
+        card.classList.add("tips-soon");
+        card.onclick = null;
+        card.style.cursor = "default";
+    }
+}
+/* ══════════════════════════════════════════════════════
    CORE DATA FETCH
 ══════════════════════════════════════════════════════ */
 async function fetchHomeData(userId) {
@@ -192,6 +226,9 @@ requestAnimationFrame(() => {
             if (matchTeamsElement) {
                 matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
             }
+
+                loadFantasyTipsCard(dash.upcoming_match); // ← ADD THIS
+
 
             const venueEl = document.getElementById("matchVenue");
             if (venueEl) {

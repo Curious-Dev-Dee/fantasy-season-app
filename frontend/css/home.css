@@ -1195,3 +1195,66 @@ body.loaded #loadingOverlay {
     background: var(--accent-dim);
     color: var(--accent);
 }
+
+/* ── TIPS TEASER CARD ── */
+.tips-teaser-card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tips-teaser-card:active { transform: scale(0.98); }
+
+.tips-card-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top left, rgba(154,224,0,0.12), transparent 70%);
+    pointer-events: none;
+}
+
+.tips-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 4px 0;
+}
+
+.tips-card-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(154,224,0,0.5));
+}
+
+.tips-card-body { flex: 1; }
+
+.tips-card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 2px 0 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.tips-card-sub {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    margin: 0;
+}
+
+.tips-card-arrow {
+    color: var(--accent);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+/* Published state — glowing CTA feel */
+.tips-teaser-card.tips-live .tips-card-title { color: var(--accent); }
+.tips-teaser-card.tips-live {
+    box-shadow: 0 0 0 1.5px rgba(154,224,0,0.3), var(--card-shadow);
+}
+
+/* Coming soon — muted */
+.tips-teaser-card.tips-soon .tips-card-arrow { color: var(--text-faint); }
+.tips-teaser-card.tips-soon { cursor: default; }
