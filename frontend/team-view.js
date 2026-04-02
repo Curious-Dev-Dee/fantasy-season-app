@@ -462,7 +462,7 @@ async function setupMatchTabs() {
 
         if (upcoming) {
             currentMatchId = upcoming.id;  // ← own team: next upcoming match
-            tabUpcoming.textContent       = `${realTeamsMap[upcoming.team_a_id] || "TBA"} vs ${realTeamsMap[upcoming.team_b_id] || "TBA"} – Edit`;
+tabUpcoming.querySelector("span").textContent = `${realTeamsMap[upcoming.team_a_id] || "TBA"} vs ${realTeamsMap[upcoming.team_b_id] || "TBA"} – Edit`;
             tabUpcoming.dataset.startTime = upcoming.actual_start_time;
         }
     }
@@ -481,7 +481,7 @@ async function setupMatchTabs() {
             .from("matches").select("*").eq("id", lastLocked.match_id).single();
 
         if (matchInfo) {
-            tabLocked.textContent = `${realTeamsMap[matchInfo.team_a_id] || "TBA"} vs ${realTeamsMap[matchInfo.team_b_id] || "TBA"} – Locked`;
+tabLocked.querySelector("span").textContent = `${realTeamsMap[matchInfo.team_a_id] || "TBA"} vs ${realTeamsMap[matchInfo.team_b_id] || "TBA"} – Locked`;
 
             // ← For scout mode (no upcoming tab), use last locked match as currentMatchId
             // ← For own team with no upcoming match found, also fallback to last locked

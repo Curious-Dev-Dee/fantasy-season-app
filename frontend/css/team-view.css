@@ -229,29 +229,65 @@ body.loaded #loadingOverlay {
 .xi-toggle {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    padding: 14px 16px;
+    gap: 0;
+    padding: 12px 16px;
+}
+
+/* Pill container */
+.xi-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    margin: 12px 16px;
 }
 
 .xi-tab {
-    padding: 9px 16px;
-    border-radius: var(--btn-radius);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.45);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.38);
     font-family: var(--font-display);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
     cursor: pointer;
     transition: var(--transition);
+}
+
+.xi-tab i {
+    font-size: 10px;
+    opacity: 0.8;
 }
 
 .xi-tab.active {
     background: var(--accent);
     color: #000;
-    border-color: var(--accent);
+    border: none;
+    box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+.xi-tab.active i {
+    opacity: 1;
+}
+
+/* Scout mode — only locked tab visible, center it */
+.xi-toggle:has(> .xi-tab:only-child) {
+    justify-content: center;
+}
+
+.xi-toggle:has(> .xi-tab:only-child) .xi-tab {
+    flex: 0 1 auto;
+    padding: 9px 28px;
 }
 
 
