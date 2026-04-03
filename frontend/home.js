@@ -441,7 +441,6 @@ ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
    PRIVATE LEAGUE DATA
 ══════════════════════════════════════════════════════ */
 async function fetchPrivateLeagueData(userId) {
-    const card         = document.getElementById("privateLeagueCard");
     const leagueNameEl = document.getElementById("privateLeagueName");
     const inviteCodeEl = document.getElementById("privateInviteCode");
     const contentEl    = document.getElementById("privateLeagueContent");
@@ -449,42 +448,40 @@ async function fetchPrivateLeagueData(userId) {
     const containerEl  = document.getElementById("privateLeaderboardContainer");
     const viewBtn      = document.getElementById("viewPrivateLeaderboard");
 
-    if (!card) return;
+    // ← REMOVED: const card = getElementById("privateLeagueCard") — no longer exists
+    // ← REMOVED: if (!card) return — was killing the whole function
 
-const { data: m, error } = await supabase
-    .from("league_members")
-    .select("league_id, leagues(name, invite_code)")
-    .eq("user_id", userId)
-    .maybeSingle();
+    const { data: m, error } = await supabase
+        .from("league_members")
+        .select("league_id, leagues(name, invite_code)")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-        if (error || !m) {
-        // No league — show empty state in private pane
-        const contentEl    = document.getElementById("privateLeagueContent");
-        const emptyStateEl = document.getElementById("noLeagueState");
+    console.log("League fetch:", m, error); // remove after confirming it works
+
+    if (error || !m) {
         contentEl?.classList.add("hidden");
         emptyStateEl?.classList.remove("hidden");
-        // Auto-switch tab to Overall since private league is empty
-        switchLeagueTab("overall");
         currentUserPrivateRank = Infinity;
         applyOwnFlair();
         return;
     }
 
-
     card.classList.remove("hidden");
     contentEl?.classList.remove("hidden");
     emptyStateEl?.classList.add("hidden");
-    if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
-    // Fetch member count for this private league
-const { count: leagueCount } = await supabase
-    .from("league_members")
-    .select("*", { count: "exact", head: true })
-    .eq("league_id", m.league_id);
 
-const privateCountEl = document.getElementById("privateLeagueMemberCount");
-if (privateCountEl && leagueCount != null) {
-    privateCountEl.textContent = `${leagueCount} member${leagueCount !== 1 ? "s" : ""}`;
-}
+    if (leagueNameEl) leagueNameEl.textContent = m.leagues.name;
+
+    const { count: leagueCount } = await supabase
+        .from("league_members")
+        .select("*", { count: "exact", head: true })
+        .eq("league_id", m.league_id);
+
+    const privateCountEl = document.getElementById("privateLeagueMemberCount");
+    if (privateCountEl && leagueCount != null) {
+        privateCountEl.textContent = `${leagueCount} member${leagueCount !== 1 ? "s" : ""}`;
+    }
 
     if (inviteCodeEl) {
         inviteCodeEl.textContent  = m.leagues.invite_code;
@@ -493,8 +490,8 @@ if (privateCountEl && leagueCount != null) {
         inviteCodeEl.onclick      = () => {
             navigator.clipboard.writeText(m.leagues.invite_code);
             const original = inviteCodeEl.textContent;
-            inviteCodeEl.textContent = "COPIED!";
-inviteCodeEl.style.color = "var(--accent)";
+            inviteCodeEl.textContent  = "COPIED!";
+            inviteCodeEl.style.color  = "var(--accent)";
             setTimeout(() => { inviteCodeEl.textContent = original; inviteCodeEl.style.color = ""; }, 2000);
         };
     }
@@ -512,12 +509,12 @@ inviteCodeEl.style.color = "var(--accent)";
         .order("total_points", { ascending: false })
         .limit(3);
 
-        const { data: myRow } = await supabase
-    .from("private_league_leaderboard")
-    .select("rank_in_league, total_points")
-    .eq("league_id", m.league_id)
-    .eq("user_id", userId)
-    .maybeSingle();
+    const { data: myRow } = await supabase
+        .from("private_league_leaderboard")
+        .select("rank_in_league, total_points")
+        .eq("league_id", m.league_id)
+        .eq("user_id", userId)
+        .maybeSingle();
 
     if (lb && containerEl) {
         containerEl.innerHTML = "";
@@ -530,32 +527,32 @@ inviteCodeEl.style.color = "var(--accent)";
             };
 
             const rankSpan   = document.createElement("span");
-const rankTxt = document.createTextNode(row.total_points > 0 ? `#${row.rank_in_league} ` : "");
+            const rankTxt    = document.createTextNode(row.total_points > 0 ? `#${row.rank_in_league} ` : "");
             const nameStrong = document.createElement("strong");
             nameStrong.className   = "team-name-text";
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
 
-const ptsPill     = document.createElement("span");
-const hasPoints   = row.total_points > 0;
-ptsPill.className = `pts-pill${hasPoints ? " has-pts" : ""}`;
-ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
+            const ptsPill   = document.createElement("span");
+            const hasPoints = row.total_points > 0;
+            ptsPill.className   = `pts-pill${hasPoints ? " has-pts" : ""}`;
+            ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
 
             rowDiv.append(rankSpan, ptsPill);
             containerEl.appendChild(rowDiv);
         });
 
-const rankSpan = document.getElementById("privateLeagueRank");
-if (rankSpan) {
-    if (myRow && myRow.total_points > 0) {
-        rankSpan.textContent = `#${myRow.rank_in_league}`;
-        rankSpan.classList.remove("pre-season");
-    } else {
-        rankSpan.textContent = "Pre-Season";
-        rankSpan.classList.add("pre-season");
-    }
-}
-currentUserPrivateRank = myRow?.rank_in_league ?? Infinity;
+        const rankSpan = document.getElementById("privateLeagueRank");
+        if (rankSpan) {
+            if (myRow && myRow.total_points > 0) {
+                rankSpan.textContent = `#${myRow.rank_in_league}`;
+                rankSpan.classList.remove("pre-season");
+            } else {
+                rankSpan.textContent = "Pre-Season";
+                rankSpan.classList.add("pre-season");
+            }
+        }
+        currentUserPrivateRank = myRow?.rank_in_league ?? Infinity;
     } else {
         currentUserPrivateRank = Infinity;
     }
