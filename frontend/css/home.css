@@ -1326,6 +1326,8 @@ body.loaded #loadingOverlay {
 .unified-league-card {
   padding: 0;
   overflow: hidden;
+    margin-bottom: 12px;   /* ← add this */
+
 }
 
 .league-tabs {
