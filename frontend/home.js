@@ -20,15 +20,15 @@ const rankElement            = document.getElementById("userRank");
 const subsElement            = document.getElementById("subsRemaining");
 const matchTeamsElement      = document.getElementById("matchTeams");
 const matchTimeElement       = document.getElementById("matchTime");
+const leaderboardContainer   = document.getElementById("leaderboardContainer");
 const editButton             = document.getElementById("editXiBtn");
 const boosterStatusEl        = document.getElementById("boosterStatus");
 const profileModal           = document.getElementById("profileModal");
 const saveProfileBtn         = document.getElementById("saveProfileBtn");
-const modalTeamName = document.getElementById("modalTeamName");
+const modalTeamName          = document.getElementById("modalTeamName");
 const avatarInput            = document.getElementById("avatarInput");
 const modalPreview           = document.getElementById("modalAvatarPreview");
 const viewXiBtn              = document.getElementById("viewXiBtn");
-
 
 function switchLeagueTab(tab) {
     const panePrivate  = document.getElementById("panePrivate");
@@ -591,7 +591,7 @@ function startCountdown(startTime) {
                 }
             }, 5000);
             return;
-        }
+        }}
 
         const days    = Math.floor(dist / 86400000);
         const hours   = Math.floor((dist % 86400000) / 3600000);
