@@ -17,7 +17,6 @@ function handleLinkClick(e) {
     // Fade out current page
     document.body.style.transition = "opacity 0.15s ease, transform 0.15s ease";
     document.body.style.opacity    = "0";
-    document.body.style.transform  = "translateY(-6px)";
 
     setTimeout(() => {
         window.location.href = href;
@@ -31,6 +30,5 @@ document.addEventListener("click", handleLinkClick);
 window.__navigate = function(href) {
     document.body.style.transition = "opacity 0.15s ease, transform 0.15s ease";
     document.body.style.opacity    = "0";
-    document.body.style.transform  = "translateY(-6px)";
     setTimeout(() => { window.location.href = href; }, 150);
 };
