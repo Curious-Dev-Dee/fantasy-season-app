@@ -831,3 +831,47 @@ body {
 .chat-push-banner:empty {
     display: none;
 }
+
+/* ── SKELETON SCREEN ── */
+#skeletonScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-page);
+  z-index: 999;
+  padding: 16px;
+  transition: opacity 0.2s ease, visibility 0s 0.2s;
+  visibility: visible;
+}
+
+#skeletonScreen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.sk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 2px 16px;
+}
+
+.sk-block {
+  background: linear-gradient(
+    90deg,
+    var(--border-card) 25%,
+    var(--border) 50%,
+    var(--border-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: skShimmer 1.4s infinite;
+  display: block;
+}
+
+@keyframes skShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

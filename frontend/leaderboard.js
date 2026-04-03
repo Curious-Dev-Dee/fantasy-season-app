@@ -68,12 +68,9 @@ if (leagueId) {
     const avatarMap = new Map(profiles.map(p => [p.user_id, p.team_photo_url]));
     renderLeaderboard(normalized, userId, avatarMap);
 
-    // BUG FIX #3: Pass userId to initChat so it doesn't re-fetch the session
-    initChat(userId, leagueId, activeTournament.id);
-        setupPopunder(); // ← add this line
-
-
-
+await initChat(userId, leagueId, activeTournament.id);
+    setupPopunder();
+    document.getElementById("skeletonScreen")?.classList.add("hidden");
 }
 
 init();

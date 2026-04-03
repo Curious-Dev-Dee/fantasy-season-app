@@ -30,6 +30,9 @@ async function init() {
         loadPostMatchSummary(),
         loadPodiums(),
     ]);
+
+    // Hide skeleton once all data is loaded
+    document.getElementById("skeletonScreen")?.classList.add("hidden");
 }
 
 init();

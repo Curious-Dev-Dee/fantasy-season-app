@@ -6,7 +6,7 @@ const searchInput    = document.getElementById("playerSearch");
 const teamFilter     = document.getElementById("teamFilter");
 const matchFilter    = document.getElementById("matchFilter");
 const statsContainer = document.getElementById("statsContainer");
-const loader         = document.getElementById("loadingOverlay");
+const loader = document.getElementById("skeletonScreen");
 const statsSub       = document.querySelector(".stats-sub");
 
 /* ─── STATE ──────────────────────────────────────────────────────────────── */
@@ -57,7 +57,7 @@ async function loadPlayerStats() {
     pendingLoad = false;
 
     setFiltersDisabled(true);
-    loader.style.display = "flex";
+document.getElementById("skeletonScreen")?.classList.remove("hidden");
     statsContainer.innerHTML = "";
 
     const searchTerm = searchInput.value.toLowerCase().trim();
@@ -127,7 +127,7 @@ async function loadPlayerStats() {
 
     } finally {
         isLoading = false;
-        loader.style.display = "none";
+        document.getElementById("skeletonScreen")?.classList.add("hidden");
         setFiltersDisabled(false);
         if (pendingLoad) loadPlayerStats();
     }
