@@ -1766,3 +1766,933 @@ async function openFullDailyLeaderboard(matchId, type) {
         });
     });
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   H2H CHALLENGE PANEL
+   Paste this entire block at the bottom of prediction.js
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── H2H SUB-TAB SWITCHER ───────────────────────────────────────────────── */
+window.switchH2HTab = function(sub) {
+    document.querySelectorAll(".h2h-sub-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.sub === sub);
+    });
+    document.querySelectorAll(".h2h-sub-panel").forEach(panel => {
+        panel.classList.toggle("hidden", panel.id !== `h2h-sub-${sub}`);
+    });
+    if (sub === "challenges")  loadH2HChallenges();
+    if (sub === "leaderboard") loadH2HLeaderboard();
+    if (sub === "live")        loadH2HLive();
+};
+
+/* ─── H2H STATE ──────────────────────────────────────────────────────────── */
+let h2hState = {
+    match: null,
+    team: null,          // saved h2h_teams row for current match
+    players: [],         // player pool for current match (4 roles)
+    slots: { WK: null, BAT: null, AR: null, BOWL: null },
+    captainId: null,
+    vcId: null,
+    saving: false,
+};
+
+/* ─── ENTRY POINT ────────────────────────────────────────────────────────── */
+async function loadH2HPanel() {
+    // Resolve the current upcoming match if not already set
+    if (!h2hState.match) {
+        const { data: match } = await supabase
+            .from("matches")
+            .select("*, team_a:real_teams!team_a_id(id, short_code, photo_name), team_b:real_teams!team_b_id(id, short_code, photo_name)")
+            .eq("tournament_id", currentTournamentId)
+            .in("status", ["upcoming", "live"])
+            .order("actual_start_time", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+        h2hState.match = match;
+    }
+
+    // Load player pool for this match
+    if (h2hState.match && h2hState.players.length === 0) {
+        const { data: players } = await supabase
+            .from("player_pool_view")
+            .select("*")
+            .eq("is_active", true)
+            .eq("tournament_id", currentTournamentId)
+            .in("real_team_id", [h2hState.match.team_a.id, h2hState.match.team_b.id]);
+        h2hState.players = players || [];
+    }
+
+    // Load any existing team for this match
+    if (h2hState.match) {
+        const { data: team } = await supabase
+            .from("h2h_teams")
+            .select("*, h2h_team_players(player_id, role)")
+            .eq("user_id", currentUserId)
+            .eq("match_id", h2hState.match.id)
+            .maybeSingle();
+
+        if (team) {
+            h2hState.team = team;
+            h2hState.captainId = team.captain_id;
+            h2hState.vcId = team.vice_captain_id;
+            // Re-hydrate slots from saved players
+            (team.h2h_team_players || []).forEach(tp => {
+                const player = h2hState.players.find(p => p.id === tp.player_id);
+                if (player) h2hState.slots[tp.role] = player;
+            });
+        }
+    }
+
+    // Default to challenges sub-tab
+    loadH2HChallenges();
+}
+
+/* ─── CHALLENGES SUB-PANEL ───────────────────────────────────────────────── */
+async function loadH2HChallenges() {
+    const panel = document.getElementById("h2h-sub-challenges");
+    if (!panel) return;
+    panel.innerHTML = `<div class="panel-spinner"></div>`;
+
+    const match = h2hState.match;
+
+    if (!match) {
+        panel.innerHTML = `
+            <div class="h2h-empty">
+                <div class="h2h-empty-icon">🏏</div>
+                <div class="h2h-empty-title">No upcoming match</div>
+                <p>Check back when the next match is announced.</p>
+            </div>`;
+        return;
+    }
+
+    // Check if match is locked
+    const isMatchLocked = match.status !== "upcoming";
+
+    // Fetch incoming + sent challenges
+    const { data: incoming } = await supabase
+        .from("h2h_challenges")
+        .select("*, challenger:user_profiles!challenger_id(team_name, team_photo_url)")
+        .eq("match_id", match.id)
+        .eq("opponent_id", currentUserId)
+        .eq("status", "pending");
+
+    const { data: sent } = await supabase
+        .from("h2h_challenges")
+        .select("*, opponent:user_profiles!opponent_id(team_name, team_photo_url)")
+        .eq("match_id", match.id)
+        .eq("challenger_id", currentUserId)
+        .neq("status", "rejected");
+
+    panel.innerHTML = "";
+
+    // Match strip
+    const strip = document.createElement("div");
+    strip.className = "h2h-match-strip";
+    strip.innerHTML = `
+        <span class="h2h-match-badge">Match ${match.match_number || ""}</span>
+        <span class="h2h-match-name">${match.team_a.short_code} vs ${match.team_b.short_code}</span>
+        <span class="h2h-match-timer">${isMatchLocked ? "🔒 Locked" : "Open"}</span>`;
+    panel.appendChild(strip);
+
+    // Pick Team & Challenge button
+    const hasTeam = Object.values(h2hState.slots).every(v => v !== null);
+    const pickBtn = document.createElement("button");
+    pickBtn.className = "h2h-pick-btn";
+    pickBtn.disabled = isMatchLocked;
+    pickBtn.textContent = isMatchLocked
+        ? "🔒 Challenge window closed"
+        : hasTeam
+            ? "✏️ Edit Team & Challenge"
+            : "⚡ Pick Team & Challenge";
+    pickBtn.onclick = () => openH2HTeamBuilder();
+    panel.appendChild(pickBtn);
+
+    // Incoming challenges
+    if (incoming?.length) {
+        const inLabel = document.createElement("p");
+        inLabel.className = "as-section-label";
+        inLabel.textContent = `Incoming (${incoming.length})`;
+        panel.appendChild(inLabel);
+
+        incoming.forEach(c => {
+            const card = buildChallengeCard(c, "incoming", () => openAcceptSheet(c));
+            panel.appendChild(card);
+        });
+    }
+
+    // Sent challenges
+    const sentLabel = document.createElement("p");
+    sentLabel.className = "as-section-label";
+    sentLabel.style.marginTop = "10px";
+    sentLabel.textContent = `Sent (${sent?.length || 0})`;
+    panel.appendChild(sentLabel);
+
+    if (!sent?.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-msg";
+        empty.textContent = "No challenges sent yet. Pick a team and challenge someone!";
+        panel.appendChild(empty);
+    } else {
+        sent.forEach(c => {
+            const card = buildChallengeCard(c, "sent", null);
+            panel.appendChild(card);
+        });
+    }
+}
+
+function buildChallengeCard(challenge, type, onClick) {
+    const isIncoming = type === "incoming";
+    const profile = isIncoming ? challenge.challenger : challenge.opponent;
+    const name = profile?.team_name || "Expert";
+
+    const card = document.createElement("div");
+    card.className = `h2h-challenge-card ${isIncoming ? "incoming" : ""}`;
+    if (onClick) card.style.cursor = "pointer";
+    if (onClick) card.onclick = onClick;
+
+    const photoUrl = profile?.team_photo_url
+        ? supabase.storage.from("team-avatars").getPublicUrl(profile.team_photo_url).data.publicUrl
+        : null;
+
+    const avatar = document.createElement("div");
+    avatar.className = "h2h-cc-avatar";
+    if (photoUrl) {
+        avatar.style.backgroundImage = `url('${photoUrl}')`;
+        avatar.style.backgroundSize = "cover";
+        avatar.style.backgroundPosition = "center";
+    } else {
+        avatar.textContent = name.slice(0, 2).toUpperCase();
+    }
+
+    const info = document.createElement("div");
+    info.className = "h2h-cc-info";
+    info.innerHTML = `
+        <div class="h2h-cc-name">${name}</div>
+        <div class="h2h-cc-meta">${challenge.status === "accepted" ? "Accepted" : isIncoming ? "Sent you a challenge" : "Waiting..."} · Match ${challenge.match_id?.slice(0,4) || ""}</div>`;
+
+    const actionBtn = document.createElement("button");
+    actionBtn.className = `h2h-cc-action ${isIncoming ? "accept" : challenge.status === "accepted" ? "accept" : "pending"}`;
+    actionBtn.textContent = isIncoming ? "Accept" : challenge.status === "accepted" ? "Accepted" : "Pending";
+    if (isIncoming && onClick) {
+        actionBtn.onclick = (e) => { e.stopPropagation(); onClick(); };
+    }
+
+    card.append(avatar, info, actionBtn);
+    return card;
+}
+
+/* ─── H2H TEAM BUILDER (4-slot) ──────────────────────────────────────────── */
+function openH2HTeamBuilder() {
+    openBottomSheet((body) => {
+        body.innerHTML = "";
+        renderH2HSlotPicker(body);
+    });
+}
+
+function renderH2HSlotPicker(body) {
+    body.innerHTML = "";
+
+    const title = document.createElement("p");
+    title.className = "sheet-section-label";
+    title.style.marginBottom = "12px";
+    title.textContent = "Pick one player per role";
+    body.appendChild(title);
+
+    // 4-slot grid
+    const grid = document.createElement("div");
+    grid.className = "h2h-slot-grid";
+
+    const roles = ["WK", "BAT", "AR", "BOWL"];
+    const roleLabels = { WK: "Wicket-Keeper", BAT: "Batter", AR: "All-Rounder", BOWL: "Bowler" };
+
+    roles.forEach(role => {
+        const filled = h2hState.slots[role];
+        const slot = document.createElement("div");
+        slot.className = `h2h-slot ${filled ? "filled" : ""}`;
+        slot.onclick = () => openH2HPlayerPicker(role, body);
+
+        if (filled) {
+            const photoUrl = filled.photo_url
+                ? supabase.storage.from("player-photos").getPublicUrl(filled.photo_url).data.publicUrl
+                : null;
+            const isC  = filled.id === h2hState.captainId;
+            const isVC = filled.id === h2hState.vcId;
+            slot.innerHTML = `
+                <span class="h2h-slot-role">${role}</span>
+                <div class="h2h-slot-avatar" style="background-image:url('${photoUrl || "images/default-avatar.png"}')"></div>
+                <span class="h2h-slot-name">${filled.name.split(" ").pop()}</span>
+                <span class="h2h-slot-team">${filled.team_short_code || ""}</span>
+                ${isC ? `<span class="h2h-slot-badge c">C</span>` : isVC ? `<span class="h2h-slot-badge vc">VC</span>` : ""}`;
+        } else {
+            slot.innerHTML = `
+                <span class="h2h-slot-role">${roleLabels[role]}</span>
+                <div class="h2h-slot-empty-icon">+</div>
+                <span class="h2h-slot-empty-text">Tap to pick</span>`;
+        }
+        grid.appendChild(slot);
+    });
+    body.appendChild(grid);
+
+    // C / VC selector (only when all slots filled)
+    const allFilled = roles.every(r => h2hState.slots[r]);
+    if (allFilled) {
+        const cvcLabel = document.createElement("p");
+        cvcLabel.className = "h2h-cvc-label";
+        cvcLabel.textContent = "Captain & Vice-Captain";
+        body.appendChild(cvcLabel);
+
+        const cvcBtns = document.createElement("div");
+        cvcBtns.className = "h2h-cvc-btns";
+
+        const filledPlayers = roles.map(r => h2hState.slots[r]);
+        filledPlayers.forEach(p => {
+            const isC  = p.id === h2hState.captainId;
+            const isVC = p.id === h2hState.vcId;
+            const btn = document.createElement("button");
+            btn.className = `h2h-cvc-btn ${isC ? "active-c" : isVC ? "active-vc" : ""}`;
+            btn.textContent = `${isC ? "C" : isVC ? "VC" : "—"} ${p.name.split(" ").pop()}`;
+            btn.onclick = () => {
+                if (!h2hState.captainId) {
+                    h2hState.captainId = p.id;
+                } else if (h2hState.captainId === p.id) {
+                    h2hState.captainId = null;
+                } else if (!h2hState.vcId) {
+                    h2hState.vcId = p.id;
+                } else if (h2hState.vcId === p.id) {
+                    h2hState.vcId = null;
+                } else {
+                    h2hState.captainId = p.id;
+                }
+                renderH2HSlotPicker(body);
+            };
+            cvcBtns.appendChild(btn);
+        });
+        body.appendChild(cvcBtns);
+
+        // Challenger list
+        renderH2HChallengerList(body);
+    }
+}
+
+async function renderH2HChallengerList(body) {
+    const label = document.createElement("p");
+    label.className = "h2h-cvc-label";
+    label.textContent = "Challenge who?";
+    body.appendChild(label);
+
+    // Fetch other users in the tournament (excluding self)
+    const { data: users } = await supabase
+        .from("user_tournament_points")
+        .select("user_id, user_profiles(team_name, team_photo_url)")
+        .eq("tournament_id", currentTournamentId)
+        .neq("user_id", currentUserId)
+        .limit(20);
+
+    // Fetch existing challenges this match (by current user)
+    const { data: existingChallenges } = await supabase
+        .from("h2h_challenges")
+        .select("opponent_id, challenger_id, status")
+        .eq("match_id", h2hState.match.id)
+        .or(`challenger_id.eq.${currentUserId},opponent_id.eq.${currentUserId}`);
+
+    const alreadySent     = new Set((existingChallenges || []).filter(c => c.challenger_id === currentUserId).map(c => c.opponent_id));
+    const incomingFromThem = new Set((existingChallenges || []).filter(c => c.opponent_id === currentUserId).map(c => c.challenger_id));
+
+    (users || []).forEach(u => {
+        const profile = u.user_profiles;
+        const isAlreadySent  = alreadySent.has(u.user_id);
+        const hasIncoming    = incomingFromThem.has(u.user_id);
+        const name = profile?.team_name || "Expert";
+
+        const row = document.createElement("div");
+        row.className = `h2h-challenger-row ${isAlreadySent ? "" : ""}`;
+
+        const check = document.createElement("div");
+        check.className = "h2h-cr-check";
+        check.textContent = isAlreadySent ? "✓" : "";
+        if (isAlreadySent) check.classList.add("checked");
+
+        const nameEl = document.createElement("span");
+        nameEl.className = "h2h-cr-name";
+        nameEl.textContent = name;
+
+        const badgeEl = document.createElement("span");
+        badgeEl.className = `h2h-cr-badge ${hasIncoming ? "incoming" : isAlreadySent ? "sent" : ""}`;
+        badgeEl.textContent = hasIncoming ? "Accept challenge" : isAlreadySent ? "Already sent" : "";
+
+        row.append(check, nameEl, badgeEl);
+
+        if (!isAlreadySent) {
+            row.style.cursor = "pointer";
+            row.onclick = () => {
+                if (hasIncoming) {
+                    // Shortcut — show warning about incoming challenge
+                    showDupWarning(u.user_id, name, body);
+                } else {
+                    sendH2HChallenge(u.user_id, name);
+                }
+            };
+        }
+        body.appendChild(row);
+    });
+}
+
+function showDupWarning(opponentId, opponentName, body) {
+    const existing = body.querySelector(".h2h-dup-warn");
+    if (existing) existing.remove();
+
+    const warn = document.createElement("div");
+    warn.className = "h2h-dup-warn";
+    warn.innerHTML = `<strong>${opponentName} already challenged you!</strong><br>
+        Accept their challenge from the Challenges section, or send a separate challenge anyway.`;
+    body.insertBefore(warn, body.querySelector(".h2h-cvc-label") || body.firstChild);
+}
+
+async function openH2HPlayerPicker(role, parentBody) {
+    parentBody.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.className = "back-btn";
+    back.innerHTML = "← Back";
+    back.style.cssText = "background:transparent;border:none;color:var(--fun-cyan);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:5px;padding:0;";
+    back.onclick = () => renderH2HSlotPicker(parentBody);
+    parentBody.appendChild(back);
+
+    const roleLabels = { WK: "Wicket-Keeper", BAT: "Batter", AR: "All-Rounder", BOWL: "Bowler" };
+    const label = document.createElement("p");
+    label.className = "sheet-section-label";
+    label.style.marginBottom = "12px";
+    label.textContent = `Pick your ${roleLabels[role]}`;
+    parentBody.appendChild(label);
+
+    const eligible = h2hState.players.filter(p => p.role === role);
+    if (!eligible.length) {
+        parentBody.innerHTML += `<p class="sheet-empty">No ${role} players available for this match.</p>`;
+        return;
+    }
+
+    eligible.forEach(p => {
+        const photoUrl = p.photo_url
+            ? supabase.storage.from("player-photos").getPublicUrl(p.photo_url).data.publicUrl
+            : "images/default-avatar.png";
+        const card = document.createElement("div");
+        card.className = "h2h-player-card";
+        card.innerHTML = `
+            <div class="h2h-player-avatar" style="background-image:url('${photoUrl}')"></div>
+            <div class="h2h-player-info">
+                <div class="h2h-player-name">${p.name}</div>
+                <div class="h2h-player-meta">${p.role} · ${p.team_short_code} · ${p.credit} Cr</div>
+            </div>
+            <button class="h2h-select-btn">Select</button>`;
+        card.querySelector("button").onclick = () => {
+            h2hState.slots[role] = p;
+            renderH2HSlotPicker(parentBody);
+        };
+        parentBody.appendChild(card);
+    });
+}
+
+async function sendH2HChallenge(opponentId, opponentName) {
+    const roles = ["WK", "BAT", "AR", "BOWL"];
+    const allFilled = roles.every(r => h2hState.slots[r]);
+    if (!allFilled || !h2hState.captainId || !h2hState.vcId) {
+        showToast("Fill all 4 slots and set C/VC first.", "error");
+        return;
+    }
+
+    const ok = await showConfirm(
+        `Challenge ${opponentName}?`,
+        "Your team will be locked once they accept. You can still send more challenges."
+    );
+    if (!ok) return;
+
+    h2hState.saving = true;
+
+    try {
+        // Save h2h_team
+        const { data: team, error: teamErr } = await supabase
+            .from("h2h_teams")
+            .insert([{
+                user_id:          currentUserId,
+                match_id:         h2hState.match.id,
+                tournament_id:    currentTournamentId,
+                captain_id:       h2hState.captainId,
+                vice_captain_id:  h2hState.vcId,
+            }])
+            .select().single();
+        if (teamErr) throw teamErr;
+
+        // Save h2h_team_players
+        const { error: playersErr } = await supabase
+            .from("h2h_team_players")
+            .insert(roles.map(role => ({
+                h2h_team_id: team.id,
+                player_id:   h2hState.slots[role].id,
+                role,
+            })));
+        if (playersErr) throw playersErr;
+
+        // Create challenge
+        const { error: challengeErr } = await supabase
+            .from("h2h_challenges")
+            .insert([{
+                match_id:          h2hState.match.id,
+                tournament_id:     currentTournamentId,
+                challenger_id:     currentUserId,
+                opponent_id:       opponentId,
+                challenger_team_id: team.id,
+            }]);
+        if (challengeErr) throw challengeErr;
+
+        h2hState.team = team;
+        showToast(`Challenge sent to ${opponentName}! ⚔️`, "success");
+        closeBottomSheet();
+        loadH2HChallenges();
+
+    } catch (err) {
+        console.error("H2H challenge error:", err);
+        showToast("Failed: " + err.message, "error");
+    } finally {
+        h2hState.saving = false;
+    }
+}
+
+/* ─── ACCEPT SHEET ───────────────────────────────────────────────────────── */
+function openAcceptSheet(challenge) {
+    openBottomSheet(async (body) => {
+        const challengerName = challenge.challenger?.team_name || "Expert";
+        body.innerHTML = "";
+
+        const fromBox = document.createElement("div");
+        fromBox.className = "h2h-accept-from";
+        fromBox.innerHTML = `
+            <div class="h2h-accept-from-label">Challenge from</div>
+            <div class="h2h-accept-from-name">${challengerName}</div>
+            <div class="h2h-accept-from-meta">Match vs ${h2hState.match?.team_a?.short_code} vs ${h2hState.match?.team_b?.short_code}</div>`;
+        body.appendChild(fromBox);
+
+        const label = document.createElement("p");
+        label.className = "sheet-section-label";
+        label.textContent = "Your response";
+        body.appendChild(label);
+
+        // If they already have a saved team, offer to use it
+        const hasTeam = Object.values(h2hState.slots).every(v => v !== null);
+
+        if (hasTeam) {
+            const useExisting = document.createElement("button");
+            useExisting.className = "h2h-challenge-btn";
+            useExisting.textContent = "✅ Accept with my saved team";
+            useExisting.onclick = () => acceptChallenge(challenge.id, null);
+            body.appendChild(useExisting);
+
+            const buildNew = document.createElement("button");
+            buildNew.className = "h2h-challenge-btn ghost";
+            buildNew.style.marginTop = "8px";
+            buildNew.textContent = "Build a new team instead";
+            buildNew.onclick = () => {
+                closeBottomSheet();
+                openH2HTeamBuilder();
+            };
+            body.appendChild(buildNew);
+        } else {
+            const buildBtn = document.createElement("button");
+            buildBtn.className = "h2h-challenge-btn";
+            buildBtn.textContent = "Pick my team & accept";
+            buildBtn.onclick = () => {
+                closeBottomSheet();
+                openH2HTeamBuilder();
+            };
+            body.appendChild(buildBtn);
+        }
+
+        const rejectBtn = document.createElement("button");
+        rejectBtn.className = "h2h-challenge-btn danger";
+        rejectBtn.style.marginTop = "8px";
+        rejectBtn.textContent = "Decline";
+        rejectBtn.onclick = () => rejectChallenge(challenge.id);
+        body.appendChild(rejectBtn);
+    });
+}
+
+async function acceptChallenge(challengeId, opponentTeamId) {
+    // If opponentTeamId not provided, use the already-saved team
+    let teamId = opponentTeamId || h2hState.team?.id;
+
+    if (!teamId) {
+        // Save a new team first
+        const roles = ["WK", "BAT", "AR", "BOWL"];
+        const allFilled = roles.every(r => h2hState.slots[r]);
+        if (!allFilled) { showToast("Fill all 4 slots first.", "error"); return; }
+
+        const { data: team, error: tErr } = await supabase
+            .from("h2h_teams")
+            .insert([{
+                user_id:         currentUserId,
+                match_id:        h2hState.match.id,
+                tournament_id:   currentTournamentId,
+                captain_id:      h2hState.captainId,
+                vice_captain_id: h2hState.vcId,
+            }]).select().single();
+        if (tErr) { showToast("Error: " + tErr.message, "error"); return; }
+
+        await supabase.from("h2h_team_players").insert(
+            roles.map(role => ({ h2h_team_id: team.id, player_id: h2hState.slots[role].id, role }))
+        );
+        teamId = team.id;
+        h2hState.team = team;
+    }
+
+    const { error } = await supabase
+        .from("h2h_challenges")
+        .update({ status: "accepted", opponent_team_id: teamId, updated_at: new Date().toISOString() })
+        .eq("id", challengeId);
+
+    if (error) { showToast("Accept failed: " + error.message, "error"); return; }
+    showToast("Challenge accepted! ⚔️ Good luck!", "success");
+    closeBottomSheet();
+    loadH2HChallenges();
+}
+
+async function rejectChallenge(challengeId) {
+    const ok = await showConfirm("Decline challenge?", "This cannot be undone.");
+    if (!ok) return;
+    await supabase.from("h2h_challenges").update({ status: "rejected" }).eq("id", challengeId);
+    showToast("Challenge declined.", "success");
+    closeBottomSheet();
+    loadH2HChallenges();
+}
+
+/* ─── LEADERBOARD SUB-PANEL ──────────────────────────────────────────────── */
+async function loadH2HLeaderboard() {
+    const panel = document.getElementById("h2h-sub-leaderboard");
+    if (!panel) return;
+    panel.innerHTML = `<div class="panel-spinner"></div>`;
+
+    const { data: rows } = await supabase
+        .from("h2h_leaderboard_view")
+        .select("user_id, team_name, total_wins, total_points, rank")
+        .order("rank", { ascending: true })
+        .limit(20);
+
+    panel.innerHTML = "";
+
+    // Season standings
+    const label = document.createElement("p");
+    label.className = "as-section-label";
+    label.textContent = "Season standings";
+    panel.appendChild(label);
+
+    if (!rows?.length) {
+        panel.innerHTML += `<div class="h2h-empty"><div class="h2h-empty-icon">🏆</div><div class="h2h-empty-title">No results yet</div><p>Complete a match to see the leaderboard.</p></div>`;
+    } else {
+        rows.forEach(row => {
+            const el = document.createElement("div");
+            el.className = `h2h-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
+
+            el.innerHTML = `
+                <span class="h2h-lb-rank">#${row.rank}</span>
+                <span class="h2h-lb-name">${row.team_name || "Expert"}</span>
+                <span class="h2h-lb-wins">${row.total_wins}W</span>
+                <span class="h2h-lb-tb">${row.total_points}pts</span>`;
+            panel.appendChild(el);
+        });
+    }
+
+    // H2H filter bar
+    const filterLabel = document.createElement("p");
+    filterLabel.className = "as-section-label";
+    filterLabel.style.marginTop = "20px";
+    filterLabel.textContent = "Head-to-head filter";
+    panel.appendChild(filterLabel);
+
+    renderH2HFilterBar(panel, rows || []);
+}
+
+function renderH2HFilterBar(panel, users) {
+    const bar = document.createElement("div");
+    bar.className = "h2h-filter-bar";
+
+    const makeSelect = (id) => {
+        const sel = document.createElement("select");
+        sel.className = "h2h-filter-select";
+        sel.id = id;
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "";
+        defaultOpt.textContent = "Select user";
+        sel.appendChild(defaultOpt);
+        users.forEach(u => {
+            const opt = document.createElement("option");
+            opt.value = u.user_id;
+            opt.textContent = u.team_name || "Expert";
+            sel.appendChild(opt);
+        });
+        return sel;
+    };
+
+    const selA = makeSelect("h2h-filter-a");
+    const vsLabel = document.createElement("span");
+    vsLabel.className = "h2h-filter-vs";
+    vsLabel.textContent = "vs";
+    const selB = makeSelect("h2h-filter-b");
+
+    bar.append(selA, vsLabel, selB);
+    panel.appendChild(bar);
+
+    const resultBox = document.createElement("div");
+    resultBox.id = "h2h-filter-result";
+    panel.appendChild(resultBox);
+
+    const update = async () => {
+        const aId = selA.value;
+        const bId = selB.value;
+        if (!aId || !bId || aId === bId) { resultBox.innerHTML = ""; return; }
+
+        const { data: stats } = await supabase
+            .from("h2h_season_stats")
+            .select("user_a_id, user_b_id, user_a_wins, user_b_wins")
+            .or(`and(user_a_id.eq.${aId},user_b_id.eq.${bId}),and(user_a_id.eq.${bId},user_b_id.eq.${aId})`)
+            .maybeSingle();
+
+        const nameA = selA.options[selA.selectedIndex]?.textContent || "A";
+        const nameB = selB.options[selB.selectedIndex]?.textContent || "B";
+
+        let winsA = 0, winsB = 0;
+        if (stats) {
+            if (stats.user_a_id === aId) { winsA = stats.user_a_wins; winsB = stats.user_b_wins; }
+            else { winsA = stats.user_b_wins; winsB = stats.user_a_wins; }
+        }
+        const total = winsA + winsB || 1;
+        const pctA  = Math.round((winsA / total) * 100);
+        const pctB  = 100 - pctA;
+
+        resultBox.innerHTML = `
+            <div class="h2h-result-card">
+                <div class="h2h-result-teams">
+                    <div class="h2h-result-team">
+                        <div class="h2h-result-team-name">${nameA}</div>
+                        <div class="h2h-result-wins">${winsA}</div>
+                        <div class="h2h-result-wins-label">wins</div>
+                    </div>
+                    <span class="h2h-result-vs-badge">vs</span>
+                    <div class="h2h-result-team">
+                        <div class="h2h-result-team-name">${nameB}</div>
+                        <div class="h2h-result-wins">${winsB}</div>
+                        <div class="h2h-result-wins-label">wins</div>
+                    </div>
+                </div>
+                <div class="h2h-bar-track">
+                    <div class="h2h-bar-a" style="width:${pctA}%"></div>
+                    <div class="h2h-bar-b" style="width:${pctB}%"></div>
+                </div>
+                <div class="h2h-bar-labels"><span>${pctA}%</span><span>${pctB}%</span></div>
+            </div>`;
+    };
+
+    selA.onchange = update;
+    selB.onchange = update;
+}
+
+/* ─── LIVE SUB-PANEL ─────────────────────────────────────────────────────── */
+async function loadH2HLive() {
+    const panel = document.getElementById("h2h-sub-live");
+    if (!panel) return;
+    panel.innerHTML = `<div class="panel-spinner"></div>`;
+
+    // Fetch accepted challenges for live/recent matches
+    const { data: accepted } = await supabase
+        .from("h2h_challenges")
+        .select(`
+            id, challenger_id, opponent_id, challenger_team_id, opponent_team_id,
+            challenger:user_profiles!challenger_id(team_name),
+            opponent:user_profiles!opponent_id(team_name),
+            challenger_team:h2h_teams!challenger_team_id(captain_id, vice_captain_id, h2h_team_players(player_id, role)),
+            opponent_team:h2h_teams!opponent_team_id(captain_id, vice_captain_id, h2h_team_players(player_id, role)),
+            match:matches!match_id(id, status, match_number)
+        `)
+        .or(`challenger_id.eq.${currentUserId},opponent_id.eq.${currentUserId}`)
+        .eq("status", "accepted")
+        .in("matches.status", ["live", "completed"]);
+
+    panel.innerHTML = "";
+
+    if (!accepted?.length) {
+        panel.innerHTML = `
+            <div class="h2h-empty">
+                <div class="h2h-empty-icon">⚔️</div>
+                <div class="h2h-empty-title">No live battles</div>
+                <p>Accepted challenges will appear here once the match starts.</p>
+            </div>`;
+        return;
+    }
+
+    for (const challenge of accepted) {
+        const card = await buildLiveCard(challenge);
+        panel.appendChild(card);
+    }
+}
+
+async function buildLiveCard(challenge) {
+    const isChallenger = challenge.challenger_id === currentUserId;
+    const myTeam       = isChallenger ? challenge.challenger_team : challenge.opponent_team;
+    const theirTeam    = isChallenger ? challenge.opponent_team   : challenge.challenger_team;
+    const theirName    = isChallenger ? challenge.opponent?.team_name : challenge.challenger?.team_name;
+    const matchId      = challenge.match?.id;
+
+    // Get player IDs for both teams
+    const myPlayerIds    = (myTeam?.h2h_team_players || []).map(p => p.player_id);
+    const theirPlayerIds = (theirTeam?.h2h_team_players || []).map(p => p.player_id);
+    const allIds         = [...new Set([...myPlayerIds, ...theirPlayerIds])];
+
+    // Fetch stats
+    const { data: stats } = allIds.length
+        ? await supabase.from("player_match_stats").select("player_id, fantasy_points, players(name)").eq("match_id", matchId).in("player_id", allIds)
+        : { data: [] };
+
+    const statsMap = {};
+    (stats || []).forEach(s => { statsMap[s.player_id] = s; });
+
+    const myPts    = myPlayerIds.reduce((sum, id) => sum + (statsMap[id]?.fantasy_points || 0), 0);
+    const theirPts = theirPlayerIds.reduce((sum, id) => sum + (statsMap[id]?.fantasy_points || 0), 0);
+
+    // Build card
+    const card = document.createElement("div");
+    card.className = "h2h-live-card";
+    card.onclick = () => openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName);
+
+    const header = document.createElement("div");
+    header.className = "h2h-live-header";
+    const isLive = challenge.match?.status === "live";
+    header.innerHTML = `
+        <div class="h2h-live-badge">
+            ${isLive ? `<div class="h2h-live-dot"></div> Live` : "Completed"}
+        </div>
+        <span class="h2h-live-hint">Tap to view breakdown</span>`;
+    card.appendChild(header);
+
+    const vsRow = document.createElement("div");
+    vsRow.className = "h2h-live-vs-row";
+
+    const makeTeamSide = (playerIds, teamObj) => {
+        const side = document.createElement("div");
+        side.className = "h2h-live-team";
+        const nameEl = document.createElement("div");
+        nameEl.className = "h2h-live-team-name";
+        nameEl.textContent = isChallenger && playerIds === myPlayerIds ? "You" : theirName || "Opponent";
+        side.appendChild(nameEl);
+
+        (teamObj?.h2h_team_players || []).forEach(tp => {
+            const stat = statsMap[tp.player_id];
+            const row = document.createElement("div");
+            row.className = "h2h-live-player-row";
+            row.innerHTML = `
+                <span class="h2h-live-role">${tp.role}</span>
+                <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}</span>
+                <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
+            side.appendChild(row);
+        });
+        return side;
+    };
+
+    const midVs = document.createElement("div");
+    midVs.className = "h2h-live-vs-mid";
+    midVs.innerHTML = `<span class="h2h-live-vs-text">vs</span>`;
+
+    vsRow.append(makeTeamSide(myPlayerIds, myTeam), midVs, makeTeamSide(theirPlayerIds, theirTeam));
+    card.appendChild(vsRow);
+
+    const totals = document.createElement("div");
+    totals.className = "h2h-live-totals";
+    const iWin = myPts >= theirPts;
+    totals.innerHTML = `
+        <div class="h2h-live-total-blk">
+            <div class="h2h-live-total-pts ${!iWin ? "losing" : ""}">${myPts}</div>
+            <div class="h2h-live-total-label">Your pts</div>
+            ${iWin ? `<div class="h2h-winning-badge">Winning</div>` : ""}
+        </div>
+        <div style="flex-shrink:0;padding:0 10px;color:var(--text-faint);font-size:12px;font-weight:900;">vs</div>
+        <div class="h2h-live-total-blk">
+            <div class="h2h-live-total-pts ${iWin ? "losing" : ""}">${theirPts}</div>
+            <div class="h2h-live-total-label">${theirName || "Opponent"}</div>
+            ${!iWin ? `<div class="h2h-winning-badge" style="background:var(--red-dim);color:var(--red);border-color:rgba(239,68,68,0.25);">Trailing</div>` : ""}
+        </div>`;
+    card.appendChild(totals);
+
+    return card;
+}
+
+function openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName) {
+    openBottomSheet((body) => {
+        const isChallenger = challenge.challenger_id === currentUserId;
+        const myTeam    = isChallenger ? challenge.challenger_team : challenge.opponent_team;
+        const theirTeam = isChallenger ? challenge.opponent_team : challenge.challenger_team;
+
+        body.innerHTML = "";
+
+        const isLive = challenge.match?.status === "live";
+        const badge = document.createElement("div");
+        badge.className = "h2h-live-badge";
+        badge.style.marginBottom = "14px";
+        badge.innerHTML = `${isLive ? `<div class="h2h-live-dot"></div> Live` : "Completed"} · Match ${challenge.match?.match_number || ""}`;
+        body.appendChild(badge);
+
+        const vsRow = document.createElement("div");
+        vsRow.className = "h2h-live-vs-row";
+        vsRow.style.marginBottom = "14px";
+
+        const makeDetailSide = (teamObj, label) => {
+            const side = document.createElement("div");
+            side.className = "h2h-live-team";
+            const nameEl = document.createElement("div");
+            nameEl.className = "h2h-live-team-name";
+            nameEl.textContent = label;
+            side.appendChild(nameEl);
+            (teamObj?.h2h_team_players || []).forEach(tp => {
+                const stat = statsMap[tp.player_id];
+                const isC  = tp.player_id === teamObj.captain_id;
+                const isVC = tp.player_id === teamObj.vice_captain_id;
+                const row = document.createElement("div");
+                row.className = "h2h-live-player-row";
+                row.innerHTML = `
+                    <span class="h2h-live-role">${tp.role}</span>
+                    <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}${isC ? " (C)" : isVC ? " (VC)" : ""}</span>
+                    <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
+                side.appendChild(row);
+            });
+            return side;
+        };
+
+        const midVs = document.createElement("div");
+        midVs.className = "h2h-live-vs-mid";
+        midVs.innerHTML = `<span class="h2h-live-vs-text">vs</span>`;
+
+        vsRow.append(makeDetailSide(myTeam, "You"), midVs, makeDetailSide(theirTeam, theirName || "Opponent"));
+        body.appendChild(vsRow);
+
+        const iWin = myPts >= theirPts;
+        const totals = document.createElement("div");
+        totals.className = "h2h-live-totals";
+        totals.style.cssText = "background:var(--bg-card);border:1px solid var(--fun-cyan-bdr);border-radius:10px;padding:12px;";
+        totals.innerHTML = `
+            <div class="h2h-live-total-blk">
+                <div class="h2h-live-total-pts ${!iWin ? "losing" : ""}">${myPts}</div>
+                <div class="h2h-live-total-label">Your total</div>
+                ${iWin ? `<div class="h2h-winning-badge">Winning +${myPts - theirPts}</div>` : ""}
+            </div>
+            <div style="flex-shrink:0;padding:0 10px;color:var(--text-faint);font-size:12px;font-weight:900;">vs</div>
+            <div class="h2h-live-total-blk">
+                <div class="h2h-live-total-pts ${iWin ? "losing" : ""}">${theirPts}</div>
+                <div class="h2h-live-total-label">${theirName || "Opponent"}</div>
+                ${!iWin ? `<div class="h2h-winning-badge" style="background:var(--red-dim);color:var(--red);">Trailing ${myPts - theirPts}</div>` : ""}
+            </div>`;
+        body.appendChild(totals);
+    });
+}
+
+/* ─── HOOK INTO TAB SWITCHER ─────────────────────────────────────────────── */
+// Extend the existing switchTab function to load H2H when clicked
+const _originalSwitchTab = window.switchTab;
+window.switchTab = function(tab) {
+    _originalSwitchTab(tab);
+    if (tab === "h2h") loadH2HPanel();
+};

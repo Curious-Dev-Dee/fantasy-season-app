@@ -66,9 +66,12 @@
       <button class="fun-tab" data-tab="allstars" onclick="switchTab('allstars')">
         <i class="fas fa-star"></i> All Stars
       </button>
-      <button class="fun-tab" data-tab="daily" onclick="switchTab('daily')">
-        <i class="fas fa-calendar-day"></i> Daily XI
-      </button>
+<button class="fun-tab" data-tab="daily" onclick="switchTab('daily')">
+  <i class="fas fa-calendar-day"></i> Daily XI
+</button>
+<button class="fun-tab" data-tab="h2h" onclick="switchTab('h2h')">
+  <i class="fas fa-swords"></i> H2H
+</button>
     </nav>
 
     <!-- ── PREDICT PANEL ──────────────────────────────── -->
@@ -109,6 +112,29 @@
         <p class="panel-intro-body">Pick your best 11 from today's two teams. One entry per match. Compete on the Daily Leaderboard and track your Season Average Rank.</p>
       </div>
     </div>
+
+    <!-- ── H2H CHALLENGE PANEL ───────────────────────── -->
+<div id="panel-h2h" class="tab-panel hidden">
+
+  <!-- Sub-tab bar -->
+  <div class="h2h-sub-tabs">
+    <button class="h2h-sub-tab active" data-sub="challenges" onclick="switchH2HTab('challenges')">
+      <i class="fas fa-inbox"></i> Challenges
+    </button>
+    <button class="h2h-sub-tab" data-sub="leaderboard" onclick="switchH2HTab('leaderboard')">
+      <i class="fas fa-trophy"></i> Leaderboard
+    </button>
+    <button class="h2h-sub-tab" data-sub="live" onclick="switchH2HTab('live')">
+      <i class="fas fa-bolt"></i> Live
+    </button>
+  </div>
+
+  <!-- Sub-panels -->
+  <div id="h2h-sub-challenges" class="h2h-sub-panel"></div>
+  <div id="h2h-sub-leaderboard" class="h2h-sub-panel hidden"></div>
+  <div id="h2h-sub-live"        class="h2h-sub-panel hidden"></div>
+
+</div>
 
   </div><!-- end .scroll-content -->
 
