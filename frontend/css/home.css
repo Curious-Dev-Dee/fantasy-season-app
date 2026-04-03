@@ -442,10 +442,10 @@ body {
 
 .league-name {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--accent);
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -475,7 +475,7 @@ body {
 .league-rank,
 .lb-user-rank {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 900;
   color: var(--rank-color);
   line-height: 1;
@@ -1055,8 +1055,28 @@ body.loaded #loadingOverlay {
 }
 
 /* ─── MATCH ACTIONS RATIO FIX ────────────────────── */
-.match-actions .btn-primary   { flex: 1.6; }
-.match-actions .btn-secondary { flex: 1; font-size: 13px; padding: 14px 12px; }
+.match-actions {
+  flex-direction: column;
+  gap: 6px;
+}
+.match-actions .btn-primary.full-width { 
+  width: 100%; 
+  flex: none; 
+}
+.btn-text-link {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
 
 /* ─── VIEW ALL MATCHES LINK ──────────────────────── */
 .btn-view-matches {
@@ -1254,7 +1274,6 @@ body.loaded #loadingOverlay {
     color: #000;
     font-size: 13px;
     padding: 10px 16px;
-    box-shadow: 0 0 12px var(--accent-glow);
     font-weight: 900;
 }
 
@@ -1263,8 +1282,9 @@ body.loaded #loadingOverlay {
     transform: scale(1.03);
 }
 .tips-teaser-card.tips-live {
-    border-color: var(--border-accent);
-    box-shadow: 0 0 0 1px rgba(154,224,0,0.18);
+    border-color: rgba(154,224,0,0.5);
+    border-width: 1.5px;
+    background: linear-gradient(145deg, #131e0a, var(--bg-card));
 }
 
 /* Coming soon — muted, non-clickable feel */
@@ -1295,6 +1315,12 @@ body.loaded #loadingOverlay {
     color: var(--text-faint);
 }
 
+.tips-teaser-card.tips-live .tips-eyebrow {
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
 /* CTA button — clear, tappable, instructive */
 .tips-cta-btn {
     flex-shrink: 0;
@@ -1366,14 +1392,14 @@ body.loaded #loadingOverlay {
 }
 
 .league-tab-pane {
-  padding: 16px 18px 4px;
+  padding: 12px 14px 4px;
 }
 
 .league-pane-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .league-pane-left  { flex: 1; min-width: 0; }
@@ -1409,7 +1435,7 @@ body.loaded #loadingOverlay {
   background: var(--bg-card);
   border: 1px solid rgba(245, 158, 11, 0.2);
   border-radius: var(--card-radius);
-  padding: 14px 16px;
+  padding: 10px 14px;
   margin-bottom: 12px;
   position: relative;
   overflow: hidden;
@@ -1427,7 +1453,7 @@ body.loaded #loadingOverlay {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .prizes-strip-title {
@@ -1463,14 +1489,14 @@ body.loaded #loadingOverlay {
 .prize-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
   border-radius: var(--card-radius-sm);
-  padding: 7px 10px;
+  padding: 5px 8px;
 }
 
-.prize-chip-emoji { font-size: 15px; }
+.prize-chip-emoji { font-size: 13px; }
 
 .prize-chip-info {
   display: flex;
@@ -1671,3 +1697,139 @@ body.loaded #loadingOverlay {
 .header-more-btn { display: none; } /* Safety: hide even if element exists */
 .btn-hint        { display: none; } /* Safety: hide hint if not yet removed from HTML */
 .btn-view-matches { display: none; } /* Safety: hide view matches if not yet removed */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   QUICK ACCESS STRIP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.quick-access-strip {
+  margin-bottom: 12px;
+}
+
+.quick-access-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 8px 2px;
+}
+
+.quick-access-row {
+  display: flex;
+  gap: 6px;
+}
+
+.qa-pill {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  position: relative;
+  transition: var(--transition);
+}
+
+.qa-pill:active {
+  transform: scale(0.96);
+}
+
+.qa-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.qa-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Dugout — blue */
+.qa-dugout {
+  border-color: rgba(124,196,255,0.2);
+}
+.qa-dugout .qa-icon {
+  background: rgba(124,196,255,0.1);
+  border: 1px solid rgba(124,196,255,0.2);
+  color: var(--rank-color);
+}
+.qa-dugout .qa-title { color: var(--rank-color); }
+
+/* Fun Zone — orange */
+.qa-fun {
+  border-color: rgba(251,146,60,0.3);
+}
+.qa-fun .qa-icon {
+  background: rgba(251,146,60,0.1);
+  border: 1px solid rgba(251,146,60,0.2);
+  color: var(--orange);
+}
+.qa-fun .qa-title { color: var(--orange); }
+
+/* Stats — green */
+.qa-stats {
+  border-color: rgba(154,224,0,0.18);
+}
+.qa-stats .qa-icon {
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+}
+.qa-stats .qa-title { color: var(--accent); }
+
+/* Ranks — neutral */
+.qa-ranks .qa-icon {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+}
+.qa-ranks .qa-title { color: var(--text-faint); }
+
+/* HOT badge on Fun Zone */
+.qa-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(251,146,60,0.15);
+  border: 1px solid rgba(251,146,60,0.3);
+  color: var(--orange);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+}
+
+/* ── LEAGUE CARD COMPACT TWEAKS ── */
+.league-code-row {
+  margin-top: 3px;
+}
+
+.league-tab {
+  padding: 11px;
+}
+
+#privateLeaderboardContainer,
+#leaderboardContainer {
+  margin-top: 2px;
+}
+
+.btn-view-all {
+  padding: 10px;
+  margin-top: 8px;
+  font-size: 12px;
+}
