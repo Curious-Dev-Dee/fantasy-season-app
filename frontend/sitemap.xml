@@ -1,11 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://fantasy-season-app.vercel.app/</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/all-articles.html</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/ipl-news.html</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/fantasy-preview.html</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/match-preview.html</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/team-news.html</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/player-spotlight.html</loc></url>
-  <url><loc>https://fantasy-season-app.vercel.app/blog-post.html</loc></url>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+  <loc>https://fantasy-season-app.vercel.app/</loc>
+  <lastmod>2026-04-03T21:28:20+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/all-articles</loc>
+  <lastmod>2026-04-03T21:28:21+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/fantasy-preview</loc>
+  <lastmod>2026-04-03T21:28:21+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/match-preview</loc>
+  <lastmod>2026-04-03T21:28:21+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/team-news</loc>
+  <lastmod>2026-04-03T21:28:22+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/player-spotlight</loc>
+  <lastmod>2026-04-03T21:28:22+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/ipl-news</loc>
+  <lastmod>2026-04-03T21:28:22+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/blog-post?slug=ipl-2026-opening-match-preview</loc>
+  <lastmod>2026-04-03T21:28:23+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://fantasy-season-app.vercel.app/login</loc>
+  <lastmod>2026-04-03T21:28:23+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+
+
 </urlset>
