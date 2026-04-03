@@ -61,9 +61,7 @@
       <h1 id="tournamentName" class="header-tournament">Tournament</h1>
     </div>
     <div class="header-right-group">
-      <a href="more.html" class="header-more-btn" aria-label="More options">
-        <i class="fas fa-bars"></i>
-      </a>
+    
       <div class="notif-trigger" id="notifTrigger">
 
       <i class="fas fa-bell"></i>
@@ -143,10 +141,7 @@
   <button class="btn-primary" id="editXiBtn">Edit Team</button>
   <button class="btn-secondary" id="viewXiBtn">View</button>
 </div>
-<p class="btn-hint">Locks at match start time</p>
-    <a href="fixtures.html" class="btn-view-matches">
-      <i class="fas fa-calendar-check"></i> View all matches
-    </a>
+
     </section>
 
     <!-- FANTASY TIPS TEASER CARD -->
@@ -173,24 +168,38 @@
   </div>
 </section>
 
-  <!-- PRIVATE LEAGUE CARD -->
-  <section class="card league-card hidden" id="privateLeagueCard">
-    <div class="league-header">
-      <div class="league-header-left">
-<span class="card-eyebrow">My League</span>
-<h3 class="league-name" id="privateLeagueName">—</h3>
-<p class="league-member-count" id="privateLeagueMemberCount"></p>
-        <p class="league-code-row">
-          Code: <span id="privateInviteCode" class="league-code">--</span>
-        </p>
-      </div>
-      <div class="league-header-right">
-        <span class="card-eyebrow">Your Rank</span>
-        <span id="privateLeagueRank" class="league-rank">#--</span>
-      </div>
-    </div>
+<!-- ╔══ UNIFIED STANDINGS CARD (replaces both league cards) ══╗ -->
+<section class="card unified-league-card" id="unifiedLeagueCard">
 
-    <div id="privateLeagueContent">
+  <!-- TABS -->
+  <div class="league-tabs">
+    <button class="league-tab active" id="tabMyLeague" onclick="switchLeagueTab('private')">
+      My League
+    </button>
+    <button class="league-tab" id="tabOverall" onclick="switchLeagueTab('overall')">
+      Overall
+    </button>
+  </div>
+
+  <!-- ── PANE 1: MY PRIVATE LEAGUE ── -->
+  <div class="league-tab-pane" id="panePrivate">
+
+    <!-- Content shown when user HAS joined a league -->
+    <div id="privateLeagueContent" class="hidden">
+      <div class="league-pane-header">
+        <div class="league-pane-left">
+          <span class="card-eyebrow">My League</span>
+          <h3 class="league-name" id="privateLeagueName">—</h3>
+          <p class="league-member-count" id="privateLeagueMemberCount"></p>
+          <p class="league-code-row">
+            Code: <span id="privateInviteCode" class="league-code">--</span>
+          </p>
+        </div>
+        <div class="league-pane-right">
+          <span class="card-eyebrow">Your Rank</span>
+          <span id="privateLeagueRank" class="league-rank">#--</span>
+        </div>
+      </div>
       <div id="privateLeaderboardContainer">
         <p class="loading-inline">Fetching standings...</p>
       </div>
@@ -199,163 +208,117 @@
       </button>
     </div>
 
-    <div id="noLeagueState" class="hidden no-league-state">
-      <p class="no-league-text">You haven't joined a private league yet.</p>
+    <!-- Content shown when user has NOT joined a league -->
+    <div id="noLeagueState" class="hidden no-league-pane">
+      <div class="no-league-emoji">🏟️</div>
+      <p class="no-league-text">
+        You haven't joined a private league yet.<br>
+        Battle your friends for bragging rights!
+      </p>
       <div class="no-league-actions">
         <button id="homeCreateLeagueBtn" class="btn-primary">Create</button>
         <button id="homeJoinLeagueBtn"   class="btn-secondary">Join</button>
       </div>
     </div>
-  </section>
 
+  </div><!-- end #panePrivate -->
 
-  <!-- TOP EXPERTS LEADERBOARD -->
-  <section class="card leaderboard-card">
-    <div class="lb-header">
-      <div class="lb-header-left">
-<span class="card-eyebrow">Overall Standings</span>
-<h3 class="lb-title">Top Experts</h3>
-<p class="league-member-count" id="overallMemberCount"></p>
+  <!-- ── PANE 2: OVERALL STANDINGS ── -->
+  <div class="league-tab-pane hidden" id="paneOverall">
+    <div class="league-pane-header">
+      <div class="league-pane-left">
+        <span class="card-eyebrow">Overall Standings</span>
+        <h3 class="league-name" style="color:var(--text-primary)">Top Experts</h3>
+        <p class="league-member-count" id="overallMemberCount"></p>
       </div>
-      <div class="lb-header-right">
+      <div class="league-pane-right">
         <span class="card-eyebrow">Your Rank</span>
-        <span id="overallUserRank" class="lb-user-rank">#--</span>
+        <span id="overallUserRank" class="league-rank">#--</span>
       </div>
     </div>
-
     <div id="leaderboardContainer">
       <p class="loading-inline">Updating rankings...</p>
     </div>
-
     <button class="btn-view-all" id="viewFullLeaderboard">
       Full Leaderboard <i class="fas fa-chevron-right"></i>
     </button>
-  </section>
+  </div><!-- end #paneOverall -->
 
-<section class="card guide-card">
-  <div class="lb-header">
-    <div class="lb-header-left">
-      <span class="card-eyebrow">Quick Guide</span>
-      <h3 class="lb-title">Season Rules</h3>
-    </div>
-  </div>
-
-  <div class="guide-content">
-    <div class="guide-row">
-      <div class="guide-icon"><i class="fas fa-trophy"></i></div>
-      <div class="guide-text">
-        <strong>League Phase (Matches 1-70)</strong>
-        <p>Match 1 is <span class="accent-text">Free Unlimited Subs</span>. Then, get a pool of <strong>130 Subs</strong> for Matches 2-70.</p>
-      </div>
-    </div>
-
-    <div class="guide-row">
-      <div class="guide-icon"><i class="fas fa-bolt"></i></div>
-      <div class="guide-text">
-        <strong>Playoff Phase (Matches 71-74)</strong>
-        <p>Match 71 is a <span class="accent-text">Free Reset</span>. Then, get a fresh pool of <strong>10 Subs</strong> for the final matches.</p>
-      </div>
-    </div>
-
-    <div class="guide-row">
-      <div class="guide-icon"><i class="fas fa-id-badge"></i></div>
-      <div class="guide-text">
-        <strong>1 Free Uncapped Swap</strong>
-        <p>Every single match, your first <span class="accent-text">Uncapped Player</span> swap is free (0 subs deducted).</p>
-      </div>
-    </div>
-
-    <div class="guide-row">
-      <div class="guide-icon"><i class="fas fa-rocket"></i></div>
-      <div class="guide-text">
-        <strong>Boosters (7 Total)</strong>
-        <p>Usable only in the League Phase (Match 2 to 70). Each booster can be used only once.</p>
-      </div>
-    </div>
-  </div>
-
-  <button class="btn-view-all" onclick="window.location.href='how-to-play.html'">
-    Full How to Play <i class="fas fa-chevron-right"></i>
-  </button>
 </section>
+<!-- ╚══ end UNIFIED STANDINGS CARD ══╝ -->
 
-<div class="prizes-card">
-  <div class="prizes-card::before"></div>
-  <div class="prizes-card-inner">
 
-    <div class="prizes-left">
-      <span class="prizes-eyebrow">Season Prizes</span>
 
-      <div class="prize-item">
-        <div class="prize-icon cash">💰</div>
-        <div>
-          <span class="prize-label">Cash Prize</span>
-          <span class="prize-sub">Top 3 · ₹1200 / ₹800 / ₹500</span>
-        </div>
-      </div>
-      <div class="prize-item">
-        <div class="prize-icon trophy">🏆</div>
-        <div>
-          <span class="prize-label">Trophies</span>
-          <span class="prize-sub">Top 3 · by Red Zone</span>
-        </div>
-      </div>
-      <div class="prize-item">
-        <div class="prize-icon medal">🥇</div>
-        <div>
-          <span class="prize-label">Medals</span>
-          <span class="prize-sub">Top 3 · by Cricket Experts</span>
-        </div>
-      </div>
-      <div class="prize-item">
-        <div class="prize-icon tshirt">👕</div>
-        <div>
-          <span class="prize-label">Funky T-Shirt</span>
-          <span class="prize-sub">Rank 1 · All That Trend</span>
-        </div>
-      </div>
-      <div class="prize-item">
-        <div class="prize-icon cap">🧢</div>
-        <div>
-          <span class="prize-label">Sports Cap</span>
-          <span class="prize-sub">Rank 1 & 2 · FFS</span>
-        </div>
-      </div>
-      <div class="prize-item">
-        <div class="prize-icon food">🍛</div>
-        <div>
-          <span class="prize-label">Dum Biryani</span>
-          <span class="prize-sub">Rank 1 & 2 · Downtown Delight</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="prizes-right">
-      <div>
-        <span class="sponsors-label">Sponsors</span>
-        <div class="sponsor-list">
-          <div class="sponsor-chip">
-            <div class="sponsor-dot" style="background:#f59e0b"></div>
-            <span class="sponsor-name">All That Trend</span>
-          </div>
-          <div class="sponsor-chip">
-            <div class="sponsor-dot" style="background:#fb923c"></div>
-            <span class="sponsor-name">Friends Fancy Store</span>
-          </div>
-          <div class="sponsor-chip">
-            <div class="sponsor-dot" style="background:#ffd700"></div>
-            <span class="sponsor-name">Downtown Delight</span>
-          </div>
-          <div class="sponsor-chip">
-            <div class="sponsor-dot" style="background:#ef4444"></div>
-            <span class="sponsor-name">Red Zone</span>
-          </div>
-        </div>
-      </div>
-      <a class="view-btn" href="prizes.html">View Details →</a>
-    </div>
-
+<div class="prizes-strip">
+  <div class="prizes-strip-header">
+    <span class="prizes-strip-title">🏆 Season Prizes</span>
+    <a href="prizes.html" class="prizes-strip-link">
+      View All <i class="fas fa-chevron-right"></i>
+    </a>
   </div>
+  <div class="prize-chips">
+    <div class="prize-chip">
+      <span class="prize-chip-emoji">💰</span>
+      <div class="prize-chip-info">
+        <span class="prize-chip-label">₹2500</span>
+        <span class="prize-chip-sub">Cash · Top 3</span>
+      </div>
+    </div>
+    <div class="prize-chip">
+      <span class="prize-chip-emoji">🏆</span>
+      <div class="prize-chip-info">
+        <span class="prize-chip-label">Trophy</span>
+        <span class="prize-chip-sub">Top 3 · Red Zone</span>
+      </div>
+    </div>
+    <div class="prize-chip">
+      <span class="prize-chip-emoji">👕</span>
+      <div class="prize-chip-info">
+        <span class="prize-chip-label">T-Shirt</span>
+        <span class="prize-chip-sub">Rank 1 · ATT</span>
+      </div>
+    </div>
+    <div class="prize-chip">
+      <span class="prize-chip-emoji">🧢</span>
+      <div class="prize-chip-info">
+        <span class="prize-chip-label">Cap</span>
+        <span class="prize-chip-sub">Top 2 · FFS</span>
+      </div>
+    </div>
+    <div class="prize-chip">
+      <span class="prize-chip-emoji">🍛</span>
+      <div class="prize-chip-info">
+        <span class="prize-chip-label">Biryani</span>
+        <span class="prize-chip-sub">Top 2 · DD</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="explore-section">
+  <p class="explore-heading">Explore</p>
+  <div class="explore-row">
+    <a href="experts-dugout.html" class="explore-card dugout-card">
+      <div class="explore-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
+      <span class="explore-title">Dugout</span>
+      <span class="explore-sub">Player form, picks & injury alerts</span>
+      <i class="fas fa-chevron-right explore-arrow"></i>
+    </a>
+    <a href="prediction.html" class="explore-card fun-card">
+      <div class="explore-icon"><i class="fas fa-bolt"></i></div>
+      <span class="explore-title">Fun Zone <span class="hot-badge">HOT</span></span>
+      <span class="explore-sub">Predict, compete & win extra points</span>
+      <i class="fas fa-chevron-right explore-arrow"></i>
+    </a>
+  </div>
+  <a href="stats.html" class="explore-card stats-card">
+    <div class="explore-icon"><i class="fas fa-chart-bar"></i></div>
+    <div class="explore-stats-text">
+      <span class="explore-title">Stats</span>
+      <span class="explore-sub">Match & season stats — performance breakdown</span>
+    </div>
+    <i class="fas fa-chevron-right explore-arrow"></i>
+  </a>
 </div>
 
   <!-- SPONSORS SECTION -->

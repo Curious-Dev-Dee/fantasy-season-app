@@ -20,7 +20,6 @@ const rankElement            = document.getElementById("userRank");
 const subsElement            = document.getElementById("subsRemaining");
 const matchTeamsElement      = document.getElementById("matchTeams");
 const matchTimeElement       = document.getElementById("matchTime");
-const leaderboardContainer   = document.getElementById("leaderboardContainer");
 const editButton             = document.getElementById("editXiBtn");
 const boosterStatusEl        = document.getElementById("boosterStatus");
 const profileModal           = document.getElementById("profileModal");
@@ -29,15 +28,29 @@ const modalTeamName = document.getElementById("modalTeamName");
 const avatarInput            = document.getElementById("avatarInput");
 const modalPreview           = document.getElementById("modalAvatarPreview");
 const viewXiBtn              = document.getElementById("viewXiBtn");
-const viewFullLeaderboardBtn = document.getElementById("viewFullLeaderboard");
 
-if (viewFullLeaderboardBtn) {
-    viewFullLeaderboardBtn.onclick = () => { window.location.href = "leaderboard.html"; };
+
+function switchLeagueTab(tab) {
+    const panePrivate  = document.getElementById("panePrivate");
+    const paneOverall  = document.getElementById("paneOverall");
+    const tabMyLeague  = document.getElementById("tabMyLeague");
+    const tabOverall   = document.getElementById("tabOverall");
+
+    if (tab === "private") {
+        panePrivate?.classList.remove("hidden");
+        paneOverall?.classList.add("hidden");
+        tabMyLeague?.classList.add("active");
+        tabOverall?.classList.remove("active");
+    } else {
+        paneOverall?.classList.remove("hidden");
+        panePrivate?.classList.add("hidden");
+        tabOverall?.classList.add("active");
+        tabMyLeague?.classList.remove("active");
+    }
 }
 
-/* ══════════════════════════════════════════════════════
-   AD UTILITIES
-══════════════════════════════════════════════════════ */
+// Expose to HTML onclick attributes
+window.switchLeagueTab = switchLeagueTab;
 
 /* ══════════════════════════════════════════════════════
    INIT
@@ -80,6 +93,7 @@ async function startDashboard(userId) {
     }
 
     setupHomeLeagueListeners(userId);
+    switchLeagueTab("private");
 
     try {
         const { data: activeT } = await supabase
@@ -416,6 +430,11 @@ ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
         leaderboardContainer.innerHTML =
             `<p class="empty-state-text">Rankings appear after Match 1!</p>`;
     }
+
+    const viewBtn = document.getElementById("viewFullLeaderboard");
+    if (viewBtn) {
+        viewBtn.onclick = () => { window.location.href = "leaderboard.html"; };
+    }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -438,15 +457,19 @@ const { data: m, error } = await supabase
     .eq("user_id", userId)
     .maybeSingle();
 
-    if (error || !m) {
-        card.classList.remove("hidden");
+        if (error || !m) {
+        // No league — show empty state in private pane
+        const contentEl    = document.getElementById("privateLeagueContent");
+        const emptyStateEl = document.getElementById("noLeagueState");
         contentEl?.classList.add("hidden");
         emptyStateEl?.classList.remove("hidden");
-        if (leagueNameEl) leagueNameEl.textContent = "Private League";
+        // Auto-switch tab to Overall since private league is empty
+        switchLeagueTab("overall");
         currentUserPrivateRank = Infinity;
         applyOwnFlair();
         return;
     }
+
 
     card.classList.remove("hidden");
     contentEl?.classList.remove("hidden");
@@ -558,7 +581,7 @@ function startCountdown(startTime) {
                 editButton.style.opacity       = "0.5";
                 editButton.style.pointerEvents = "none";
                 editButton.textContent         = "LOCKED";
-            }
+    
 
             setTimeout(() => {
                 if (document.visibilityState !== "visible") return;
@@ -614,7 +637,8 @@ function setupHomeLeagueListeners(userId) {
         if (error) return window.showToast("Error creating league: " + error.message, "error");
         await supabase.from("league_members").insert([{ league_id: league.id, user_id: userId }]);
         window.showToast("League created! Share your code.", "success");
-        fetchPrivateLeagueData(userId);
+        await fetchPrivateLeagueData(userId);
+        switchLeagueTab("private"); // ← ADD THIS LINE
     };
 
     joinBtn.onclick = async () => {
@@ -628,7 +652,8 @@ function setupHomeLeagueListeners(userId) {
             .from("league_members").insert([{ league_id: league.id, user_id: userId }]);
         if (error) return window.showToast("Already in this league or join failed.", "error");
         window.showToast("Joined league successfully!", "success");
-        fetchPrivateLeagueData(userId);
+        await fetchPrivateLeagueData(userId);
+        switchLeagueTab("private"); // ← ADD THIS LINE
     };
 }
 

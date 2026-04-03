@@ -426,6 +426,8 @@ body {
 .league-card {
   padding: 18px;
   margin-bottom: 12px;
+         overflow: hidden;
+
 }
 
 .league-header {
@@ -1317,3 +1319,353 @@ body.loaded #loadingOverlay {
 .tips-cta-btn:hover {
     background: rgba(154,224,0,0.18);
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TABBED LEAGUE CARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.unified-league-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.league-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.league-tab {
+  flex: 1;
+  padding: 14px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.league-tab.active {
+  color: var(--accent);
+  background: rgba(154, 224, 0, 0.04);
+}
+
+.league-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.league-tab-pane {
+  padding: 16px 18px 4px;
+}
+
+.league-pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.league-pane-left  { flex: 1; min-width: 0; }
+.league-pane-right { text-align: right; flex-shrink: 0; padding-left: 12px; }
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NO LEAGUE PANE (inside private tab)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.no-league-pane {
+  text-align: center;
+  padding: 20px 0 12px;
+}
+
+.no-league-emoji {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+/* Override existing .no-league-text for the pane context */
+.no-league-pane .no-league-text {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   COMPACT PRIZES STRIP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.prizes-strip {
+  background: var(--bg-card);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--card-radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.prizes-strip::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), rgba(245, 158, 11, 0.2));
+}
+
+.prizes-strip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prizes-strip-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.prizes-strip-link {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: var(--transition);
+}
+
+.prizes-strip-link:hover { opacity: 0.8; }
+
+.prize-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.prize-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--card-radius-sm);
+  padding: 7px 10px;
+}
+
+.prize-chip-emoji { font-size: 15px; }
+
+.prize-chip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prize-chip-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  line-height: 1.1;
+  letter-spacing: 0.3px;
+}
+
+.prize-chip-sub {
+  font-size: 9px;
+  color: var(--text-faint);
+  margin-top: 1px;
+  font-weight: 500;
+}
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   EXPLORE TEASERS (Dugout / Fun Zone / Stats)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.explore-section {
+  margin-bottom: 12px;
+}
+
+.explore-heading {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 10px 2px;
+}
+
+.explore-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.explore-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--card-radius);
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+}
+
+.explore-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+}
+
+.dugout-card {
+  border-color: rgba(124, 196, 255, 0.2);
+}
+.dugout-card::after {
+  background: linear-gradient(90deg, var(--rank-color), transparent);
+}
+
+.fun-card {
+  border-color: rgba(251, 146, 60, 0.2);
+}
+.fun-card::after {
+  background: linear-gradient(90deg, var(--orange), transparent);
+}
+
+/* Stats card spans full width */
+.stats-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  border-color: rgba(154, 224, 0, 0.18);
+}
+.stats-card::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.explore-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.dugout-card .explore-icon {
+  background: rgba(124, 196, 255, 0.1);
+  color: var(--rank-color);
+  border: 1px solid rgba(124, 196, 255, 0.2);
+}
+
+.fun-card .explore-icon {
+  background: rgba(251, 146, 60, 0.1);
+  color: var(--orange);
+  border: 1px solid rgba(251, 146, 60, 0.2);
+}
+
+.stats-card .explore-icon {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--border-accent);
+}
+
+.explore-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  line-height: 1;
+  display: block;
+}
+
+.explore-sub {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-faint);
+  line-height: 1.4;
+  display: block;
+}
+
+.explore-stats-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.explore-arrow {
+  font-size: 11px;
+  color: var(--text-faint);
+  position: absolute;
+  bottom: 10px; right: 12px;
+  transition: var(--transition);
+}
+
+.stats-card .explore-arrow {
+  position: static;
+  margin-left: auto;
+}
+
+.explore-card:hover .explore-arrow {
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* HOT badge on Fun Zone */
+.hot-badge {
+  display: inline-block;
+  background: rgba(251, 146, 60, 0.15);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  color: var(--orange);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: pulseBadge 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HEADER — Remove hamburger from layout spacing
+   (The <a> tag is removed from HTML, this ensures
+   no orphaned spacing if old CSS references it)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.header-more-btn { display: none; } /* Safety: hide even if element exists */
+.btn-hint        { display: none; } /* Safety: hide hint if not yet removed from HTML */
+.btn-view-matches { display: none; } /* Safety: hide view matches if not yet removed */
