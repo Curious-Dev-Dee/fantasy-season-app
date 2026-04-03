@@ -467,7 +467,6 @@ async function fetchPrivateLeagueData(userId) {
         return;
     }
 
-    card.classList.remove("hidden");
     contentEl?.classList.remove("hidden");
     emptyStateEl?.classList.add("hidden");
 
