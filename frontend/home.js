@@ -72,11 +72,13 @@ initApp();
 ══════════════════════════════════════════════════════ */
 function revealApp(hasError = false) {
     if (hasError) {
-        const loadingText = document.querySelector(".loading-text");
-        if (loadingText) {
-            loadingText.style.color = "var(--red)";
-            loadingText.innerHTML   = `FIELD UNAVAILABLE<br>
-                <button onclick="location.reload()" style="background:#9AE000;color:#000;border:none;padding:8px 15px;border-radius:8px;margin-top:10px;font-weight:800;cursor:pointer;">RETRY</button>`;
+        const sk = document.getElementById("skeletonScreen");
+        if (sk) {
+            sk.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px">
+                    <div style="font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--red);letter-spacing:2px">FIELD UNAVAILABLE</div>
+                    <button onclick="location.reload()" style="background:#9AE000;color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:900;cursor:pointer;font-size:13px">RETRY</button>
+                </div>`;
         }
         return;
     }

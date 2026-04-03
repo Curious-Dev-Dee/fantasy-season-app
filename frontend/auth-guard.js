@@ -2,6 +2,19 @@ import { supabase } from "./supabase.js";
 import { resolveAuth, rejectAuth } from "./auth-state.js";
 
 async function protectPage() {
+    // Check cache first — skip network call for returning users
+    const cached = sessionStorage.getItem("ce_user");
+    if (cached) {
+        try {
+            const user = JSON.parse(cached);
+            resolveAuth(user);
+            return;
+        } catch (_) {
+            sessionStorage.removeItem("ce_user");
+        }
+    }
+
+    // No cache — do the real network check
     const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error || !session) {
@@ -11,10 +24,8 @@ async function protectPage() {
         return;
     }
 
-    // Resolve the shared Promise — home.js is awaiting this.
-    // If home.js awaits authReady before this line runs, it waits.
-    // If home.js awaits after this line runs, it resolves instantly.
-    // Either way, no race condition.
+    // Cache user for future page loads
+    sessionStorage.setItem("ce_user", JSON.stringify(session.user));
     resolveAuth(session.user);
 }
 
@@ -22,6 +33,7 @@ protectPage();
 
 supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem("ce_user");
         window.location.replace("/login");
     }
 });

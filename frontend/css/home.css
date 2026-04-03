@@ -1902,3 +1902,55 @@ body.loaded #loadingOverlay {
   color: var(--text-faint);
   font-weight: 500;
 }
+
+/* ── SKELETON SCREEN ── */
+#skeletonScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-page);
+  z-index: 9999;
+  padding: 16px;
+  transition: opacity 0.2s ease;
+  overflow: hidden;
+}
+
+body.loaded #skeletonScreen {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 2px 16px;
+}
+
+.sk-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.sk-block {
+  background: linear-gradient(
+    90deg,
+    var(--border-card) 25%,
+    var(--border) 50%,
+    var(--border-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: skShimmer 1.4s infinite;
+  display: block;
+}
+
+.sk-circle {
+  border-radius: 50%;
+}
+
+@keyframes skShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
