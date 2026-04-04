@@ -2525,24 +2525,14 @@ async function loadH2HLive() {
     if (!panel) return;
     panel.innerHTML = `<div class="panel-spinner"></div>`;
 
-    // Fetch accepted challenges for live/recent matches
-    const { data: accepted } = await supabase
+    // Step 1 — get accepted challenges for this user
+    const { data: challenges, error: cErr } = await supabase
         .from("h2h_challenges")
-        .select(`
-            id, challenger_id, opponent_id, challenger_team_id, opponent_team_id,
-            challenger:user_profiles!challenger_id(team_name),
-            opponent:user_profiles!opponent_id(team_name),
-            challenger_team:h2h_teams!challenger_team_id(captain_id, vice_captain_id, h2h_team_players(player_id, role)),
-            opponent_team:h2h_teams!opponent_team_id(captain_id, vice_captain_id, h2h_team_players(player_id, role)),
-            match:matches!match_id(id, status, match_number)
-        `)
+        .select("id, challenger_id, opponent_id, match_id, challenger_team_id, opponent_team_id")
         .or(`challenger_id.eq.${currentUserId},opponent_id.eq.${currentUserId}`)
-        .eq("status", "accepted")
-        .in("matches.status", ["live", "completed"]);
+        .eq("status", "accepted");
 
-    panel.innerHTML = "";
-
-    if (!accepted?.length) {
+    if (!challenges?.length) {
         panel.innerHTML = `
             <div class="h2h-empty">
                 <div class="h2h-empty-icon">⚔️</div>
@@ -2552,10 +2542,149 @@ async function loadH2HLive() {
         return;
     }
 
-    for (const challenge of accepted) {
-        const card = await buildLiveCard(challenge);
-        panel.appendChild(card);
+    // Step 2 — get match statuses separately
+    const matchIds = [...new Set(challenges.map(c => c.match_id))];
+    const { data: matches } = await supabase
+        .from("matches")
+        .select("id, status, match_number")
+        .in("id", matchIds)
+        .in("status", ["live", "completed"]);
+
+    const liveMatchIds = new Set((matches || []).map(m => m.id));
+    const matchMap = {};
+    (matches || []).forEach(m => { matchMap[m.id] = m; });
+
+    // Only keep challenges where match is live or completed
+    const activeChallenges = challenges.filter(c => liveMatchIds.has(c.match_id));
+
+    if (!activeChallenges.length) {
+        panel.innerHTML = `
+            <div class="h2h-empty">
+                <div class="h2h-empty-icon">⚔️</div>
+                <div class="h2h-empty-title">No live battles yet</div>
+                <p>Your accepted challenges will appear here once the match starts.</p>
+            </div>`;
+        return;
     }
+
+    // Step 3 — fetch results from the view
+    const challengeIds = activeChallenges.map(c => c.id);
+    const { data: results } = await supabase
+        .from("h2h_results_view")
+        .select("challenge_id, challenger_points, opponent_points, winner_id, challenger_name, opponent_name")
+        .in("challenge_id", challengeIds);
+
+    const resultsMap = {};
+    (results || []).forEach(r => { resultsMap[r.challenge_id] = r; });
+
+    // Step 4 — fetch all team players for these challenges
+    const allTeamIds = [];
+    activeChallenges.forEach(c => {
+        if (c.challenger_team_id) allTeamIds.push(c.challenger_team_id);
+        if (c.opponent_team_id)   allTeamIds.push(c.opponent_team_id);
+    });
+
+    const { data: teamPlayers } = await supabase
+        .from("h2h_team_players")
+        .select("h2h_team_id, player_id, role")
+        .in("h2h_team_id", allTeamIds);
+
+    const teamPlayersMap = {};
+    (teamPlayers || []).forEach(tp => {
+        if (!teamPlayersMap[tp.h2h_team_id]) teamPlayersMap[tp.h2h_team_id] = [];
+        teamPlayersMap[tp.h2h_team_id].push(tp);
+    });
+
+    // Step 5 — fetch player stats for all relevant players
+    const allPlayerIds = (teamPlayers || []).map(tp => tp.player_id);
+    const { data: allStats } = allPlayerIds.length
+        ? await supabase
+            .from("player_match_stats")
+            .select("player_id, match_id, fantasy_points, players(name)")
+            .in("player_id", allPlayerIds)
+            .in("match_id", [...liveMatchIds])
+        : { data: [] };
+
+    const statsMap = {};
+    (allStats || []).forEach(s => {
+        statsMap[`${s.player_id}_${s.match_id}`] = s;
+    });
+
+    panel.innerHTML = "";
+
+    activeChallenges.forEach(challenge => {
+        const match      = matchMap[challenge.match_id];
+        const result     = resultsMap[challenge.id];
+        const isChallenger = challenge.challenger_id === currentUserId;
+
+        const myTeamId    = isChallenger ? challenge.challenger_team_id : challenge.opponent_team_id;
+        const theirTeamId = isChallenger ? challenge.opponent_team_id   : challenge.challenger_team_id;
+        const myPlayers    = teamPlayersMap[myTeamId]    || [];
+        const theirPlayers = teamPlayersMap[theirTeamId] || [];
+
+        const myPts    = result ? (isChallenger ? result.challenger_points : result.opponent_points) : 0;
+        const theirPts = result ? (isChallenger ? result.opponent_points   : result.challenger_points) : 0;
+        const theirName = isChallenger ? result?.opponent_name : result?.challenger_name;
+
+        const isLive = match?.status === "live";
+        const iWin   = myPts >= theirPts;
+
+        const card = document.createElement("div");
+        card.className = "h2h-live-card";
+        card.onclick = () => openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName, match, myPlayers, theirPlayers);
+
+        card.innerHTML = `
+            <div class="h2h-live-header">
+                <div class="h2h-live-badge">
+                    ${isLive ? `<div class="h2h-live-dot"></div> Live` : "Completed"}
+                </div>
+                <span class="h2h-live-hint">Match ${match?.match_number || ""} · Tap for breakdown</span>
+            </div>`;
+
+        const vsRow = document.createElement("div");
+        vsRow.className = "h2h-live-vs-row";
+
+        const makeSide = (players, label) => {
+            const side = document.createElement("div");
+            side.className = "h2h-live-team";
+            side.innerHTML = `<div class="h2h-live-team-name">${label}</div>`;
+            players.forEach(tp => {
+                const stat = statsMap[`${tp.player_id}_${challenge.match_id}`];
+                const row = document.createElement("div");
+                row.className = "h2h-live-player-row";
+                row.innerHTML = `
+                    <span class="h2h-live-role">${tp.role}</span>
+                    <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}</span>
+                    <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
+                side.appendChild(row);
+            });
+            return side;
+        };
+
+        const mid = document.createElement("div");
+        mid.className = "h2h-live-vs-mid";
+        mid.innerHTML = `<span class="h2h-live-vs-text">vs</span>`;
+
+        vsRow.append(makeSide(myPlayers, "You"), mid, makeSide(theirPlayers, theirName || "Opponent"));
+        card.appendChild(vsRow);
+
+        card.innerHTML += `
+            <div class="h2h-live-totals">
+                <div class="h2h-live-total-blk">
+                    <div class="h2h-live-total-pts ${!iWin ? "losing" : ""}">${myPts}</div>
+                    <div class="h2h-live-total-label">Your pts</div>
+                    ${iWin ? `<div class="h2h-winning-badge">Winning</div>` : ""}
+                </div>
+                <div style="flex-shrink:0;padding:0 10px;color:var(--text-faint);font-size:12px;font-weight:900;">vs</div>
+                <div class="h2h-live-total-blk">
+                    <div class="h2h-live-total-pts ${iWin ? "losing" : ""}">${theirPts}</div>
+                    <div class="h2h-live-total-label">${theirName || "Opponent"}</div>
+                    ${!iWin ? `<div class="h2h-winning-badge" style="background:var(--red-dim);color:var(--red);border-color:rgba(239,68,68,0.25);">Trailing</div>` : ""}
+                </div>
+            </div>`;
+
+        panel.appendChild(card);
+    });
 }
 
 async function buildLiveCard(challenge) {
@@ -2647,52 +2776,43 @@ async function buildLiveCard(challenge) {
     return card;
 }
 
-function openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName) {
+function openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName, match, myPlayers, theirPlayers) {
     openBottomSheet((body) => {
-        const isChallenger = challenge.challenger_id === currentUserId;
-        const myTeam    = isChallenger ? challenge.challenger_team : challenge.opponent_team;
-        const theirTeam = isChallenger ? challenge.opponent_team : challenge.challenger_team;
-
+        const isLive = match?.status === "live";
         body.innerHTML = "";
 
-        const isLive = challenge.match?.status === "live";
         const badge = document.createElement("div");
         badge.className = "h2h-live-badge";
         badge.style.marginBottom = "14px";
-        badge.innerHTML = `${isLive ? `<div class="h2h-live-dot"></div> Live` : "Completed"} · Match ${challenge.match?.match_number || ""}`;
+        badge.innerHTML = `${isLive ? `<div class="h2h-live-dot"></div> Live` : "Completed"} · Match ${match?.match_number || ""}`;
         body.appendChild(badge);
 
         const vsRow = document.createElement("div");
         vsRow.className = "h2h-live-vs-row";
         vsRow.style.marginBottom = "14px";
 
-        const makeDetailSide = (teamObj, label) => {
+        const makeSide = (players, label) => {
             const side = document.createElement("div");
             side.className = "h2h-live-team";
-            const nameEl = document.createElement("div");
-            nameEl.className = "h2h-live-team-name";
-            nameEl.textContent = label;
-            side.appendChild(nameEl);
-            (teamObj?.h2h_team_players || []).forEach(tp => {
-                const stat = statsMap[tp.player_id];
-                const isC  = tp.player_id === teamObj.captain_id;
-                const isVC = tp.player_id === teamObj.vice_captain_id;
+            side.innerHTML = `<div class="h2h-live-team-name">${label}</div>`;
+            players.forEach(tp => {
+                const stat = statsMap[`${tp.player_id}_${challenge.match_id}`];
                 const row = document.createElement("div");
                 row.className = "h2h-live-player-row";
                 row.innerHTML = `
                     <span class="h2h-live-role">${tp.role}</span>
-                    <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}${isC ? " (C)" : isVC ? " (VC)" : ""}</span>
+                    <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}</span>
                     <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
                 side.appendChild(row);
             });
             return side;
         };
 
-        const midVs = document.createElement("div");
-        midVs.className = "h2h-live-vs-mid";
-        midVs.innerHTML = `<span class="h2h-live-vs-text">vs</span>`;
+        const mid = document.createElement("div");
+        mid.className = "h2h-live-vs-mid";
+        mid.innerHTML = `<span class="h2h-live-vs-text">vs</span>`;
 
-        vsRow.append(makeDetailSide(myTeam, "You"), midVs, makeDetailSide(theirTeam, theirName || "Opponent"));
+        vsRow.append(makeSide(myPlayers, "You"), mid, makeSide(theirPlayers, theirName || "Opponent"));
         body.appendChild(vsRow);
 
         const iWin = myPts >= theirPts;
@@ -2709,7 +2829,7 @@ function openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName) {
             <div class="h2h-live-total-blk">
                 <div class="h2h-live-total-pts ${iWin ? "losing" : ""}">${theirPts}</div>
                 <div class="h2h-live-total-label">${theirName || "Opponent"}</div>
-                ${!iWin ? `<div class="h2h-winning-badge" style="background:var(--red-dim);color:var(--red);">Trailing ${myPts - theirPts}</div>` : ""}
+                ${!iWin ? `<div class="h2h-winning-badge" style="background:var(--red-dim);color:var(--red);">Trailing ${Math.abs(myPts - theirPts)}</div>` : ""}
             </div>`;
         body.appendChild(totals);
     });
