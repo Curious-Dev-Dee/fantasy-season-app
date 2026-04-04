@@ -1869,19 +1869,23 @@ async function loadH2HChallenges() {
 
     // Fetch incoming + sent challenges
 // Fetch incoming + sent challenges — NO match_id filter, show all
-    const { data: incomingRaw } = await supabase
-        .from("h2h_challenges")
-        .select("id, challenger_id, opponent_id, status, created_at, match_id, matches!match_id(match_number)")
-        .eq("opponent_id", currentUserId)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
+// CHANGE these two queries — add .eq("match_id", match.id) to both
 
-    const { data: sentRaw } = await supabase
-        .from("h2h_challenges")
-        .select("id, challenger_id, opponent_id, status, created_at, match_id, matches!match_id(match_number)")
-        .eq("challenger_id", currentUserId)
-        .neq("status", "rejected")
-        .order("created_at", { ascending: false });
+const { data: incomingRaw } = await supabase
+    .from("h2h_challenges")
+    .select("id, challenger_id, opponent_id, status, created_at, match_id, matches!match_id(match_number)")
+    .eq("opponent_id", currentUserId)
+    .eq("match_id", match.id)          // ← ADD THIS
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+const { data: sentRaw } = await supabase
+    .from("h2h_challenges")
+    .select("id, challenger_id, opponent_id, status, created_at, match_id, matches!match_id(match_number)")
+    .eq("challenger_id", currentUserId)
+    .eq("match_id", match.id)          // ← ADD THIS
+    .neq("status", "rejected")
+    .order("created_at", { ascending: false });
 
     // Fetch profiles separately to avoid silent RLS join failures
     const allUserIds = new Set();
@@ -2554,11 +2558,13 @@ async function loadH2HLive() {
 
     // Step 2 — get match statuses separately
     const matchIds = [...new Set(challenges.map(c => c.match_id))];
-    const { data: matches } = await supabase
-        .from("matches")
-        .select("id, status, match_number")
-        .in("id", matchIds)
-        .in("status", ["live", "completed"]);
+// AFTER
+const { data: matches } = await supabase
+    .from("matches")
+    .select("id, status, match_number")
+    .in("id", matchIds)
+    .eq("status", "locked")               // ✅ only truly live matches
+    .eq("points_processed", false);        // ✅ exclude completed ones
 
     const liveMatchIds = new Set((matches || []).map(m => m.id));
     const matchMap = {};
@@ -2636,7 +2642,7 @@ async function loadH2HLive() {
         const theirPts = result ? (isChallenger ? result.opponent_points   : result.challenger_points) : 0;
         const theirName = isChallenger ? result?.opponent_name : result?.challenger_name;
 
-        const isLive = match?.status === "live";
+const isLive = match?.status === "locked";
         const iWin   = myPts >= theirPts;
 
         const card = document.createElement("div");
@@ -2697,98 +2703,11 @@ async function loadH2HLive() {
     });
 }
 
-async function buildLiveCard(challenge) {
-    const isChallenger = challenge.challenger_id === currentUserId;
-    const myTeam       = isChallenger ? challenge.challenger_team : challenge.opponent_team;
-    const theirTeam    = isChallenger ? challenge.opponent_team   : challenge.challenger_team;
-    const theirName    = isChallenger ? challenge.opponent?.team_name : challenge.challenger?.team_name;
-    const matchId      = challenge.match?.id;
 
-    // Get player IDs for both teams
-    const myPlayerIds    = (myTeam?.h2h_team_players || []).map(p => p.player_id);
-    const theirPlayerIds = (theirTeam?.h2h_team_players || []).map(p => p.player_id);
-    const allIds         = [...new Set([...myPlayerIds, ...theirPlayerIds])];
-
-    // Fetch stats
-    const { data: stats } = allIds.length
-        ? await supabase.from("player_match_stats").select("player_id, fantasy_points, players(name)").eq("match_id", matchId).in("player_id", allIds)
-        : { data: [] };
-
-    const statsMap = {};
-    (stats || []).forEach(s => { statsMap[s.player_id] = s; });
-
-    const myPts    = myPlayerIds.reduce((sum, id) => sum + (statsMap[id]?.fantasy_points || 0), 0);
-    const theirPts = theirPlayerIds.reduce((sum, id) => sum + (statsMap[id]?.fantasy_points || 0), 0);
-
-    // Build card
-    const card = document.createElement("div");
-    card.className = "h2h-live-card";
-    card.onclick = () => openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName);
-
-    const header = document.createElement("div");
-    header.className = "h2h-live-header";
-    const isLive = challenge.match?.status === "live";
-    header.innerHTML = `
-        <div class="h2h-live-badge">
-            ${isLive ? `<div class="h2h-live-dot"></div> Live` : "Completed"}
-        </div>
-        <span class="h2h-live-hint">Tap to view breakdown</span>`;
-    card.appendChild(header);
-
-    const vsRow = document.createElement("div");
-    vsRow.className = "h2h-live-vs-row";
-
-    const makeTeamSide = (playerIds, teamObj) => {
-        const side = document.createElement("div");
-        side.className = "h2h-live-team";
-        const nameEl = document.createElement("div");
-        nameEl.className = "h2h-live-team-name";
-        nameEl.textContent = isChallenger && playerIds === myPlayerIds ? "You" : theirName || "Opponent";
-        side.appendChild(nameEl);
-
-        (teamObj?.h2h_team_players || []).forEach(tp => {
-            const stat = statsMap[tp.player_id];
-            const row = document.createElement("div");
-            row.className = "h2h-live-player-row";
-            row.innerHTML = `
-                <span class="h2h-live-role">${tp.role}</span>
-                <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}</span>
-                <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
-            side.appendChild(row);
-        });
-        return side;
-    };
-
-    const midVs = document.createElement("div");
-    midVs.className = "h2h-live-vs-mid";
-    midVs.innerHTML = `<span class="h2h-live-vs-text">vs</span>`;
-
-    vsRow.append(makeTeamSide(myPlayerIds, myTeam), midVs, makeTeamSide(theirPlayerIds, theirTeam));
-    card.appendChild(vsRow);
-
-    const totals = document.createElement("div");
-    totals.className = "h2h-live-totals";
-    const iWin = myPts >= theirPts;
-    totals.innerHTML = `
-        <div class="h2h-live-total-blk">
-            <div class="h2h-live-total-pts ${!iWin ? "losing" : ""}">${myPts}</div>
-            <div class="h2h-live-total-label">Your pts</div>
-            ${iWin ? `<div class="h2h-winning-badge">Winning</div>` : ""}
-        </div>
-        <div style="flex-shrink:0;padding:0 10px;color:var(--text-faint);font-size:12px;font-weight:900;">vs</div>
-        <div class="h2h-live-total-blk">
-            <div class="h2h-live-total-pts ${iWin ? "losing" : ""}">${theirPts}</div>
-            <div class="h2h-live-total-label">${theirName || "Opponent"}</div>
-            ${!iWin ? `<div class="h2h-winning-badge" style="background:var(--red-dim);color:var(--red);border-color:rgba(239,68,68,0.25);">Trailing</div>` : ""}
-        </div>`;
-    card.appendChild(totals);
-
-    return card;
-}
 
 function openLiveDetailSheet(challenge, statsMap, myPts, theirPts, theirName, match, myPlayers, theirPlayers) {
     openBottomSheet((body) => {
-        const isLive = match?.status === "live";
+const isLive = match?.status === "locked";
         body.innerHTML = "";
 
         const badge = document.createElement("div");
