@@ -2235,20 +2235,20 @@ async function sendH2HChallenge(opponentId, opponentName) {
     h2hState.saving = true;
 
     try {
-        // Save h2h_team
+        // 1. Save h2h_team
         const { data: team, error: teamErr } = await supabase
             .from("h2h_teams")
             .insert([{
-                user_id:          currentUserId,
-                match_id:         h2hState.match.id,
-                tournament_id:    currentTournamentId,
-                captain_id:       h2hState.captainId,
-                vice_captain_id:  h2hState.vcId,
+                user_id:         currentUserId,
+                match_id:        h2hState.match.id,
+                tournament_id:   currentTournamentId,
+                captain_id:      h2hState.captainId,
+                vice_captain_id: h2hState.vcId,
             }])
             .select().single();
         if (teamErr) throw teamErr;
 
-        // Save h2h_team_players
+        // 2. Save players
         const { error: playersErr } = await supabase
             .from("h2h_team_players")
             .insert(roles.map(role => ({
@@ -2258,19 +2258,28 @@ async function sendH2HChallenge(opponentId, opponentName) {
             })));
         if (playersErr) throw playersErr;
 
-        // Create challenge
+        h2hState.team = team;
+
+        // 3a. If responding to an incoming challenge — auto-accept instead of sending new
+        if (h2hState.pendingAcceptChallengeId) {
+            const pendingId = h2hState.pendingAcceptChallengeId;
+            h2hState.pendingAcceptChallengeId = null;
+            await acceptChallenge(pendingId, team.id);
+            return; // acceptChallenge handles toast + sheet close
+        }
+
+        // 3b. Normal flow — create a new outgoing challenge
         const { error: challengeErr } = await supabase
             .from("h2h_challenges")
             .insert([{
-                match_id:          h2hState.match.id,
-                tournament_id:     currentTournamentId,
-                challenger_id:     currentUserId,
-                opponent_id:       opponentId,
+                match_id:           h2hState.match.id,
+                tournament_id:      currentTournamentId,
+                challenger_id:      currentUserId,
+                opponent_id:        opponentId,
                 challenger_team_id: team.id,
             }]);
         if (challengeErr) throw challengeErr;
 
-        h2hState.team = team;
         showToast(`Challenge sent to ${opponentName}! ⚔️`, "success");
         closeBottomSheet();
         loadH2HChallenges();
@@ -2322,16 +2331,17 @@ function openAcceptSheet(challenge) {
             };
             body.appendChild(buildNew);
         } else {
-            const buildBtn = document.createElement("button");
-            buildBtn.className = "h2h-challenge-btn";
-            buildBtn.textContent = "Pick my team & accept";
-            buildBtn.onclick = () => {
-                closeBottomSheet();
-                openH2HTeamBuilder();
-            };
-            body.appendChild(buildBtn);
-        }
-
+    const buildBtn = document.createElement("button");
+    buildBtn.className = "h2h-challenge-btn";
+    buildBtn.textContent = "⚡ Build a team to accept";
+    buildBtn.onclick = () => {
+        closeBottomSheet();
+        // Store pending challenge so team builder auto-accepts after save
+        h2hState.pendingAcceptChallengeId = challenge.id;
+        openH2HTeamBuilder();
+    };
+    body.appendChild(buildBtn);
+}
         const rejectBtn = document.createElement("button");
         rejectBtn.className = "h2h-challenge-btn danger";
         rejectBtn.style.marginTop = "8px";
