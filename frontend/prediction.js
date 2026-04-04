@@ -1798,21 +1798,22 @@ let h2hState = {
 
 /* ─── ENTRY POINT ────────────────────────────────────────────────────────── */
 async function loadH2HPanel() {
-    // Resolve the current upcoming match if not already set
-    if (!h2hState.match) {
-        const { data: match } = await supabase
-            .from("matches")
-            .select("*, team_a:real_teams!team_a_id(id, short_code, photo_name), team_b:real_teams!team_b_id(id, short_code, photo_name)")
-            .eq("tournament_id", currentTournamentId)
-            .in("status", ["upcoming", "live"])
-            .order("actual_start_time", { ascending: true })
-            .limit(1)
-            .maybeSingle();
-        h2hState.match = match;
-    }
+    // Always re-fetch, never use cached match
+    const { data: match, error: matchErr } = await supabase
+        .from("matches")
+        .select("*, team_a:real_teams!team_a_id(id, short_code, photo_name), team_b:real_teams!team_b_id(id, short_code, photo_name)")
+        .eq("tournament_id", currentTournamentId)
+        .in("status", ["upcoming", "live"])
+        .order("actual_start_time", { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-    // Load player pool for this match
-    if (h2hState.match && h2hState.players.length === 0) {
+    if (matchErr) console.error("[H2H] match fetch error:", matchErr);
+    console.log("[H2H] current match:", match?.id, match?.match_number);
+    h2hState.match = match;
+
+    // Always reload player pool for this match
+    if (h2hState.match) {
         const { data: players } = await supabase
             .from("player_pool_view")
             .select("*")
@@ -1835,7 +1836,6 @@ async function loadH2HPanel() {
             h2hState.team = team;
             h2hState.captainId = team.captain_id;
             h2hState.vcId = team.vice_captain_id;
-            // Re-hydrate slots from saved players
             (team.h2h_team_players || []).forEach(tp => {
                 const player = h2hState.players.find(p => p.id === tp.player_id);
                 if (player) h2hState.slots[tp.role] = player;
@@ -1843,7 +1843,6 @@ async function loadH2HPanel() {
         }
     }
 
-    // Default to challenges sub-tab
     loadH2HChallenges();
 }
 
@@ -1869,19 +1868,46 @@ async function loadH2HChallenges() {
     const isMatchLocked = match.status !== "upcoming";
 
     // Fetch incoming + sent challenges
-    const { data: incoming } = await supabase
+// Fetch incoming + sent challenges — NO match_id filter, show all
+    const { data: incomingRaw } = await supabase
         .from("h2h_challenges")
-        .select("*, challenger:user_profiles!challenger_id(team_name, team_photo_url)")
-        .eq("match_id", match.id)
+        .select("id, challenger_id, opponent_id, status, created_at, match_id, matches!match_id(match_number)")
         .eq("opponent_id", currentUserId)
-        .eq("status", "pending");
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
-    const { data: sent } = await supabase
+    const { data: sentRaw } = await supabase
         .from("h2h_challenges")
-        .select("*, opponent:user_profiles!opponent_id(team_name, team_photo_url)")
-        .eq("match_id", match.id)
+        .select("id, challenger_id, opponent_id, status, created_at, match_id, matches!match_id(match_number)")
         .eq("challenger_id", currentUserId)
-        .neq("status", "rejected");
+        .neq("status", "rejected")
+        .order("created_at", { ascending: false });
+
+    // Fetch profiles separately to avoid silent RLS join failures
+    const allUserIds = new Set();
+    (incomingRaw || []).forEach(c => allUserIds.add(c.challenger_id));
+    (sentRaw || []).forEach(c => allUserIds.add(c.opponent_id));
+
+    let profileMap = {};
+    if (allUserIds.size > 0) {
+        const { data: profiles } = await supabase
+            .from("user_profiles")
+            .select("user_id, team_name, team_photo_url")
+            .in("user_id", [...allUserIds]);
+        (profiles || []).forEach(p => { profileMap[p.user_id] = p; });
+    }
+
+    const incoming = (incomingRaw || []).map(c => ({
+        ...c,
+        challenger: profileMap[c.challenger_id] || { team_name: "Expert" },
+        matchNumber: c.matches?.match_number || "",
+    }));
+
+    const sent = (sentRaw || []).map(c => ({
+        ...c,
+        opponent: profileMap[c.opponent_id] || { team_name: "Expert" },
+        matchNumber: c.matches?.match_number || "",
+    }));
 
     panel.innerHTML = "";
 
@@ -1968,7 +1994,7 @@ function buildChallengeCard(challenge, type, onClick) {
     info.className = "h2h-cc-info";
     info.innerHTML = `
         <div class="h2h-cc-name">${name}</div>
-        <div class="h2h-cc-meta">${challenge.status === "accepted" ? "Accepted" : isIncoming ? "Sent you a challenge" : "Waiting..."} · Match ${challenge.match_id?.slice(0,4) || ""}</div>`;
+<div class="h2h-cc-meta">${challenge.status === "accepted" ? "Accepted" : isIncoming ? "Sent you a challenge" : "Waiting..."} · Match ${challenge.matchNumber || ""}</div>`;
 
     const actionBtn = document.createElement("button");
     actionBtn.className = `h2h-cc-action ${isIncoming ? "accept" : challenge.status === "accepted" ? "accept" : "pending"}`;
