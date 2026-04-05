@@ -438,10 +438,19 @@
 
 <div id="notificationPrompt" class="hidden"></div>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a href="/home" class="active"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="experts-dugout.html"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
+  
+  <a href="matches.html" class="nav-match-center" id="navMatchesBtn">
+    <div class="nav-icon-stack">
+      <i class="fas fa-cricket-bat-ball" id="navMatchIcon"></i>
+      <span class="nav-live-dot hidden" id="navLiveDot"></span>
+    </div>
+    <span class="nav-label" id="navMatchLabel">Matches</span>
+    <span class="nav-score-sub hidden" id="navLiveScore">0/0</span>
+  </a>
+
   <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
   <a href="stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
 </nav>

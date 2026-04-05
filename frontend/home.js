@@ -29,6 +29,11 @@ const modalTeamName          = document.getElementById("modalTeamName");
 const avatarInput            = document.getElementById("avatarInput");
 const modalPreview           = document.getElementById("modalAvatarPreview");
 const viewXiBtn              = document.getElementById("viewXiBtn");
+// Dynamic Nav Elements
+const navMatchesBtn = document.getElementById("navMatchesBtn");
+const navMatchLabel = document.getElementById("navMatchLabel");
+const navLiveDot    = document.getElementById("navLiveDot");
+const navLiveScore  = document.getElementById("navLiveScore");
 
 function switchLeagueTab(tab) {
     const panePrivate  = document.getElementById("panePrivate");
@@ -87,9 +92,68 @@ function revealApp(hasError = false) {
 }
 
 /* ══════════════════════════════════════════════════════
+   DYNAMIC NAV LIVE SCORE LOGIC
+══════════════════════════════════════════════════════ */
+async function initLiveNav() {
+    if (!navMatchesBtn) return;
+
+    const updateNavUI = async () => {
+        // Fetch only one match that is active/locked but not finished
+        const { data: matches, error } = await supabase
+            .from("matches")
+            .select(`
+                id, 
+                team_a:real_teams!matches_team_a_id_fkey(short_code),
+                team_b:real_teams!matches_team_b_id_fkey(short_code),
+                live_scores(team1_score, team1_wickets, team1_overs, team2_score, team2_wickets, team2_overs)
+            `)
+            .eq("status", "locked")
+            .eq("points_processed", false)
+            .limit(1);
+
+        if (error || !matches || matches.length === 0 || !matches[0].live_scores) {
+            // NO LIVE MATCH: Reset to default "Matches" view
+            navMatchLabel.textContent = "Matches";
+            navLiveScore.classList.add("hidden");
+            navLiveDot.classList.add("hidden");
+            navMatchesBtn.classList.remove("is-live");
+            return;
+        }
+
+        const m = matches[0];
+        const ls = m.live_scores;
+
+        // MATCH IS LIVE: Update UI
+        navMatchesBtn.classList.add("is-live");
+        navMatchLabel.textContent = "LIVE";
+        navLiveDot.classList.remove("hidden");
+        navLiveScore.classList.remove("hidden");
+
+        // Logic: Show the team currently batting
+        // If Team 2 has overs, they are batting (2nd innings). Otherwise, Team 1.
+        if (ls.team2_overs > 0) {
+            navLiveScore.textContent = `${m.team_b.short_code} ${ls.team2_score}/${ls.team2_wickets || 0}`;
+        } else {
+            navLiveScore.textContent = `${m.team_a.short_code} ${ls.team1_score}/${ls.team1_wickets || 0}`;
+        }
+    };
+
+    // 1. Initial Load
+    updateNavUI();
+
+    // 2. Realtime Listener: Refresh Nav whenever live_scores table updates
+    supabase.channel('nav-live-updates')
+        .on('postgres_changes', { event: '*', table: 'live_scores' }, () => {
+            updateNavUI();
+        })
+        .subscribe();
+}
+
+/* ══════════════════════════════════════════════════════
    DASHBOARD INIT
 ══════════════════════════════════════════════════════ */
 async function startDashboard(userId) {
+    initLiveNav(); // <--- ADD THIS LINE HERE
     try { initNotificationHub(userId); } catch (e) {
         console.warn("Notification hub error:", e);
     }
