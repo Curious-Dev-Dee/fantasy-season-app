@@ -1434,7 +1434,7 @@
       el.innerHTML = `
         ${buildStatsPlaceholder('orange','fa-baseball-bat-ball','Most Runs')}
         ${buildStatsPlaceholder('green','fa-circle-dot','Most Wickets')}
-        ${buildStatsPlaceholder('blue','fa-hands-catching','Most Dismissals')}
+        ${buildStatsPlaceholder('blue','fa-hands-catching','Most Fielding')}
         ${buildStatsPlaceholder('gold','fa-star','Player of Match')}`;
       return;
     }
@@ -1447,7 +1447,7 @@
     el.innerHTML = `
       ${buildStatsSection('orange','fa-baseball-bat-ball','Most Runs',      byRuns,    r=>r.runs,   r=>`${r.innings||0} inns · SR ${r.strike_rate||'—'}`)}
       ${buildStatsSection('green', 'fa-circle-dot',       'Most Wickets',   byWickets, r=>r.wickets,r=>`Eco ${r.economy||'—'}`)}
-      ${buildStatsSection('blue',  'fa-hands-catching',   'Most Dismissals',byFielding,r=>(r.catches||0)+(r.runouts||0),r=>`${r.catches||0} ct · ${r.runouts||0} ro`)}
+      ${buildStatsSection('blue',  'fa-hands-catching',   'Most Fielding',  byFielding,r=>(r.catches||0)+(r.runouts||0),r=>`${r.catches||0} catches · ${r.runouts||0} run outs`)}
       ${buildStatsSection('gold',  'fa-star',             'Player of Match', byMom,    r=>r.mom_count,r=>r.team_code||'')}`;
   }
 
@@ -1610,17 +1610,18 @@
     const innings = Array.isArray(ls2.batting) ? ls2.batting : [];
     const tabsEl = document.getElementById('inningsTabs');
 
-    // Determine inning team names
-    const inningNames = innings.map((_, i) => {
-      // innings[0] = team batting first, innings[1] = team batting second
-      const team1Name = ls2.team1_name || match.team_a?.short_code || `Innings ${i+1}`;
-      const team2Name = ls2.team2_name || match.team_b?.short_code || `Innings ${i+1}`;
-      return i === 0 ? team1Name : team2Name;
-    });
+    // Determine which team batted in each innings by looking at the scorecard
+    // ls2.team1_name = team that batted in innings 1, ls2.team2_name = team that batted in innings 2
+    // These come directly from CricAPI scorecard ordering, so we trust them.
+    // innings[0] = 1st batting team's batting card, innings[1] = 2nd batting team's batting card
+    const inningTeamNames = [
+      ls2.team1_name || match.team_a?.short_code || 'Innings 1',
+      ls2.team2_name || match.team_b?.short_code || 'Innings 2'
+    ];
 
     tabsEl.innerHTML = innings.map((_, i) => `
       <button class="innings-tab ${i === 0 ? 'active' : ''}"
-        onclick="switchInnings(${i})">${inningNames[i]} Innings ${i+1}</button>
+        onclick="switchInnings(${i})">${inningTeamNames[i]}</button>
     `).join('');
   }
 
@@ -1648,6 +1649,11 @@
       bodyEl.innerHTML = `<div class="empty-msg" style="padding:40px 20px"><span class="empty-emoji">⏳</span>This innings hasn't started yet.</div>`;
       return;
     }
+
+    // innings[0] → team1 bats, team2 bowls
+    // innings[1] → team2 bats, team1 bowls
+    const battingTeam = inningsIdx === 0 ? (ls.team1_name || match.team_a?.short_code) : (ls.team2_name || match.team_b?.short_code);
+    const bowlingTeam = inningsIdx === 0 ? (ls.team2_name || match.team_b?.short_code) : (ls.team1_name || match.team_a?.short_code);
 
     const batters = battingInnings[inningsIdx] || [];
     const bowlers = bowlingInnings[inningsIdx] || [];
@@ -1691,7 +1697,7 @@
     bodyEl.innerHTML = `
       <!-- BATTING -->
       <div class="scorecard-section">
-        <div class="scorecard-section-title">Batting</div>
+        <div class="scorecard-section-title">${battingTeam} — Batting</div>
         <div class="scorecard-wrap">
           <table class="sc-table">
             <thead><tr>
@@ -1706,7 +1712,7 @@
 
       <!-- BOWLING -->
       <div class="scorecard-section">
-        <div class="scorecard-section-title">Bowling</div>
+        <div class="scorecard-section-title">${bowlingTeam} — Bowling</div>
         <div class="scorecard-wrap">
           <table class="sc-table">
             <thead><tr>
