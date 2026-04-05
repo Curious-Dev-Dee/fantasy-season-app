@@ -1676,8 +1676,8 @@ const s2 = parseInt(String(score2Str || '0').split('/')[0]) || 0;
       const ta = (teamA || '').toLowerCase();
       const taCode = (teamACode || '').toLowerCase();
       const winnerIsTeamA = w.includes(taCode) || ta.split(' ')[0] === w.split(' ')[0] || w.split(' ')[0] === ta.split(' ')[0];
-      const s1 = parseInt((score1Str || '0').split('/')[0]) || 0;
-      const s2 = parseInt((score2Str || '0').split('/')[0]) || 0;
+      const s1 = parseInt(String(score1Str || '0').split('/')[0]) || 0;
+const s2 = parseInt(String(score2Str || '0').split('/')[0]) || 0;
       if (winnerIsTeamA) {
         return s1 >= s2 ? [teamA, teamB] : [teamB, teamA];
       } else {
