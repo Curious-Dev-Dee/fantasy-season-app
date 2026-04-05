@@ -1612,29 +1612,24 @@
 const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
     const tabsEl = document.getElementById('inningsTabs');
 
-    // Derive correct innings order using winner + scores (most reliable without edge fn change).
-    // ls.team1_score = scorecard[0] total (always innings 1), team1_name = registration order (unreliable).
-    // We use the winner name to find which team won, then check if they scored more (batted first) or less (chased).
-    function getInningsLabels(winner, score1Str, score2Str, teamA, teamACode, teamB) {
-      const w = (winner || '').toLowerCase().replace(/ won$/i, '').trim();
-      const ta = (teamA || '').toLowerCase();
-      const taCode = (teamACode || '').toLowerCase();
-      const winnerIsTeamA = w.includes(taCode) || ta.split(' ')[0] === w.split(' ')[0] || w.split(' ')[0] === ta.split(' ')[0];
-      const s1 = parseInt(String(score1Str || '0').split('/')[0]) || 0;
-const s2 = parseInt(String(score2Str || '0').split('/')[0]) || 0;
-      if (winnerIsTeamA) {
-        // team_a won: if s1 > s2 → team_a set target (batted 1st), else team_a chased (batted 2nd)
-        return s1 >= s2 ? [teamA, teamB] : [teamB, teamA];
-      } else {
-        // team_b won: if s1 > s2 → team_b set target (batted 1st), else team_b chased (batted 2nd)
-        return s1 >= s2 ? [teamB, teamA] : [teamA, teamB];
-      }
+    // Derive correct innings order using smart match status (runs vs wickets)
+    function getSmartInningsLabels(status, teamA, teamB) {
+      status = (status || '').toLowerCase();
+      const ta = teamA || 'Team A';
+      const tb = teamB || 'Team B';
+      const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
+      const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
+      
+      // Won by runs = winner batted first
+      if (status.includes('run')) return teamAMentioned ? [ta, tb] : [tb, ta];
+      // Won by wickets = winner batted second
+      if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
+      return [ta, tb]; // Fallback
     }
-    const [inn0Label, inn1Label] = getInningsLabels(
-      ls2.winner,
-      ls2.team1_score, ls2.team2_score,
+
+    const [inn0Label, inn1Label] = getSmartInningsLabels(
+      ls2.match_status,
       match.team_a?.name || match.team_a?.short_code,
-      match.team_a?.short_code,
       match.team_b?.name || match.team_b?.short_code
     );
     const inningTeamNames = [inn0Label, inn1Label];
@@ -1670,25 +1665,21 @@ const s2 = parseInt(String(score2Str || '0').split('/')[0]) || 0;
       return;
     }
 
-    // Use same winner+score logic to determine batting order reliably.
-    function getInningsLabelsR(winner, score1Str, score2Str, teamA, teamACode, teamB) {
-      const w = (winner || '').toLowerCase().replace(/ won$/i, '').trim();
-      const ta = (teamA || '').toLowerCase();
-      const taCode = (teamACode || '').toLowerCase();
-      const winnerIsTeamA = w.includes(taCode) || ta.split(' ')[0] === w.split(' ')[0] || w.split(' ')[0] === ta.split(' ')[0];
-      const s1 = parseInt(String(score1Str || '0').split('/')[0]) || 0;
-const s2 = parseInt(String(score2Str || '0').split('/')[0]) || 0;
-      if (winnerIsTeamA) {
-        return s1 >= s2 ? [teamA, teamB] : [teamB, teamA];
-      } else {
-        return s1 >= s2 ? [teamB, teamA] : [teamA, teamB];
-      }
+    function getSmartInningsLabelsR(status, teamA, teamB) {
+      status = (status || '').toLowerCase();
+      const ta = teamA || 'Team A';
+      const tb = teamB || 'Team B';
+      const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
+      const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
+      
+      if (status.includes('run')) return teamAMentioned ? [ta, tb] : [tb, ta];
+      if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
+      return [ta, tb];
     }
-    const [_inn0, _inn1] = getInningsLabelsR(
-      ls.winner,
-      ls.team1_score, ls.team2_score,
+
+    const [_inn0, _inn1] = getSmartInningsLabelsR(
+      ls.match_status,
       match.team_a?.name || match.team_a?.short_code,
-      match.team_a?.short_code,
       match.team_b?.name || match.team_b?.short_code
     );
     const battingTeam = inningsIdx === 0 ? _inn0 : _inn1;
