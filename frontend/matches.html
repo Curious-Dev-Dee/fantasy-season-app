@@ -1609,7 +1609,7 @@
       return;
     }
 
-    const innings = Array.isArray(ls2.batting) ? ls2.batting : [];
+const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
     const tabsEl = document.getElementById('inningsTabs');
 
     // Derive correct innings order using winner + scores (most reliable without edge fn change).
@@ -1620,8 +1620,8 @@
       const ta = (teamA || '').toLowerCase();
       const taCode = (teamACode || '').toLowerCase();
       const winnerIsTeamA = w.includes(taCode) || ta.split(' ')[0] === w.split(' ')[0] || w.split(' ')[0] === ta.split(' ')[0];
-      const s1 = parseInt((score1Str || '0').split('/')[0]) || 0;
-      const s2 = parseInt((score2Str || '0').split('/')[0]) || 0;
+      const s1 = parseInt(String(score1Str || '0').split('/')[0]) || 0;
+const s2 = parseInt(String(score2Str || '0').split('/')[0]) || 0;
       if (winnerIsTeamA) {
         // team_a won: if s1 > s2 → team_a set target (batted 1st), else team_a chased (batted 2nd)
         return s1 >= s2 ? [teamA, teamB] : [teamB, teamA];
