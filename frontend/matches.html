@@ -1403,8 +1403,11 @@
 
     const tbody = document.getElementById('ptBody');
     rows.forEach((row, i) => {
-      const nrrSign = (row.nrr || 0) >= 0 ? '+' : '';
-      const nrrClass = (row.nrr || 0) >= 0 ? 'pt-nrr-pos' : 'pt-nrr-neg';
+const nrrVal = row.nrr ?? row.net_run_rate ?? row.nrr_calc ?? 0;
+const nrrVal = parseFloat(row.nrr ?? row.net_run_rate ?? 0) || 0;
+const nrrSign = nrrVal >= 0 ? '+' : '';
+const nrrClass = nrrVal >= 0 ? 'pt-nrr-pos' : 'pt-nrr-neg';
+
       const tr = document.createElement('tr');
       if (i < 4) tr.className = 'qualifier-row';
       const logoUrl = getLogoUrl(row.team_logo);
@@ -1416,7 +1419,7 @@
         </div></td>
         <td>${row.played||0}</td><td>${row.won||0}</td><td>${row.lost||0}</td>
         <td>${row.no_result||0}</td>
-        <td class="${nrrClass}">${nrrSign}${(row.nrr||0).toFixed(3)}</td>
+<td class="${nrrClass}">${nrrSign}${nrrVal.toFixed(3)}</td>
         <td class="pt-pts">${row.points||0}</td>`;
       tbody.appendChild(tr);
     });
@@ -1610,15 +1613,31 @@
     const innings = Array.isArray(ls2.batting) ? ls2.batting : [];
     const tabsEl = document.getElementById('inningsTabs');
 
-    // Determine which team batted in each innings by looking at the scorecard
-    // ls2.team1_name = team that batted in innings 1, ls2.team2_name = team that batted in innings 2
-    // These come directly from CricAPI scorecard ordering, so we trust them.
-    // innings[0] = 1st batting team's batting card, innings[1] = 2nd batting team's batting card
-    const inningTeamNames = [
-      ls2.team1_name || match.team_a?.short_code || 'Innings 1',
-      ls2.team2_name || match.team_b?.short_code || 'Innings 2'
-    ];
+    // Derive innings label from the actual batting data.
+// CricAPI batting[i] rows have a "team" field that tells us which team batted.
+// This is more reliable than team1_name/team2_name which reflects registration order, not toss.
+function getInningsTeamName(battingArr) {
+  if (!battingArr || battingArr.length === 0) return null;
+  // CricAPI batting rows include a "team" property on the first batter
+  return battingArr[0]?.team || null;
+}
 
+const inn1Team = getInningsTeamName(innings[0]) || ls2.team1_name || 'Innings 1';
+const inn2Team = getInningsTeamName(innings[1]) || ls2.team2_name || 'Innings 2';
+
+// Derive innings label from the actual batting data rows (most reliable)
+// CricAPI batting rows have a "team" field — use that if available
+// Otherwise fall back to team1_name/team2_name
+function getInnTeamLabel(battingArr, fallback) {
+  if (Array.isArray(battingArr) && battingArr.length > 0) {
+    if (battingArr[0]?.team) return battingArr[0].team;
+  }
+  return fallback;
+}
+const inningTeamNames = [
+  getInnTeamLabel(innings[0], ls2.team1_name || match.team_a?.short_code || 'Innings 1'),
+  getInnTeamLabel(innings[1], ls2.team2_name || match.team_b?.short_code || 'Innings 2')
+];
     tabsEl.innerHTML = innings.map((_, i) => `
       <button class="innings-tab ${i === 0 ? 'active' : ''}"
         onclick="switchInnings(${i})">${inningTeamNames[i]}</button>
@@ -1650,10 +1669,18 @@
       return;
     }
 
-    // innings[0] → team1 bats, team2 bowls
-    // innings[1] → team2 bats, team1 bowls
-    const battingTeam = inningsIdx === 0 ? (ls.team1_name || match.team_a?.short_code) : (ls.team2_name || match.team_b?.short_code);
-    const bowlingTeam = inningsIdx === 0 ? (ls.team2_name || match.team_b?.short_code) : (ls.team1_name || match.team_a?.short_code);
+// Get batting team name directly from the batting data (most reliable source)
+function getTeamFromBatting(battingArr) {
+  if (!battingArr || battingArr.length === 0) return null;
+  return battingArr[0]?.team || null;
+}
+
+const inn0BatTeam = getTeamFromBatting(battingInnings[0]) || ls.team1_name || match.team_a?.short_code || 'Innings 1';
+const inn1BatTeam = getTeamFromBatting(battingInnings[1]) || ls.team2_name || match.team_b?.short_code || 'Innings 2';
+
+const allTeams = [inn0BatTeam, inn1BatTeam];
+const battingTeam = allTeams[inningsIdx] || 'Batting';
+const bowlingTeam = allTeams[inningsIdx === 0 ? 1 : 0] || 'Bowling';
 
     const batters = battingInnings[inningsIdx] || [];
     const bowlers = bowlingInnings[inningsIdx] || [];
