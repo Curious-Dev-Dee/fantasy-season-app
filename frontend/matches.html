@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Cricket Experts | Matches</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ── BASE (mirrors tokens.css for standalone use) ── */
+    :root {
+      --accent: #9AE000;
+      --accent-dim: rgba(154,224,0,0.09);
+      --accent-mid: rgba(154,224,0,0.18);
+      --accent-glow: rgba(154,224,0,0.28);
+      --bg-page: #020617;
+      --bg-card: #0d1625;
+      --bg-card-alt: #111e30;
+      --bg-elevated: #0d1a2d;
+      --bg-input: #020617;
+      --border-card: rgba(255,255,255,0.10);
+      --border: rgba(255,255,255,0.07);
+      --border-subtle: rgba(255,255,255,0.04);
+      --border-accent: rgba(154,224,0,0.20);
+      --text-primary: #f0f4f8;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+      --text-ghost: #334155;
+      --red: #ef4444;
+      --red-dim: rgba(239,68,68,0.10);
+      --orange: #fb923c;
+      --orange-dim: rgba(251,146,60,0.10);
+      --gold: #f59e0b;
+      --gold-dim: rgba(245,158,11,0.10);
+      --rank-color: #7cc4ff;
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --card-radius: 18px;
+      --card-radius-sm: 12px;
+      --btn-radius: 12px;
+      --pill-radius: 20px;
+      --transition: all 250ms cubic-bezier(0.4,0,0.2,1);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+      --app-max-width: 480px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: var(--app-max-width);
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px 10px;
+      background: rgba(2,6,23,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      min-height: 56px;
+    }
+
+    .header-logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      flex-shrink: 0;
+      animation: pulseGlow 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%,100% { box-shadow: 0 0 8px var(--accent-glow); }
+      50%      { box-shadow: 0 0 20px var(--accent-glow); }
+    }
+
+    .header-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    .live-pulse-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      padding: 4px 10px;
+      border-radius: var(--pill-radius);
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--red);
+      letter-spacing: 1.5px;
+    }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: livePulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* ── PAGE TABS (Live / Upcoming / Fixtures / Points / Stats) ── */
+    .page-tabs-wrap {
+      position: sticky;
+      top: 56px;
+      z-index: 400;
+      background: rgba(2,6,23,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .page-tabs-wrap::-webkit-scrollbar { display: none; }
+
+    .page-tabs {
+      display: flex;
+      gap: 0;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .page-tab {
+      flex-shrink: 0;
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .page-tab.active {
+      color: var(--accent);
+    }
+
+    .page-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px 2px 0 0;
+    }
+
+    /* ── TAB PANELS ── */
+    .tab-panel { display: none; padding: 16px; }
+    .tab-panel.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--card-radius);
+      border: 1px solid var(--border-card);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      pointer-events: none;
+    }
+
+    /* ── SECTION EYEBROW ── */
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin: 0 0 10px 2px;
+    }
+
+    /* ── MATCH CARD ── */
+    .match-card {
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .match-card:active { transform: scale(0.98); }
+
+    .match-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .match-number-label {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .match-status-badge {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: var(--pill-radius);
+    }
+
+    .badge-live {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: var(--red);
+      animation: badgePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .badge-upcoming {
+      background: rgba(154,224,0,0.09);
+      border: 1px solid rgba(154,224,0,0.2);
+      color: var(--accent);
+    }
+
+    .badge-completed {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-faint);
+    }
+
+    .badge-abandoned {
+      background: rgba(251,146,60,0.1);
+      border: 1px solid rgba(251,146,60,0.25);
+      color: var(--orange);
+    }
+
+    /* Teams row */
+    .teams-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .team-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .team-block.right { align-items: flex-end; }
+    .team-block.left  { align-items: flex-start; }
+
+    .team-logo-sm {
+      width: 40px; height: 40px;
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.08));
+      flex-shrink: 0;
+    }
+
+    .team-name-sm {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .team-score-sm {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dim);
+      line-height: 1;
+    }
+
+    .vs-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .vs-text {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-ghost);
+      letter-spacing: 1px;
+    }
+
+    .match-time-sm {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .match-venue-sm {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .match-result-text {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 8px;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+
+    /* Live card accent */
+    .card.live-match {
+      border-color: rgba(239,68,68,0.3);
+    }
+    .card.live-match::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--red), rgba(239,68,68,0.3));
+      border-radius: var(--card-radius) var(--card-radius) 0 0;
+    }
+
+    /* ── POINTS TABLE ── */
+    .points-table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .pt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .pt-table thead tr {
+      background: var(--bg-card-alt);
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .pt-table th {
+      padding: 10px 8px;
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .pt-table th:first-child { text-align: left; padding-left: 14px; }
+
+    .pt-table td {
+      padding: 11px 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      text-align: center;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-dim);
+      vertical-align: middle;
+    }
+
+    .pt-table td:first-child { text-align: left; padding-left: 14px; }
+    .pt-table tbody tr:last-child td { border-bottom: none; }
+
+    .pt-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    .pt-rank {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-faint);
+      width: 20px;
+      text-align: center;
+    }
+
+    .pt-team-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pt-logo {
+      width: 28px; height: 28px;
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+    }
+
+    .pt-team-name {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 0.3px;
+    }
+
+    .pt-pts {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .pt-nrr-pos { color: var(--accent); }
+    .pt-nrr-neg { color: var(--red); }
+
+    /* Top 4 qualifier highlight */
+    .qualifier-row td:first-child {
+      border-left: 2px solid var(--accent);
+    }
+
+    .playoff-divider td {
+      padding: 4px 0;
+      background: rgba(154,224,0,0.04);
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-align: left;
+      padding-left: 14px;
+      border-bottom: 1px solid rgba(154,224,0,0.15);
+    }
+
+    /* ── STATS ── */
+    .stats-section { margin-bottom: 18px; }
+
+    .stats-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .stats-icon {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .stats-icon.orange { background: rgba(251,146,60,0.1); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
+    .stats-icon.green  { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-accent); }
+    .stats-icon.blue   { background: rgba(124,196,255,0.1); color: var(--rank-color); border: 1px solid rgba(124,196,255,0.2); }
+    .stats-icon.gold   { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,158,11,0.2); }
+    .stats-icon.red    { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+
+    .stats-card-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-primary);
+    }
+
+    .stats-row-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 10px;
+    }
+
+    .stats-row-item:last-child { border-bottom: none; }
+
+    .stats-row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .stats-pos {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-ghost);
+      width: 18px;
+      flex-shrink: 0;
+    }
+
+    .stats-pos.gold-pos { color: var(--gold); }
+    .stats-pos.silver-pos { color: var(--rank-color); }
+    .stats-pos.bronze-pos { color: var(--orange); }
+
+    .stats-player-info { min-width: 0; }
+
+    .stats-player-name {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stats-player-team {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 1px;
+    }
+
+    .stats-value {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .stats-value-sub {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-family: var(--font-body);
+      display: block;
+      text-align: right;
+      margin-top: 1px;
+    }
+
+    /* ── LOADING / EMPTY ── */
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+      gap: 14px;
+    }
+
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2px solid var(--border-card);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-faint);
+      font-family: var(--font-body);
+      font-size: 13px;
+    }
+
+    .empty-emoji { font-size: 32px; display: block; margin-bottom: 10px; }
+
+    /* ── COMING SOON CHIP ── */
+    .coming-soon-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      color: var(--gold);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: var(--pill-radius);
+    }
+
+    /* ── NRR LABEL ── */
+    .pt-label-row {
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 10px 14px 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-card-alt);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pt-qualifier-dot {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 340px;
+    }
+
+    .toast {
+      background: var(--bg-card-alt);
+      color: var(--text-primary);
+      padding: 13px 18px;
+      border-radius: var(--btn-radius);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      border-left: 4px solid var(--accent);
+      box-shadow: var(--shadow-lg);
+      animation: toastIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-12px) scale(0.92); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .toast.fade-out { transition: opacity 0.3s ease; opacity: 0 !important; }
+
+    /* ── HIDDEN ── */
+    .hidden { display: none !important; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--app-max-width);
+      background: rgba(13,22,37,0.97);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-card);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+      z-index: 800;
+    }
+
+    .bottom-nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+      color: var(--text-faint);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 10px;
+      transition: var(--transition);
+    }
+
+    .bottom-nav a i { font-size: 18px; }
+    .bottom-nav a.active { color: var(--accent); }
+    .bottom-nav a.active i { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+    /* ── FIXTURES GROUP ── */
+    .fixture-month-label {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 14px 2px 6px;
+    }
+
+    /* ── IPL BADGE ── */
+    .ipl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, rgba(0,102,255,0.15), rgba(255,165,0,0.15));
+      border: 1px solid rgba(255,165,0,0.25);
+      padding: 3px 10px;
+      border-radius: var(--pill-radius);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+    }
+
+    /* ── FORM MINI ── */
+    .form-mini {
+      display: flex;
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    .form-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .form-dot.W { background: var(--accent); }
+    .form-dot.L { background: var(--red); }
+    .form-dot.N { background: var(--text-ghost); }
+
+    /* ── STATS COMING SOON ── */
+    .stats-coming-soon {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .coming-soon-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .coming-soon-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .coming-soon-sub {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-faint);
+      line-height: 1.5;
+    }
+
+    /* page fade */
+    body { animation: pageFadeIn 0.18s ease forwards; }
+    @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-logo-dot"></div>
+    <h1 class="header-title">IPL 2026</h1>
+    <div class="ipl-badge">🏏 T20</div>
+  </header>
+
+  <!-- PAGE TABS -->
+  <div class="page-tabs-wrap">
+    <div class="page-tabs">
+      <button class="page-tab active" data-tab="live">
+        <span class="live-dot" style="display:inline-block;width:6px;height:6px;background:var(--red);border-radius:50%;margin-right:5px;animation:livePulse 1.2s ease-in-out infinite;vertical-align:middle;"></span>Live
+      </button>
+      <button class="page-tab" data-tab="upcoming">Upcoming</button>
+      <button class="page-tab" data-tab="fixtures">Fixtures</button>
+      <button class="page-tab" data-tab="points">Points</button>
+      <button class="page-tab" data-tab="stats">Stats</button>
+    </div>
+  </div>
+
+  <!-- ══ TAB: LIVE ══ -->
+  <div class="tab-panel active" id="tab-live">
+    <div id="liveContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Checking Live Matches...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: UPCOMING ══ -->
+  <div class="tab-panel" id="tab-upcoming">
+    <div id="upcomingContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading Upcoming...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: FIXTURES ══ -->
+  <div class="tab-panel" id="tab-fixtures">
+    <div id="fixturesContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading Fixtures...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: POINTS TABLE ══ -->
+  <div class="tab-panel" id="tab-points">
+    <div id="pointsContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading Points Table...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: STATS ══ -->
+  <div class="tab-panel" id="tab-stats">
+    <div id="statsContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading Stats...</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .app-container -->
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="experts-dugout.html"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
+  <a href="matches.html" class="active"><i class="fas fa-cricket-bat-ball"></i><span>Matches</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+  <a href="stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+</nav>
+
+<script type="module">
+  // ─── CONFIG ─────────────────────────────────────────
+  const SUPABASE_URL     = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+  const SUPABASE_ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+  // ────────────────────────────────────────────────────
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // ── Toast ──
+  window.showToast = (msg, type = 'success') => {
+    const c = document.getElementById('toastContainer');
+    if (!c) return;
+    const t = document.createElement('div');
+    t.className   = `toast ${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => {
+      t.classList.add('fade-out');
+      t.addEventListener('transitionend', () => t.remove(), { once: true });
+    }, 3000);
+  };
+
+  // ── Tab switching ──
+  const panels = document.querySelectorAll('.tab-panel');
+  const tabs   = document.querySelectorAll('.page-tab');
+  let loadedTabs = new Set();
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const id = tab.dataset.tab;
+      document.getElementById(`tab-${id}`)?.classList.add('active');
+      if (!loadedTabs.has(id)) {
+        loadedTabs.add(id);
+        loadTabData(id);
+      }
+    });
+  });
+
+  // Load live tab on start
+  loadedTabs.add('live');
+  loadTabData('live');
+
+  // ── Route to correct loader ──
+  function loadTabData(tab) {
+    if (tab === 'live')     loadLive();
+    if (tab === 'upcoming') loadUpcoming();
+    if (tab === 'fixtures') loadFixtures();
+    if (tab === 'points')   loadPointsTable();
+    if (tab === 'stats')    loadStats();
+  }
+
+  // ════════════════════════════════════════════════════
+  //  HELPERS
+  // ════════════════════════════════════════════════════
+
+  function getLogoUrl(path) {
+    if (!path) return null;
+    const { data } = sb.storage.from('team-logos').getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
+  function formatMatchTime(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    return d.toLocaleString('en-IN', {
+      weekday: 'short', day: 'numeric', month: 'short',
+      hour: '2-digit', minute: '2-digit', hour12: true,
+      timeZone: 'Asia/Kolkata'
+    }) + ' IST';
+  }
+
+  function formatDateGroup(isoStr) {
+    if (!isoStr) return 'TBD';
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('en-IN', {
+      month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata'
+    });
+  }
+
+  function formatShortDate(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata'
+    });
+  }
+
+  function formatShortTime(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    return d.toLocaleTimeString('en-IN', {
+      hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata'
+    });
+  }
+
+  function statusBadge(status) {
+    if (status === 'locked')    return `<span class="match-status-badge badge-live">● LIVE</span>`;
+    if (status === 'upcoming')  return `<span class="match-status-badge badge-upcoming">UPCOMING</span>`;
+    if (status === 'completed') return `<span class="match-status-badge badge-completed">DONE</span>`;
+    if (status === 'abandoned') return `<span class="match-status-badge badge-abandoned">NO RESULT</span>`;
+    return `<span class="match-status-badge badge-completed">${status?.toUpperCase() || ''}</span>`;
+  }
+
+  function buildMatchCard(m, showScore = false) {
+    const logoA = getLogoUrl(m.team_a_logo);
+    const logoB = getLogoUrl(m.team_b_logo);
+    const isLive = m.status === 'locked';
+    const isCompleted = m.status === 'completed';
+
+    let liveScore = '';
+    if (m.live_scores && (isLive || isCompleted)) {
+      const ls = m.live_scores;
+      const s1 = ls.team1_score != null ? `${ls.team1_score}/${ls.team1_wickets || 0} (${ls.team1_overs || 0})` : '';
+      const s2 = ls.team2_score != null ? `${ls.team2_score}/${ls.team2_wickets || 0} (${ls.team2_overs || 0})` : '';
+      liveScore = `<div class="team-score-sm">${s1}</div>`;
+      // Attach scores to teams
+    }
+
+    const teamAScore = m.live_scores?.team1_score != null
+      ? `<div class="team-score-sm">${m.live_scores.team1_score}/${m.live_scores.team1_wickets||0} <span style="font-size:12px;color:var(--text-faint)">(${m.live_scores.team1_overs||0})</span></div>` : '';
+    const teamBScore = m.live_scores?.team2_score != null
+      ? `<div class="team-score-sm">${m.live_scores.team2_score}/${m.live_scores.team2_wickets||0} <span style="font-size:12px;color:var(--text-faint)">(${m.live_scores.team2_overs||0})</span></div>` : '';
+
+    const resultLine = (isCompleted || isLive) && m.live_scores?.winner
+      ? `<div class="match-result-text">${m.live_scores.winner} won</div>` : '';
+
+    const timeOrVenue = isLive
+      ? `<div class="match-venue-sm"><i class="fas fa-location-dot" style="color:var(--accent);font-size:10px"></i> ${m.venue || 'TBD'}</div>`
+      : `<div class="match-venue-sm"><i class="fas fa-clock" style="font-size:10px;color:var(--text-faint)"></i> ${formatShortDate(m.actual_start_time)} · ${formatShortTime(m.actual_start_time)}<span style="color:var(--text-ghost);margin-left:4px">IST</span></div>
+         <div class="match-venue-sm" style="margin-top:3px"><i class="fas fa-location-dot" style="font-size:10px;color:var(--text-faint)"></i> ${m.venue || 'TBD'}</div>`;
+
+    return `
+      <div class="card match-card ${isLive ? 'live-match' : ''}">
+        <div class="match-card-top">
+          <span class="match-number-label">Match ${m.match_number || '—'}</span>
+          ${statusBadge(m.status)}
+        </div>
+        <div class="teams-row">
+          <div class="team-block left">
+            ${logoA ? `<div class="team-logo-sm" style="background-image:url('${logoA}')"></div>` : ''}
+            <div class="team-name-sm">${m.team_a_code || m.team_a || '—'}</div>
+            ${teamAScore}
+          </div>
+          <div class="vs-center">
+            <span class="vs-text">VS</span>
+          </div>
+          <div class="team-block right">
+            ${logoB ? `<div class="team-logo-sm" style="background-image:url('${logoB}')"></div>` : ''}
+            <div class="team-name-sm">${m.team_b_code || m.team_b || '—'}</div>
+            ${teamBScore}
+          </div>
+        </div>
+        ${resultLine}
+        ${timeOrVenue}
+      </div>`;
+  }
+
+  // ════════════════════════════════════════════════════
+  //  LIVE TAB
+  // ════════════════════════════════════════════════════
+  async function loadLive() {
+    const el = document.getElementById('liveContent');
+
+    const { data: liveMatches, error } = await sb
+      .from('matches')
+      .select('*, live_scores(*)')
+      .eq('status', 'locked')
+      .order('match_number');
+
+    if (error) {
+      el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load live matches.</div>`;
+      return;
+    }
+
+    if (!liveMatches || liveMatches.length === 0) {
+      // Show the most recently completed match
+      const { data: last } = await sb
+        .from('matches')
+        .select('*, live_scores(*)')
+        .eq('status', 'completed')
+        .order('match_number', { ascending: false })
+        .limit(1);
+
+      el.innerHTML = `
+        <div class="empty-msg" style="padding:28px 20px 16px">
+          <span class="empty-emoji">🏏</span>
+          <strong style="font-family:var(--font-display);font-size:18px;font-weight:900;text-transform:uppercase;display:block;margin-bottom:6px;color:var(--text-dim)">No Live Matches</strong>
+          <span style="font-size:12px">Check the Upcoming tab for next match</span>
+        </div>
+        ${last?.[0] ? `<p class="section-label" style="padding:0 2px 8px">Last Result</p>${buildMatchCard(last[0])}` : ''}`;
+      return;
+    }
+
+    el.innerHTML = `
+      <p class="section-label">${liveMatches.length} Live Now</p>
+      ${liveMatches.map(m => buildMatchCard(m)).join('')}`;
+
+    // Realtime subscription
+    sb.channel('live-matches-channel')
+      .on('postgres_changes', { event: '*', table: 'live_scores' }, () => {
+        loadLive();
+      })
+      .subscribe();
+  }
+
+  // ════════════════════════════════════════════════════
+  //  UPCOMING TAB
+  // ════════════════════════════════════════════════════
+  async function loadUpcoming() {
+    const el = document.getElementById('upcomingContent');
+
+    const { data: matches, error } = await sb
+      .from('matches')
+      .select('*')
+      .eq('status', 'upcoming')
+      .order('match_number')
+      .limit(10);
+
+    if (error || !matches?.length) {
+      el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">📅</span>No upcoming matches scheduled yet.</div>`;
+      return;
+    }
+
+    const next = matches[0];
+    const rest = matches.slice(1);
+
+    el.innerHTML = `
+      <p class="section-label">Next Match</p>
+      <div class="card" style="padding:14px 16px;border-color:rgba(154,224,0,0.25);margin-bottom:14px">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),rgba(154,224,0,0.3));border-radius:18px 18px 0 0"></div>
+        <div class="match-card-top">
+          <span class="match-number-label">Match ${next.match_number || '—'}</span>
+          ${statusBadge(next.status)}
+        </div>
+        <div class="teams-row">
+          <div class="team-block left">
+            ${getLogoUrl(next.team_a_logo) ? `<div class="team-logo-sm" style="background-image:url('${getLogoUrl(next.team_a_logo)}');width:48px;height:48px"></div>` : ''}
+            <div class="team-name-sm" style="font-size:26px">${next.team_a_code || next.team_a || '—'}</div>
+          </div>
+          <div class="vs-center">
+            <span class="vs-text">VS</span>
+            <span class="match-time-sm" id="nextMatchCountdown"></span>
+          </div>
+          <div class="team-block right">
+            ${getLogoUrl(next.team_b_logo) ? `<div class="team-logo-sm" style="background-image:url('${getLogoUrl(next.team_b_logo)}');width:48px;height:48px"></div>` : ''}
+            <div class="team-name-sm" style="font-size:26px">${next.team_b_code || next.team_b || '—'}</div>
+          </div>
+        </div>
+        <div class="match-venue-sm" style="margin-top:10px"><i class="fas fa-clock" style="font-size:10px;color:var(--accent)"></i> ${formatMatchTime(next.actual_start_time)}</div>
+        <div class="match-venue-sm" style="margin-top:4px"><i class="fas fa-location-dot" style="font-size:10px;color:var(--text-faint)"></i> ${next.venue || 'TBD'}</div>
+      </div>
+      ${rest.length ? `<p class="section-label">Coming Up</p>${rest.map(m => buildMatchCard(m)).join('')}` : ''}`;
+
+    // Countdown for next match
+    if (next.actual_start_time) {
+      const el2 = document.getElementById('nextMatchCountdown');
+      const tick = () => {
+        const dist = new Date(next.actual_start_time).getTime() - Date.now();
+        if (!el2) return;
+        if (dist <= 0) { el2.textContent = 'Starting soon'; return; }
+        const d = Math.floor(dist / 86400000);
+        const h = Math.floor((dist % 86400000) / 3600000);
+        const m2 = Math.floor((dist % 3600000) / 60000);
+        const s = Math.floor((dist % 60000) / 1000);
+        el2.textContent = d > 0 ? `${d}d ${h}h ${m2}m` : `${h}h ${m2}m ${s}s`;
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+  }
+
+  // ════════════════════════════════════════════════════
+  //  FIXTURES TAB
+  // ════════════════════════════════════════════════════
+  async function loadFixtures() {
+    const el = document.getElementById('fixturesContent');
+
+    const { data: matches, error } = await sb
+      .from('matches')
+      .select('*, live_scores(winner, team1_score, team1_wickets, team1_overs, team2_score, team2_wickets, team2_overs)')
+      .order('match_number');
+
+    if (error || !matches?.length) {
+      el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">📋</span>Fixtures not loaded yet.</div>`;
+      return;
+    }
+
+    // Group by month
+    const groups = {};
+    matches.forEach(m => {
+      const key = formatDateGroup(m.actual_start_time) || 'TBD';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(m);
+    });
+
+    let html = '';
+    Object.entries(groups).forEach(([month, ms]) => {
+      html += `<p class="fixture-month-label">${month}</p>`;
+      ms.forEach(m => { html += buildMatchCard(m); });
+    });
+
+    el.innerHTML = html;
+  }
+
+  // ════════════════════════════════════════════════════
+  //  POINTS TABLE TAB
+  // ════════════════════════════════════════════════════
+  async function loadPointsTable() {
+    const el = document.getElementById('pointsContent');
+
+    // Try fetching from ipl_points_table view or table
+    const { data: rows, error } = await sb
+      .from('ipl_points_table')
+      .select('*')
+      .order('position', { ascending: true });
+
+    if (error || !rows?.length) {
+      // Show placeholder — points table will be added manually later
+      el.innerHTML = `
+        <div style="background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius);overflow:hidden;margin-bottom:10px">
+          <div class="pt-label-row">
+            <div class="pt-qualifier-dot"></div>
+            Top 4 qualify for playoffs
+          </div>
+          <div class="loading-state" style="padding:40px 20px">
+            <span style="font-size:36px;display:block;margin-bottom:12px">🏆</span>
+            <div class="coming-soon-title" style="font-family:var(--font-display);font-size:18px;font-weight:900;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Points Table Coming</div>
+            <div style="font-family:var(--font-body);font-size:13px;color:var(--text-faint);text-align:center;line-height:1.5">The table will update automatically<br>as IPL 2026 results come in.</div>
+          </div>
+        </div>
+        <div class="card" style="padding:14px 16px">
+          <p style="font-family:var(--font-display);font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px">IPL 2026 Teams</p>
+          ${renderTeamList()}
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="points-table-wrap">
+        <div class="pt-label-row"><div class="pt-qualifier-dot"></div>Top 4 qualify for playoffs</div>
+        <table class="pt-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th style="text-align:left">Team</th>
+              <th>P</th>
+              <th>W</th>
+              <th>L</th>
+              <th>NR</th>
+              <th>NRR</th>
+              <th>PTS</th>
+            </tr>
+          </thead>
+          <tbody id="ptTableBody"></tbody>
+        </table>
+      </div>`;
+
+    const tbody = document.getElementById('ptTableBody');
+    rows.forEach((row, i) => {
+      const nrrClass = (row.nrr || 0) >= 0 ? 'pt-nrr-pos' : 'pt-nrr-neg';
+      const nrrSign  = (row.nrr || 0) >= 0 ? '+' : '';
+      const isQual   = i < 4;
+      const tr = document.createElement('tr');
+      if (isQual) tr.className = 'qualifier-row';
+      const logoUrl = getLogoUrl(row.team_logo);
+      tr.innerHTML = `
+        <td><span class="pt-rank">${row.position || i+1}</span></td>
+        <td>
+          <div class="pt-team-cell">
+            ${logoUrl ? `<div class="pt-logo" style="background-image:url('${logoUrl}')"></div>` : ''}
+            <span class="pt-team-name">${row.team_code || row.team_name}</span>
+          </div>
+        </td>
+        <td>${row.played || 0}</td>
+        <td>${row.won || 0}</td>
+        <td>${row.lost || 0}</td>
+        <td>${row.no_result || 0}</td>
+        <td class="${nrrClass}">${nrrSign}${(row.nrr || 0).toFixed(3)}</td>
+        <td class="pt-pts">${row.points || 0}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderTeamList() {
+    const teams = [
+      'Mumbai Indians','Chennai Super Kings','Royal Challengers Bengaluru',
+      'Kolkata Knight Riders','Delhi Capitals','Rajasthan Royals',
+      'Sunrisers Hyderabad','Punjab Kings','Lucknow Super Giants','Gujarat Titans'
+    ];
+    return teams.map((t, i) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-subtle)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--text-ghost);width:18px">${i+1}</span>
+          <span style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--text-dim)">${t}</span>
+        </div>
+        <span class="coming-soon-chip"><i class="fas fa-clock"></i> Soon</span>
+      </div>`).join('');
+  }
+
+  // ════════════════════════════════════════════════════
+  //  STATS TAB
+  // ════════════════════════════════════════════════════
+  async function loadStats() {
+    const el = document.getElementById('statsContent');
+
+    // Try fetching from ipl_player_stats
+    const { data: stats, error } = await sb
+      .from('ipl_player_stats')
+      .select('*')
+      .limit(100);
+
+    if (error || !stats?.length) {
+      // Show placeholder UI with sections
+      el.innerHTML = `
+        ${buildStatsPlaceholder('bat',  'orange', 'fa-baseball-bat-ball', 'Most Runs')}
+        ${buildStatsPlaceholder('bowl', 'green',  'fa-circle-dot',        'Most Wickets')}
+        ${buildStatsPlaceholder('field','blue',   'fa-hands-catching',    'Most Catches & Run Outs')}
+        ${buildStatsPlaceholder('mom',  'gold',   'fa-star',              'Most Player of the Match')}`;
+      return;
+    }
+
+    // Sort and build sections
+    const byRuns     = [...stats].sort((a,b) => (b.runs||0)-(a.runs||0)).slice(0,5);
+    const byWickets  = [...stats].sort((a,b) => (b.wickets||0)-(a.wickets||0)).slice(0,5);
+    const byFielding = [...stats].sort((a,b) => ((b.catches||0)+(b.runouts||0))-((a.catches||0)+(a.runouts||0))).slice(0,5);
+    const byMom      = [...stats].sort((a,b) => (b.mom_count||0)-(a.mom_count||0)).slice(0,5);
+
+    el.innerHTML = `
+      ${buildStatsSection('bat',  'orange','fa-baseball-bat-ball','Most Runs',     byRuns,    r => r.runs,   r => `${r.innings||0} inns · SR ${r.strike_rate||'—'}`)}
+      ${buildStatsSection('bowl', 'green', 'fa-circle-dot',       'Most Wickets',  byWickets, r => r.wickets,r => `${r.overs||0} ov · Eco ${r.economy||'—'}`)}
+      ${buildStatsSection('field','blue',  'fa-hands-catching',   'Most Dismissals',byFielding,r => (r.catches||0)+(r.runouts||0), r => `${r.catches||0} ct · ${r.runouts||0} ro`)}
+      ${buildStatsSection('mom',  'gold',  'fa-star',             'Player of Match',byMom,     r => r.mom_count, r => r.team_code||'')}`;
+  }
+
+  function buildStatsSection(id, iconClass, icon, title, rows, valFn, subFn) {
+    const items = rows.map((r, i) => {
+      const posClass = i === 0 ? 'gold-pos' : i === 1 ? 'silver-pos' : i === 2 ? 'bronze-pos' : '';
+      return `
+        <div class="stats-row-item">
+          <div class="stats-row-left">
+            <span class="stats-pos ${posClass}">${i+1}</span>
+            <div class="stats-player-info">
+              <div class="stats-player-name">${r.player_name || r.name || '—'}</div>
+              <div class="stats-player-team">${subFn(r)}</div>
+            </div>
+          </div>
+          <div>
+            <div class="stats-value">${valFn(r) ?? '—'}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="card stats-section" style="margin-bottom:10px">
+        <div class="stats-card-header">
+          <div class="stats-icon ${iconClass}"><i class="fas ${icon}"></i></div>
+          <span class="stats-card-title">${title}</span>
+        </div>
+        ${items || '<div class="empty-msg" style="padding:20px">No data yet</div>'}
+      </div>`;
+  }
+
+  function buildStatsPlaceholder(id, iconClass, icon, title) {
+    const placeholders = [1,2,3,4,5].map(i => `
+      <div class="stats-row-item">
+        <div class="stats-row-left">
+          <span class="stats-pos" style="color:var(--text-ghost)">${i}</span>
+          <div class="stats-player-info">
+            <div style="height:14px;width:${100+i*10}px;background:linear-gradient(90deg,var(--border-card) 25%,var(--border) 50%,var(--border-card) 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite;border-radius:4px"></div>
+            <div style="height:10px;width:70px;background:linear-gradient(90deg,var(--border-subtle) 25%,var(--border-card) 50%,var(--border-subtle) 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite;border-radius:4px;margin-top:4px"></div>
+          </div>
+        </div>
+        <div style="height:24px;width:36px;background:linear-gradient(90deg,var(--border-card) 25%,var(--border) 50%,var(--border-card) 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite;border-radius:4px"></div>
+      </div>`).join('');
+
+    return `
+      <div class="card stats-section" style="margin-bottom:10px">
+        <div class="stats-card-header">
+          <div class="stats-icon ${iconClass}"><i class="fas ${icon}"></i></div>
+          <span class="stats-card-title">${title}</span>
+          <span class="coming-soon-chip" style="margin-left:auto"><i class="fas fa-clock"></i> Soon</span>
+        </div>
+        ${placeholders}
+      </div>`;
+  }
+
+  // Add shimmer keyframe for placeholders
+  const style = document.createElement('style');
+  style.textContent = `@keyframes skShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
