@@ -1525,11 +1525,42 @@
     if (dy > 80) closeModal();
   }, { passive: true });
 
-  function closeModal() {
+function closeModal() {
     modal.classList.remove('open');
     document.body.style.overflow = '';
   }
 
+  // Master Innings Sorter: Uses Overs first, then Match Status as backup
+  function getSmartInningsLabels(ls, teamA, teamB) {
+    const ta = teamA || 'Team A';
+    const tb = teamB || 'Team B';
+    const status = (ls.match_status || '').toLowerCase();
+    
+    const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
+    const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
+
+    // 1. FINISHED MATCHES
+    if (status.includes('run')) return teamAMentioned ? [ta, tb] : [tb, ta];
+    if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
+
+    // 2. LIVE MATCHES (Using Overs Math!)
+    const oversA = ls.team1_overs || 0;
+    const oversB = ls.team2_overs || 0;
+
+    if (oversA > 0 && oversB === 0) return [ta, tb]; // Team A is batting first
+    if (oversB > 0 && oversA === 0) return [tb, ta]; // Team B is batting first
+
+    // 3. CHASING (Second Innings)
+    if (status.includes('need') || status.includes('require') || status.includes('target')) {
+      return teamAMentioned ? [tb, ta] : [ta, tb]; 
+    }
+
+    // Fallbacks
+    if (status.includes('bat')) return teamAMentioned ? [ta, tb] : [tb, ta];
+    if (status.includes('bowl') || status.includes('field')) return teamAMentioned ? [tb, ta] : [ta, tb];
+
+    return [ta, tb];
+  }
   window.openScoreboard = async function(matchId) {
     if (!matchId || matchId === 'undefined') return;
     modal.classList.add('open');
@@ -1612,23 +1643,9 @@
 const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
     const tabsEl = document.getElementById('inningsTabs');
 
-    // Derive correct innings order using smart match status (runs vs wickets)
-    function getSmartInningsLabels(status, teamA, teamB) {
-      status = (status || '').toLowerCase();
-      const ta = teamA || 'Team A';
-      const tb = teamB || 'Team B';
-      const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
-      const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
-      
-      // Won by runs = winner batted first
-      if (status.includes('run')) return teamAMentioned ? [ta, tb] : [tb, ta];
-      // Won by wickets = winner batted second
-      if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
-      return [ta, tb]; // Fallback
-    }
-
+// Call the master sorter using the full live_scores object
     const [inn0Label, inn1Label] = getSmartInningsLabels(
-      ls2.match_status,
+      ls2,
       match.team_a?.name || match.team_a?.short_code,
       match.team_b?.name || match.team_b?.short_code
     );
@@ -1665,20 +1682,9 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
       return;
     }
 
-    function getSmartInningsLabelsR(status, teamA, teamB) {
-      status = (status || '').toLowerCase();
-      const ta = teamA || 'Team A';
-      const tb = teamB || 'Team B';
-      const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
-      const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
-      
-      if (status.includes('run')) return teamAMentioned ? [ta, tb] : [tb, ta];
-      if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
-      return [ta, tb];
-    }
-
-    const [_inn0, _inn1] = getSmartInningsLabelsR(
-      ls.match_status,
+// Call the master sorter using the full live_scores object
+    const [_inn0, _inn1] = getSmartInningsLabels(
+      ls,
       match.team_a?.name || match.team_a?.short_code,
       match.team_b?.name || match.team_b?.short_code
     );
@@ -1687,6 +1693,18 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
 
     const batters = battingInnings[inningsIdx] || [];
     const bowlers = bowlingInnings[inningsIdx] || [];
+
+    // Ball Zero Safety Check!
+    if (batters.length === 0 && bowlers.length === 0) {
+      bodyEl.innerHTML = `
+        <div class="empty-msg" style="padding:60px 20px">
+          <span class="empty-emoji">⏳</span>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:6px">WAITING FOR FIRST BALL</div>
+          <div style="font-size:12px;color:var(--text-faint)">The toss is complete or an innings break is happening.<br>The scorecard will automatically appear once play begins.</div>
+        </div>
+      `;
+      return;
+    }
 
     // Batting table
     const battingRows = batters
