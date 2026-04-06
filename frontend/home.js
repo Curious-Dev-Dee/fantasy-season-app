@@ -387,44 +387,58 @@ async function initPushNotifications(userId) {
 
         window.OneSignalDeferred.push(async (OneSignal) => {
             await OneSignal.init({
-                appId:             "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
-                serviceWorkerPath: "/onesignalsdkworker.js",
+                appId:              "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
+                serviceWorkerPath:  "/onesignalsdkworker.js",
                 serviceWorkerParam: { scope: "/" },
-                notifyButton:      { enable: false },
+                notifyButton:       { enable: false },
                 promptOptions: {
                     slidedown: {
                         prompts: [{
                             type:       "push",
                             autoPrompt: true,
                             text: {
-                                actionMessage: "Get notified when your team locks, points update and match alerts.",
+                                actionMessage: "Allow notifications to get match lock alerts and points updates.",
                                 acceptButton:  "Allow",
                                 cancelButton:  "Later",
                             },
-                            delay: { pageViews: 1, timeDelay: 3 },
+                            delay: { pageViews: 1, timeDelay: 5 },
                         }],
                     },
                 },
             });
 
+            const subscription = OneSignal.User.PushSubscription;
+
+            // ── CASE 1: Already subscribed — force save if missing in DB ──
+            if (subscription.isSubscribed && subscription.id) {
+                const existingId = existingProfile?.onesignal_id;
+                if (!existingId || existingId !== subscription.id) {
+                    const { error } = await supabase
+                        .from("user_profiles")
+                        .update({ onesignal_id: subscription.id })
+                        .eq("user_id", userId);
+                    if (error) console.warn("Force-save onesignal_id failed:", error.message);
+                    else console.log("OneSignal ID force-saved:", subscription.id);
+                }
+            }
+
+            // ── CASE 2: Not subscribed — show prompt ──
+            if (!subscription.isSubscribed) {
+                await OneSignal.Slidedown.promptPush();
+            }
+
+            // ── CASE 3: User subscribes now — save immediately ──
             OneSignal.User.PushSubscription.addEventListener("change", async (event) => {
                 if (!event.current.isSubscribed) return;
                 const playerId = event.current.id;
                 if (!playerId) return;
-                await supabase.from("user_profiles")
+                const { error } = await supabase
+                    .from("user_profiles")
                     .update({ onesignal_id: playerId })
                     .eq("user_id", userId);
+                if (error) console.warn("Save on subscribe failed:", error.message);
+                else console.log("OneSignal ID saved on subscribe:", playerId);
             });
-
-            const subscription = OneSignal.User.PushSubscription;
-            if (subscription.isSubscribed && subscription.id) {
-                const existing = existingProfile?.onesignal_id;
-                if (!existing || existing !== subscription.id) {
-                    await supabase.from("user_profiles")
-                        .update({ onesignal_id: subscription.id })
-                        .eq("user_id", userId);
-                }
-            }
         });
 
     } catch (err) {

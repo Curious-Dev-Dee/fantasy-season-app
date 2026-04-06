@@ -5,27 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin - Playing XI</title>
   <style>
-    body { font-family: 'DM Sans', sans-serif; background: #020617; color: white; padding: 16px; margin: 0; padding-bottom: 100px; }
-    h1 { font-size: 18px; color: #9AE000; text-align: center; margin-bottom: 20px; line-height: 1.4; }
+    body { font-family: 'DM Sans', sans-serif; background: #020617; color: white; padding: 16px; margin: 0; padding-bottom: 120px; }
+    h1 { font-size: 18px; color: #9AE000; text-align: center; margin-bottom: 12px; line-height: 1.4; }
+
+    /* Counter bar */
+    #counterBar { display: flex; justify-content: center; gap: 16px; margin-bottom: 14px; font-size: 13px; font-weight: 700; }
+    #counterBar span { padding: 6px 14px; border-radius: 20px; }
+    #countPlaying { background: #10b981; color: #000; }
+    #countImpact  { background: #3b82f6; color: #fff; }
+    #countOut     { background: #ef4444; color: #fff; }
+
+    /* Search box */
+    #searchBox { width: 100%; box-sizing: border-box; padding: 12px 16px; border-radius: 10px; border: 1px solid #1e293b; background: #0d1625; color: white; font-size: 15px; margin-bottom: 14px; outline: none; }
+    #searchBox::placeholder { color: #64748b; }
+    #searchBox:focus { border-color: #9AE000; }
+
+    /* No results */
+    #noResults { display: none; text-align: center; color: #64748b; font-size: 14px; padding: 20px 0; }
+
     .player-row { display: flex; flex-direction: column; background: #0d1625; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #1e293b; gap: 12px; }
     .player-name { font-weight: bold; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
     .btn-group { display: flex; gap: 8px; }
     .btn { flex: 1; padding: 14px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: 900; color: white; opacity: 0.25; transition: all 0.2s; font-size: 13px; text-transform: uppercase; }
-    
-    /* When active, make it fully solid and pop out */
     .btn.active { opacity: 1; transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-    
     .btn.playing { background: #10b981; }
-    .btn.impact { background: #3b82f6; }
-    .btn.out { background: #ef4444; }
-    
-    /* Sticky save button at the bottom for mobile */
-    #saveBtn { position: fixed; bottom: 20px; left: 5%; width: 90%; padding: 18px; background: #9AE000; color: #000; font-size: 18px; font-weight: 900; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 20px rgba(154, 224, 0, 0.4); text-transform: uppercase; }
+    .btn.impact  { background: #3b82f6; }
+    .btn.out     { background: #ef4444; }
+
+    #saveBtn { position: fixed; bottom: 20px; left: 5%; width: 90%; padding: 18px; background: #9AE000; color: #000; font-size: 18px; font-weight: 900; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 20px rgba(154,224,0,0.4); text-transform: uppercase; }
   </style>
 </head>
 <body>
   <h1 id="matchTitle">Loading Match...</h1>
+
+  <!-- Live counter -->
+  <div id="counterBar">
+    <span id="countPlaying">✅ Playing: 0</span>
+    <span id="countImpact">⚡ Impact: 0</span>
+    <span id="countOut">❌ Out: 0</span>
+  </div>
+
+  <!-- Search -->
+  <input type="text" id="searchBox" placeholder="Search player name..." />
+
   <div id="playerList"></div>
+  <div id="noResults">No players match your search.</div>
+
   <button id="saveBtn">Save Lineups</button>
 
   <script type="module" src="admin-xi.js"></script>

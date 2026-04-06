@@ -1,14 +1,19 @@
 import { supabase } from "./supabase.js";
 
-let currentMatchId = null;
-let playerStatuses = {}; 
-let cachedPlayers = []; // NEW: Stores players so we don't re-download on every click
+let currentMatchId    = null;
+let playerStatuses    = {};
+let cachedPlayers     = [];
+let hasUnsavedChanges = false;
 
 async function init() {
-    // 1. Get Active Tournament
-    const { data: activeTournament } = await supabase.from("active_tournament").select("id").single();
-    
-    // 2. Get Next Upcoming Match
+    const { data: activeTournament } = await supabase
+        .from("active_tournament").select("id").single();
+
+    if (!activeTournament) {
+        document.getElementById("matchTitle").textContent = "No active tournament.";
+        return;
+    }
+
     const { data: match } = await supabase
         .from("matches")
         .select("*, team_a:real_teams!team_a_id(name), team_b:real_teams!team_b_id(name)")
@@ -18,59 +23,108 @@ async function init() {
         .limit(1)
         .single();
 
-    if (!match) return document.getElementById("matchTitle").textContent = "No Upcoming Matches";
-    
-    currentMatchId = match.id;
-    playerStatuses = match.player_statuses || {}; 
-    document.getElementById("matchTitle").textContent = `Match ${match.match_number}:\n${match.team_a.name} vs ${match.team_b.name}`;
+    if (!match) {
+        document.getElementById("matchTitle").textContent = "No Upcoming Matches";
+        return;
+    }
 
-    // 3. Get Players for both teams
+    currentMatchId  = match.id;
+    playerStatuses  = match.player_statuses || {};
+    document.getElementById("matchTitle").textContent =
+        `Match ${match.match_number}: ${match.team_a.name} vs ${match.team_b.name}`;
+
     const { data: players } = await supabase
         .from("players")
         .select("id, name, real_team_id")
-        .in("real_team_id", [match.team_a_id, match.team_b_id]);
+        .in("real_team_id", [match.team_a_id, match.team_b_id])
+        .order("name", { ascending: true }); // alphabetical = easier to find
 
     cachedPlayers = players || [];
     renderPlayers();
+    setupSearch();
 }
 
-function renderPlayers() {
-    const list = document.getElementById("playerList");
+/* ── RENDER ── */
+function renderPlayers(filter = "") {
+    const list      = document.getElementById("playerList");
+    const noResults = document.getElementById("noResults");
+    const query     = filter.toLowerCase().trim();
+
     list.innerHTML = "";
+    let visible = 0;
 
     cachedPlayers.forEach(p => {
+        if (query && !p.name.toLowerCase().includes(query)) return;
+        visible++;
+
         const status = playerStatuses[p.id] || "";
-        const row = document.createElement("div");
+        const row    = document.createElement("div");
         row.className = "player-row";
         row.innerHTML = `
             <div class="player-name">${p.name}</div>
             <div class="btn-group">
-                <button class="btn playing ${status === 'playing' ? 'active' : ''}" onclick="setStatus('${p.id}', 'playing')">Playing</button>
-                <button class="btn impact ${status === 'impact' ? 'active' : ''}" onclick="setStatus('${p.id}', 'impact')">Impact</button>
-                <button class="btn out ${status === 'not-playing' ? 'active' : ''}" onclick="setStatus('${p.id}', 'not-playing')">Out</button>
+                <button class="btn playing ${status === 'playing'      ? 'active' : ''}" data-id="${p.id}" data-status="playing">Playing</button>
+                <button class="btn impact  ${status === 'impact'       ? 'active' : ''}" data-id="${p.id}" data-status="impact">Impact</button>
+                <button class="btn out     ${status === 'not-playing'  ? 'active' : ''}" data-id="${p.id}" data-status="not-playing">Out</button>
             </div>
         `;
         list.appendChild(row);
     });
+
+    noResults.style.display = visible === 0 ? "block" : "none";
+    updateCounter();
 }
 
-window.setStatus = (playerId, status) => {
-    // Toggle logic: click the same button to turn it off, or pick a new one
+/* ── COUNTER ── */
+function updateCounter() {
+    const counts = { playing: 0, impact: 0, "not-playing": 0 };
+    Object.values(playerStatuses).forEach(s => {
+        if (counts[s] !== undefined) counts[s]++;
+    });
+    document.getElementById("countPlaying").textContent = `✅ Playing: ${counts.playing}`;
+    document.getElementById("countImpact").textContent  = `⚡ Impact: ${counts.impact}`;
+    document.getElementById("countOut").textContent     = `❌ Out: ${counts["not-playing"]}`;
+}
+
+/* ── BUTTON CLICKS (event delegation — one listener for all buttons) ── */
+document.getElementById("playerList").addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn");
+    if (!btn) return;
+
+    const playerId = btn.dataset.id;
+    const status   = btn.dataset.status;
+    if (!playerId || !status) return;
+
+    // Toggle: click same = off, click different = switch
     if (playerStatuses[playerId] === status) {
         delete playerStatuses[playerId];
     } else {
         playerStatuses[playerId] = status;
     }
-    
-    // NEW: Just re-draw the HTML, do NOT re-fetch the database!
-    renderPlayers(); 
-};
 
+    hasUnsavedChanges = true;
+
+    // Only re-render current search view, not full list
+    const searchBox = document.getElementById("searchBox");
+    renderPlayers(searchBox?.value || "");
+});
+
+/* ── SEARCH ── */
+function setupSearch() {
+    const searchBox = document.getElementById("searchBox");
+    searchBox.addEventListener("input", () => {
+        renderPlayers(searchBox.value);
+    });
+}
+
+/* ── SAVE ── */
 document.getElementById("saveBtn").onclick = async () => {
     if (!currentMatchId) return alert("No match loaded.");
-    
-    document.getElementById("saveBtn").textContent = "Saving...";
-    
+
+    const btn      = document.getElementById("saveBtn");
+    btn.textContent = "Saving...";
+    btn.disabled    = true;
+
     const { error } = await supabase
         .from("matches")
         .update({ player_statuses: playerStatuses })
@@ -79,10 +133,17 @@ document.getElementById("saveBtn").onclick = async () => {
     if (error) {
         alert("Error saving: " + error.message);
     } else {
-        alert("Saved Successfully! Check your Edit page now.");
+        hasUnsavedChanges = false;
+        btn.textContent   = "✅ Saved!";
+        setTimeout(() => { btn.textContent = "Save Lineups"; }, 2000);
     }
-    
-    document.getElementById("saveBtn").textContent = "Save Lineups";
+
+    btn.disabled = false;
+};
+
+/* ── UNSAVED CHANGES WARNING ── */
+window.onbeforeunload = (e) => {
+    if (hasUnsavedChanges) return "You have unsaved XI changes!";
 };
 
 init();
