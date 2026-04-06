@@ -9,6 +9,11 @@ let existingProfile         = null;
 let countdownInterval       = null;
 let currentUserOverallRank  = Infinity;
 let currentUserPrivateRank  = Infinity;
+let pointsChannel           = null;
+let matchChannel            = null;
+let notifChannel            = null;
+let navChannel    = null;   // ← add this
+
 
 /* ── ELEMENTS ── */
 const tournamentTitle        = document.getElementById("tournamentName");
@@ -142,7 +147,7 @@ async function initLiveNav() {
     updateNavUI();
 
     // 2. Realtime Listener: Refresh Nav whenever live_scores table updates
-    const navChannel = supabase.channel('nav-live-updates')
+navChannel = supabase.channel('nav-live-updates')
     .on('postgres_changes', { event: '*', table: 'live_scores' }, () => {
         updateNavUI();
     })
@@ -153,10 +158,50 @@ async function initLiveNav() {
    DASHBOARD INIT
 ══════════════════════════════════════════════════════ */
 async function startDashboard(userId) {
-    initLiveNav(); // <--- ADD THIS LINE HERE
+    initLiveNav();
     try { initNotificationHub(userId); } catch (e) {
         console.warn("Notification hub error:", e);
     }
+
+    // ── REALTIME: My live points update ──
+pointsChannel = supabase.channel('my-live-points')
+    .on('postgres_changes', {
+        event: '*',
+        table: 'user_match_points',
+        filter: `user_id=eq.${userId}`
+    }, () => {
+        fetchHomeData(userId);
+    })
+    .subscribe();
+
+// ── REALTIME: Match lock detector ──
+matchChannel = supabase.channel('match-lock-detector')
+    .on('postgres_changes', {
+        event: 'UPDATE',
+        table: 'matches'
+    }, (payload) => {
+        if (payload.new.status === 'locked') {
+            if (editButton) {
+                editButton.disabled            = true;
+                editButton.style.opacity       = "0.5";
+                editButton.style.pointerEvents = "none";
+                editButton.textContent         = "LOCKED";
+            }
+            if (matchTimeElement) matchTimeElement.textContent = "Match Live";
+        }
+    })
+    .subscribe();
+
+// ── REALTIME: Bell notification badge ──
+notifChannel = supabase.channel('my-notifications')
+    .on('postgres_changes', {
+        event: 'INSERT',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`
+    }, () => {
+        try { initNotificationHub(userId); } catch (e) {}
+    })
+    .subscribe();
 
     setupHomeLeagueListeners(userId);
     switchLeagueTab("private");
@@ -693,6 +738,9 @@ function startCountdown(startTime) {
 window.addEventListener("pagehide", () => {
     if (countdownInterval) clearInterval(countdownInterval);
     supabase.removeChannel(navChannel);
+    supabase.removeChannel(pointsChannel);
+    supabase.removeChannel(matchChannel);
+    supabase.removeChannel(notifChannel);
 });
 
 /* ══════════════════════════════════════════════════════
