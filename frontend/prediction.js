@@ -428,25 +428,20 @@ async function loadPodiums() {
     if (!lastMatch) return;
 
     const [playersRes, usersRes, viewsRes] = await Promise.all([
-      supabase
-        .from("player_match_stats")
-        .select("fantasy_points, player_id, players(name, photo_url)")
-        .eq("match_id", lastMatch.id)
-        .order("fantasy_points", { ascending: false })
-        .limit(3),
-      supabase
-        .from("user_match_points")
-        .select("total_points, user_id, user_profiles(team_name, team_photo_url)")
-        .eq("match_id", lastMatch.id)
-        .order("total_points", { ascending: false })
-        .limit(3),
-      supabase
-        .from("team_profile_views")
-        .select("viewed_user_id, user_profiles!viewed_user_id(team_name, team_photo_url)")
-        .eq("match_id", lastMatch.id)
-        .neq("viewer_user_id", "viewed_user_id")
-    ]);
-
+  supabase
+    .from("player_match_stats")
+    .select("fantasy_points, player_id, players(name, photo_url)")
+    .eq("match_id", lastMatch.id)
+    .order("fantasy_points", { ascending: false })
+    .limit(3),
+  supabase
+    .from("user_match_points")
+    .select("total_points, user_id, user_profiles(team_name, team_photo_url)")
+    .eq("match_id", lastMatch.id)
+    .order("total_points", { ascending: false })
+    .limit(3),
+  supabase.rpc("get_most_scouted_teams", { target_match_id: lastMatch.id })
+]);
     renderPodium(playersRes.data, "playerPodium", "player", lastMatch.id);
     renderPodium(usersRes.data,   "userPodium",   "user",   lastMatch.id);
     renderViewsPodium(viewsRes.data, lastMatch.id);
@@ -524,43 +519,24 @@ function renderViewsPodium(data, matchId) {
     return;
   }
 
-  // Count views per user
-  const countMap = {};
-  data.forEach(row => {
-    const uid = row.viewed_user_id;
-    if (!countMap[uid]) {
-      countMap[uid] = {
-        user_id:   uid,
-        views:     0,
-        team_name: row.user_profiles?.team_name  || "Expert",
-        photo_url: row.user_profiles?.team_photo_url || null,
-      };
-    }
-    countMap[uid].views++;
-  });
-
-  const top3 = Object.values(countMap)
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 3);
-
-  // Podium order: 2nd, 1st, 3rd
-  const order = [top3[1], top3[0], top3[2]].filter(Boolean);
+  // Already sorted by view_count DESC from RPC, reorder for podium: 2nd, 1st, 3rd
+  const order = [data[1], data[0], data[2]].filter(Boolean);
 
   container.innerHTML = "";
   order.forEach(item => {
-    const rank = top3.indexOf(item) + 1;
+    const rank = data.indexOf(item) + 1;
 
-    const photoPath = item.photo_url
-      ? supabase.storage.from("team-avatars").getPublicUrl(item.photo_url).data.publicUrl
+    const photoPath = item.team_photo_url
+      ? supabase.storage.from("team-avatars").getPublicUrl(item.team_photo_url).data.publicUrl
       : "images/default-avatar.png";
 
-    const itemEl  = document.createElement("div");
+    const itemEl = document.createElement("div");
     itemEl.className = `podium-item rank-${rank}`;
-    itemEl.onclick = () => openTeamScout(item.user_id, matchId);
+    itemEl.onclick = () => openTeamScout(item.viewed_user_id, matchId);
 
     const nameEl = document.createElement("div");
     nameEl.className   = "podium-name";
-    nameEl.textContent = item.team_name;
+    nameEl.textContent = item.team_name || "Expert";
 
     const wrap  = document.createElement("div");
     wrap.className = "podium-avatar-wrapper";
@@ -581,7 +557,7 @@ function renderViewsPodium(data, matchId) {
 
     const ptsEl = document.createElement("div");
     ptsEl.className   = "podium-pts";
-    ptsEl.textContent = `${item.views} views`;
+    ptsEl.textContent = `${item.view_count} views`;
 
     applyRankFlair(img, nameEl, rank);
 
