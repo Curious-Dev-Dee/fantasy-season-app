@@ -416,18 +416,44 @@ async function loadPostMatchSummary() {
 }
 
 async function loadPodiums() {
-    try {
-        const { data: lastMatch } = await supabase.from("matches").select("id, match_number, winner_id").eq("points_processed", true).order("actual_start_time", { ascending: false }).limit(1).maybeSingle();
-        if (!lastMatch) return;
+  try {
+    const { data: lastMatch } = await supabase
+      .from("matches")
+      .select("id, match_number, winner_id")
+      .eq("points_processed", true)
+      .order("actual_start_time", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-        const [playersRes, usersRes] = await Promise.all([
-            supabase.from("player_match_stats").select("fantasy_points, player_id, players(name, photo_url)").eq("match_id", lastMatch.id).order("fantasy_points", { ascending: false }).limit(3),
-            supabase.from("user_match_points").select("total_points, user_id, user_profiles(team_name, team_photo_url)").eq("match_id", lastMatch.id).order("total_points", { ascending: false }).limit(3),
-        ]);
+    if (!lastMatch) return;
 
-        renderPodium(playersRes.data, "playerPodium", "player", lastMatch.id);
-        renderPodium(usersRes.data,   "userPodium",   "user",   lastMatch.id);
-    } catch (err) { console.error("Podium error:", err); }
+    const [playersRes, usersRes, viewsRes] = await Promise.all([
+      supabase
+        .from("player_match_stats")
+        .select("fantasy_points, player_id, players(name, photo_url)")
+        .eq("match_id", lastMatch.id)
+        .order("fantasy_points", { ascending: false })
+        .limit(3),
+      supabase
+        .from("user_match_points")
+        .select("total_points, user_id, user_profiles(team_name, team_photo_url)")
+        .eq("match_id", lastMatch.id)
+        .order("total_points", { ascending: false })
+        .limit(3),
+      supabase
+        .from("team_profile_views")
+        .select("viewed_user_id, user_profiles!viewed_user_id(team_name, team_photo_url)")
+        .eq("match_id", lastMatch.id)
+        .neq("viewer_user_id", "viewed_user_id")
+    ]);
+
+    renderPodium(playersRes.data, "playerPodium", "player", lastMatch.id);
+    renderPodium(usersRes.data,   "userPodium",   "user",   lastMatch.id);
+    renderViewsPodium(viewsRes.data, lastMatch.id);
+
+  } catch (err) {
+    console.error("Podium error:", err);
+  }
 }
 
 function renderPodium(data, containerId, type, matchId) {
@@ -487,6 +513,81 @@ function renderPodium(data, containerId, type, matchId) {
         itemEl.append(nameEl, wrap, ptsEl, tapHint);
         container.appendChild(itemEl);
     });
+}
+
+function renderViewsPodium(data, matchId) {
+  const container = document.getElementById("viewsPodium");
+  if (!container) return;
+
+  if (!data?.length) {
+    container.innerHTML = `<p class="empty-msg">No scouts yet</p>`;
+    return;
+  }
+
+  // Count views per user
+  const countMap = {};
+  data.forEach(row => {
+    const uid = row.viewed_user_id;
+    if (!countMap[uid]) {
+      countMap[uid] = {
+        user_id:   uid,
+        views:     0,
+        team_name: row.user_profiles?.team_name  || "Expert",
+        photo_url: row.user_profiles?.team_photo_url || null,
+      };
+    }
+    countMap[uid].views++;
+  });
+
+  const top3 = Object.values(countMap)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 3);
+
+  // Podium order: 2nd, 1st, 3rd
+  const order = [top3[1], top3[0], top3[2]].filter(Boolean);
+
+  container.innerHTML = "";
+  order.forEach(item => {
+    const rank = top3.indexOf(item) + 1;
+
+    const photoPath = item.photo_url
+      ? supabase.storage.from("team-avatars").getPublicUrl(item.photo_url).data.publicUrl
+      : "images/default-avatar.png";
+
+    const itemEl  = document.createElement("div");
+    itemEl.className = `podium-item rank-${rank}`;
+    itemEl.onclick = () => openTeamScout(item.user_id, matchId);
+
+    const nameEl = document.createElement("div");
+    nameEl.className   = "podium-name";
+    nameEl.textContent = item.team_name;
+
+    const wrap  = document.createElement("div");
+    wrap.className = "podium-avatar-wrapper";
+
+    const img   = document.createElement("img");
+    img.src       = photoPath;
+    img.className = "podium-img";
+
+    const badge = document.createElement("div");
+    badge.className   = "rank-badge";
+    badge.textContent = String(rank);
+
+    const tapHint = document.createElement("div");
+    tapHint.className   = "podium-tap-hint";
+    tapHint.textContent = "👁️";
+
+    wrap.append(img, badge);
+
+    const ptsEl = document.createElement("div");
+    ptsEl.className   = "podium-pts";
+    ptsEl.textContent = `${item.views} views`;
+
+    applyRankFlair(img, nameEl, rank);
+
+    itemEl.append(nameEl, wrap, ptsEl, tapHint);
+    container.appendChild(itemEl);
+  });
 }
 
 window.showGuruLeaderboard = async () => {
