@@ -2250,12 +2250,17 @@ async function renderH2HChallengerList(body) {
   const selected = new Set();
 
   // Send button — added FIRST at top
-  const sendBtn = document.createElement("button");
-  sendBtn.className = "h2h-challenge-btn";
-  sendBtn.style.marginBottom = "12px";
-  sendBtn.textContent = "Select users to challenge";
-  sendBtn.disabled = true;
-  body.appendChild(sendBtn);
+const sendBtn = document.createElement("button");
+sendBtn.className = "h2h-challenge-btn";
+sendBtn.style.cssText = `
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
+  margin-top: 12px;
+`;
+sendBtn.textContent = "Select users to challenge";
+sendBtn.disabled = true;
 
   // Render user rows
   (users || []).forEach(u => {
@@ -2333,6 +2338,8 @@ async function renderH2HChallengerList(body) {
       sendBtn.textContent = `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`;
     }
   };
+  body.appendChild(sendBtn);
+
 }
 
 function showDupWarning(opponentId, opponentName, body) {
