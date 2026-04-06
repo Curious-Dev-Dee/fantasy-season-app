@@ -142,11 +142,11 @@ async function initLiveNav() {
     updateNavUI();
 
     // 2. Realtime Listener: Refresh Nav whenever live_scores table updates
-    supabase.channel('nav-live-updates')
-        .on('postgres_changes', { event: '*', table: 'live_scores' }, () => {
-            updateNavUI();
-        })
-        .subscribe();
+    const navChannel = supabase.channel('nav-live-updates')
+    .on('postgres_changes', { event: '*', table: 'live_scores' }, () => {
+        updateNavUI();
+    })
+    .subscribe();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -692,6 +692,7 @@ function startCountdown(startTime) {
 
 window.addEventListener("pagehide", () => {
     if (countdownInterval) clearInterval(countdownInterval);
+    supabase.removeChannel(navChannel);
 });
 
 /* ══════════════════════════════════════════════════════
