@@ -2215,143 +2215,124 @@ function renderH2HSlotPicker(body) {
 }
 
 async function renderH2HChallengerList(body) {
-    const label = document.createElement("p");
-    label.className = "h2h-cvc-label";
-    label.textContent = "Challenge who?";
-    body.appendChild(label);
+  const label = document.createElement("p");
+  label.className = "h2h-cvc-label";
+  label.textContent = "Challenge who?";
+  body.appendChild(label);
 
-    // Fetch other users in the tournament (excluding self)
-    const { data: users } = await supabase
-        .from("user_tournament_points")
-        .select("user_id, user_profiles(team_name, team_photo_url)")
-        .eq("tournament_id", currentTournamentId)
-        .neq("user_id", currentUserId)
-        .limit(20);
+  // Fetch users in tournament (excluding self)
+  const { data: users } = await supabase
+    .from("user_tournament_points")
+    .select("user_id, user_profiles(team_name, team_photo_url)")
+    .eq("tournament_id", currentTournamentId)
+    .neq("user_id", currentUserId)
+    .limit(100);
 
-    // Fetch existing challenges this match (by current user)
-    const { data: existingChallenges } = await supabase
-        .from("h2h_challenges")
-        .select("opponent_id, challenger_id, status")
-        .eq("match_id", h2hState.match.id)
-        .or(`challenger_id.eq.${currentUserId},opponent_id.eq.${currentUserId}`);
+  // Fetch existing challenges for this match
+  const { data: existingChallenges } = await supabase
+    .from("h2h_challenges")
+    .select("opponent_id, challenger_id, status")
+    .eq("match_id", h2hState.match.id)
+    .or(`challenger_id.eq.${currentUserId},opponent_id.eq.${currentUserId}`);
 
-    const alreadySent     = new Set((existingChallenges || []).filter(c => c.challenger_id === currentUserId).map(c => c.opponent_id));
-    const incomingFromThem = new Set((existingChallenges || []).filter(c => c.opponent_id === currentUserId).map(c => c.challenger_id));
+  const alreadySent = new Set(
+    (existingChallenges || [])
+      .filter(c => c.challenger_id === currentUserId)
+      .map(c => c.opponent_id)
+  );
+  const incomingFromThem = new Set(
+    (existingChallenges || [])
+      .filter(c => c.opponent_id === currentUserId)
+      .map(c => c.challenger_id)
+  );
 
-    (users || []).forEach(u => {
-        const profile = u.user_profiles;
-        const isAlreadySent  = alreadySent.has(u.user_id);
-        const hasIncoming    = incomingFromThem.has(u.user_id);
-        const name = profile?.team_name || "Expert";
+  // Multi-select state
+  const selected = new Set();
 
-        const row = document.createElement("div");
-        row.className = `h2h-challenger-row ${isAlreadySent ? "" : ""}`;
-
-        const check = document.createElement("div");
-        check.className = "h2h-cr-check";
-        check.textContent = isAlreadySent ? "✓" : "";
-        if (isAlreadySent) check.classList.add("checked");
-
-        const nameEl = document.createElement("span");
-        nameEl.className = "h2h-cr-name";
-        nameEl.textContent = name;
-
-        const badgeEl = document.createElement("span");
-        badgeEl.className = `h2h-cr-badge ${hasIncoming ? "incoming" : isAlreadySent ? "sent" : ""}`;
-        badgeEl.textContent = hasIncoming ? "Accept challenge" : isAlreadySent ? "Already sent" : "";
-
-        row.append(check, nameEl, badgeEl);
-
-        // Multi-select state
-const selected = new Set();
-
-// Send button (add BEFORE the users loop)
-const sendBtn = document.createElement("button");
-sendBtn.className = "h2h-challenge-btn";
-sendBtn.style.marginBottom = "12px";
-sendBtn.textContent = "Select users to challenge";
-sendBtn.disabled = true;
-body.appendChild(sendBtn);
-
-users.forEach(u => {
-  const profile = u.userprofiles;
-  const isAlreadySent = alreadySent.has(u.userid);
-  const hasIncoming = incomingFromThem.has(u.userid);
-  const name = profile?.teamname || "Expert";
-
-  const row = document.createElement("div");
-  row.className = "h2h-challenger-row" + (isAlreadySent ? " sent" : "");
-
-  const check = document.createElement("div");
-  check.className = "h2h-cr-check";
-  check.textContent = isAlreadySent ? "✅" : "○";
-  if (isAlreadySent) check.classList.add("checked");
-
-  const nameEl = document.createElement("span");
-  nameEl.className = "h2h-cr-name";
-  nameEl.textContent = name;
-
-  const badgeEl = document.createElement("span");
-  badgeEl.className = "h2h-cr-badge " + (hasIncoming ? "incoming" : isAlreadySent ? "sent" : "");
-  badgeEl.textContent = hasIncoming ? "⚡ Accept challenge" : isAlreadySent ? "Already sent" : "";
-
-  row.append(check, nameEl, badgeEl);
-
-  if (!isAlreadySent) {
-    row.style.cursor = "pointer";
-    row.onclick = () => {
-      if (hasIncoming) {
-        showDupWarning(u.userid, name, body);
-        return;
-      }
-      // Toggle selection
-      if (selected.has(u.userid)) {
-        selected.delete(u.userid);
-        check.textContent = "○";
-        row.classList.remove("selected");
-      } else {
-        selected.add(u.userid);
-        check.textContent = "✅";
-        row.classList.add("selected");
-      }
-      // Update send button
-      sendBtn.disabled = selected.size === 0;
-      sendBtn.textContent = selected.size > 0
-        ? `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`
-        : "Select users to challenge";
-    };
-  }
-
-  body.appendChild(row);
-});
-
-// Send button logic
-sendBtn.onclick = async () => {
-  if (selected.size === 0) return;
+  // Send button — added FIRST at top
+  const sendBtn = document.createElement("button");
+  sendBtn.className = "h2h-challenge-btn";
+  sendBtn.style.marginBottom = "12px";
+  sendBtn.textContent = "Select users to challenge";
   sendBtn.disabled = true;
-  sendBtn.textContent = "Sending...";
-  try {
-    await Promise.all([...selected].map(opponentId =>
-      supabase.from("h2h_challenges").insert({
-        match_id: h2hState.match.id,
-        tournament_id: currentTournamentId,
-        challenger_id: currentUserId,
-        opponent_id: opponentId,
-        challenger_team_id: h2hState.team.id,
-        status: "pending"
-      })
-    ));
-    showToast(`${selected.size} challenge${selected.size > 1 ? "s" : ""} sent! 🎉`, "success");
-    closeBottomSheet();
-    loadH2HPanel();
-  } catch (err) {
-    showToast("Failed: " + err.message, "error");
-    sendBtn.disabled = false;
-    sendBtn.textContent = `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`;
-  }
-};
-        body.appendChild(row);
-    });
+  body.appendChild(sendBtn);
+
+  // Render user rows
+  (users || []).forEach(u => {
+    const profile = u.user_profiles;
+    const isAlreadySent = alreadySent.has(u.user_id);
+    const hasIncoming = incomingFromThem.has(u.user_id);
+    const name = profile?.team_name || "Expert";
+
+    const row = document.createElement("div");
+    row.className = "h2h-challenger-row" + (isAlreadySent ? " sent" : "");
+
+    const check = document.createElement("div");
+    check.className = "h2h-cr-check";
+    check.textContent = isAlreadySent ? "✅" : "○";
+    if (isAlreadySent) check.classList.add("checked");
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "h2h-cr-name";
+    nameEl.textContent = name;
+
+    const badgeEl = document.createElement("span");
+    badgeEl.className = "h2h-cr-badge " + (hasIncoming ? "incoming" : isAlreadySent ? "sent" : "");
+    badgeEl.textContent = hasIncoming ? "⚡ Incoming" : isAlreadySent ? "Already sent" : "";
+
+    row.append(check, nameEl, badgeEl);
+
+    if (!isAlreadySent) {
+      row.style.cursor = "pointer";
+      row.onclick = () => {
+        if (hasIncoming) {
+          showDupWarning(u.user_id, name, body);
+          return;
+        }
+        if (selected.has(u.user_id)) {
+          selected.delete(u.user_id);
+          check.textContent = "○";
+          row.classList.remove("selected");
+        } else {
+          selected.add(u.user_id);
+          check.textContent = "✅";
+          row.classList.add("selected");
+        }
+        sendBtn.disabled = selected.size === 0;
+        sendBtn.textContent = selected.size > 0
+          ? `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`
+          : "Select users to challenge";
+      };
+    }
+
+    body.appendChild(row);
+  });
+
+  // Send all challenges
+  sendBtn.onclick = async () => {
+    if (selected.size === 0) return;
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
+    try {
+      await Promise.all([...selected].map(opponentId =>
+        supabase.from("h2h_challenges").insert({
+          match_id: h2hState.match.id,
+          tournament_id: currentTournamentId,
+          challenger_id: currentUserId,
+          opponent_id: opponentId,
+          challenger_team_id: h2hState.team.id,
+          status: "pending"
+        })
+      ));
+      showToast(`${selected.size} challenge${selected.size > 1 ? "s" : ""} sent! 🎉`, "success");
+      closeBottomSheet();
+      loadH2HPanel();
+    } catch (err) {
+      showToast("Failed: " + err.message, "error");
+      sendBtn.disabled = false;
+      sendBtn.textContent = `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`;
+    }
+  };
 }
 
 function showDupWarning(opponentId, opponentName, body) {
