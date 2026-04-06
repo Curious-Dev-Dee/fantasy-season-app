@@ -1737,8 +1737,8 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
       .filter(b => b && b.bowler)
       .map(b => {
         // Convert overs to true overs (e.g. 3.5 means 3 overs 5 balls)
-        const ecoNum = b.r && b.o ? (b.r / b.o).toFixed(2) : null;
-        const ecoClass = !ecoNum ? '' : parseFloat(ecoNum) <= 7 ? 'eco-good' : parseFloat(ecoNum) <= 9 ? 'eco-avg' : 'eco-exp';
+        const getTrueOvers = o => Math.floor(o) + (Math.round((o - Math.floor(o)) * 10) / 6);    
+const ecoNum = b.r && b.o ? (b.r / getTrueOvers(b.o)).toFixed(2) : null;
         return `<tr>
           <td><span class="sc-player-name">${b.bowler?.name || '—'}</span></td>
           <td>${b.o ?? '—'}</td>
