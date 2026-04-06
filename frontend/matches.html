@@ -1074,14 +1074,21 @@
       tab.classList.add('active');
       const id = tab.dataset.tab;
       document.getElementById(`tab-${id}`)?.classList.add('active');
-      if (!loadedTabs.has(id)) { loadedTabs.add(id); loadTabData(id); }
-    });
+if (id === 'live') {
+  renderLiveTab();
+  subscribeToLiveScores();
+} else if (!loadedTabs.has(id)) {
+  loadedTabs.add(id);
+  loadTabData(id);
+}    });
   });
 
-  loadedTabs.add('live'); loadTabData('live');
+loadedTabs.add('live');
+renderLiveTab();
+subscribeToLiveScores();
 
   function loadTabData(tab) {
-    if (tab === 'live')     loadLive();
+if (tab === 'live')     renderLiveTab();
     if (tab === 'results')  loadResults();
     if (tab === 'upcoming') loadUpcoming();
     if (tab === 'fixtures') loadFixtures();
@@ -1201,35 +1208,35 @@
   // ════════════════════════════════════
   //  LIVE TAB — locked + points_processed=false
   // ════════════════════════════════════
-  async function loadLive() {
-    const el = document.getElementById('liveContent');
+  let liveChannel = null;
 
-    const { data, error } = await fetchMatches({
-      status: 'locked',
-      points_processed: false,
-      order: { col: 'match_number', asc: true }
-    });
-
-    if (error) { el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load live matches.</div>`; return; }
-
-    if (!data?.length) {
-      el.innerHTML = `
-        <div class="empty-msg" style="padding:32px 20px 16px">
-          <span class="empty-emoji">🏏</span>
-          <strong style="font-family:var(--font-display);font-size:18px;font-weight:900;text-transform:uppercase;display:block;margin-bottom:6px;color:var(--text-dim)">No Live Matches</strong>
-          <span style="font-size:12px">Check Results or Upcoming tab</span>
-        </div>`;
-      return;
-    }
-
-    el.innerHTML = `<p class="section-label">${data.length} Match${data.length > 1 ? 'es' : ''} Live Now</p>
-      ${data.map(m => buildMatchCard(m, 'live')).join('')}`;
-
-    // Realtime
-    sb.channel('live-score-updates')
-      .on('postgres_changes', { event: '*', table: 'live_scores' }, () => loadLive())
-      .subscribe();
+async function renderLiveTab() {
+  const el = document.getElementById('liveContent');
+  const { data, error } = await fetchMatches({
+    status: 'locked',
+    points_processed: false,
+    order: { col: 'match_number', asc: true }
+  });
+  if (error) { el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load live matches.</div>`; return; }
+  if (!data?.length) {
+    el.innerHTML = `
+      <div class="empty-msg" style="padding:32px 20px 16px">
+        <span class="empty-emoji">🏏</span>
+        <strong style="font-family:var(--font-display);font-size:18px;font-weight:900;text-transform:uppercase;display:block;margin-bottom:6px;color:var(--text-dim)">No Live Matches</strong>
+        <span style="font-size:12px">Check Results or Upcoming tab</span>
+      </div>`;
+    return;
   }
+  el.innerHTML = `<p class="section-label">${data.length} Match${data.length > 1 ? 'es' : ''} Live Now</p>
+    ${data.map(m => buildMatchCard(m, 'live')).join('')}`;
+}
+
+function subscribeToLiveScores() {
+  if (liveChannel) return;
+  liveChannel = sb.channel('live-score-updates')
+    .on('postgres_changes', { event: '*', table: 'live_scores' }, () => renderLiveTab())
+    .subscribe();
+}
 
   // ════════════════════════════════════
   //  RESULTS TAB — locked + points_processed=true, most recent first
@@ -1774,6 +1781,14 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
       </div>
     `;
   }
+
+  window.addEventListener('beforeunload', () => {
+  if (liveChannel) {
+    sb.removeChannel(liveChannel);
+    liveChannel = null;
+  }
+});
+
 </script>
 </body>
 </html>
