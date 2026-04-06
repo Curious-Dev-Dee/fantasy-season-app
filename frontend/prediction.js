@@ -2262,17 +2262,94 @@ async function renderH2HChallengerList(body) {
 
         row.append(check, nameEl, badgeEl);
 
-        if (!isAlreadySent) {
-            row.style.cursor = "pointer";
-            row.onclick = () => {
-                if (hasIncoming) {
-                    // Shortcut — show warning about incoming challenge
-                    showDupWarning(u.user_id, name, body);
-                } else {
-                    sendH2HChallenge(u.user_id, name);
-                }
-            };
-        }
+        // Multi-select state
+const selected = new Set();
+
+// Send button (add BEFORE the users loop)
+const sendBtn = document.createElement("button");
+sendBtn.className = "h2h-challenge-btn";
+sendBtn.style.marginBottom = "12px";
+sendBtn.textContent = "Select users to challenge";
+sendBtn.disabled = true;
+body.appendChild(sendBtn);
+
+users.forEach(u => {
+  const profile = u.userprofiles;
+  const isAlreadySent = alreadySent.has(u.userid);
+  const hasIncoming = incomingFromThem.has(u.userid);
+  const name = profile?.teamname || "Expert";
+
+  const row = document.createElement("div");
+  row.className = "h2h-challenger-row" + (isAlreadySent ? " sent" : "");
+
+  const check = document.createElement("div");
+  check.className = "h2h-cr-check";
+  check.textContent = isAlreadySent ? "✅" : "○";
+  if (isAlreadySent) check.classList.add("checked");
+
+  const nameEl = document.createElement("span");
+  nameEl.className = "h2h-cr-name";
+  nameEl.textContent = name;
+
+  const badgeEl = document.createElement("span");
+  badgeEl.className = "h2h-cr-badge " + (hasIncoming ? "incoming" : isAlreadySent ? "sent" : "");
+  badgeEl.textContent = hasIncoming ? "⚡ Accept challenge" : isAlreadySent ? "Already sent" : "";
+
+  row.append(check, nameEl, badgeEl);
+
+  if (!isAlreadySent) {
+    row.style.cursor = "pointer";
+    row.onclick = () => {
+      if (hasIncoming) {
+        showDupWarning(u.userid, name, body);
+        return;
+      }
+      // Toggle selection
+      if (selected.has(u.userid)) {
+        selected.delete(u.userid);
+        check.textContent = "○";
+        row.classList.remove("selected");
+      } else {
+        selected.add(u.userid);
+        check.textContent = "✅";
+        row.classList.add("selected");
+      }
+      // Update send button
+      sendBtn.disabled = selected.size === 0;
+      sendBtn.textContent = selected.size > 0
+        ? `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`
+        : "Select users to challenge";
+    };
+  }
+
+  body.appendChild(row);
+});
+
+// Send button logic
+sendBtn.onclick = async () => {
+  if (selected.size === 0) return;
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending...";
+  try {
+    await Promise.all([...selected].map(opponentId =>
+      supabase.from("h2h_challenges").insert({
+        match_id: h2hState.match.id,
+        tournament_id: currentTournamentId,
+        challenger_id: currentUserId,
+        opponent_id: opponentId,
+        challenger_team_id: h2hState.team.id,
+        status: "pending"
+      })
+    ));
+    showToast(`${selected.size} challenge${selected.size > 1 ? "s" : ""} sent! 🎉`, "success");
+    closeBottomSheet();
+    loadH2HPanel();
+  } catch (err) {
+    showToast("Failed: " + err.message, "error");
+    sendBtn.disabled = false;
+    sendBtn.textContent = `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`;
+  }
+};
         body.appendChild(row);
     });
 }
