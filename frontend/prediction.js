@@ -1130,6 +1130,8 @@ async function saveAllStars() {
 
 let dailyState = {
     match: null,
+        existingTeamId: null,   // ← ADD THIS
+
     allPlayers: [],
     selected: [],
     captainId: null,
@@ -1177,13 +1179,18 @@ async function loadDailyPanel() {
         .eq("match_id", match.id)
         .maybeSingle();
 
-    if (existing) {
-        dailyState.isLocked  = true;
-        dailyState.captainId = existing.captain_id;
-        dailyState.vcId      = existing.vice_captain_id;
-        const savedIds       = existing.user_daily_team_players.map(p => p.player_id);
-        dailyState.selected  = dailyState.allPlayers.filter(p => savedIds.includes(p.id));
-    }
+    // ✅ REPLACE WITH:
+if (existing) {
+    dailyState.existingTeamId = existing.id;  // store ID for upsert
+    dailyState.isLocked  = match.status !== "upcoming";  // lock only when match locks
+    dailyState.captainId = existing.captain_id;
+    dailyState.vcId      = existing.vice_captain_id;
+    const savedIds       = existing.user_daily_team_players.map(p => p.player_id);
+    dailyState.selected  = dailyState.allPlayers.filter(p => savedIds.includes(p.id));
+} else {
+    dailyState.existingTeamId = null;
+    dailyState.isLocked = match.status !== "upcoming";
+}
 
     renderDailyPanel();
     await Promise.all([loadDailyLeaderboard(match.id), loadDailyAvgRank()]);
@@ -1231,7 +1238,7 @@ matchCard.innerHTML = `
         </button>
         <button class="daily-btn-view" id="dailyViewBtn">👁 View</button>
     </div>
-    <p class="daily-card-hint">Locks once saved!</p>`;
+    <p class=\"daily-card-hint\">${dailyState.isLocked ? "Match locked 🔒" : dailyState.existingTeamId ? "You can still edit until match locks" : "Pick your XI before the match starts!"}</p>`;
     
     panel.appendChild(matchCard);
 
@@ -1292,7 +1299,11 @@ matchCard.innerHTML = `
 
 async function saveDailyXI() {
     const stats = calcTeamStats(dailyState.selected);
-    const ok = await showConfirm("Lock Daily XI?", "You can't change it once locked.");
+    const isUpdate = !!dailyState.existingTeamId;
+    const ok = await showConfirm(
+        isUpdate ? "Update Daily XI?" : "Lock Daily XI?",
+        isUpdate ? "Your previous XI will be replaced." : "You can keep editing until the match locks."
+    );
     if (!ok) return;
 
     dailyState.saving = true;
@@ -1301,27 +1312,31 @@ async function saveDailyXI() {
     try {
         const { data: saved, error: teamError } = await supabase
             .from("user_daily_teams")
-            .insert([{
+            .upsert({
+                ...(isUpdate ? { id: dailyState.existingTeamId } : {}),
                 user_id:         currentUserId,
                 match_id:        dailyState.match.id,
                 tournament_id:   currentTournamentId,
                 captain_id:      dailyState.captainId,
                 vice_captain_id: dailyState.vcId,
                 total_credits:   stats.credits,
-            }])
+            }, { onConflict: "user_id,match_id" })
             .select().single();
 
         if (teamError) throw teamError;
+        dailyState.existingTeamId = saved.id;
 
+        // Delete old players and re-insert
+        await supabase.from("user_daily_team_players").delete().eq("user_daily_team_id", saved.id);
         const { error: playersError } = await supabase
             .from("user_daily_team_players")
             .insert(dailyState.selected.map(p => ({ user_daily_team_id: saved.id, player_id: p.id })));
 
         if (playersError) throw playersError;
 
-        dailyState.isLocked = true;
-        showToast("Daily XI locked! 🔒 Good luck!", "success");
-        delete document.getElementById("panel-daily")?.dataset.loaded;
+        showToast(isUpdate ? "Daily XI updated! ✅" : "Daily XI saved! 🔒", "success");
+        const dp = document.getElementById("panel-daily");
+        if (dp) { dp.innerHTML = ""; delete dp.dataset.loaded; }
         await loadDailyPanel();
 
     } catch (err) {
@@ -1329,7 +1344,6 @@ async function saveDailyXI() {
         showToast("Save failed: " + err.message, "error");
     } finally {
         dailyState.saving = false;
-        if (!dailyState.isLocked) updateBuilderUI(dailyState, 'dy');
     }
 }
 
@@ -2239,18 +2253,22 @@ async function sendH2HChallenge(opponentId, opponentName) {
     h2hState.saving = true;
 
     try {
-        // 1. Save h2h_team
-        const { data: team, error: teamErr } = await supabase
-            .from("h2h_teams")
-            .insert([{
-                user_id:         currentUserId,
-                match_id:        h2hState.match.id,
-                tournament_id:   currentTournamentId,
-                captain_id:      h2hState.captainId,
-                vice_captain_id: h2hState.vcId,
-            }])
-            .select().single();
-        if (teamErr) throw teamErr;
+// Step 1 — Save team to DB (upsert so user can edit until match locks)
+const { data: team, error: teamError } = await supabase
+    .from("h2h_teams")
+    .upsert({
+        ...(h2hState.team?.id ? { id: h2hState.team.id } : {}),
+        user_id:         currentUserId,
+        match_id:        h2hState.match.id,
+        tournament_id:   currentTournamentId,
+        captain_id:      h2hState.captainId,
+        vice_captain_id: h2hState.vcId,
+    }, { onConflict: "user_id,match_id" })
+    .select().single();
+if (teamError) throw teamError;
+
+// Delete old players before re-inserting
+await supabase.from("h2h_team_players").delete().eq("h2h_team_id", team.id);
 
         // 2. Save players
         const { error: playersErr } = await supabase
@@ -2365,15 +2383,24 @@ async function acceptChallenge(challengeId, opponentTeamId) {
         const allFilled = roles.every(r => h2hState.slots[r]);
         if (!allFilled) { showToast("Fill all 4 slots first.", "error"); return; }
 
-        const { data: team, error: tErr } = await supabase
-            .from("h2h_teams")
-            .insert([{
-                user_id:         currentUserId,
-                match_id:        h2hState.match.id,
-                tournament_id:   currentTournamentId,
-                captain_id:      h2hState.captainId,
-                vice_captain_id: h2hState.vcId,
-            }]).select().single();
+// ✅ Replace:
+const { data: team, error: tErr } = await supabase
+    .from("h2h_teams")
+    .upsert({
+        user_id:         currentUserId,
+        match_id:        h2hState.match.id,
+        tournament_id:   currentTournamentId,
+        captain_id:      h2hState.captainId,
+        vice_captain_id: h2hState.vcId,
+    }, { onConflict: "user_id,match_id" })
+    .select().single();
+if (tErr) { showToast("Error: " + tErr.message, "error"); return; }
+
+await supabase.from("h2h_team_players").delete().eq("h2h_team_id", team.id);
+await supabase.from("h2h_team_players").insert(
+    roles.map(role => ({ h2h_team_id: team.id, player_id: h2hState.slots[role].id, role }))
+);
+
         if (tErr) { showToast("Error: " + tErr.message, "error"); return; }
 
         await supabase.from("h2h_team_players").insert(
@@ -2600,10 +2627,11 @@ const { data: matches } = await supabase
         if (c.opponent_team_id)   allTeamIds.push(c.opponent_team_id);
     });
 
-    const { data: teamPlayers } = await supabase
-        .from("h2h_team_players")
-        .select("h2h_team_id, player_id, role")
-        .in("h2h_team_id", allTeamIds);
+// ✅ Fixed:
+const { data: teamPlayers } = await supabase
+    .from("h2h_team_players")
+    .select("h2h_team_id, player_id, role, players(name)")
+    .in("h2h_team_id", allTeamIds);
 
     const teamPlayersMap = {};
     (teamPlayers || []).forEach(tp => {
@@ -2670,8 +2698,7 @@ const isLive = match?.status === "locked";
                 row.className = "h2h-live-player-row";
                 row.innerHTML = `
                     <span class="h2h-live-role">${tp.role}</span>
-                    <span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || "—"}</span>
-                    <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
+<span class="h2h-live-pname">${stat?.players?.name?.split(" ").pop() || tp.players?.name?.split(" ").pop() || "—"}</span>                    <span class="h2h-live-pts">${stat?.fantasy_points || 0}</span>`;
                 side.appendChild(row);
             });
             return side;
