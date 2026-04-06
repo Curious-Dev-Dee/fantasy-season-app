@@ -1054,7 +1054,7 @@ async function loadAllStarsPanel() {
         .select("user_id, team_name, total_allstar_points, rank")
         .eq("tournament_id", currentTournamentId)
         .order("rank", { ascending: true })
-        .limit(10);
+        .limit(5);
 
     renderAllStarsPanel(lbRows || []);
 }
@@ -1219,10 +1219,9 @@ let dailyState = {
 };
 
 async function loadDailyPanel() {
-    const panel = document.getElementById("panel-daily");
-    if (!panel || panel.dataset.loaded) return;
-    panel.dataset.loaded = "1";
-    showPanelSpinner("panel-daily");
+  const panel = document.getElementById("panel-daily");
+  if (!panel) return;                           // ← keep only null check
+  showPanelSpinner("panel-daily");
 
     const { data: match } = await supabase
         .from("matches")
@@ -1425,64 +1424,84 @@ async function saveDailyXI() {
 }
 
 async function loadDailyLeaderboard(matchId) {
-    const section = document.getElementById("dailyLeaderboard");
-    if (!section) return;
+  const container = document.getElementById("dailyLeaderboard");
+  if (!container) return;
 
-    const { data: rows } = await supabase
-        .from("daily_match_leaderboard_view")
-        .select("team_name, total_daily_points, rank, user_id")
-        .eq("match_id", matchId)
-        .order("rank", { ascending: true })
-        .limit(3);  // top 3 only
+  // Check if match is locked
+  const { data: matchData } = await supabase
+    .from("matches")
+    .select("status")
+    .eq("id", matchId)
+    .maybeSingle();
 
-    section.innerHTML = "";
-    const titleRow = document.createElement("div");
-    titleRow.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;";
-    titleRow.innerHTML = `
-        <p class="as-section-label" style="margin:0;">Match Leaderboard</p>`;
-    section.appendChild(titleRow);
+  const isLocked = matchData?.status === "locked";
 
-    if (!rows?.length) {
-        const empty = document.createElement("p");
-        empty.className   = "empty-msg";
-        empty.textContent = "Rankings appear after the match is processed.";
-        section.appendChild(empty);
-        return;
-    }
+  // Always fetch count
+  const { count } = await supabase
+    .from("user_daily_teams")
+    .select("*", { count: "exact", head: true })
+    .eq("match_id", matchId);
 
-    rows.forEach(row => {
-        const el = document.createElement("div");
-        el.className    = `as-lb-row ${row.user_id === currentUserId ? "you" : ""}`;
-        el.style.cursor = "pointer";
-        el.onclick = () => openDailyTeamSheet(row.user_id, matchId);
+  container.innerHTML = "";
 
-        const rank = document.createElement("span");
-        rank.className   = "as-lb-rank";
-        rank.textContent = `#${row.rank}`;
+  const section = document.createElement("div");
+  section.className = "as-lb-section";
 
-        const name = document.createElement("span");
-        name.className   = "as-lb-name";
-        name.textContent = row.team_name || "Expert";
+  const titleRow = document.createElement("div");
+  titleRow.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:10px";
+  titleRow.innerHTML = `<p class="as-section-label" style="margin:0">Daily Leaderboard</p>`;
+  section.appendChild(titleRow);
 
-        const pts = document.createElement("span");
-        pts.className   = `as-lb-pts${row.total_daily_points > 0 ? " has-pts" : ""}`;
-        pts.textContent = `${row.total_daily_points} pts`;
+  // Before lock — just show count, no teams
+  if (!isLocked) {
+    const msg = document.createElement("p");
+    msg.className = "empty-msg";
+    msg.textContent = `${count ?? 0} expert${count !== 1 ? "s" : ""} have picked — revealed after match locks`;
+    section.appendChild(msg);
+    container.appendChild(section);
+    return;
+  }
 
-        const arrow = document.createElement("i");
-        arrow.className = "fas fa-chevron-right";
-        arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0;";
+  // After lock — show full leaderboard
+  const { data: rows } = await supabase
+    .from("user_daily_teams")
+    .select("user_id, total_credits, user_profiles(team_name, team_photo_url)")
+    .eq("match_id", matchId)
+    .order("created_at", { ascending: true })
+    .limit(10);
 
-        el.append(rank, name, pts, arrow);
-        section.appendChild(el);
-    });
+  if (!rows?.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-msg";
+    empty.textContent = "No entries yet";
+    section.appendChild(empty);
+    container.appendChild(section);
+    return;
+  }
 
-    // View full leaderboard button
-    const viewBtn = document.createElement("button");
-    viewBtn.className   = "btn-view-all";
-    viewBtn.style.marginTop = "8px";
-    viewBtn.innerHTML   = `Full Match Leaderboard <i class="fas fa-chevron-right"></i>`;
-    viewBtn.onclick     = () => openFullDailyLeaderboard(matchId, "match");
-    section.appendChild(viewBtn);
+  rows.forEach((row, i) => {
+    const el = document.createElement("div");
+    el.className = "as-lb-row";
+    el.style.cursor = "pointer";
+    el.onclick = () => openDailyTeamSheet(row.user_id, matchId);
+
+    const rank = document.createElement("span");
+    rank.className = "as-lb-rank";
+    rank.textContent = i + 1;
+
+    const name = document.createElement("span");
+    name.className = "as-lb-name";
+    name.textContent = row.user_profiles?.team_name || "Expert";
+
+    const arrow = document.createElement("i");
+    arrow.className = "fas fa-chevron-right";
+    arrow.style.cssText = "font-size:10px;color:var(--text-ghost);flex-shrink:0";
+
+    el.append(rank, name, arrow);
+    section.appendChild(el);
+  });
+
+  container.appendChild(section);
 }
 
 async function loadDailyAvgRank() {
@@ -2450,52 +2469,80 @@ function openAcceptSheet(challenge) {
     });
 }
 
-async function acceptChallenge(challengeId, opponentTeamId) {
-    // If opponentTeamId not provided, use the already-saved team
-    let teamId = opponentTeamId || h2hState.team?.id;
+async function acceptChallenge(challengeId, myTeamId) {
+  try {
+    // Fetch challenger's team info
+    const { data: challenge } = await supabase
+      .from("h2h_challenges")
+      .select("challenger_team_id")
+      .eq("id", challengeId)
+      .single();
 
-    if (!teamId) {
-        // Save a new team first
-        const roles = ["WK", "BAT", "AR", "BOWL"];
-        const allFilled = roles.every(r => h2hState.slots[r]);
-        if (!allFilled) { showToast("Fill all 4 slots first.", "error"); return; }
+    const [{ data: theirPlayers }, { data: theirTeam }] = await Promise.all([
+      supabase.from("h2h_team_players").select("player_id").eq("h2h_team_id", challenge.challenger_team_id),
+      supabase.from("h2h_teams").select("captain_id, vice_captain_id").eq("id", challenge.challenger_team_id).single()
+    ]);
 
-// ✅ Replace:
-const { data: team, error: tErr } = await supabase
-    .from("h2h_teams")
-    .upsert({
-        user_id:         currentUserId,
-        match_id:        h2hState.match.id,
-        tournament_id:   currentTournamentId,
-        captain_id:      h2hState.captainId,
-        vice_captain_id: h2hState.vcId,
-    }, { onConflict: "user_id,match_id" })
-    .select().single();
-if (tErr) { showToast("Error: " + tErr.message, "error"); return; }
+    // Build my team from h2hState slots
+    const myPlayerIds = ["WK", "BAT", "AR", "BOWL"]
+      .map(r => h2hState.slots[r]?.id).filter(Boolean).sort().join(",");
+    const theirPlayerIds = (theirPlayers || [])
+      .map(p => p.player_id).sort().join(",");
 
-await supabase.from("h2h_team_players").delete().eq("h2h_team_id", team.id);
-await supabase.from("h2h_team_players").insert(
-    roles.map(role => ({ h2h_team_id: team.id, player_id: h2hState.slots[role].id, role }))
-);
+    const identical =
+      myPlayerIds === theirPlayerIds &&
+      h2hState.captainId === theirTeam.captain_id &&
+      h2hState.vcId === theirTeam.vice_captain_id;
 
-        if (tErr) { showToast("Error: " + tErr.message, "error"); return; }
-
-        await supabase.from("h2h_team_players").insert(
-            roles.map(role => ({ h2h_team_id: team.id, player_id: h2hState.slots[role].id, role }))
-        );
-        teamId = team.id;
-        h2hState.team = team;
+    if (identical) {
+      showToast("Identical team! Change at least C/VC or one player.", "error");
+      return; // stays on editor
     }
 
-    const { error } = await supabase
-        .from("h2h_challenges")
-        .update({ status: "accepted", opponent_team_id: teamId, updated_at: new Date().toISOString() })
-        .eq("id", challengeId);
+    // Save opponent team
+    const { data: savedTeam, error: teamErr } = await supabase
+      .from("h2h_teams")
+      .upsert({
+        user_id: currentUserId,
+        match_id: h2hState.match.id,
+        tournament_id: currentTournamentId,
+        captain_id: h2hState.captainId,
+        vice_captain_id: h2hState.vcId
+      }, { onConflict: "user_id,match_id" })
+      .select().single();
+    if (teamErr) throw teamErr;
 
-    if (error) { showToast("Accept failed: " + error.message, "error"); return; }
-    showToast("Challenge accepted! ⚔️ Good luck!", "success");
+    // Save players
+    await supabase.from("h2h_team_players").delete().eq("h2h_team_id", savedTeam.id);
+    await supabase.from("h2h_team_players").insert(
+      ["WK", "BAT", "AR", "BOWL"].map(r => ({
+        h2h_team_id: savedTeam.id,
+        player_id: h2hState.slots[r].id,
+        role: r
+      }))
+    );
+
+    // Accept the challenge
+    const { error: updateErr } = await supabase
+      .from("h2h_challenges")
+      .update({ opponent_team_id: savedTeam.id, status: "accepted" })
+      .eq("id", challengeId);
+    if (updateErr) throw updateErr;
+
+    showToast("Challenge accepted! 🎉", "success");
     closeBottomSheet();
-    loadH2HChallenges();
+
+    // "Challenge others with this team?"
+    const more = await showConfirm(
+      "Challenge others?",
+      "Send this same team to more users for this match?"
+    );
+    if (more) openH2HChallengerList(savedTeam.id);
+    else loadH2HPanel();
+
+  } catch (err) {
+    showToast("Failed: " + err.message, "error");
+  }
 }
 
 async function rejectChallenge(challengeId) {
