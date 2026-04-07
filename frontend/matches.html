@@ -1128,6 +1128,8 @@ if (tab === 'live')     renderLiveTab();
     return new Date(iso).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
   }
 
+  let liveChannel = null;
+
   // Fetch matches with team info joined
   // Uses: matches + real_teams (aliased as team_a and team_b)
   async function fetchMatches(filters = {}) {
@@ -1137,7 +1139,7 @@ if (tab === 'live')     renderLiveTab();
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-     live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `);
 
     if (filters.status)            q = q.eq('status', filters.status);
@@ -1168,20 +1170,20 @@ if (tab === 'live')     renderLiveTab();
     const ls = m.live_scores;
     let scoreA = '', scoreB = '', resultLine = '';
 
- if (ls) {
-  const team1MatchesA = ls.team1name && m.teama?.name &&
-    ls.team1name.toLowerCase().includes(m.teama.name.toLowerCase().split(' ')[0]);
-  const lsA = team1MatchesA
-    ? { score: ls.team1score, wkts: ls.team1wickets, overs: ls.team1overs }
-    : { score: ls.team2score, wkts: ls.team2wickets, overs: ls.team2overs };
-  const lsB = team1MatchesA
-    ? { score: ls.team2score, wkts: ls.team2wickets, overs: ls.team2overs }
-    : { score: ls.team1score, wkts: ls.team1wickets, overs: ls.team1overs };
-  if (lsA.score != null) scoreA = `<div class="team-score-sm">${lsA.score}/${lsA.wkts ?? 0} <span style="font-size:12px;color:var(--text-faint)">${fmtOvers(lsA.overs)}</span></div>`;
-  if (lsB.score != null) scoreB = `<div class="team-score-sm">${lsB.score}/${lsB.wkts ?? 0} <span style="font-size:12px;color:var(--text-faint)">${fmtOvers(lsB.overs)}</span></div>`;
-  const text = ls.matchresult || ls.matchstatus || (ls.winner ? ls.winner + ' won' : '');
-  if (text) resultLine = `<div class="match-result-text">${text}</div>`;
-}
+if (ls) {
+      const teamAFirst = (m.team_a?.name || '').toLowerCase().split(' ')[0];
+      const team1MatchesA = ls.team1_name?.toLowerCase().includes(teamAFirst);
+      const lsA = team1MatchesA
+        ? { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs }
+        : { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs };
+      const lsB = team1MatchesA
+        ? { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs }
+        : { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs };
+      if (lsA.score != null) scoreA = `<div class="team-score-sm">${lsA.score}/${lsA.wkts ?? 0} <span style="font-size:11px;color:var(--text-faint)">(${fmtOvers(lsA.overs)})</span></div>`;
+      if (lsB.score != null) scoreB = `<div class="team-score-sm">${lsB.score}/${lsB.wkts ?? 0} <span style="font-size:11px;color:var(--text-faint)">(${fmtOvers(lsB.overs)})</span></div>`;
+      const text = ls.match_result || ls.match_status || '';
+      resultLine = text ? `<div class="match-result-text">${text}</div>` : '';
+    }
 
     let badgeHtml = '';
     if (badge === 'live')   badgeHtml = `<span class="match-status-badge badge-live"><span class="live-dot-inline"></span>LIVE</span>`;
@@ -1197,8 +1199,8 @@ if (tab === 'live')     renderLiveTab();
     const clickable = (isLive || isResult) ? `data-match-id="${m.id}"` : '';
 
     return `
-      <div class="card match-card ${isLive ? 'live-match' : ''}" ${clickable} // ✅ FIXED
-onclick="openScoreboard('${m.id}')">
+<div class="card match-card ${isLive ? 'live-match' : ''}"
+        onclick="openScoreboard('${m.id}')">
         <div class="match-card-top">
           <span class="match-number-label">Match ${m.match_number ?? '—'}</span>
           ${badgeHtml}
@@ -1221,10 +1223,6 @@ onclick="openScoreboard('${m.id}')">
       </div>`;
   }
 
-  // ════════════════════════════════════
-  //  LIVE TAB — locked + points_processed=false
-  // ════════════════════════════════════
-  let liveChannel = null;
 
 async function renderLiveTab() {
   const el = document.getElementById('liveContent');
@@ -1265,7 +1263,7 @@ function subscribeToLiveScores() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `)
     .eq('status', 'locked')
     .eq('points_processed', true)
@@ -1362,7 +1360,7 @@ function subscribeToLiveScores() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-livescores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, matchresult, matchstatus, toss_winner, toss_choice)
+live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `).order('match_number', { ascending: true });
 
     if (error || !data?.length) {
@@ -1374,7 +1372,7 @@ livescores(team1name, team1score, team1wickets, team1overs, team2name, team2scor
     data.forEach(m => {
       const key = formatDateGroup(m.actual_start_time) || 'TBD';
       if (!groups[key]) groups[key] = [];
-      groups[key].push(m);
+groups[key].push(m);
     });
 
     let html = '';
@@ -1556,8 +1554,7 @@ function closeModal() {
   function getSmartInningsLabels(ls, teamA, teamB) {
     const ta = teamA || 'Team A';
     const tb = teamB || 'Team B';
-    const status = (ls.match_status || '').toLowerCase();
-    
+const status = (ls.match_status || '').toLowerCase()    
     const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
     const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
 
@@ -1566,8 +1563,8 @@ function closeModal() {
     if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
 
     // 2. LIVE MATCHES (Using Overs Math!)
-    const oversA = ls.team1_overs || 0;
-    const oversB = ls.team2_overs || 0;
+const oversA = ls.team1_overs || 0
+const oversB = ls.team2_overs || 0
 
     if (oversA > 0 && oversB === 0) return [ta, tb]; // Team A is batting first
     if (oversB > 0 && oversA === 0) return [tb, ta]; // Team B is batting first
@@ -1601,7 +1598,10 @@ function closeModal() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)    `).eq('id', matchId).single();
+live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+    `)
+    .eq('id', matchId)
+    .single();
 
     if (error || !match) {
       document.getElementById('modalScoreHero').innerHTML = `<div class="modal-loading" style="padding:24px"><span style="color:var(--text-faint)">Could not load match data</span></div>`;
@@ -1624,22 +1624,17 @@ live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, tea
 
     let scoreA = '—', scoreB = '—';
     if (ls) {
-if (ls.team1score != null) scoreA = `${ls.team1score}/${ls.team1wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team1overs)} ov</span>`;
-if (ls.team2score != null) scoreB = `${ls.team2score}/${ls.team2wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team2overs)} ov</span>`;
-    }
+if (ls.team1_score != null) scoreA = `${ls.team1_score}/${ls.team1_wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team1_overs)} ov</span>`;
+if (ls.team2_score != null) scoreB = `${ls.team2_score}/${ls.team2_wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team2_overs)} ov</span>`;
+const result = ls?.match_result || ls?.match_status || (ls?.winner ? ls.winner + ' won' : '');
+    const winnerBanner = result ? `<div class="modal-winner-banner">${result}</div>` : '';
 
-const _result = ls?.matchresult || ls?.matchstatus || (ls?.winner ? ls.winner + ' won' : '');
-const winnerBanner = _result ? `<div class="modal-winner-banner">${_result}</div>` : '';
+const tossLine = ls?.toss_winner ?
+ `<div class="match-venue-row" style="margin-top:6px"><i class="fas fa-circle-half-stroke" style="color:var(--gold);font-size:10px"></i> <span style="color:var(--gold)">${ls.toss_winner.toUpperCase()}</span> won toss · chose to <span style="color:var(--accent)">${(ls.toss_choice ?? '').toUpperCase()}</span></div>` : '';
 
-    const tossLine = ls?.toss_winner
-  ? `<div class="match-venue-row" style="margin-top:6px">
-       <i class="fas fa-circle-half-stroke" style="color:var(--gold);font-size:10px"></i>
-       <span style="color:var(--gold)">${ls.toss_winner.toUpperCase()}</span> won toss · chose to <span style="color:var(--accent)">${(ls.toss_choice ?? '').toUpperCase()}</span>
-     </div>`
-  : '';
 
     document.getElementById('modalScoreHero').innerHTML = `
-      ${isLive ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent)"></div>` : ''}
+const isLive = match.status === 'locked' && !match.points_processed;
       <div class="modal-teams-row">
         <div class="modal-team left">
           ${logoA ? `<div class="modal-team-logo" style="background-image:url('${logoA}')"></div>` : ''}
@@ -1763,7 +1758,7 @@ const ecoNum = b.r && b.o ? (b.r / getTrueOvers(b.o)).toFixed(2) : null;
           <td>${b.m ?? '—'}</td>
           <td>${b.r ?? '—'}</td>
           <td class="${b.w >= 3 ? 'sc-highlight' : ''}">${b.w ?? '—'}</td>
-          <td class="${ecoClass}">${ecoNum ?? '—'}</td>
+          <td class="${ecoNum === null ? '' : parseFloat(ecoNum) < 7 ? 'eco-good' : parseFloat(ecoNum) < 9 ? 'eco-avg' : 'eco-exp'}">${ecoNum ?? '—'}</td>
         </tr>`;
       }).join('');
 
