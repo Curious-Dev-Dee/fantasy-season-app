@@ -1575,8 +1575,10 @@ function subscribeToLiveScores() {
       return;
     }
 
-    const innings = Array.isArray(ls2.batting) ? ls2.batting : [];
-    const tabsEl  = document.getElementById('inningsTabs');
+let battingParsed = ls2.batting;
+    if (typeof battingParsed === 'string') { try { battingParsed = JSON.parse(battingParsed); } catch(e) { battingParsed = []; } }
+    const innings = Array.isArray(battingParsed) ? battingParsed : [];
+        const tabsEl  = document.getElementById('inningsTabs');
     const [inn0Label, inn1Label] = getSmartInningsLabels(
       ls2,
       match.team_a?.short_code || match.team_a?.name,
@@ -1604,8 +1606,12 @@ function subscribeToLiveScores() {
       return;
     }
 
-    const battingInnings = Array.isArray(ls.batting) ? ls.batting : [];
-    const bowlingInnings = Array.isArray(ls.bowling) ? ls.bowling : [];
+let battingRaw = ls.batting;
+    let bowlingRaw = ls.bowling;
+    if (typeof battingRaw === 'string') { try { battingRaw = JSON.parse(battingRaw); } catch(e) { battingRaw = []; } }
+    if (typeof bowlingRaw === 'string') { try { bowlingRaw = JSON.parse(bowlingRaw); } catch(e) { bowlingRaw = []; } }
+    const battingInnings = Array.isArray(battingRaw) ? battingRaw : [];
+    const bowlingInnings = Array.isArray(bowlingRaw) ? bowlingRaw : [];
 
     if (!battingInnings[inningsIdx]) {
       bodyEl.innerHTML = `<div class="empty-msg" style="padding:40px 20px"><span class="empty-emoji">⏳</span>This innings hasn't started yet.</div>`;
