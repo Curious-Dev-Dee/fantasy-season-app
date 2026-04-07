@@ -1149,6 +1149,13 @@ if (tab === 'live')     renderLiveTab();
     return { data, error };
   }
 
+  function fmtOvers(o) {
+  if (o == null) return '0';
+  const full = Math.floor(o);
+  const balls = Math.round((o - full) * 6);
+  return full + '.' + balls;
+}
+
   function buildMatchCard(m, badge) {
     const logoA = getLogoUrl(m.team_a?.photo_name);
     const logoB = getLogoUrl(m.team_b?.photo_name);
@@ -1161,13 +1168,21 @@ if (tab === 'live')     renderLiveTab();
     const ls = m.live_scores;
     let scoreA = '', scoreB = '', resultLine = '';
 
-    if (ls) {
-      if (ls.team1_score != null) scoreA = `<div class="team-score-sm">${ls.team1_score}/${ls.team1_wickets ?? 0} <span style="font-size:12px;color:var(--text-faint)">(${ls.team1_overs ?? 0})</span></div>`;
-      if (ls.team2_score != null) scoreB = `<div class="team-score-sm">${ls.team2_score}/${ls.team2_wickets ?? 0} <span style="font-size:12px;color:var(--text-faint)">(${ls.team2_overs ?? 0})</span></div>`;
-if (ls.match_result || ls.match_status || ls.winner) {
-  const text = ls.match_result || ls.match_status || (ls.winner ? ls.winner + ' won' : '');
-  resultLine = `<div class="match-result-text">${text}</div>`;
+ if (ls) {
+  const team1MatchesA = ls.team1name && m.teama?.name &&
+    ls.team1name.toLowerCase().includes(m.teama.name.toLowerCase().split(' ')[0]);
+  const lsA = team1MatchesA
+    ? { score: ls.team1score, wkts: ls.team1wickets, overs: ls.team1overs }
+    : { score: ls.team2score, wkts: ls.team2wickets, overs: ls.team2overs };
+  const lsB = team1MatchesA
+    ? { score: ls.team2score, wkts: ls.team2wickets, overs: ls.team2overs }
+    : { score: ls.team1score, wkts: ls.team1wickets, overs: ls.team1overs };
+  if (lsA.score != null) scoreA = `<div class="team-score-sm">${lsA.score}/${lsA.wkts ?? 0} <span style="font-size:12px;color:var(--text-faint)">${fmtOvers(lsA.overs)}</span></div>`;
+  if (lsB.score != null) scoreB = `<div class="team-score-sm">${lsB.score}/${lsB.wkts ?? 0} <span style="font-size:12px;color:var(--text-faint)">${fmtOvers(lsB.overs)}</span></div>`;
+  const text = ls.matchresult || ls.matchstatus || (ls.winner ? ls.winner + ' won' : '');
+  if (text) resultLine = `<div class="match-result-text">${text}</div>`;
 }
+
     let badgeHtml = '';
     if (badge === 'live')   badgeHtml = `<span class="match-status-badge badge-live"><span class="live-dot-inline"></span>LIVE</span>`;
     if (badge === 'result') badgeHtml = `<span class="match-status-badge badge-result">RESULT</span>`;
@@ -1347,7 +1362,7 @@ function subscribeToLiveScores() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      livescores(team1score, team1wickets, team1overs, team2score, team2wickets, team2overs, winner, match_result, match_status)
+livescores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, matchresult, matchstatus, toss_winner, toss_choice)
     `).order('match_number', { ascending: true });
 
     if (error || !data?.length) {
@@ -1610,15 +1625,12 @@ function closeModal() {
 
     let scoreA = '—', scoreB = '—';
     if (ls) {
-      if (ls.team1_score != null) scoreA = `${ls.team1_score}/${ls.team1_wickets??0} <span class="modal-team-score-sub">(${ls.team1_overs??0} ov)</span>`;
-      if (ls.team2_score != null) scoreB = `${ls.team2_score}/${ls.team2_wickets??0} <span class="modal-team-score-sub">(${ls.team2_overs??0} ov)</span>`;
+if (ls.team1score != null) scoreA = `${ls.team1score}/${ls.team1wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team1overs)} ov</span>`;
+if (ls.team2score != null) scoreB = `${ls.team2score}/${ls.team2wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team2overs)} ov</span>`;
     }
 
-const winnerBanner = ls?.match_result
-  ? `<div class="modal-winner-banner">${ls.match_result}</div>`
-  : ls?.winner
-  ? `<div class="modal-winner-banner">${ls.winner} won</div>`
-  : '';
+const _result = ls?.matchresult || ls?.matchstatus || (ls?.winner ? ls.winner + ' won' : '');
+const winnerBanner = _result ? `<div class="modal-winner-banner">${_result}</div>` : '';
 
     const tossLine = ls?.toss_winner
   ? `<div class="match-venue-row" style="margin-top:6px">
