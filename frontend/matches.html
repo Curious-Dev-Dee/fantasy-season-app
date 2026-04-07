@@ -1137,7 +1137,7 @@ if (tab === 'live')     renderLiveTab();
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-     live_scores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, match_result, matchstatus)
+     live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `);
 
     if (filters.status)            q = q.eq('status', filters.status);
@@ -1265,7 +1265,7 @@ function subscribeToLiveScores() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      livescores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, match_result, match_status)
+      live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `)
     .eq('status', 'locked')
     .eq('points_processed', true)
@@ -1601,8 +1601,7 @@ function closeModal() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      live_scores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, match_result, toss_winner, toss_choice, matchstatus)
-    `).eq('id', matchId).single();
+live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)    `).eq('id', matchId).single();
 
     if (error || !match) {
       document.getElementById('modalScoreHero').innerHTML = `<div class="modal-loading" style="padding:24px"><span style="color:var(--text-faint)">Could not load match data</span></div>`;
