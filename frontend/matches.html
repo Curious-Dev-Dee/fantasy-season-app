@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,7 +74,6 @@
       padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     }
 
-    /* ── HEADER ── */
     .app-header {
       display: flex;
       align-items: center;
@@ -129,7 +127,6 @@
       color: var(--gold);
     }
 
-    /* ── PAGE TABS ── */
     .page-tabs-wrap {
       position: sticky;
       top: 56px;
@@ -177,11 +174,9 @@
       border-radius: 2px 2px 0 0;
     }
 
-    /* ── TAB PANELS ── */
     .tab-panel { display: none; padding: 16px; }
     .tab-panel.active { display: block; }
 
-    /* ── CARDS ── */
     .card {
       background: var(--bg-card);
       border-radius: var(--card-radius);
@@ -210,7 +205,6 @@
       margin: 0 0 10px 2px;
     }
 
-    /* ── MATCH CARD ── */
     .match-card {
       padding: 14px 16px;
       cursor: pointer;
@@ -360,9 +354,7 @@
       letter-spacing: 0.3px;
     }
 
-    .card.live-match {
-      border-color: rgba(239,68,68,0.3);
-    }
+    .card.live-match { border-color: rgba(239,68,68,0.3); }
     .card.live-match::after {
       content: '';
       position: absolute;
@@ -372,7 +364,6 @@
       border-radius: var(--card-radius) var(--card-radius) 0 0;
     }
 
-    /* ── POINTS TABLE ── */
     .points-table-wrap {
       background: var(--bg-card);
       border: 1px solid var(--border-card);
@@ -466,7 +457,6 @@
 
     .pt-qualifier-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }
 
-    /* ── STATS ── */
     .stats-section { margin-bottom: 10px; }
 
     .stats-card-header {
@@ -511,7 +501,6 @@
     }
 
     .stats-row-item:last-child { border-bottom: none; }
-
     .stats-row-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
     .stats-pos { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-ghost); width: 18px; flex-shrink: 0; }
@@ -532,10 +521,8 @@
     }
 
     .stats-player-team { font-family: var(--font-body); font-size: 11px; color: var(--text-faint); margin-top: 1px; }
-
     .stats-value { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--accent); flex-shrink: 0; }
 
-    /* ── LOADING / EMPTY ── */
     .loading-state {
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; padding: 48px 20px; gap: 14px;
@@ -571,7 +558,6 @@
       text-transform: uppercase; padding: 3px 10px; border-radius: var(--pill-radius);
     }
 
-    /* ── TOAST ── */
     .toast-container {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
       z-index: 10000; display: flex; flex-direction: column; gap: 8px;
@@ -593,7 +579,6 @@
 
     .toast.fade-out { transition: opacity 0.3s ease; opacity: 0 !important; }
 
-    /* ── BOTTOM NAV ── */
     .bottom-nav {
       position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
       width: 100%; max-width: var(--app-max-width);
@@ -614,16 +599,12 @@
     .bottom-nav a.active { color: var(--accent); }
     .bottom-nav a.active i { filter: drop-shadow(0 0 6px var(--accent-glow)); }
 
-    /* ── FIXTURE MONTH ── */
     .fixture-month-label {
       font-family: var(--font-display); font-size: 11px; font-weight: 900;
       letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint);
       padding: 14px 2px 6px;
     }
 
-    /* ════════════════════════════════════
-       SCOREBOARD MODAL
-    ════════════════════════════════════ */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(2,6,23,0.92);
@@ -658,10 +639,7 @@
       flex-shrink: 0;
     }
 
-    .modal-header {
-      padding: 14px 16px 0;
-      flex-shrink: 0;
-    }
+    .modal-header { padding: 14px 16px 0; flex-shrink: 0; }
 
     .modal-match-header {
       display: flex;
@@ -691,7 +669,6 @@
 
     .modal-close:hover { background: var(--bg-card-alt); color: var(--text-primary); }
 
-    /* Score hero inside modal */
     .modal-score-hero {
       background: var(--bg-card);
       border: 1px solid var(--border-card);
@@ -781,7 +758,6 @@
       font-family: var(--font-body); font-size: 11px; color: var(--text-faint);
     }
 
-    /* Innings tab switcher */
     .innings-tabs {
       display: flex;
       gap: 6px;
@@ -811,7 +787,6 @@
       color: var(--accent);
     }
 
-    /* Scorecard tables */
     .modal-body {
       flex: 1;
       overflow-y: auto;
@@ -894,7 +869,6 @@
 
     .sc-highlight { color: var(--accent); font-weight: 700; }
 
-    /* SR / ECO color coding */
     .sr-good  { color: var(--accent); }
     .sr-avg   { color: var(--orange); }
     .sr-slow  { color: var(--red); }
@@ -903,20 +877,6 @@
     .eco-avg  { color: var(--orange); }
     .eco-exp  { color: var(--red); }
 
-    .sc-extras-row td { color: var(--text-faint); font-size: 11px; background: rgba(255,255,255,0.01); }
-
-    .sc-total-row td {
-      font-family: var(--font-display);
-      font-size: 14px; font-weight: 900;
-      color: var(--text-primary);
-      background: var(--bg-card-alt);
-      border-top: 1px solid var(--border-card) !important;
-    }
-
-    /* DNB row */
-    .sc-dnb { padding: 8px 12px; font-family: var(--font-body); font-size: 11px; color: var(--text-faint); border-top: 1px solid var(--border-subtle); }
-
-    /* Loading inside modal */
     .modal-loading {
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; padding: 60px 20px; gap: 14px;
@@ -947,14 +907,12 @@
 
 <div class="app-container">
 
-  <!-- HEADER -->
   <header class="app-header">
     <div class="header-logo-dot"></div>
     <h1 class="header-title">IPL 2026</h1>
     <div class="ipl-badge">🏏 T20</div>
   </header>
 
-  <!-- PAGE TABS -->
   <div class="page-tabs-wrap">
     <div class="page-tabs">
       <button class="page-tab active" data-tab="live">
@@ -968,42 +926,36 @@
     </div>
   </div>
 
-  <!-- LIVE -->
   <div class="tab-panel active" id="tab-live">
     <div id="liveContent">
       <div class="loading-state"><div class="spinner"></div><div class="loading-text">Checking Live Matches...</div></div>
     </div>
   </div>
 
-  <!-- RESULTS -->
   <div class="tab-panel" id="tab-results">
     <div id="resultsContent">
       <div class="loading-state"><div class="spinner"></div><div class="loading-text">Loading Results...</div></div>
     </div>
   </div>
 
-  <!-- UPCOMING -->
   <div class="tab-panel" id="tab-upcoming">
     <div id="upcomingContent">
       <div class="loading-state"><div class="spinner"></div><div class="loading-text">Loading Upcoming...</div></div>
     </div>
   </div>
 
-  <!-- FIXTURES -->
   <div class="tab-panel" id="tab-fixtures">
     <div id="fixturesContent">
       <div class="loading-state"><div class="spinner"></div><div class="loading-text">Loading Fixtures...</div></div>
     </div>
   </div>
 
-  <!-- POINTS -->
   <div class="tab-panel" id="tab-points">
     <div id="pointsContent">
       <div class="loading-state"><div class="spinner"></div><div class="loading-text">Loading Points Table...</div></div>
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="tab-panel" id="tab-stats">
     <div id="statsContent">
       <div class="loading-state"><div class="spinner"></div><div class="loading-text">Loading Stats...</div></div>
@@ -1012,10 +964,8 @@
 
 </div>
 
-<!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- SCOREBOARD MODAL -->
 <div class="modal-overlay" id="scoreModal">
   <div class="modal-sheet" id="scoreModalSheet">
     <div class="modal-handle"></div>
@@ -1024,11 +974,9 @@
         <span class="modal-match-num" id="modalMatchNum">Match —</span>
         <button class="modal-close" id="modalClose"><i class="fas fa-xmark"></i></button>
       </div>
-      <!-- Score hero -->
       <div class="modal-score-hero" id="modalScoreHero">
         <div class="modal-loading"><div class="spinner"></div></div>
       </div>
-      <!-- Innings tabs -->
       <div class="innings-tabs" id="inningsTabs"></div>
     </div>
     <div class="modal-body" id="modalBody">
@@ -1037,7 +985,6 @@
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="experts-dugout.html"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
@@ -1053,16 +1000,17 @@
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  // ── Toast ──
   window.showToast = (msg) => {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
     t.className = 'toast'; t.textContent = msg;
     c.appendChild(t);
-    setTimeout(() => { t.classList.add('fade-out'); t.addEventListener('transitionend', () => t.remove(), { once: true }); }, 3000);
+    setTimeout(() => {
+      t.classList.add('fade-out');
+      t.addEventListener('transitionend', () => t.remove(), { once: true });
+    }, 3000);
   };
 
-  // ── Tabs ──
   const panels = document.querySelectorAll('.tab-panel');
   const tabs   = document.querySelectorAll('.page-tab');
   const loadedTabs = new Set();
@@ -1074,21 +1022,22 @@
       tab.classList.add('active');
       const id = tab.dataset.tab;
       document.getElementById(`tab-${id}`)?.classList.add('active');
-if (id === 'live') {
-  renderLiveTab();
-  subscribeToLiveScores();
-} else if (!loadedTabs.has(id)) {
-  loadedTabs.add(id);
-  loadTabData(id);
-}    });
+      if (id === 'live') {
+        renderLiveTab();
+        subscribeToLiveScores();
+      } else if (!loadedTabs.has(id)) {
+        loadedTabs.add(id);
+        loadTabData(id);
+      }
+    });
   });
 
-loadedTabs.add('live');
-renderLiveTab();
-subscribeToLiveScores();
+  loadedTabs.add('live');
+  renderLiveTab();
+  subscribeToLiveScores();
 
   function loadTabData(tab) {
-if (tab === 'live')     renderLiveTab();
+    if (tab === 'live')     renderLiveTab();
     if (tab === 'results')  loadResults();
     if (tab === 'upcoming') loadUpcoming();
     if (tab === 'fixtures') loadFixtures();
@@ -1096,9 +1045,7 @@ if (tab === 'live')     renderLiveTab();
     if (tab === 'stats')    loadStats();
   }
 
-  // ════════════════════════════════════
-  //  HELPERS
-  // ════════════════════════════════════
+  // ── HELPERS ──
   function getLogoUrl(path) {
     if (!path) return null;
     const { data } = sb.storage.from('team-logos').getPublicUrl(path);
@@ -1128,10 +1075,15 @@ if (tab === 'live')     renderLiveTab();
     return new Date(iso).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
   }
 
+  function fmtOvers(o) {
+    if (o == null) return '0';
+    const full = Math.floor(o);
+    const balls = Math.round((o - full) * 6);
+    return full + '.' + balls;
+  }
+
   let liveChannel = null;
 
-  // Fetch matches with team info joined
-  // Uses: matches + real_teams (aliased as team_a and team_b)
   async function fetchMatches(filters = {}) {
     let q = sb.from('matches').select(`
       id, match_number, status, points_processed, actual_start_time,
@@ -1139,38 +1091,29 @@ if (tab === 'live')     renderLiveTab();
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+      live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `);
-
-    if (filters.status)            q = q.eq('status', filters.status);
+    if (filters.status)                        q = q.eq('status', filters.status);
     if (filters.points_processed !== undefined) q = q.eq('points_processed', filters.points_processed);
-    if (filters.order)             q = q.order(filters.order.col, { ascending: filters.order.asc });
-    if (filters.limit)             q = q.limit(filters.limit);
-
+    if (filters.order)                         q = q.order(filters.order.col, { ascending: filters.order.asc });
+    if (filters.limit)                         q = q.limit(filters.limit);
     const { data, error } = await q;
     return { data, error };
   }
 
-  function fmtOvers(o) {
-  if (o == null) return '0';
-  const full = Math.floor(o);
-  const balls = Math.round((o - full) * 6);
-  return full + '.' + balls;
-}
-
+  // ── BUILD MATCH CARD ──
   function buildMatchCard(m, badge) {
     const logoA = getLogoUrl(m.team_a?.photo_name);
     const logoB = getLogoUrl(m.team_b?.photo_name);
     const codeA = m.team_a?.short_code || '—';
     const codeB = m.team_b?.short_code || '—';
-    const isLive = m.status === 'locked' && !m.points_processed;
+    const isLive   = m.status === 'locked' && !m.points_processed;
     const isResult = m.status === 'locked' && m.points_processed;
 
-    // Score lines
     const ls = m.live_scores;
     let scoreA = '', scoreB = '', resultLine = '';
 
-if (ls) {
+    if (ls) {
       const teamAFirst = (m.team_a?.name || '').toLowerCase().split(' ')[0];
       const team1MatchesA = ls.team1_name?.toLowerCase().includes(teamAFirst);
       const lsA = team1MatchesA
@@ -1186,9 +1129,9 @@ if (ls) {
     }
 
     let badgeHtml = '';
-    if (badge === 'live')   badgeHtml = `<span class="match-status-badge badge-live"><span class="live-dot-inline"></span>LIVE</span>`;
-    if (badge === 'result') badgeHtml = `<span class="match-status-badge badge-result">RESULT</span>`;
-    if (badge === 'upcoming') badgeHtml = `<span class="match-status-badge badge-upcoming">UPCOMING</span>`;
+    if (badge === 'live')      badgeHtml = `<span class="match-status-badge badge-live"><span class="live-dot-inline"></span>LIVE</span>`;
+    if (badge === 'result')    badgeHtml = `<span class="match-status-badge badge-result">RESULT</span>`;
+    if (badge === 'upcoming')  badgeHtml = `<span class="match-status-badge badge-upcoming">UPCOMING</span>`;
     if (badge === 'abandoned') badgeHtml = `<span class="match-status-badge badge-abandoned">NO RESULT</span>`;
 
     const venueRow = isLive
@@ -1196,11 +1139,8 @@ if (ls) {
       : `<div class="match-venue-sm"><i class="fas fa-clock" style="font-size:10px"></i> ${formatShortDate(m.actual_start_time)} · ${formatShortTime(m.actual_start_time)} IST</div>
          <div class="match-venue-sm" style="margin-top:2px"><i class="fas fa-location-dot" style="font-size:10px"></i> ${m.venue || 'TBD'}</div>`;
 
-    const clickable = (isLive || isResult) ? `data-match-id="${m.id}"` : '';
-
     return `
-<div class="card match-card ${isLive ? 'live-match' : ''}"
-        onclick="openScoreboard('${m.id}')">
+      <div class="card match-card ${isLive ? 'live-match' : ''}" onclick="openScoreboard('${m.id}')">
         <div class="match-card-top">
           <span class="match-number-label">Match ${m.match_number ?? '—'}</span>
           ${badgeHtml}
@@ -1223,69 +1163,67 @@ if (ls) {
       </div>`;
   }
 
-
-async function renderLiveTab() {
-  const el = document.getElementById('liveContent');
-  const { data, error } = await fetchMatches({
-    status: 'locked',
-    points_processed: false,
-    order: { col: 'match_number', asc: true }
-  });
-  if (error) { el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load live matches.</div>`; return; }
-  if (!data?.length) {
-    el.innerHTML = `
-      <div class="empty-msg" style="padding:32px 20px 16px">
-        <span class="empty-emoji">🏏</span>
-        <strong style="font-family:var(--font-display);font-size:18px;font-weight:900;text-transform:uppercase;display:block;margin-bottom:6px;color:var(--text-dim)">No Live Matches</strong>
-        <span style="font-size:12px">Check Results or Upcoming tab</span>
-      </div>`;
-    return;
+  // ── LIVE TAB ──
+  async function renderLiveTab() {
+    const el = document.getElementById('liveContent');
+    const { data, error } = await fetchMatches({
+      status: 'locked',
+      points_processed: false,
+      order: { col: 'match_number', asc: true }
+    });
+    if (error) {
+      el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load live matches.</div>`;
+      return;
+    }
+    if (!data?.length) {
+      el.innerHTML = `
+        <div class="empty-msg" style="padding:32px 20px 16px">
+          <span class="empty-emoji">🏏</span>
+          <strong style="font-family:var(--font-display);font-size:18px;font-weight:900;text-transform:uppercase;display:block;margin-bottom:6px;color:var(--text-dim)">No Live Matches</strong>
+          <span style="font-size:12px">Check Results or Upcoming tab</span>
+        </div>`;
+      return;
+    }
+    el.innerHTML = `<p class="section-label">${data.length} Match${data.length > 1 ? 'es' : ''} Live Now</p>
+      ${data.map(m => buildMatchCard(m, 'live')).join('')}`;
   }
-  el.innerHTML = `<p class="section-label">${data.length} Match${data.length > 1 ? 'es' : ''} Live Now</p>
-    ${data.map(m => buildMatchCard(m, 'live')).join('')}`;
-}
 
-function subscribeToLiveScores() {
-  if (liveChannel) return;
-  liveChannel = sb.channel('live-score-updates')
-    .on('postgres_changes', { event: '*', table: 'live_scores' }, () => renderLiveTab())
-    .subscribe();
-}
+  function subscribeToLiveScores() {
+    if (liveChannel) return;
+    liveChannel = sb.channel('live-score-updates')
+      .on('postgres_changes', { event: '*', table: 'live_scores' }, () => renderLiveTab())
+      .subscribe();
+  }
 
-  // ════════════════════════════════════
-  //  RESULTS TAB — locked + points_processed=true, most recent first
-  // ════════════════════════════════════
+  // ── RESULTS TAB ──
   async function loadResults() {
     const el = document.getElementById('resultsContent');
-
     const { data, error } = await sb.from('matches').select(`
       id, match_number, status, points_processed, actual_start_time, venue,
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+      live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `)
     .eq('status', 'locked')
     .eq('points_processed', true)
     .order('match_number', { ascending: false });
 
-    if (error) { el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load results.</div>`; return; }
-
+    if (error) {
+      el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">⚠️</span>Could not load results.</div>`;
+      return;
+    }
     if (!data?.length) {
       el.innerHTML = `<div class="empty-msg"><span class="empty-emoji">🏏</span>No results yet. Check back after the first match!</div>`;
       return;
     }
-
     el.innerHTML = `<p class="section-label">${data.length} Result${data.length > 1 ? 's' : ''}</p>
       ${data.map(m => buildMatchCard(m, 'result')).join('')}`;
   }
 
-  // ════════════════════════════════════
-  //  UPCOMING TAB
-  // ════════════════════════════════════
+  // ── UPCOMING TAB ──
   async function loadUpcoming() {
     const el = document.getElementById('upcomingContent');
-
     const { data, error } = await sb.from('matches').select(`
       id, match_number, status, actual_start_time, venue,
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
@@ -1332,35 +1270,31 @@ live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, tea
       </div>
       ${rest.length ? `<p class="section-label">Coming Up</p>${rest.map(m => buildMatchCard(m, 'upcoming')).join('')}` : ''}`;
 
-    // Countdown
     if (next.actual_start_time) {
       const cdEl = document.getElementById('nextMatchCountdown');
       const tick = () => {
         const dist = new Date(next.actual_start_time).getTime() - Date.now();
         if (!cdEl) return;
         if (dist <= 0) { cdEl.textContent = 'Starting soon'; return; }
-        const d = Math.floor(dist / 86400000);
-        const h = Math.floor((dist % 86400000) / 3600000);
+        const d  = Math.floor(dist / 86400000);
+        const h  = Math.floor((dist % 86400000) / 3600000);
         const mn = Math.floor((dist % 3600000) / 60000);
-        const s = Math.floor((dist % 60000) / 1000);
+        const s  = Math.floor((dist % 60000) / 1000);
         cdEl.textContent = d > 0 ? `${d}d ${h}h ${mn}m` : `${h}h ${mn}m ${s}s`;
       };
       tick(); setInterval(tick, 1000);
     }
   }
 
-  // ════════════════════════════════════
-  //  FIXTURES TAB
-  // ════════════════════════════════════
+  // ── FIXTURES TAB ──
   async function loadFixtures() {
     const el = document.getElementById('fixturesContent');
-
     const { data, error } = await sb.from('matches').select(`
       id, match_number, status, points_processed, actual_start_time, venue,
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+      live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `).order('match_number', { ascending: true });
 
     if (error || !data?.length) {
@@ -1372,7 +1306,7 @@ live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, tea
     data.forEach(m => {
       const key = formatDateGroup(m.actual_start_time) || 'TBD';
       if (!groups[key]) groups[key] = [];
-groups[key].push(m);
+      groups[key].push(m);
     });
 
     let html = '';
@@ -1389,12 +1323,9 @@ groups[key].push(m);
     el.innerHTML = html;
   }
 
-  // ════════════════════════════════════
-  //  POINTS TABLE
-  // ════════════════════════════════════
+  // ── POINTS TABLE ──
   async function loadPointsTable() {
     const el = document.getElementById('pointsContent');
-
     const { data: rows, error } = await sb.from('ipl_points_table').select('*').order('position', { ascending: true });
 
     if (error || !rows?.length) {
@@ -1424,8 +1355,8 @@ groups[key].push(m);
 
     const tbody = document.getElementById('ptBody');
     rows.forEach((row, i) => {
-      const nrrVal = parseFloat(row.nrr ?? row.net_run_rate ?? 0) || 0;
-      const nrrSign = nrrVal >= 0 ? '+' : '';
+      const nrrVal   = parseFloat(row.nrr ?? row.net_run_rate ?? 0) || 0;
+      const nrrSign  = nrrVal >= 0 ? '+' : '';
       const nrrClass = nrrVal >= 0 ? 'pt-nrr-pos' : 'pt-nrr-neg';
       const tr = document.createElement('tr');
       if (i < 4) tr.className = 'qualifier-row';
@@ -1444,12 +1375,9 @@ groups[key].push(m);
     });
   }
 
-  // ════════════════════════════════════
-  //  STATS TAB
-  // ════════════════════════════════════
+  // ── STATS TAB ──
   async function loadStats() {
     const el = document.getElementById('statsContent');
-
     const { data: stats, error } = await sb.from('ipl_player_stats').select('*').limit(100);
 
     if (error || !stats?.length) {
@@ -1487,7 +1415,6 @@ groups[key].push(m);
         <div class="stats-value">${valFn(r)??'—'}</div>
       </div>`;
     }).join('');
-
     return `<div class="card stats-section">
       <div class="stats-card-header">
         <div class="stats-icon ${iconClass}"><i class="fas ${icon}"></i></div>
@@ -1510,7 +1437,6 @@ groups[key].push(m);
         </div>
         <div style="height:24px;width:36px;background:${shimmer};background-size:200% 100%;animation:skShimmer 1.4s infinite;border-radius:4px"></div>
       </div>`).join('');
-
     return `<div class="card stats-section">
       <div class="stats-card-header">
         <div class="stats-icon ${iconClass}"><i class="fas ${icon}"></i></div>
@@ -1524,81 +1450,68 @@ groups[key].push(m);
   style.textContent = `@keyframes skShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`;
   document.head.appendChild(style);
 
-  // ════════════════════════════════════
-  //  SCOREBOARD MODAL
-  // ════════════════════════════════════
-  const modal   = document.getElementById('scoreModal');
-  const sheet   = document.getElementById('scoreModalSheet');
+  // ── MODAL ──
+  const modal    = document.getElementById('scoreModal');
+  const sheet    = document.getElementById('scoreModalSheet');
   const closeBtn = document.getElementById('modalClose');
-  let currentMatchData = null;
+  let currentMatchData  = null;
   let currentInningsIdx = 0;
 
-  // Close handlers
   closeBtn.addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
-  // Swipe down to close
   let touchStartY = 0;
   sheet.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
-  sheet.addEventListener('touchmove', e => {
-    const dy = e.touches[0].clientY - touchStartY;
-    if (dy > 80) closeModal();
+  sheet.addEventListener('touchmove',  e => {
+    if (e.touches[0].clientY - touchStartY > 80) closeModal();
   }, { passive: true });
 
-function closeModal() {
+  function closeModal() {
     modal.classList.remove('open');
     document.body.style.overflow = '';
   }
 
-  // Master Innings Sorter: Uses Overs first, then Match Status as backup
   function getSmartInningsLabels(ls, teamA, teamB) {
     const ta = teamA || 'Team A';
     const tb = teamB || 'Team B';
-const status = (ls.match_status || '').toLowerCase()    
+    const status = (ls.match_status || '').toLowerCase();
     const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
-    const teamBMentioned = status.includes(tb.toLowerCase().split(' ')[0]);
 
-    // 1. FINISHED MATCHES
-    if (status.includes('run')) return teamAMentioned ? [ta, tb] : [tb, ta];
-    if (status.includes('wkt') || status.includes('wicket')) return teamAMentioned ? [tb, ta] : [ta, tb];
+    if (status.includes('run'))                                           return teamAMentioned ? [ta, tb] : [tb, ta];
+    if (status.includes('wkt') || status.includes('wicket'))              return teamAMentioned ? [tb, ta] : [ta, tb];
 
-    // 2. LIVE MATCHES (Using Overs Math!)
-const oversA = ls.team1_overs || 0
-const oversB = ls.team2_overs || 0
+    const oversA = ls.team1_overs || 0;
+    const oversB = ls.team2_overs || 0;
+    if (oversA > 0 && oversB === 0) return [ta, tb];
+    if (oversB > 0 && oversA === 0) return [tb, ta];
 
-    if (oversA > 0 && oversB === 0) return [ta, tb]; // Team A is batting first
-    if (oversB > 0 && oversA === 0) return [tb, ta]; // Team B is batting first
-
-    // 3. CHASING (Second Innings)
     if (status.includes('need') || status.includes('require') || status.includes('target')) {
-      return teamAMentioned ? [tb, ta] : [ta, tb]; 
+      return teamAMentioned ? [tb, ta] : [ta, tb];
     }
-
-    // Fallbacks
-    if (status.includes('bat')) return teamAMentioned ? [ta, tb] : [tb, ta];
-    if (status.includes('bowl') || status.includes('field')) return teamAMentioned ? [tb, ta] : [ta, tb];
+    if (status.includes('bat'))                                           return teamAMentioned ? [ta, tb] : [tb, ta];
+    if (status.includes('bowl') || status.includes('field'))              return teamAMentioned ? [tb, ta] : [ta, tb];
 
     return [ta, tb];
   }
+
+  // ── OPEN SCOREBOARD ──
   window.openScoreboard = async function(matchId) {
     if (!matchId || matchId === 'undefined') return;
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
     currentInningsIdx = 0;
 
-    // Reset
     document.getElementById('modalMatchNum').textContent = 'Loading...';
-    document.getElementById('modalScoreHero').innerHTML = `<div class="modal-loading"><div class="spinner"></div></div>`;
-    document.getElementById('inningsTabs').innerHTML = '';
-    document.getElementById('modalBody').innerHTML = `<div class="modal-loading"><div class="spinner"></div><div class="loading-text">Loading Scorecard...</div></div>`;
+    document.getElementById('modalScoreHero').innerHTML  = `<div class="modal-loading"><div class="spinner"></div></div>`;
+    document.getElementById('inningsTabs').innerHTML     = '';
+    document.getElementById('modalBody').innerHTML       = `<div class="modal-loading"><div class="spinner"></div><div class="loading-text">Loading Scorecard...</div></div>`;
 
-    // Fetch match data + live_scores
     const { data: match, error } = await sb.from('matches').select(`
       id, match_number, status, points_processed, actual_start_time, venue,
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
+      live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, team2_score, team2_wickets, team2_overs, winner, match_result, match_status, toss_winner, toss_choice)
     `)
     .eq('id', matchId)
     .single();
@@ -1610,28 +1523,29 @@ live_scores(team1_name, team1_score, team1_wickets, team1_overs, team2_name, tea
 
     currentMatchData = match;
     document.getElementById('modalMatchNum').textContent = `Match ${match.match_number ?? '—'}`;
-
     renderModalHero(match);
     renderInningsScorecard(match, 0);
   };
 
+  // ── MODAL HERO ──
   function renderModalHero(match) {
-    const ls = match.live_scores;
+    const ls    = match.live_scores;
     const logoA = getLogoUrl(match.team_a?.photo_name);
     const logoB = getLogoUrl(match.team_b?.photo_name);
     const codeA = match.team_a?.short_code || '—';
     const codeB = match.team_b?.short_code || '—';
 
     let scoreA = '—', scoreB = '—';
+    let winnerBanner = '';
+    let tossLine = '';
+
     if (ls) {
-if (ls.team1_score != null) scoreA = `${ls.team1_score}/${ls.team1_wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team1_overs)} ov</span>`;
-if (ls.team2_score != null) scoreB = `${ls.team2_score}/${ls.team2_wickets??0}<span class="modal-team-score-sub">${fmtOvers(ls.team2_overs)} ov</span>`;
-const result = ls?.match_result || ls?.match_status || (ls?.winner ? ls.winner + ' won' : '');
-    const winnerBanner = result ? `<div class="modal-winner-banner">${result}</div>` : '';
-
-const tossLine = ls?.toss_winner ?
- `<div class="match-venue-row" style="margin-top:6px"><i class="fas fa-circle-half-stroke" style="color:var(--gold);font-size:10px"></i> <span style="color:var(--gold)">${ls.toss_winner.toUpperCase()}</span> won toss · chose to <span style="color:var(--accent)">${(ls.toss_choice ?? '').toUpperCase()}</span></div>` : '';
-
+      if (ls.team1_score != null) scoreA = `${ls.team1_score}/${ls.team1_wickets ?? 0}<span class="modal-team-score-sub"> ${fmtOvers(ls.team1_overs)} ov</span>`;
+      if (ls.team2_score != null) scoreB = `${ls.team2_score}/${ls.team2_wickets ?? 0}<span class="modal-team-score-sub"> ${fmtOvers(ls.team2_overs)} ov</span>`;
+      const result = ls.match_result || ls.match_status || (ls.winner ? ls.winner + ' won' : '');
+      if (result) winnerBanner = `<div class="modal-winner-banner">${result}</div>`;
+      if (ls.toss_winner) tossLine = `<div class="modal-venue-row" style="margin-top:6px"><i class="fas fa-circle-half-stroke" style="color:var(--gold);font-size:10px"></i> <span style="color:var(--gold)">${ls.toss_winner.toUpperCase()}</span> won toss · chose to <span style="color:var(--accent)">${(ls.toss_choice ?? '').toUpperCase()}</span></div>`;
+    }
 
     document.getElementById('modalScoreHero').innerHTML = `
       <div class="modal-teams-row">
@@ -1659,31 +1573,26 @@ const tossLine = ls?.toss_winner ?
       return;
     }
 
-const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
-    const tabsEl = document.getElementById('inningsTabs');
-
-// Call the master sorter using the full live_scores object
+    const innings = Array.isArray(ls2.batting) ? ls2.batting : [];
+    const tabsEl  = document.getElementById('inningsTabs');
     const [inn0Label, inn1Label] = getSmartInningsLabels(
       ls2,
       match.team_a?.name || match.team_a?.short_code,
       match.team_b?.name || match.team_b?.short_code
     );
-    const inningTeamNames = [inn0Label, inn1Label];
 
     tabsEl.innerHTML = innings.map((_, i) => `
-      <button class="innings-tab ${i === 0 ? 'active' : ''}"
-        onclick="switchInnings(${i})">${inningTeamNames[i]}</button>
+      <button class="innings-tab ${i === 0 ? 'active' : ''}" onclick="switchInnings(${i})">${i === 0 ? inn0Label : inn1Label}</button>
     `).join('');
   }
 
   window.switchInnings = function(idx) {
     currentInningsIdx = idx;
-    document.querySelectorAll('.innings-tab').forEach((t, i) => {
-      t.classList.toggle('active', i === idx);
-    });
+    document.querySelectorAll('.innings-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
     renderInningsScorecard(currentMatchData, idx);
   };
 
+  // ── INNINGS SCORECARD ──
   function renderInningsScorecard(match, inningsIdx) {
     const bodyEl = document.getElementById('modalBody');
     const ls = match.live_scores;
@@ -1701,7 +1610,6 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
       return;
     }
 
-// Call the master sorter using the full live_scores object
     const [_inn0, _inn1] = getSmartInningsLabels(
       ls,
       match.team_a?.name || match.team_a?.short_code,
@@ -1713,28 +1621,25 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
     const batters = battingInnings[inningsIdx] || [];
     const bowlers = bowlingInnings[inningsIdx] || [];
 
-    // Ball Zero Safety Check!
     if (batters.length === 0 && bowlers.length === 0) {
       bodyEl.innerHTML = `
         <div class="empty-msg" style="padding:60px 20px">
           <span class="empty-emoji">⏳</span>
           <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:6px">WAITING FOR FIRST BALL</div>
           <div style="font-size:12px;color:var(--text-faint)">The toss is complete or an innings break is happening.<br>The scorecard will automatically appear once play begins.</div>
-        </div>
-      `;
+        </div>`;
       return;
     }
 
-    // Batting table
     const battingRows = batters
       .filter(b => b && b.batsman)
       .map(b => {
-        const sr = b.b > 0 ? ((b.r / b.b) * 100).toFixed(1) : '—';
+        const sr      = b.b > 0 ? ((b.r / b.b) * 100).toFixed(1) : '—';
         const srClass = b.b === 0 ? '' : parseFloat(sr) >= 150 ? 'sr-good' : parseFloat(sr) >= 100 ? 'sr-avg' : 'sr-slow';
         return `<tr>
           <td>
             <span class="sc-player-name">${b.batsman?.name || '—'}</span>
-            <span class="sc-dismissal">${b['dismissal-text'] || (b.r !== undefined && !b['dismissal-text'] ? 'not out' : '—')}</span>
+            <span class="sc-dismissal">${b['dismissal-text'] || (b.r !== undefined ? 'not out' : '—')}</span>
           </td>
           <td class="${b.r >= 50 ? 'sc-highlight' : ''}">${b.r ?? '—'}</td>
           <td>${b.b ?? '—'}</td>
@@ -1744,50 +1649,38 @@ const innings = (ls2 && Array.isArray(ls2.batting)) ? ls2.batting : [];
         </tr>`;
       }).join('');
 
-    // Bowling table
     const bowlingRows = bowlers
       .filter(b => b && b.bowler)
       .map(b => {
-        // Convert overs to true overs (e.g. 3.5 means 3 overs 5 balls)
-        const getTrueOvers = o => Math.floor(o) + (Math.round((o - Math.floor(o)) * 10) / 6);    
-const ecoNum = b.r && b.o ? (b.r / getTrueOvers(b.o)).toFixed(2) : null;
+        const getTrueOvers = o => Math.floor(o) + (Math.round((o - Math.floor(o)) * 10) / 6);
+        const ecoNum  = b.r && b.o ? (b.r / getTrueOvers(b.o)).toFixed(2) : null;
+        const ecoClass = ecoNum === null ? '' : parseFloat(ecoNum) < 7 ? 'eco-good' : parseFloat(ecoNum) < 9 ? 'eco-avg' : 'eco-exp';
         return `<tr>
           <td><span class="sc-player-name">${b.bowler?.name || '—'}</span></td>
           <td>${b.o ?? '—'}</td>
           <td>${b.m ?? '—'}</td>
           <td>${b.r ?? '—'}</td>
           <td class="${b.w >= 3 ? 'sc-highlight' : ''}">${b.w ?? '—'}</td>
-          <td class="${ecoNum === null ? '' : parseFloat(ecoNum) < 7 ? 'eco-good' : parseFloat(ecoNum) < 9 ? 'eco-avg' : 'eco-exp'}">${ecoNum ?? '—'}</td>
+          <td class="${ecoClass}">${ecoNum ?? '—'}</td>
         </tr>`;
       }).join('');
 
     bodyEl.innerHTML = `
-      <!-- BATTING -->
       <div class="scorecard-section">
         <div class="scorecard-section-title">${battingTeam} — Batting</div>
         <div class="scorecard-wrap">
           <table class="sc-table">
-            <thead><tr>
-              <th>Batter</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>SR</th>
-            </tr></thead>
-            <tbody>
-              ${battingRows || '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-faint)">No batting data</td></tr>'}
-            </tbody>
+            <thead><tr><th>Batter</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>SR</th></tr></thead>
+            <tbody>${battingRows || '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-faint)">No batting data</td></tr>'}</tbody>
           </table>
         </div>
       </div>
-
-      <!-- BOWLING -->
       <div class="scorecard-section">
         <div class="scorecard-section-title">${bowlingTeam} — Bowling</div>
         <div class="scorecard-wrap">
           <table class="sc-table">
-            <thead><tr>
-              <th>Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th><th>Eco</th>
-            </tr></thead>
-            <tbody>
-              ${bowlingRows || '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-faint)">No bowling data</td></tr>'}
-            </tbody>
+            <thead><tr><th>Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th><th>Eco</th></tr></thead>
+            <tbody>${bowlingRows || '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-faint)">No bowling data</td></tr>'}</tbody>
           </table>
         </div>
       </div>
@@ -1795,11 +1688,11 @@ const ecoNum = b.r && b.o ? (b.r / getTrueOvers(b.o)).toFixed(2) : null;
   }
 
   window.addEventListener('beforeunload', () => {
-  if (liveChannel) {
-    sb.removeChannel(liveChannel);
-    liveChannel = null;
-  }
-});
+    if (liveChannel) {
+      sb.removeChannel(liveChannel);
+      liveChannel = null;
+    }
+  });
 
 </script>
 </body>
