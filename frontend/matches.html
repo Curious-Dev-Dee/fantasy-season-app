@@ -1106,6 +1106,7 @@ const { createClient } = supabase;
 
   // ── BUILD MATCH CARD ──
   function buildMatchCard(m, badge) {
+    const ls = Array.isArray(m.live_scores) ? m.live_scores[0] : m.live_scores;
     const logoA = getLogoUrl(m.team_a?.photo_name);
     const logoB = getLogoUrl(m.team_b?.photo_name);
     const codeA = m.team_a?.short_code || '—';
@@ -1117,8 +1118,9 @@ const { createClient } = supabase;
     let scoreA = '', scoreB = '', resultLine = '';
 
     if (ls) {
-const teamAFirst = (m.team_a?.short_code || m.team_a?.name || '').toLowerCase();
-    const team1MatchesA = ls.team1_name?.toLowerCase().includes(teamAFirst);
+const nameA = (m.team_a?.name || '').toLowerCase();
+const team1MatchesA = ls.team1_name?.toLowerCase().includes(nameA.split(' ')[0]);
+
       const lsA = team1MatchesA
         ? { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs }
         : { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs };
@@ -1192,11 +1194,11 @@ const teamAFirst = (m.team_a?.short_code || m.team_a?.name || '').toLowerCase();
   }
 
 function subscribeToLiveScores() {
-    if (typeof liveChannel !== 'undefined' && liveChannel) sb.removeChannel(liveChannel);
-    liveChannel = sb.channel('live-score-updates')
-      .on('postgres_changes', { event: '*', table: 'live_scores' }, () => renderLiveTab())
-      .subscribe();
-  }
+  if (liveChannel) sb.removeChannel(liveChannel); // remove typeof check
+  liveChannel = sb.channel('live-score-updates')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'live_scores' }, () => renderLiveTab())
+    .subscribe();
+}
   // ── RESULTS TAB ──
   async function loadResults() {
     const el = document.getElementById('resultsContent');
@@ -1480,8 +1482,8 @@ function subscribeToLiveScores() {
     const teamAMentioned = status.includes(ta.toLowerCase().split(' ')[0]);
 
     if (status.includes('run'))                                           return teamAMentioned ? [ta, tb] : [tb, ta];
-    if (status.includes('wkt') || status.includes('wicket'))              return teamAMentioned ? [tb, ta] : [ta, tb];
-
+if (status.includes('wkt') || status.includes('wicket'))
+  return teamAMentioned ? [tb, ta] : [ta, tb]; // ta chased → tab 1, not 0
     const oversA = ls.team1_overs || 0;
     const oversB = ls.team2_overs || 0;
     if (oversA > 0 && oversB === 0) return [ta, tb];
@@ -1542,8 +1544,9 @@ function subscribeToLiveScores() {
     let tossLine = '';
 
     if (ls) {
-      if (ls.team1_score != null) scoreA = `${ls.team1_score}/${ls.team1_wickets ?? 0}<span class="modal-team-score-sub"> ${fmtOvers(ls.team1_overs)} ov</span>`;
-      if (ls.team2_score != null) scoreB = `${ls.team2_score}/${ls.team2_wickets ?? 0}<span class="modal-team-score-sub"> ${fmtOvers(ls.team2_overs)} ov</span>`;
+      const nameA = (m.team_a?.name || '').toLowerCase();
+const team1MatchesA = ls.team1_name?.toLowerCase().includes(nameA.split(' ')[0]);
+
       const result = ls.match_result || ls.match_status || (ls.winner ? ls.winner + ' won' : '');
       if (result) winnerBanner = `<div class="modal-winner-banner">${result}</div>`;
       if (ls.toss_winner) tossLine = `<div class="modal-venue-row" style="margin-top:6px"><i class="fas fa-circle-half-stroke" style="color:var(--gold);font-size:10px"></i> <span style="color:var(--gold)">${ls.toss_winner.toUpperCase()}</span> won toss · chose to <span style="color:var(--accent)">${(ls.toss_choice ?? '').toUpperCase()}</span></div>`;
