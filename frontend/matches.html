@@ -1164,8 +1164,10 @@ if (tab === 'live')     renderLiveTab();
     if (ls) {
       if (ls.team1_score != null) scoreA = `<div class="team-score-sm">${ls.team1_score}/${ls.team1_wickets ?? 0} <span style="font-size:12px;color:var(--text-faint)">(${ls.team1_overs ?? 0})</span></div>`;
       if (ls.team2_score != null) scoreB = `<div class="team-score-sm">${ls.team2_score}/${ls.team2_wickets ?? 0} <span style="font-size:12px;color:var(--text-faint)">(${ls.team2_overs ?? 0})</span></div>`;
-if (ls.match_result || ls.winner) resultLine = `<div class="match-result-text">${ls.match_result ?? ls.winner + ' won'}</div>`    }
-
+if (ls.match_result || ls.match_status || ls.winner) {
+  const text = ls.match_result || ls.match_status || (ls.winner ? ls.winner + ' won' : '');
+  resultLine = `<div class="match-result-text">${text}</div>`;
+}
     let badgeHtml = '';
     if (badge === 'live')   badgeHtml = `<span class="match-status-badge badge-live"><span class="live-dot-inline"></span>LIVE</span>`;
     if (badge === 'result') badgeHtml = `<span class="match-status-badge badge-result">RESULT</span>`;
@@ -1248,8 +1250,7 @@ function subscribeToLiveScores() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      live_scores(team1_name, team1_score, team1_wickets, team1_overs,
-                  team2_name, team2_score, team2_wickets, team2_overs, winner)
+      livescores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, match_result, match_status)
     `)
     .eq('status', 'locked')
     .eq('points_processed', true)
@@ -1346,7 +1347,7 @@ function subscribeToLiveScores() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      live_scores(team1_score, team1_wickets, team1_overs, team2_score, team2_wickets, team2_overs, winner)
+      livescores(team1score, team1wickets, team1overs, team2score, team2wickets, team2overs, winner, match_result, match_status)
     `).order('match_number', { ascending: true });
 
     if (error || !data?.length) {
