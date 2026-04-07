@@ -1192,7 +1192,7 @@ const teamAFirst = (m.team_a?.short_code || m.team_a?.name || '').toLowerCase();
   }
 
 function subscribeToLiveScores() {
-    if (liveChannel) sb.removeChannel(liveChannel);
+    if (typeof liveChannel !== 'undefined' && liveChannel) sb.removeChannel(liveChannel);
     liveChannel = sb.channel('live-score-updates')
       .on('postgres_changes', { event: '*', table: 'live_scores' }, () => renderLiveTab())
       .subscribe();
