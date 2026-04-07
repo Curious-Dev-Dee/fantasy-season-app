@@ -1137,8 +1137,7 @@ if (tab === 'live')     renderLiveTab();
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      live_scores(team1_name, team1_score, team1_wickets, team1_overs,
-                  team2_name, team2_score, team2_wickets, team2_overs, winner, match_status)
+     live_scores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, match_result, matchstatus)
     `);
 
     if (filters.status)            q = q.eq('status', filters.status);
@@ -1165,8 +1164,7 @@ if (tab === 'live')     renderLiveTab();
     if (ls) {
       if (ls.team1_score != null) scoreA = `<div class="team-score-sm">${ls.team1_score}/${ls.team1_wickets ?? 0} <span style="font-size:12px;color:var(--text-faint)">(${ls.team1_overs ?? 0})</span></div>`;
       if (ls.team2_score != null) scoreB = `<div class="team-score-sm">${ls.team2_score}/${ls.team2_wickets ?? 0} <span style="font-size:12px;color:var(--text-faint)">(${ls.team2_overs ?? 0})</span></div>`;
-      if (ls.winner) resultLine = `<div class="match-result-text">🏆 ${ls.winner} won</div>`;
-    }
+if (ls.match_result || ls.winner) resultLine = `<div class="match-result-text">${ls.match_result ?? ls.winner + ' won'}</div>`    }
 
     let badgeHtml = '';
     if (badge === 'live')   badgeHtml = `<span class="match-status-badge badge-live"><span class="live-dot-inline"></span>LIVE</span>`;
@@ -1182,7 +1180,8 @@ if (tab === 'live')     renderLiveTab();
     const clickable = (isLive || isResult) ? `data-match-id="${m.id}"` : '';
 
     return `
-      <div class="card match-card ${isLive ? 'live-match' : ''}" ${clickable} onclick="openScoreboard('${m.id}')">
+      <div class="card match-card ${isLive ? 'live-match' : ''}" ${clickable} // ✅ FIXED
+onclick="openScoreboard('${m.id}')">
         <div class="match-card-top">
           <span class="match-number-label">Match ${m.match_number ?? '—'}</span>
           ${badgeHtml}
@@ -1586,9 +1585,7 @@ function closeModal() {
       team_a:real_teams!matches_team_a_id_fkey(id, name, short_code, photo_name),
       team_b:real_teams!matches_team_b_id_fkey(id, name, short_code, photo_name),
       winner:real_teams!matches_winner_id_fkey(id, name, short_code),
-      live_scores(team1_name, team1_score, team1_wickets, team1_overs,
-                  team2_name, team2_score, team2_wickets, team2_overs,
-                  winner, batting, bowling, match_status)
+      live_scores(team1name, team1score, team1wickets, team1overs, team2name, team2score, team2wickets, team2overs, winner, match_result, toss_winner, toss_choice, matchstatus)
     `).eq('id', matchId).single();
 
     if (error || !match) {
@@ -1616,10 +1613,18 @@ function closeModal() {
       if (ls.team2_score != null) scoreB = `${ls.team2_score}/${ls.team2_wickets??0} <span class="modal-team-score-sub">(${ls.team2_overs??0} ov)</span>`;
     }
 
-    const winnerBanner = ls?.winner
-      ? `<div class="modal-winner-banner">🏆 ${ls.winner} won</div>` : '';
+const winnerBanner = ls?.match_result
+  ? `<div class="modal-winner-banner">${ls.match_result}</div>`
+  : ls?.winner
+  ? `<div class="modal-winner-banner">${ls.winner} won</div>`
+  : '';
 
-    const isLive = match.status === 'locked' && !match.points_processed;
+    const tossLine = ls?.toss_winner
+  ? `<div class="match-venue-row" style="margin-top:6px">
+       <i class="fas fa-circle-half-stroke" style="color:var(--gold);font-size:10px"></i>
+       <span style="color:var(--gold)">${ls.toss_winner.toUpperCase()}</span> won toss · chose to <span style="color:var(--accent)">${(ls.toss_choice ?? '').toUpperCase()}</span>
+     </div>`
+  : '';
 
     document.getElementById('modalScoreHero').innerHTML = `
       ${isLive ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent)"></div>` : ''}
@@ -1638,6 +1643,7 @@ function closeModal() {
       </div>
       ${winnerBanner}
       <div class="modal-venue-row"><i class="fas fa-location-dot" style="font-size:10px;color:var(--accent)"></i> ${match.venue || 'TBD'}</div>
+      ${tossLine}
     `;
 
     // Build innings tabs
