@@ -1023,7 +1023,10 @@
       const id = tab.dataset.tab;
       document.getElementById(`tab-${id}`)?.classList.add('active');
       if (id === 'live') {
-        renderLiveTab();
+        if (!loadedTabs.has('live')) {
+          loadedTabs.add('live');
+          renderLiveTab();
+        }
         subscribeToLiveScores();
       } else if (!loadedTabs.has(id)) {
         loadedTabs.add(id);
@@ -1078,7 +1081,7 @@
   function fmtOvers(o) {
     if (o == null) return '0';
     const full = Math.floor(o);
-    const balls = Math.round((o - full) * 6);
+    const balls = Math.round((o - full) * 10);
     return full + '.' + balls;
   }
 
@@ -1114,8 +1117,8 @@
     let scoreA = '', scoreB = '', resultLine = '';
 
     if (ls) {
-      const teamAFirst = (m.team_a?.name || '').toLowerCase().split(' ')[0];
-      const team1MatchesA = ls.team1_name?.toLowerCase().includes(teamAFirst);
+const teamAFirst = (m.team_a?.short_code || m.team_a?.name || '').toLowerCase();
+    const team1MatchesA = ls.team1_name?.toLowerCase().includes(teamAFirst);
       const lsA = team1MatchesA
         ? { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs }
         : { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs };
@@ -1188,13 +1191,12 @@
       ${data.map(m => buildMatchCard(m, 'live')).join('')}`;
   }
 
-  function subscribeToLiveScores() {
-    if (liveChannel) return;
+function subscribeToLiveScores() {
+    if (liveChannel) sb.removeChannel(liveChannel);
     liveChannel = sb.channel('live-score-updates')
       .on('postgres_changes', { event: '*', table: 'live_scores' }, () => renderLiveTab())
       .subscribe();
   }
-
   // ── RESULTS TAB ──
   async function loadResults() {
     const el = document.getElementById('resultsContent');
@@ -1577,8 +1579,8 @@
     const tabsEl  = document.getElementById('inningsTabs');
     const [inn0Label, inn1Label] = getSmartInningsLabels(
       ls2,
-      match.team_a?.name || match.team_a?.short_code,
-      match.team_b?.name || match.team_b?.short_code
+      match.team_a?.short_code || match.team_a?.name,
+      match.team_b?.short_code || match.team_b?.name
     );
 
     tabsEl.innerHTML = innings.map((_, i) => `
@@ -1652,7 +1654,7 @@
     const bowlingRows = bowlers
       .filter(b => b && b.bowler)
       .map(b => {
-        const getTrueOvers = o => Math.floor(o) + (Math.round((o - Math.floor(o)) * 10) / 6);
+const getTrueOvers = o => Math.floor(o) + (Math.round((o - Math.floor(o)) * 10) / 6);
         const ecoNum  = b.r && b.o ? (b.r / getTrueOvers(b.o)).toFixed(2) : null;
         const ecoClass = ecoNum === null ? '' : parseFloat(ecoNum) < 7 ? 'eco-good' : parseFloat(ecoNum) < 9 ? 'eco-avg' : 'eco-exp';
         return `<tr>
