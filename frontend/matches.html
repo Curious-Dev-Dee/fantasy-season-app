@@ -1114,7 +1114,6 @@ const { createClient } = supabase;
     const isLive   = m.status === 'locked' && !m.points_processed;
     const isResult = m.status === 'locked' && m.points_processed;
 
-    const ls = m.live_scores;
     let scoreA = '', scoreB = '', resultLine = '';
 
     if (ls) {
