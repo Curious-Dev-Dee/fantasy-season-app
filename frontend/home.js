@@ -18,6 +18,7 @@ const senderNameCache = new Map();
 let chatSubscription = null;
 let chatIsEmpty = true;
 const top3UserIds = new Map();
+let unreadCount = 0; // This keeps track of the number of messages
 
 // Chat DOM Elements
 const chatFab      = document.getElementById("chatFab");
@@ -1049,11 +1050,15 @@ chatFab.onclick = () => {
     chatPanel.classList.add("show");
     chatBackdrop.classList.remove("hidden");
 
-    // Force hide the badge when chat is opened
+    // --- RESET UNREAD COUNT ---
+    unreadCount = 0; 
     if (unreadBadge) {
+        unreadBadge.textContent = ""; // Clear the number
         unreadBadge.classList.add("hidden");
         unreadBadge.style.display = "none";
     }
+
+    setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
 
     setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
 
@@ -1219,11 +1224,13 @@ function subscribeToChat(userId, leagueId) {
  newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
             renderMessage(newMsg, userId);
 
-            // --- THIS IS THE EXACT FIX FOR THE BADGE ---
+            // --- UPDATED FOR NUMERIC BADGE ---
             if (!chatPanel?.classList.contains("show")) {
+                unreadCount++; // Add 1 to the count
                 if (unreadBadge) {
+                    unreadBadge.textContent = unreadCount; // Show the number (1, 2, 3...)
                     unreadBadge.classList.remove("hidden");
-                    unreadBadge.style.display = "block";
+                    unreadBadge.style.display = "flex"; // Changed to flex to center the number
                 }
             }
         })
