@@ -564,15 +564,15 @@ window.openScoreboard = async function(matchId) {
   renderScoreHero(match);
 
   // Build innings tabs
+  // Build innings tabs
   const ls = getLiveScores(match);
   if (ls?.batting) {
     let batting = ls.batting;
     if (typeof batting === 'string') { try { batting = JSON.parse(batting); } catch(e) { batting = []; } }
     if (Array.isArray(batting) && batting.length > 0) {
-      const [lab0, lab1] = getInningsLabels(ls, match.team_a?.short_code, match.team_b?.short_code);
       document.getElementById('inningsTabs').innerHTML = `
-        <button class="inn-tab active" onclick="switchInnings(0)">${lab0} INN</button>
-        <button class="inn-tab" onclick="switchInnings(1)">${lab1} INN</button>`;
+        <button class="inn-tab active" onclick="switchInnings(0)">1st Innings</button>
+        <button class="inn-tab" onclick="switchInnings(1)">2nd Innings</button>`;
     }
   }
 
