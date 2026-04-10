@@ -2320,10 +2320,11 @@ sendBtn.disabled = true;
     sendBtn.textContent = "Sending...";
 
     try {
-      // 1. WE MUST SAVE THE NEW TEAM FIRST!
-      const { data: team, error: teamError } = await supabase
+      // 1. First, we MUST save the team to get an ID
+      const { data: savedTeam, error: teamError } = await supabase
         .from("h2h_teams")
         .upsert({
+          // If we already have a team ID (editing), use it; otherwise, it's new
           ...(h2hState.team?.id ? { id: h2hState.team.id } : {}),
           user_id:         currentUserId,
           match_id:        h2hState.match.id,
@@ -2335,39 +2336,41 @@ sendBtn.disabled = true;
 
       if (teamError) throw teamError;
 
-      // Clear old players and insert the newly picked ones
-      await supabase.from("h2h_team_players").delete().eq("h2h_team_id", team.id);
-
+      // 2. Save the 4 players for this team
+      await supabase.from("h2h_team_players").delete().eq("h2h_team_id", savedTeam.id);
+      
       const roles = ["WK", "BAT", "AR", "BOWL"];
       const { error: playersErr } = await supabase
         .from("h2h_team_players")
         .insert(roles.map(role => ({
-          h2h_team_id: team.id,
+          h2h_team_id: savedTeam.id,
           player_id:   h2hState.slots[role].id,
-          role,
+          role:        role,
         })));
 
       if (playersErr) throw playersErr;
 
-      // Update the state so we have the generated ID for the challenges!
-      h2hState.team = team;
+      // Update our global state so we don't hit "null" again
+      h2hState.team = savedTeam;
 
-      // 2. NOW WE CAN SEND ALL THE CHALLENGES
+      // 3. NOW we can send all the challenges using h2hState.team.id
       await Promise.all([...selected].map(opponentId =>
         supabase.from("h2h_challenges").insert({
           match_id:           h2hState.match.id,
           tournament_id:      currentTournamentId,
           challenger_id:      currentUserId,
           opponent_id:        opponentId,
-          challenger_team_id: h2hState.team.id, // <--- This will no longer throw a null error!
+          challenger_team_id: h2hState.team.id, 
           status:             "pending"
         })
       ));
 
       showToast(`${selected.size} challenge${selected.size > 1 ? "s" : ""} sent! 🎉`, "success");
       closeBottomSheet();
-      loadH2HPanel();
+      loadH2HPanel(); // Refresh the list
+      
     } catch (err) {
+      console.error("H2H Multi-Challenge Error:", err);
       showToast("Failed: " + err.message, "error");
       sendBtn.disabled = false;
       sendBtn.textContent = `Challenge ${selected.size} user${selected.size > 1 ? "s" : ""} →`;

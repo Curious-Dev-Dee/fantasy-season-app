@@ -78,33 +78,74 @@
 
 <div class="app-container page-with-nav">
 
-  <!-- HEADER -->
-<header class="app-header">
+  <header class="app-header">
     <div class="header-left">
       <div class="header-logo-dot"></div>
       <h1 id="tournamentName" class="header-tournament">Tournament</h1>
     </div>
     <div class="header-right-group">
-    
       <div class="notif-trigger" id="notifTrigger">
-
-      <i class="fas fa-bell"></i>
-      <span id="notifBadge" class="notif-badge hidden">0</span>
-      <div id="notifPanel" class="notif-panel hidden">
-        <div class="notif-header">
-          <h3>Alerts</h3>
-          <button class="btn-mark-read" id="markAllRead">Mark all read</button>
-        </div>
-        <div id="notifList" class="notif-list">
-          <div class="empty-notif">Checking for updates...</div>
+        <i class="fas fa-bell"></i>
+        <span id="notifBadge" class="notif-badge hidden">0</span>
+        <div id="notifPanel" class="notif-panel hidden">
+          <div class="notif-header">
+            <h3>Alerts</h3>
+            <button class="btn-mark-read" id="markAllRead">Mark all read</button>
+          </div>
+          <div id="notifList" class="notif-list">
+            <div class="empty-notif">Checking for updates...</div>
+          </div>
         </div>
       </div>
-</div>
     </div>
-    
   </header>
 
-  <!-- USER CARD — profile + stats unified -->
+  <div class="prizes-strip" style="margin-top: 10px; margin-bottom: 15px;">
+    <div class="prizes-strip-header">
+      <span class="prizes-strip-title">🏆 Season Prizes</span>
+      <a href="prizes.html" class="prizes-strip-link">
+        View All <i class="fas fa-chevron-right"></i>
+      </a>
+    </div>
+    <div class="prize-chips">
+      <div class="prize-chip">
+        <span class="prize-chip-emoji">💰</span>
+        <div class="prize-chip-info">
+          <span class="prize-chip-label">₹2500</span>
+          <span class="prize-chip-sub">Cash · Top 3</span>
+        </div>
+      </div>
+      <div class="prize-chip">
+        <span class="prize-chip-emoji">🏆</span>
+        <div class="prize-chip-info">
+          <span class="prize-chip-label">Trophy</span>
+          <span class="prize-chip-sub">Top 3 · Red Zone</span>
+        </div>
+      </div>
+      <div class="prize-chip">
+        <span class="prize-chip-emoji">👕</span>
+        <div class="prize-chip-info">
+          <span class="prize-chip-label">T-Shirt</span>
+          <span class="prize-chip-sub">Rank 1 · ATT</span>
+        </div>
+      </div>
+      <div class="prize-chip">
+        <span class="prize-chip-emoji">🧢</span>
+        <div class="prize-chip-info">
+          <span class="prize-chip-label">Cap</span>
+          <span class="prize-chip-sub">Top 2 · FFS</span>
+        </div>
+      </div>
+      <div class="prize-chip">
+        <span class="prize-chip-emoji">🍛</span>
+        <div class="prize-chip-info">
+          <span class="prize-chip-label">Biryani</span>
+          <span class="prize-chip-sub">Top 2 · DD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <section class="card user-card">
     <div class="user-card-top">
       <div class="team-avatar" id="teamAvatar"></div>
@@ -113,6 +154,8 @@
         <p class="team-subtitle" id="userTeamName">Set your team name</p>
       </div>
     </div>
+    ```
+
 
     <!-- Stats row inside the user card — scoreboard style -->
     <div class="stats-row">
@@ -310,51 +353,6 @@
 
 
 
-<div class="prizes-strip">
-  <div class="prizes-strip-header">
-    <span class="prizes-strip-title">🏆 Season Prizes</span>
-    <a href="prizes.html" class="prizes-strip-link">
-      View All <i class="fas fa-chevron-right"></i>
-    </a>
-  </div>
-  <div class="prize-chips">
-    <div class="prize-chip">
-      <span class="prize-chip-emoji">💰</span>
-      <div class="prize-chip-info">
-        <span class="prize-chip-label">₹2500</span>
-        <span class="prize-chip-sub">Cash · Top 3</span>
-      </div>
-    </div>
-    <div class="prize-chip">
-      <span class="prize-chip-emoji">🏆</span>
-      <div class="prize-chip-info">
-        <span class="prize-chip-label">Trophy</span>
-        <span class="prize-chip-sub">Top 3 · Red Zone</span>
-      </div>
-    </div>
-    <div class="prize-chip">
-      <span class="prize-chip-emoji">👕</span>
-      <div class="prize-chip-info">
-        <span class="prize-chip-label">T-Shirt</span>
-        <span class="prize-chip-sub">Rank 1 · ATT</span>
-      </div>
-    </div>
-    <div class="prize-chip">
-      <span class="prize-chip-emoji">🧢</span>
-      <div class="prize-chip-info">
-        <span class="prize-chip-label">Cap</span>
-        <span class="prize-chip-sub">Top 2 · FFS</span>
-      </div>
-    </div>
-    <div class="prize-chip">
-      <span class="prize-chip-emoji">🍛</span>
-      <div class="prize-chip-info">
-        <span class="prize-chip-label">Biryani</span>
-        <span class="prize-chip-sub">Top 2 · DD</span>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
