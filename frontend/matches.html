@@ -1105,7 +1105,7 @@ const { createClient } = supabase;
   }
 
   // ── BUILD MATCH CARD ──
-  function buildMatchCard(m, badge) {
+function buildMatchCard(m, badge) {
     const ls = Array.isArray(m.live_scores) ? m.live_scores[0] : m.live_scores;
     const logoA = getLogoUrl(m.team_a?.photo_name);
     const logoB = getLogoUrl(m.team_b?.photo_name);
@@ -1114,20 +1114,14 @@ const { createClient } = supabase;
     const isLive   = m.status === 'locked' && !m.points_processed;
     const isResult = m.status === 'locked' && m.points_processed;
 
-    let scoreA = '', scoreB = '', resultLine = '';
+    let scoreAHtml = '', scoreBHtml = '', resultLine = '';
 
     if (ls) {
-const nameA = (m.team_a?.name || '').toLowerCase();
-const team1MatchesA = ls.team1_name?.toLowerCase().includes(nameA.split(' ')[0]);
-
-      const lsA = team1MatchesA
-        ? { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs }
-        : { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs };
-      const lsB = team1MatchesA
-        ? { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs }
-        : { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs };
-      if (lsA.score != null) scoreA = `<div class="team-score-sm">${lsA.score}/${lsA.wkts ?? 0} <span style="font-size:11px;color:var(--text-faint)">(${fmtOvers(lsA.overs)})</span></div>`;
-      if (lsB.score != null) scoreB = `<div class="team-score-sm">${lsB.score}/${lsB.wkts ?? 0} <span style="font-size:11px;color:var(--text-faint)">(${fmtOvers(lsB.overs)})</span></div>`;
+      const { scoreA, scoreB } = getTeamScores(m, ls);
+      
+      if (scoreA.score != null) scoreAHtml = `<div class="team-score-sm">${scoreA.score}/${scoreA.wkts ?? 0} <span style="font-size:11px;color:var(--text-faint)">(${fmtOvers(scoreA.overs)})</span></div>`;
+      if (scoreB.score != null) scoreBHtml = `<div class="team-score-sm">${scoreB.score}/${scoreB.wkts ?? 0} <span style="font-size:11px;color:var(--text-faint)">(${fmtOvers(scoreB.overs)})</span></div>`;
+      
       const text = ls.match_result || ls.match_status || '';
       resultLine = text ? `<div class="match-result-text">${text}</div>` : '';
     }
@@ -1153,13 +1147,13 @@ const team1MatchesA = ls.team1_name?.toLowerCase().includes(nameA.split(' ')[0])
           <div class="team-block left">
             ${logoA ? `<div class="team-logo-sm" style="background-image:url('${logoA}')"></div>` : ''}
             <div class="team-name-sm">${codeA}</div>
-            ${scoreA}
+            ${scoreAHtml}
           </div>
           <div class="vs-center"><span class="vs-text">VS</span></div>
           <div class="team-block right">
             ${logoB ? `<div class="team-logo-sm" style="background-image:url('${logoB}')"></div>` : ''}
             <div class="team-name-sm">${codeB}</div>
-            ${scoreB}
+            ${scoreBHtml}
           </div>
         </div>
         ${resultLine}
@@ -1449,6 +1443,48 @@ function subscribeToLiveScores() {
     </div>`;
   }
 
+  function getTeamScores(match, ls) {
+    if (!ls) return { scoreA: null, scoreB: null };
+
+    const nameA = (match.team_a?.name || '').toLowerCase();
+    const codeA = (match.team_a?.short_code || '').toLowerCase();
+    const tossW = (ls.toss_winner || '').toLowerCase();
+    const tossC = (ls.toss_choice || '').toLowerCase();
+
+    let teamABattedFirst = false;
+
+    // Foolproof Toss Logic
+    if (tossW && tossC) {
+      const aWonToss = tossW.includes(nameA.split(' ')[0]) || tossW === codeA;
+      teamABattedFirst = aWonToss ? (tossC === 'bat') : (tossC === 'bowl');
+    } else {
+      // Fallback if toss data is missing
+      const t1 = (ls.team1_name || '').toLowerCase();
+      teamABattedFirst = t1.includes(nameA.split(' ')[0]) || t1 === codeA;
+    }
+
+    if (teamABattedFirst) {
+      return {
+        scoreA: { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs },
+        scoreB: { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs }
+      };
+    } else {
+      return {
+        scoreA: { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs },
+        scoreB: { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs }
+      };
+    }
+  }
+
+  // Add the tab switcher function for the Modal
+  window.switchInnings = function(idx) {
+    currentInningsIdx = idx;
+    document.querySelectorAll('.innings-tab').forEach((tab, i) => {
+      tab.classList.toggle('active', i === idx);
+    });
+    renderInningsScorecard(currentMatchData, idx);
+  };
+
   const style = document.createElement('style');
   style.textContent = `@keyframes skShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`;
   document.head.appendChild(style);
@@ -1527,59 +1563,59 @@ if (status.includes('wkt') || status.includes('wicket'))
     currentMatchData = match;
     document.getElementById('modalMatchNum').textContent = `Match ${match.match_number ?? '—'}`;
     renderModalHero(match);
+    
+    // Inject Innings Tabs if data exists
+    const ls = Array.isArray(match.live_scores) ? match.live_scores[0] : match.live_scores;
+    if (ls && ls.batting && ls.batting !== "[]") {
+        const [_inn0, _inn1] = getSmartInningsLabels(ls, match.team_a?.short_code, match.team_b?.short_code);
+        document.getElementById('inningsTabs').innerHTML = `
+          <button class="innings-tab active" onclick="switchInnings(0)">${_inn0}</button>
+          <button class="innings-tab" onclick="switchInnings(1)">${_inn1}</button>
+        `;
+    }
+    
     renderInningsScorecard(match, 0);
-  };
+  }; // <--- THIS WAS THE MISSING BRACKET!
 
   // ── MODAL HERO ──
   function renderModalHero(match) {
-  const ls = Array.isArray(match.live_scores) ? match.live_scores[0] : match.live_scores;
-  const logoA = getLogoUrl(match.team_a?.photo_name);
-  const logoB = getLogoUrl(match.team_b?.photo_name);
-  const codeA = match.team_a?.short_code || '—';
-  const codeB = match.team_b?.short_code || '—';
+    const ls = Array.isArray(match.live_scores) ? match.live_scores[0] : match.live_scores;
+    const logoA = getLogoUrl(match.team_a?.photo_name);
+    const logoB = getLogoUrl(match.team_b?.photo_name);
+    const codeA = match.team_a?.short_code || '—';
+    const codeB = match.team_b?.short_code || '—';
+    const isLive = match.status === 'locked' && !match.points_processed;
 
-  // ✅ use 'match' not 'm'
-  const isLive = match.status === 'locked' && !match.points_processed;
+    let scoreAHtml = '', scoreBHtml = '';
+    if (ls) {
+      const { scoreA, scoreB } = getTeamScores(match, ls);
+      if (scoreA.score != null) scoreAHtml = `${scoreA.score}/${scoreA.wkts ?? 0} <span class="modal-team-score-sub">(${fmtOvers(scoreA.overs)})</span>`;
+      if (scoreB.score != null) scoreBHtml = `${scoreB.score}/${scoreB.wkts ?? 0} <span class="modal-team-score-sub">(${fmtOvers(scoreB.overs)})</span>`;
+    }
 
-  let scoreA = '', scoreB = '';
-  if (ls) {
-    const nameA = (match.team_a?.name || '').toLowerCase();
-    const team1MatchesA = ls.team1_name?.toLowerCase().includes(nameA.split(' ')[0]);
+    const winnerName = match.winner?.name || match.winner?.short_code || '';
+    const resultText = ls?.match_result || ls?.match_status || (winnerName ? `${winnerName} won` : (match.status === 'abandoned' ? 'Match Abandoned' : ''));
 
-    const lsA = team1MatchesA
-      ? { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs }
-      : { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs };
-    const lsB = team1MatchesA
-      ? { score: ls.team2_score, wkts: ls.team2_wickets, overs: ls.team2_overs }
-      : { score: ls.team1_score, wkts: ls.team1_wickets, overs: ls.team1_overs };
-
-    if (lsA.score != null) scoreA = `${lsA.score}/${lsA.wkts ?? 0} <span class="modal-team-score-sub">(${fmtOvers(lsA.overs)})</span>`;
-    if (lsB.score != null) scoreB = `${lsB.score}/${lsB.wkts ?? 0} <span class="modal-team-score-sub">(${fmtOvers(lsB.overs)})</span>`;
+    document.getElementById('modalScoreHero').innerHTML = `
+      <div class="modal-teams-row">
+        <div class="modal-team left">
+          ${logoA ? `<div class="modal-team-logo" style="background-image:url('${logoA}')"></div>` : ''}
+          <div class="modal-team-code">${codeA}</div>
+          ${scoreAHtml ? `<div class="modal-team-score">${scoreAHtml}</div>` : ''}
+        </div>
+        <div class="modal-vs">VS</div>
+        <div class="modal-team right">
+          ${logoB ? `<div class="modal-team-logo" style="background-image:url('${logoB}')"></div>` : ''}
+          <div class="modal-team-code">${codeB}</div>
+          ${scoreBHtml ? `<div class="modal-team-score">${scoreBHtml}</div>` : ''}
+        </div>
+      </div>
+      ${resultText ? `<div class="modal-winner-banner">${resultText}</div>` : ''}
+      ${isLive ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),rgba(239,68,68,0.3))"></div>` : ''}
+      <div class="modal-venue-row">
+        <i class="fas fa-location-dot"></i> ${match.venue || 'TBD'}
+      </div>`;
   }
-
-  const winnerName = match.winner?.name || match.winner?.short_code || '';
-  const resultText = ls?.match_result || ls?.match_status || (winnerName ? `${winnerName} won` : '');
-
-  document.getElementById('modalScoreHero').innerHTML = `
-    <div class="modal-teams-row">
-      <div class="modal-team left">
-        ${logoA ? `<div class="modal-team-logo" style="background-image:url('${logoA}')"></div>` : ''}
-        <div class="modal-team-code">${codeA}</div>
-        ${scoreA ? `<div class="modal-team-score">${scoreA}</div>` : ''}
-      </div>
-      <div class="modal-vs">VS</div>
-      <div class="modal-team right">
-        ${logoB ? `<div class="modal-team-logo" style="background-image:url('${logoB}')"></div>` : ''}
-        <div class="modal-team-code">${codeB}</div>
-        ${scoreB ? `<div class="modal-team-score">${scoreB}</div>` : ''}
-      </div>
-    </div>
-    ${resultText ? `<div class="modal-winner-banner">${resultText}</div>` : ''}
-    ${isLive ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),rgba(239,68,68,0.3))"></div>` : ''}
-    <div class="modal-venue-row">
-      <i class="fas fa-location-dot"></i> ${match.venue || 'TBD'}
-    </div>`;
-}
 
   // ── INNINGS SCORECARD ──
   function renderInningsScorecard(match, inningsIdx) {
