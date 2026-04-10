@@ -1118,7 +1118,8 @@ body.loaded #loadingOverlay {
 
 /* ─── HEADER MORE BUTTON ─────────────────────────── */
 .header-more-btn {
-    width: 40px; height: 40px;
+    width: 40px; 
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1136,6 +1137,13 @@ body.loaded #loadingOverlay {
     background: var(--accent-dim);
     border-color: var(--border-accent);
     color: var(--accent);
+}
+
+/* Make sure the header-left div handles the gap correctly */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between More button, dot, and Title */
 }
 
 /* ─── GUIDE CARD THEME FIX ───────────────────────── */
