@@ -1702,7 +1702,6 @@ body.loaded #loadingOverlay {
    (The <a> tag is removed from HTML, this ensures
    no orphaned spacing if old CSS references it)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.header-more-btn { display: none; } /* Safety: hide even if element exists */
 .btn-hint        { display: none; } /* Safety: hide hint if not yet removed from HTML */
 .btn-view-matches { display: none; } /* Safety: hide view matches if not yet removed */
 
