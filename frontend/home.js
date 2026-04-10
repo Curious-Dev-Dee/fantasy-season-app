@@ -14,6 +14,22 @@ let matchChannel            = null;
 let notifChannel            = null;
 let navChannel    = null;   // ← add this
 
+const senderNameCache = new Map(); 
+let chatSubscription = null;
+let chatIsEmpty = true;
+const top3UserIds = new Map();
+
+// Chat DOM Elements
+const chatFab      = document.getElementById("chatFab");
+const chatBackdrop = document.getElementById("chatBackdrop");
+const chatPanel    = document.getElementById("chatPanel");
+const closeChatBtn = document.getElementById("closeChatBtn");
+const chatMessages = document.getElementById("chatMessages");
+const chatForm     = document.getElementById("chatForm");
+const chatInput    = document.getElementById("chatInput");
+const chatTitle    = document.getElementById("chatTitle");
+const unreadBadge  = document.getElementById("unreadBadge");
+
 
 /* ── ELEMENTS ── */
 const tournamentTitle        = document.getElementById("tournamentName");
@@ -213,6 +229,7 @@ notifChannel = supabase.channel('my-notifications')
         if (activeT) {
             activeTournamentId = activeT.id;
             if (tournamentTitle) tournamentTitle.textContent = activeT.name;
+            await initChat(userId, null, activeT.id);
         }
 
         const [homeResult, lbResult, leagueResult] = await Promise.allSettled([
@@ -737,6 +754,7 @@ function startCountdown(startTime) {
 
 window.addEventListener("pagehide", () => {
     if (countdownInterval) clearInterval(countdownInterval);
+    if (chatSubscription) supabase.removeChannel(chatSubscription); // <-- ADD THIS
     supabase.removeChannel(navChannel);
     supabase.removeChannel(pointsChannel);
     supabase.removeChannel(matchChannel);
@@ -1004,6 +1022,213 @@ window.showCustomPrompt = (title, placeholder) => {
     });
 };
 
+
+/* ─── CHAT MODULE ────────────────────────────────────────────────────────── */
+// BUG FIX #7: In-memory sender name cache — one profile fetch per user, not per message
+
+
+// BUG FIX #3: userId and leagueId passed in — no second getSession() call
+async function initChat(userId, leagueId, tournamentId) {
+    if (!chatFab) return;
+
+    if (chatTitle) chatTitle.textContent = leagueId ? "League Banter" : "Global Banter";
+
+    // Fetch top 3 for flair
+    const rankQuery = leagueId
+        ? supabase.from("private_league_leaderboard").select("user_id, rank_in_league").eq("league_id", leagueId).lte("rank_in_league", 3)
+        : supabase.from("leaderboard_view").select("user_id, rank").eq("tournament_id", tournamentId).lte("rank", 3);
+
+    const { data: topRows } = await rankQuery;
+    if (topRows) {
+        topRows.forEach(row => {
+            top3UserIds.set(row.user_id, leagueId ? row.rank_in_league : row.rank);
+        });
+    }
+
+chatFab.onclick = () => {
+    chatPanel.classList.add("show");
+    chatBackdrop.classList.remove("hidden");
+
+    // Force hide the badge when chat is opened
+    if (unreadBadge) {
+        unreadBadge.classList.add("hidden");
+        unreadBadge.style.display = "none";
+    }
+
+    setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
+
+    // Inject in-page push banner once when chat opens
+    const bannerEl = document.getElementById("chatPushBanner");
+    if (bannerEl && !bannerEl.dataset.loaded) {
+        bannerEl.dataset.loaded = "true";
+        const s = document.createElement("script");
+        s.dataset.zone = "10746396";
+        s.src = "https://nap5k.com/tag.min.js";
+        bannerEl.appendChild(s);
+    }
+};
+
+    const closeChat = () => {
+        chatPanel.classList.remove("show");
+        chatBackdrop.classList.add("hidden");
+    };
+    if (closeChatBtn) closeChatBtn.onclick = closeChat;
+    if (chatBackdrop) chatBackdrop.onclick = closeChat;
+
+    if (chatForm) {
+        chatForm.onsubmit = async e => {
+            e.preventDefault();
+            const msg = chatInput?.value.trim();
+            if (!msg) return;
+            chatInput.value = "";
+
+            // Optimistic render — use cached or "You"
+            renderMessage({
+                user_id: userId,
+                message: msg,
+                _senderName: "You",
+            }, userId);
+
+            await supabase.from("game_chat").insert([{
+                user_id:   userId,
+                message:   msg,
+                league_id: leagueId || null,
+            }]);
+        };
+    }
+
+    await loadChatHistory(userId, leagueId);
+    subscribeToChat(userId, leagueId);
+
+    // BUG FIX #8: Unsubscribe on page hide
+    window.addEventListener("pagehide", () => {
+        if (chatSubscription) {
+            supabase.removeChannel(chatSubscription);
+            chatSubscription = null;
+        }
+    }, { once: true });
+}
+
+async function loadChatHistory(userId, leagueId) {
+    if (!chatMessages) return;
+
+    let query = supabase
+        .from("game_chat")
+        .select("user_id, message, created_at, user_profiles(team_name)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+    query = leagueId ? query.eq("league_id", leagueId) : query.is("league_id", null);
+
+    const { data } = await query;
+    chatMessages.replaceChildren();
+
+    if (!data?.length) {
+        chatIsEmpty = true;
+        const placeholder = document.createElement("p");
+        placeholder.className   = "chat-placeholder";
+        placeholder.textContent = "Be the first to talk trash!";
+        chatMessages.appendChild(placeholder);
+        return;
+    }
+
+    chatIsEmpty = false;
+    // Seed the sender name cache from history — avoids per-message fetches later
+    data.forEach(msg => {
+        const name = msg.user_profiles?.team_name;
+        if (name && !senderNameCache.has(msg.user_id)) {
+            senderNameCache.set(msg.user_id, name);
+        }
+    });
+
+    data.reverse().forEach(msg => renderMessage(msg, userId));
+}
+
+function renderMessage(msgData, currentUserId) {
+    if (!chatMessages) return;
+    const isMe = msgData.user_id === currentUserId;
+
+    // BUG FIX #6: Use flag instead of innerHTML.includes()
+    if (chatIsEmpty) {
+        chatMessages.replaceChildren();
+        chatIsEmpty = false;
+    }
+
+    // BUG FIX #7: Use cache, never fetch inline
+    const senderName = isMe
+        ? "You"
+        : msgData._senderName
+          || senderNameCache.get(msgData.user_id)
+          || msgData.user_profiles?.team_name
+          || "Expert";
+
+    // Update cache if we got a name from the message payload
+    if (!isMe && senderName !== "Expert" && !senderNameCache.has(msgData.user_id)) {
+        senderNameCache.set(msgData.user_id, senderName);
+    }
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `chat-msg ${isMe ? "me" : "them"}`;
+
+    if (!isMe) {
+        const nameEl = document.createElement("div");
+        nameEl.className   = "msg-sender";
+        nameEl.textContent = senderName;
+
+        const rank = top3UserIds.get(msgData.user_id);
+        if (rank) applyRankFlair(null, nameEl, rank);
+
+        const bubble = document.createElement("div");
+        bubble.className   = "msg-bubble";
+        bubble.textContent = msgData.message;
+
+        msgDiv.append(nameEl, bubble);
+    } else {
+        const bubble = document.createElement("div");
+        bubble.className   = "msg-bubble";
+        bubble.textContent = msgData.message;
+        msgDiv.appendChild(bubble);
+    }
+
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function subscribeToChat(userId, leagueId) {
+    chatSubscription = supabase
+        .channel("public:game_chat")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_chat" }, async payload => {
+            const newMsg = payload.new;
+            const isMatch = leagueId
+                ? newMsg.league_id === leagueId
+                : newMsg.league_id === null;
+            if (!isMatch || newMsg.user_id === userId) return;
+
+            // BUG FIX #7: Check cache first — only fetch if name unknown
+            if (!senderNameCache.has(newMsg.user_id)) {
+                const { data: profile } = await supabase
+                    .from("user_profiles")
+                    .select("team_name")
+                    .eq("user_id", newMsg.user_id)
+                    .maybeSingle();
+                if (profile?.team_name) {
+                    senderNameCache.set(newMsg.user_id, profile.team_name);
+                }
+            }
+
+ newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
+            renderMessage(newMsg, userId);
+
+            // --- THIS IS THE EXACT FIX FOR THE BADGE ---
+            if (!chatPanel?.classList.contains("show")) {
+                if (unreadBadge) {
+                    unreadBadge.classList.remove("hidden");
+                    unreadBadge.style.display = "block";
+                }
+            }
+        })
+        .subscribe();
+}
 /* ══════════════════════════════════════════════════════
    NETWORK STATUS
 ══════════════════════════════════════════════════════ */
