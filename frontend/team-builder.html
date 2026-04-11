@@ -151,7 +151,23 @@
        fixed children inside it. Moving it outside fixes this. -->
   <div class="save-bar">
     <div class="save-hint" id="saveHint"></div>
-    <button id="saveTeamBtn" class="save-btn" disabled>NEXT →</button>
+    <div class="save-bar-buttons">
+        <button id="previewTeamBtn" class="preview-btn">👁 Preview</button>
+        <button id="saveTeamBtn" class="save-btn" disabled>NEXT →</button>
+    </div>
+</div>
+
+<!-- PREVIEW POPUP -->
+<div id="previewOverlay" class="preview-overlay hidden">
+    <div class="preview-popup" id="previewPopup">
+        <div class="preview-popup-header">
+            <span class="preview-popup-title">My XI Preview</span>
+            <button class="preview-popup-close" id="previewCloseBtn">✕</button>
+        </div>
+        <div class="preview-field" id="previewField">
+            <p class="preview-empty">No players selected yet.</p>
+        </div>
+    </div>
 </div>
 
 <!-- TRANSFER SUMMARY SHEET -->

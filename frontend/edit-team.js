@@ -546,7 +546,14 @@ if (searchInput) {
 });
 
     // Save button
-    document.getElementById("saveTeamBtn")?.addEventListener("click", handleSave);
+document.getElementById("saveTeamBtn")?.addEventListener("click", handleSave);
+
+    // Preview button
+    document.getElementById("previewTeamBtn")?.addEventListener("click", openPreviewPopup);
+    document.getElementById("previewCloseBtn")?.addEventListener("click", closePreviewPopup);
+    document.getElementById("previewOverlay")?.addEventListener("click", e => {
+        if (e.target === document.getElementById("previewOverlay")) closePreviewPopup();
+    });
 
     document.getElementById("transferBackdrop")
     ?.addEventListener("click", closeTransferSheet);
@@ -1451,6 +1458,77 @@ function buildProfileChips(m) {
     if (m.is_player_of_match) chips.push(chip("🏆 POM +20", "gold"));
 
     return chips;
+}
+
+// ─── PREVIEW POPUP ────────────────────────────────────────────────────────────
+function openPreviewPopup() {
+    const overlay = document.getElementById("previewOverlay");
+    const field   = document.getElementById("previewField");
+    if (!overlay || !field) return;
+
+    if (state.selectedPlayers.length === 0) {
+        field.innerHTML = '<p class="preview-empty">No players selected yet.</p>';
+        overlay.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+        return;
+    }
+
+    const bucket = supabase.storage.from("player-photos");
+    const ROLE_ORDER = ["WK", "BAT", "AR", "BOWL"];
+    const ROLE_LABELS = { WK: "Wicket-Keeper", BAT: "Batters", AR: "All-Rounders", BOWL: "Bowlers" };
+
+    const grouped = { WK: [], BAT: [], AR: [], BOWL: [] };
+    for (const p of state.selectedPlayers) {
+        if (grouped[p.role]) grouped[p.role].push(p);
+    }
+
+    let html = "";
+    for (const role of ROLE_ORDER) {
+        const players = grouped[role];
+        if (players.length === 0) continue;
+
+        const tilesHtml = players.map(p => {
+            const photoUrl = p.photo_url
+                ? bucket.getPublicUrl(p.photo_url).data.publicUrl
+                : "images/default-avatar.png";
+
+            const isC  = p.id === state.captainId;
+            const isVC = p.id === state.viceCaptainId;
+            const ringClass = isC ? "captain-ring" : isVC ? "vc-ring" : "";
+            const badgeHtml = isC
+                ? '<span class="preview-cvc-badge c">C</span>'
+                : isVC
+                ? '<span class="preview-cvc-badge vc">VC</span>'
+                : "";
+
+            const shortName = p.name.split(" ").slice(-1)[0];
+
+            return `
+                <div class="preview-player-tile">
+                    <div class="preview-avatar-wrap">
+                        <img src="${photoUrl}" class="preview-avatar ${ringClass}" loading="lazy" alt="${p.name}">
+                        ${badgeHtml}
+                    </div>
+                    <span class="preview-player-name">${shortName}</span>
+                    <span class="preview-player-team">${p.team_short_code || ""}</span>
+                </div>`;
+        }).join("");
+
+        html += `
+            <div class="preview-role-row">
+                <div class="preview-role-label">${ROLE_LABELS[role]}</div>
+                <div class="preview-players-row">${tilesHtml}</div>
+            </div>`;
+    }
+
+    field.innerHTML = html;
+    overlay.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+}
+
+function closePreviewPopup() {
+    document.getElementById("previewOverlay")?.classList.add("hidden");
+    document.body.style.overflow = "";
 }
 
 window.profileTogglePlayer = (id) => {

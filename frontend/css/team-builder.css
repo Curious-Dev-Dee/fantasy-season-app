@@ -815,8 +815,35 @@ body.loading-state .app-container        { display: none !important; }
     letter-spacing: 0.2px;
 }
 
+.save-bar-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.preview-btn {
+    flex: 1;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-card);
+    padding: 16px;
+    border-radius: var(--btn-radius);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.preview-btn:hover {
+    background: var(--bg-card-alt);
+    border-color: var(--border-accent);
+    color: var(--accent);
+}
+
 .save-btn {
-    width: 100%;
+    flex: 1;
     background: var(--bg-card);
     color: var(--text-dim);
     border: none;
@@ -847,6 +874,186 @@ body.loading-state .app-container        { display: none !important; }
 @keyframes savePulse {
     0%, 100% { box-shadow: 0 0 12px var(--accent-glow); }
     50%       { box-shadow: 0 0 24px var(--accent-glow); }
+}
+
+/* ─── PREVIEW POPUP ──────────────────────────────── */
+.preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(6px);
+    z-index: 8500;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+}
+
+.preview-overlay.hidden { display: none; }
+
+.preview-popup {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: var(--app-max-width);
+    max-height: 88vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUpPopup 0.3s var(--ease-bounce) forwards;
+}
+
+@keyframes slideUpPopup {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.preview-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-elevated);
+    z-index: 2;
+}
+
+.preview-popup-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.preview-popup-close {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--text-faint);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.preview-popup-close:hover { background: rgba(255,255,255,0.15); }
+
+/* Field layout */
+.preview-field {
+    padding: 16px 16px 24px;
+    background: linear-gradient(180deg,
+        rgba(0, 60, 20, 0.35) 0%,
+        rgba(0, 40, 10, 0.20) 50%,
+        rgba(0, 60, 20, 0.35) 100%);
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.preview-role-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.preview-role-label {
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.preview-players-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.preview-player-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 64px;
+}
+
+.preview-avatar-wrap {
+    position: relative;
+    width: 52px; height: 52px;
+}
+
+.preview-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-card);
+    background: var(--bg-card-alt);
+}
+
+.preview-avatar.captain-ring   { border-color: var(--gold); box-shadow: 0 0 10px rgba(245,158,11,0.5); }
+.preview-avatar.vc-ring        { border-color: var(--rank-color); box-shadow: 0 0 10px rgba(124,196,255,0.4); }
+
+.preview-cvc-badge {
+    position: absolute;
+    bottom: -3px; right: -3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-family: var(--font-display);
+    font-size: 8px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--bg-page);
+    line-height: 1;
+}
+
+.preview-cvc-badge.c  { background: var(--gold); color: #000; }
+.preview-cvc-badge.vc { background: var(--rank-color); color: #000; }
+
+.preview-player-name {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    max-width: 64px;
+    line-height: 1.2;
+}
+
+.preview-player-team {
+    font-family: var(--font-display);
+    font-size: 8px;
+    font-weight: 900;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: var(--bg-card);
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.preview-empty {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13px;
+    padding: 40px 20px;
 }
 
 /* ─── BOOSTER SHELF ──────────────────────────────── */
