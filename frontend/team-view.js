@@ -949,12 +949,19 @@ window.openPlayerPointLog = async (playerId, matchId) => {
 
     // BUG FIX #14: Display raw DB values where available rather than
     // recalculating formulas client-side. Fallback to formula only if field missing.
+    const wicketFallbackPoints = matchStat.wickets > 0
+      ? (matchStat.wickets * 25) +
+        (matchStat.wickets >= 5 ? 20 :
+         matchStat.wickets === 4 ? 15 :
+         matchStat.wickets === 3 ? 10 :
+         matchStat.wickets === 2 ? 5 : 0)
+      : 0;
     const log = [];
     if (matchStat.runs > 0)               log.push({ label: `${matchStat.runs} Runs`,         pts: `+${matchStat.run_points         ?? matchStat.runs}` });
     if (matchStat.boundary_points > 0)    log.push({ label: "Boundaries",                      pts: `+${matchStat.boundary_points}` });
     if (matchStat.milestone_points > 0)   log.push({ label: "Milestone",                        pts: `+${matchStat.milestone_points}` });
     if (matchStat.sr_points !== 0)        log.push({ label: "Strike Rate",                      pts: `${matchStat.sr_points > 0 ? "+" : ""}${matchStat.sr_points}` });
-    if (matchStat.wickets > 0)            log.push({ label: `${matchStat.wickets} Wickets`,     pts: `+${matchStat.wicket_points ?? (20 + Math.max(0, matchStat.wickets - 1) * 25)}` });
+    if (matchStat.wickets > 0)            log.push({ label: `${matchStat.wickets} Wickets`,     pts: `+${matchStat.wicket_points ?? wicketFallbackPoints}` });
     if (matchStat.er_points !== 0)        log.push({ label: "Economy",                           pts: `${matchStat.er_points > 0 ? "+" : ""}${matchStat.er_points}` });
     if (matchStat.catches > 0)            log.push({ label: `${matchStat.catches} Catch${matchStat.catches > 1 ? "es" : ""}`, pts: `+${matchStat.catches * 8}` });
     if (matchStat.involvement_points > 0) log.push({ label: "Active",                            pts: `+${matchStat.involvement_points}` });
