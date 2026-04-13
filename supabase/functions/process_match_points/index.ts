@@ -140,12 +140,27 @@ serve(async (req) => {
           pts += duck_pts;
       }
 
-      sr_pts = (runs - balls);
+sr_pts = (runs - balls);
       pts += sr_pts;
 
-      if (wickets > 0) {
-        pts += 20 + ((wickets - 1) * 25);
+      // --- NEW WICKET LOGIC ---
+      // 1. Base points (25 per wicket)
+      pts += (wickets * 25);
+
+      // 2. Milestone Bonus
+      let wicket_bonus = 0;
+      if (wickets >= 5) {
+        wicket_bonus = 20;
+      } else if (wickets === 4) {
+        wicket_bonus = 15;
+      } else if (wickets === 3) {
+        wicket_bonus = 10;
+      } else if (wickets === 2) {
+        wicket_bonus = 5;
       }
+      pts += wicket_bonus;
+      // ------------------------
+
       pts += (maidens * 10);
 
       const rawOvers = Number(p.overs || 0);
