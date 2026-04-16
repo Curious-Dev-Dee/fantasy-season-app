@@ -567,33 +567,92 @@ function renderViewsPodium(data, matchId) {
 }
 
 window.showGuruLeaderboard = async () => {
-    const { data: top100 } = await supabase.from("user_tournament_points").select("prediction_stars, user_profiles(team_name, team_photo_url)").eq("tournament_id", currentTournamentId).order("prediction_stars", { ascending: false }).order("updated_at", { ascending: true }).limit(100);
+    // Fetch top 100 + last completed match in parallel
+    const [top100Res, lastMatchRes] = await Promise.all([
+        supabase.from("user_tournament_points")
+            .select("prediction_stars, user_id, user_profiles(team_name, team_photo_url)")
+            .eq("tournament_id", currentTournamentId)
+            .order("prediction_stars", { ascending: false })
+            .order("updated_at", { ascending: true })
+            .limit(100),
+        supabase.from("matches")
+            .select("id")
+            .eq("points_processed", true)
+            .order("actual_start_time", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+    ]);
+
+    const top100 = top100Res.data || [];
+    const lastMatchId = lastMatchRes.data?.id;
+
+    // Fetch all predictions for last match in one query
+    let lastPredMap = {};
+    if (lastMatchId) {
+        const userIds = top100.map(g => g.user_id);
+        const { data: lastPreds } = await supabase
+            .from("user_predictions")
+            .select("user_id, predicted_winner_id, is_correct, real_teams!predicted_winner_id(short_code)")
+            .eq("match_id", lastMatchId)
+            .in("user_id", userIds);
+        (lastPreds || []).forEach(p => { lastPredMap[p.user_id] = p; });
+    }
+
     const overlay = document.getElementById("guruModal");
     const list    = document.getElementById("guruList");
     if (!overlay || !list) return;
 
     list.innerHTML = "";
-    (top100 || []).forEach((g, i) => {
-        const rank = i + 1;
-        const photo = g.user_profiles?.team_photo_url ? supabase.storage.from("team-avatars").getPublicUrl(g.user_profiles.team_photo_url).data.publicUrl : "images/default-avatar.png";
+    top100.forEach((g, i) => {
+        const rank  = i + 1;
+        const photo = g.user_profiles?.team_photo_url
+            ? supabase.storage.from("team-avatars").getPublicUrl(g.user_profiles.team_photo_url).data.publicUrl
+            : "images/default-avatar.png";
+
         const row = document.createElement("div");
         row.className = "guru-row";
-        const rankEl = document.createElement("div");
+        row.style.cursor = "pointer";
+
+        const rankEl   = document.createElement("div");
         rankEl.className = "guru-rank";
         rankEl.textContent = `#${rank}`;
+
         const avatarEl = document.createElement("img");
         avatarEl.src = photo;
         avatarEl.className = "guru-avatar";
+
+        const nameWrap = document.createElement("div");
+        nameWrap.className = "guru-name-wrap";
+
         const nameEl = document.createElement("div");
         nameEl.className = "guru-name";
         nameEl.textContent = g.user_profiles?.team_name || "Expert";
+
+        // Last match prediction badge
+        const pred = lastPredMap[g.user_id];
+        if (pred) {
+            const badge = document.createElement("span");
+            badge.className = `guru-last-pred ${pred.is_correct ? "pred-correct" : "pred-wrong"}`;
+            badge.textContent = `→ ${pred.real_teams?.short_code || "?"} ${pred.is_correct ? "✅" : "❌"}`;
+            nameWrap.appendChild(nameEl);
+            nameWrap.appendChild(badge);
+        } else {
+            nameWrap.appendChild(nameEl);
+        }
+
         const starsEl = document.createElement("div");
         starsEl.className = "guru-stars";
         starsEl.textContent = `${g.prediction_stars} ⭐`;
+
         if (rank <= 3) applyRankFlair(avatarEl, nameEl, rank);
-        row.append(rankEl, avatarEl, nameEl, starsEl);
+
+        // Expand history on click
+        row.onclick = () => togglePredHistory(row, g.user_id, g.user_profiles?.team_name);
+
+        row.append(rankEl, avatarEl, nameWrap, starsEl);
         list.appendChild(row);
     });
+
     overlay.classList.remove("hidden");
 };
 
@@ -601,7 +660,60 @@ document.getElementById("closeGuruModal")?.addEventListener("click", () => {
     document.getElementById("guruModal")?.classList.add("hidden");
 });
 
+async function togglePredHistory(row, userId, teamName) {
+    // If already open, close it
+    const existing = row.nextElementSibling;
+    if (existing?.classList.contains("pred-history-row")) {
+        existing.remove();
+        return;
+    }
 
+    // Remove any other open history
+    document.querySelectorAll(".pred-history-row").forEach(el => el.remove());
+
+    const histRow = document.createElement("div");
+    histRow.className = "pred-history-row";
+    histRow.innerHTML = `<div class="pred-history-loading">Loading…</div>`;
+    row.after(histRow);
+
+    const { data: history } = await supabase
+        .from("user_predictions")
+        .select(`
+            is_correct, created_at,
+            predicted_winner:real_teams!predicted_winner_id(short_code),
+            match:matches!match_id(match_number, winner_id,
+                team_a:real_teams!team_a_id(short_code),
+                team_b:real_teams!team_b_id(short_code)
+            )
+        `)
+        .eq("user_id", userId)
+        .eq("is_processed", true)
+        .order("created_at", { ascending: false })
+        .limit(15);
+
+    if (!history?.length) {
+        histRow.innerHTML = `<p class="pred-history-empty">No prediction history yet.</p>`;
+        return;
+    }
+
+    histRow.innerHTML = `<div class="pred-history-title">${teamName || "Expert"}'s Predictions</div>`;
+    const grid = document.createElement("div");
+    grid.className = "pred-history-grid";
+
+    history.forEach(p => {
+        const m  = p.match;
+        const vs = `M${m?.match_number}: ${m?.team_a?.short_code} v ${m?.team_b?.short_code}`;
+        const picked = p.predicted_winner?.short_code || "?";
+        const icon   = p.is_correct === true ? "✅" : p.is_correct === false ? "❌" : "⏳";
+
+        const chip = document.createElement("div");
+        chip.className = `pred-hist-chip ${p.is_correct ? "hist-correct" : "hist-wrong"}`;
+        chip.innerHTML = `<span class="hist-match">${vs}</span><span class="hist-pick">→ ${picked} ${icon}</span>`;
+        grid.appendChild(chip);
+    });
+
+    histRow.appendChild(grid);
+}
 /* ═══════════════════════════════════════════════════════════════════════════
    UNIFIED TEAM BUILDER ENGINE (Based on Edit Team Page)
 ═══════════════════════════════════════════════════════════════════════════ */

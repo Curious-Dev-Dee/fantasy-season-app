@@ -2880,3 +2880,25 @@ body {
     text-align: center;
     margin-bottom: 14px;
 }
+
+/* Guru leaderboard last-pred badge */
+.guru-name-wrap        { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.guru-last-pred        { font-size: 11px; font-weight: 600; margin-top: 2px; opacity: 0.85; }
+.pred-correct          { color: #4ade80; }
+.pred-wrong            { color: #f87171; }
+
+/* Prediction history expand row */
+.pred-history-row      { background: rgba(255,255,255,0.04); border-radius: 10px;
+                          padding: 10px 12px; margin: 2px 0 6px; }
+.pred-history-title    { font-size: 12px; font-weight: 700; color: var(--fun-cyan);
+                          margin-bottom: 8px; }
+.pred-history-grid     { display: flex; flex-wrap: wrap; gap: 6px; }
+.pred-hist-chip        { font-size: 11px; border-radius: 8px; padding: 5px 9px;
+                          display: flex; flex-direction: column; gap: 2px;
+                          background: rgba(255,255,255,0.06); }
+.hist-correct          { border-left: 3px solid #4ade80; }
+.hist-wrong            { border-left: 3px solid #f87171; }
+.hist-match            { color: rgba(255,255,255,0.55); font-size: 10px; }
+.hist-pick             { font-weight: 700; color: #fff; }
+.pred-history-loading,
+.pred-history-empty    { font-size: 12px; color: rgba(255,255,255,0.4); padding: 4px 0; }
