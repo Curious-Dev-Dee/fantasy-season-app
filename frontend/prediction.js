@@ -689,7 +689,7 @@ async function togglePredHistory(row, userId, teamName) {
         .eq("user_id", userId)
         .eq("is_processed", true)
         .order("created_at", { ascending: false })
-        .limit(15);
+        .limit(74);
 
     if (!history?.length) {
         histRow.innerHTML = `<p class="pred-history-empty">No prediction history yet.</p>`;
