@@ -587,16 +587,43 @@ window.showGuruLeaderboard = async () => {
     const lastMatchId = lastMatchRes.data?.id;
 
     // Fetch all predictions for last match in one query
-    let lastPredMap = {};
-    if (lastMatchId) {
-        const userIds = top100.map(g => g.user_id);
-        const { data: lastPreds } = await supabase
-            .from("user_predictions")
-            .select("user_id, predicted_winner_id, is_correct, real_teams!predicted_winner_id(short_code)")
-            .eq("match_id", lastMatchId)
-            .in("user_id", userIds);
-        (lastPreds || []).forEach(p => { lastPredMap[p.user_id] = p; });
-    }
+    // AFTER - fetches both last completed + next upcoming predictions
+let lastPredMap = {};
+let nextPredMap = {};
+
+const userIds = top100.map(g => g.user_id);
+
+// Get next upcoming match id
+const { data: nextMatch } = await supabase
+    .from("matches")
+    .select("id")
+    .eq("tournament_id", currentTournamentId)
+    .eq("status", "upcoming")
+    .order("actual_start_time", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+await Promise.all([
+    // Last completed match predictions
+    lastMatchId ? supabase
+        .from("user_predictions")
+        .select("user_id, predicted_winner_id, is_correct, real_teams!predicted_winner_id(short_code)")
+        .eq("match_id", lastMatchId)
+        .in("user_id", userIds)
+        .then(({ data }) => {
+            (data || []).forEach(p => { lastPredMap[p.user_id] = p; });
+        }) : Promise.resolve(),
+
+    // Next upcoming match predictions
+    nextMatch?.id ? supabase
+        .from("user_predictions")
+        .select("user_id, predicted_winner_id, real_teams!predicted_winner_id(short_code)")
+        .eq("match_id", nextMatch.id)
+        .in("user_id", userIds)
+        .then(({ data }) => {
+            (data || []).forEach(p => { nextPredMap[p.user_id] = p; });
+        }) : Promise.resolve()
+]);
 
     const overlay = document.getElementById("guruModal");
     const list    = document.getElementById("guruList");
@@ -629,16 +656,34 @@ window.showGuruLeaderboard = async () => {
         nameEl.textContent = g.user_profiles?.team_name || "Expert";
 
         // Last match prediction badge
-        const pred = lastPredMap[g.user_id];
-        if (pred) {
-            const badge = document.createElement("span");
-            badge.className = `guru-last-pred ${pred.is_correct ? "pred-correct" : "pred-wrong"}`;
-            badge.textContent = `→ ${pred.real_teams?.short_code || "?"} ${pred.is_correct ? "✅" : "❌"}`;
-            nameWrap.appendChild(nameEl);
-            nameWrap.appendChild(badge);
-        } else {
-            nameWrap.appendChild(nameEl);
-        }
+        // AFTER
+nameWrap.appendChild(nameEl);
+
+const badgeRow = document.createElement("div");
+badgeRow.className = "guru-badge-row";
+
+const lastPred = lastPredMap[g.user_id];
+if (lastPred) {
+    const b = document.createElement("span");
+    b.className = `guru-last-pred ${lastPred.is_correct ? "pred-correct" : "pred-wrong"}`;
+    b.textContent = `Last: ${lastPred.real_teams?.short_code || "?"} ${lastPred.is_correct ? "✅" : "❌"}`;
+    badgeRow.appendChild(b);
+}
+
+const nextPred = nextPredMap[g.user_id];
+if (nextPred) {
+    const b = document.createElement("span");
+    b.className = "guru-last-pred pred-next";
+    b.textContent = `Next: ${nextPred.real_teams?.short_code || "?"} 🔒`;
+    badgeRow.appendChild(b);
+} else {
+    const b = document.createElement("span");
+    b.className = "guru-last-pred pred-pending";
+    b.textContent = `Next: —`;
+    badgeRow.appendChild(b);
+}
+
+nameWrap.appendChild(badgeRow);
 
         const starsEl = document.createElement("div");
         starsEl.className = "guru-stars";

@@ -2251,3 +2251,7 @@ body.loaded #skeletonScreen {
 .chat-input-area button:hover    { box-shadow: 0 4px 12px var(--accent-glow); }
 .chat-input-area button:disabled { background: var(--border); color: var(--text-faint); }
 
+
+.guru-badge-row   { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.pred-next        { color: #facc15; }   /* yellow for upcoming */
+.pred-pending     { color: rgba(255,255,255,0.25); }  /* dim if not predicted yet */
