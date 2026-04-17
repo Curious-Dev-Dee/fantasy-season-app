@@ -206,6 +206,7 @@ const arrow = document.createElement("i");
 arrow.className = "fas fa-chevron-right l-arrow";
 
 rowEl.append(rank, team, pts, rankMove, arrow);
+        leaderboardContainer.appendChild(rowEl);  // ← ADD THIS
     });
 }
 
