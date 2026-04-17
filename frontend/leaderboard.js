@@ -189,11 +189,23 @@ const pts = document.createElement("div");
 pts.className   = `l-pts${row.total_points > 0 ? " has-pts" : ""}`;
 pts.textContent = `${row.total_points} pts`;
 
-        const arrow = document.createElement("i");
-        arrow.className = "fas fa-chevron-right l-arrow";
+// Rank movement indicator
+const rankMove = document.createElement("div");
+rankMove.className = "rank-move";
+if (row.previous_rank == null) {
+    rankMove.innerHTML = `<span class="move-neutral">—</span>`;
+} else if (row.rank < row.previous_rank) {
+    rankMove.innerHTML = `<span class="move-up">▲</span>`;
+} else if (row.rank > row.previous_rank) {
+    rankMove.innerHTML = `<span class="move-down">▼</span>`;
+} else {
+    rankMove.innerHTML = `<span class="move-neutral">—</span>`;
+}
 
-        rowEl.append(rank, team, pts, arrow);
-        leaderboardContainer.appendChild(rowEl);
+const arrow = document.createElement("i");
+arrow.className = "fas fa-chevron-right l-arrow";
+
+rowEl.append(rank, team, pts, rankMove, arrow);
     });
 }
 

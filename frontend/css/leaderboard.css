@@ -613,3 +613,17 @@ body {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Rank movement indicator */
+.rank-move {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.move-up      { color: #22c55e; }
+.move-down    { color: #ef4444; }
+.move-neutral { color: #6b7280; font-weight: 400; }
