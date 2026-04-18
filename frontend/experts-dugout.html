@@ -1,1028 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Experts Dugout · Cricket Experts</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/bottom-nav.css">
+  <link rel="stylesheet" href="css/experts-dugout.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <script type="module" src="auth-guard.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMYSEG9XNL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BMYSEG9XNL');
+  </script>
+</head>
+<body class="loading-state">
 
-
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
---bg:#0a0f1a;--bg2:#111827;--bg3:#1a2235;--bg4:#1e2a40;
---accent:#9AE000;--accent-dim:rgba(154,224,0,0.12);--accent-border:rgba(154,224,0,0.25);
---gold:#f59e0b;--red:#ef4444;--blue:#7cc4ff;--purple:#a78bfa;
---text1:#f1f5f9;--text2:#94a3b8;--text3:#475569;
---border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
---ff:'Barlow Condensed',sans-serif;--fb:'DM Sans',sans-serif;
-}
-body{background:var(--bg);color:var(--text1);font-family:var(--fb);font-size:14px;min-height:100vh;padding-bottom:20px}
-a{color:var(--accent)}
-.wrap{max-width:420px;margin:0 auto;padding:0 12px}
-
-/* HEADER */
-.hdr{background:rgba(10,15,26,0.98);border-bottom:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
-.hdr-title{font-family:var(--ff);font-size:22px;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:1px;flex:1}
-.hdr-sub{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:1px}
-.hdr-icon{width:36px;height:36px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:15px}
-
-/* TEAM SELECTOR */
-.sel-wrap{padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
-.sel-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.sel{width:100%;padding:10px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text1);font-family:var(--fb);font-size:13px;font-weight:600;outline:none;appearance:none;cursor:pointer}
-.toggle-row{display:flex;gap:6px;margin-top:8px}
-.tgl{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--ff);font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px}
-.tgl.on{background:var(--accent);color:#000;border-color:var(--accent)}
-
-/* CONTENT AREA */
-.content{padding:12px 16px;display:flex;flex-direction:column;gap:10px}
-
-/* SECTION CARD */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-.card-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-.card-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.ci-green{background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent)}
-.ci-gold{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--gold)}
-.ci-blue{background:rgba(124,196,255,0.1);border:1px solid rgba(124,196,255,0.2);color:var(--blue)}
-.ci-red{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--red)}
-.ci-purple{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);color:var(--purple)}
-.card-title{font-family:var(--ff);font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px}
-.card-body{padding:12px 14px}
-
-/* HERO */
-.hero{background:var(--bg2);border:1px solid var(--accent-border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
-.hero-avatar{width:52px;height:52px;border-radius:50%;border:2px solid var(--accent);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-family:var(--ff);font-size:18px;font-weight:900;color:var(--accent);flex-shrink:0}
-.hero-info{flex:1;min-width:0}
-.hero-name{font-family:var(--ff);font-size:19px;font-weight:900;color:var(--text1);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hero-rank{font-family:var(--ff);font-size:13px;font-weight:800;color:var(--blue);margin-top:2px}
-.hero-badge{display:inline-block;margin-top:4px;font-family:var(--ff);font-size:9px;font-weight:900;padding:2px 8px;border-radius:20px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);text-transform:uppercase;letter-spacing:0.5px}
-.hero-pts{text-align:right}
-.hero-pts-val{font-family:var(--ff);font-size:28px;font-weight:900;color:var(--accent);line-height:1}
-.hero-pts-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
-
-/* STAT GRID */
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
-.stat-grid.two{grid-template-columns:repeat(2,1fr)}
-.stat-cell{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center}
-.stat-val{font-family:var(--ff);font-size:21px;font-weight:900;line-height:1;display:block}
-.sv-green{color:var(--accent)}.sv-gold{color:var(--gold)}.sv-blue{color:var(--blue)}.sv-red{color:var(--red)}.sv-purple{color:var(--purple)}.sv-white{color:var(--text1)}
-.stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;display:block;line-height:1.3}
-
-/* INSIGHT ROWS */
-.insight{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:10px;margin-bottom:6px;border:1px solid transparent}
-.insight:last-child{margin-bottom:0}
-.insight.pos{background:rgba(154,224,0,0.05);border-color:rgba(154,224,0,0.15)}
-.insight.warn{background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.18)}
-.insight-ico{font-size:17px;flex-shrink:0;margin-top:1px}
-.insight-txt{font-size:12px;color:var(--text2);line-height:1.6}
-.insight-txt strong{color:var(--text1)}
-
-/* FORM DOTS */
-.form-row{display:flex;gap:10px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
-.form-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:3px}
-.form-dot{width:34px;height:34px;border-radius:50%;border:2px solid transparent;display:flex;align-items:center;justify-content:center}
-.fd-hot{background:rgba(154,224,0,0.15);border-color:var(--accent);box-shadow:0 0 8px rgba(154,224,0,0.3)}
-.fd-good{background:rgba(154,224,0,0.07);border-color:rgba(154,224,0,0.3)}
-.fd-ok{background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3)}
-.fd-bad{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3)}
-.fd-lbl{font-size:9px;color:var(--text3)}
-.fd-emoji{font-size:12px;line-height:1}
-.fd-score{font-family:var(--ff);font-size:9px;font-weight:800;color:var(--text3)}
-.form-legend{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
-.fl-item{font-size:10px;color:var(--text3)}
-.form-note{text-align:center;font-size:11px;color:var(--text3);font-style:italic}
-.form-note strong{color:var(--text1)}
-
-/* TREND ROW */
-.trend-row{display:flex;gap:6px}
-.trend-cell{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 6px;text-align:center}
-.trend-label{font-family:var(--ff);font-size:8px;font-weight:900;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px}
-.trend-val{font-family:var(--ff);font-size:17px;font-weight:900;display:block;line-height:1}
-.trend-sub{font-size:8px;color:var(--text3);display:block;margin-top:2px}
-.trend-up{display:block;font-size:9px;color:var(--accent);margin-top:2px}
-.trend-dn{display:block;font-size:9px;color:var(--red);margin-top:2px}
-
-/* CHART CANVAS */
-.chart-wrap{position:relative;height:130px;margin-top:10px}
-.chart-wrap canvas{width:100%!important;height:100%!important}
-.chart-lbl{font-family:var(--ff);font-size:8px;font-weight:900;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-
-/* BEST/WORST */
-.bw-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.bw-cell{border-radius:10px;padding:12px;text-align:center}
-.bw-best{background:rgba(154,224,0,0.05);border:1px solid rgba(154,224,0,0.15)}
-.bw-worst{background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15)}
-.bw-ico{font-size:18px;margin-bottom:5px;display:block}
-.bw-val{font-family:var(--ff);font-size:26px;font-weight:900;display:block;line-height:1}
-.bw-best .bw-val{color:var(--accent)}.bw-worst .bw-val{color:var(--red)}
-.bw-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;display:block}
-.bw-delta{font-size:10px;margin-top:4px;display:block;font-weight:600}
-.bw-pos{color:var(--accent)}.bw-neg{color:var(--red)}
-
-/* STREAKS */
-.streak-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.streak-cell{border-radius:12px;padding:14px;text-align:center}
-.sk-hot{background:rgba(154,224,0,0.05);border:1px solid rgba(154,224,0,0.15)}
-.sk-cold{background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15)}
-.sk-ico{font-size:22px;margin-bottom:6px;display:block}
-.sk-val{font-family:var(--ff);font-size:30px;font-weight:900;line-height:1;display:block}
-.sk-hot .sk-val{color:var(--accent)}.sk-cold .sk-val{color:var(--red)}
-.sk-lbl{font-family:var(--ff);font-size:10px;font-weight:800;text-transform:uppercase;margin-top:4px;display:block}
-.sk-hot .sk-lbl{color:var(--accent)}.sk-cold .sk-lbl{color:var(--red)}
-.sk-sub{font-size:9px;color:var(--text3);margin-top:3px;display:block;line-height:1.4}
-
-/* CAPTAIN */
-.cap-wrap{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.cap-circle{width:72px;height:72px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.cap-pct{font-family:var(--ff);font-size:18px;font-weight:900;line-height:1}
-.cap-sub{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
-.cap-info{flex:1}
-.cap-label{font-family:var(--ff);font-size:14px;font-weight:900;text-transform:uppercase;margin-bottom:4px}
-.cap-desc{font-size:11px;color:var(--text2);line-height:1.5}
-.cap-picks{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-.cp-title{font-family:var(--ff);font-size:9px;font-weight:900;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.cp-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
-.cp-row:last-child{border-bottom:none}
-.cp-name{font-size:12px;font-weight:700;flex:1}
-.cp-times{font-size:10px;color:var(--text3)}
-.cp-pts{font-family:var(--ff);font-size:13px;font-weight:900;color:var(--gold)}
-
-/* BOOSTER */
-.boost-summary{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;gap:8px}
-.bs-stat{text-align:center;min-width:48px}
-.boost-tag{font-family:var(--ff);font-size:10px;font-weight:900;color:var(--gold);background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 10px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.3px}
-.boost-list{display:flex;flex-direction:column;gap:6px}
-.boost-row{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
-.boost-row.best{background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2)}
-.boost-ico{font-size:18px;flex-shrink:0}
-.boost-info{flex:1;min-width:0}
-.boost-name{font-size:12px;font-weight:700;display:block}
-.boost-match{font-size:10px;color:var(--text3);display:block;margin-top:1px}
-.boost-right{text-align:right}
-.boost-pts{font-family:var(--ff);font-size:16px;font-weight:900;color:var(--text2)}
-.boost-row.best .boost-pts{color:var(--gold)}
-.boost-ptsl{font-size:8px;color:var(--text3);display:block;text-transform:uppercase}
-.boost-delta{font-family:var(--ff);font-size:10px;font-weight:800;display:block;margin-top:2px}
-.bd-pos{color:var(--accent)}.bd-neg{color:var(--red)}
-
-/* H2H */
-.h2h-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.h2h-side{text-align:center}
-.h2h-val{font-family:var(--ff);font-size:34px;font-weight:900;line-height:1}
-.h2h-win .h2h-val{color:var(--accent)}.h2h-loss .h2h-val{color:var(--text3)}
-.h2h-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase}
-.h2h-vs{font-family:var(--ff);font-size:14px;font-weight:900;color:var(--text3);text-align:center;line-height:1.3}
-.h2h-bar{height:6px;background:rgba(239,68,68,0.2);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.h2h-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 1s}
-.h2h-note{text-align:center;font-size:11px;color:var(--text3);font-style:italic}
-
-/* PLAYER LIST */
-.player-list{display:flex;flex-direction:column;gap:6px}
-.player-card{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
-.p-rank{font-family:var(--ff);font-size:16px;font-weight:900;color:var(--text3);width:20px;text-align:center;flex-shrink:0}
-.p-rank.r1{color:var(--gold)}.p-rank.r2{color:var(--blue)}.p-rank.r3{color:#fb923c}
-.p-info{flex:1;min-width:0}
-.p-name{font-size:13px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.p-meta{font-size:10px;color:var(--text3);margin-top:1px;display:block}
-.p-pts{font-family:var(--ff);font-size:15px;font-weight:900;color:var(--accent);display:block;text-align:right}
-.p-pts-lbl{font-size:8px;color:var(--text3);display:block;text-align:right;text-transform:uppercase}
-
-/* ROLE TABS */
-.role-tabs{display:flex;gap:5px;margin-bottom:10px}
-.role-tab{flex:1;padding:7px 4px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text3);font-family:var(--ff);font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;text-align:center;transition:.15s}
-.role-tab.on{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
-
-/* DEAD WEIGHT */
-.dw-warning{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--red);margin-bottom:8px}
-.dw-list{display:flex;flex-direction:column;gap:6px}
-.dw-row{display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg3);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:9px 11px;gap:8px}
-.dw-left{display:flex;align-items:flex-start;gap:8px;min-width:0;flex:1}
-.dw-info{display:flex;flex-direction:column}
-.dw-name{font-size:13px;font-weight:700}
-.dw-meta{font-size:10px;color:var(--text3);margin-top:1px}
-.dw-urgency{font-family:var(--ff);font-size:9px;font-weight:800;color:var(--text3);margin-top:3px;text-transform:uppercase}
-.dw-pts{font-family:var(--ff);font-size:14px;font-weight:900;color:var(--red);flex-shrink:0}
-.dw-clean{text-align:center;padding:16px 0}
-.dw-clean-ico{font-size:28px;margin-bottom:6px}
-.dw-clean-txt{font-family:var(--ff);font-size:15px;font-weight:900;color:var(--accent);text-transform:uppercase;margin-bottom:4px}
-.dw-clean-sub{font-size:11px;color:var(--text3)}
-
-/* ZONE */
-.zone-block{border-radius:12px;overflow:hidden;margin-bottom:8px}
-.zone-block:last-child{margin-bottom:0}
-.zone-strong{background:rgba(154,224,0,0.04);border:1px solid rgba(154,224,0,0.15)}
-.zone-weak{background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.15)}
-.zone-hdr{padding:9px 12px;font-family:var(--ff);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px}
-.zone-strong .zone-hdr{color:var(--accent);background:rgba(154,224,0,0.07);border-bottom:1px solid rgba(154,224,0,0.12)}
-.zone-weak .zone-hdr{color:var(--red);background:rgba(239,68,68,0.07);border-bottom:1px solid rgba(239,68,68,0.12)}
-.zone-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.zone-item:last-child{border-bottom:none}
-.zone-ico{font-size:18px;flex-shrink:0;margin-top:1px}
-.zone-title{font-family:var(--ff);font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.3px;color:var(--text1);margin-bottom:3px}
-.zone-desc{font-size:11px;color:var(--text2);line-height:1.5}
-
-/* MOMENTUM */
-.mmt-wrap{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.mmt-circle{width:78px;height:78px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.mmt-grade{font-family:var(--ff);font-size:24px;font-weight:900;line-height:1}
-.mmt-total{font-size:10px;font-weight:600;margin-top:2px}
-.mmt-info{flex:1}
-.mmt-emoji{font-size:20px;margin-bottom:4px}
-.mmt-desc{font-family:var(--ff);font-size:14px;font-weight:900;text-transform:uppercase;margin-bottom:3px}
-.mmt-sub{font-size:9px;color:var(--text3);line-height:1.5}
-.mmt-bars{display:flex;flex-direction:column;gap:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px}
-.mmt-bar-row{display:flex;align-items:center;gap:8px}
-.mmt-bar-label{font-size:10px;color:var(--text3);width:85px;flex-shrink:0}
-.mmt-bar-track{flex:1;height:6px;background:var(--border2);border-radius:3px;overflow:hidden}
-.mmt-bar-fill{height:100%;border-radius:3px}
-.mmt-bar-val{font-family:var(--ff);font-size:10px;font-weight:900;color:var(--text2);width:30px;text-align:right;flex-shrink:0}
-.mmt-bar-explain{font-size:9px;color:var(--text3);font-style:italic;padding-left:93px;margin-top:-3px;line-height:1.4}
-
-/* COMPARE */
-.cmp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.cmp-team{font-family:var(--ff);font-size:12px;font-weight:900;text-transform:uppercase;flex:1;text-align:center}
-.cmp-vs{font-family:var(--ff);font-size:11px;font-weight:900;color:var(--text3);padding:0 8px;flex-shrink:0}
-.cmp-row{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
-.cmp-row:last-child{border-bottom:none}
-.cmp-val{font-family:var(--ff);font-size:14px;font-weight:900;color:var(--text3);flex:1;text-align:center}
-.cmp-val.win{color:var(--accent)}
-.cmp-lbl{font-size:10px;color:var(--text3);flex:1;text-align:center;text-transform:uppercase;letter-spacing:0.5px}
-.cmp-section{font-family:var(--ff);font-size:9px;font-weight:900;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:2px;text-align:center}
-.cmp-verdict{border:1px solid;border-radius:10px;padding:10px 14px;text-align:center;margin-bottom:12px;display:flex;flex-direction:column;gap:3px}
-.cmp-verdict-main{font-family:var(--ff);font-size:16px;font-weight:900}
-.cmp-verdict-sub{font-size:10px;color:var(--text3)}
-
-/* SHARE */
-.share-card{background:var(--bg3);border:1px solid var(--accent-border);border-radius:14px;padding:16px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden}
-.share-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
-.share-top{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
-.share-top span{color:var(--accent);font-family:var(--ff);font-size:11px;font-weight:900}
-.share-team{font-family:var(--ff);font-size:20px;font-weight:900;text-transform:uppercase;margin-bottom:12px}
-.share-stats{display:flex;justify-content:space-around;margin-bottom:10px}
-.share-stat{display:flex;flex-direction:column;align-items:center;gap:3px}
-.share-val{font-family:var(--ff);font-size:22px;font-weight:900;color:var(--accent);line-height:1}
-.share-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
-.share-pct{font-family:var(--ff);font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
-.share-tagline{font-size:10px;color:var(--text3);font-style:italic}
-.share-btn{width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#000;font-family:var(--ff);font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-
-/* RANK CHART */
-.rank-wrap{height:110px;position:relative}
-.rank-wrap canvas{width:100%!important;height:100%!important}
-
-/* AUTOPSY */
-.autopsy-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.autopsy-badge{font-family:var(--ff);font-size:10px;font-weight:900;color:var(--red);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:3px 10px;text-transform:uppercase}
-.autopsy-score{font-family:var(--ff);font-size:22px;font-weight:900;color:var(--red)}
-.autopsy-grid{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
-.autopsy-cell{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-.autopsy-ico{font-size:20px;flex-shrink:0}
-.autopsy-val{font-family:var(--ff);font-size:16px;font-weight:900;color:var(--text1);line-height:1}
-.autopsy-lbl{font-size:10px;color:var(--text3);margin-top:2px}
-.autopsy-verdict{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.18);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--text2);line-height:1.5}
-
-/* CAT */
-.cat-bar{height:10px;border-radius:5px;overflow:hidden;display:flex;gap:2px;margin-bottom:10px}
-.cat-bar-seg{height:100%;border-radius:3px;min-width:2px}
-.cat-summary{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.cat-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 11px;gap:8px}
-.cat-left{display:flex;align-items:center;gap:8px}
-.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.cat-name{font-family:var(--ff);font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.3px}
-.cat-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
-.cat-pill{display:flex;flex-direction:column;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 7px;min-width:38px}
-.cat-pill-val{font-family:var(--ff);font-size:12px;font-weight:900;color:var(--text1);line-height:1}
-.cat-pill-lbl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px}
-
-/* EMPTY */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:10px}
-.empty-ico{width:60px;height:60px;border-radius:18px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--accent);margin-bottom:8px}
-.empty-title{font-family:var(--ff);font-size:17px;font-weight:900;color:var(--text2);text-transform:uppercase}
-.empty-sub{font-size:12px;color:var(--text3);line-height:1.5;max-width:220px}
-.no-data{text-align:center;color:var(--text3);font-size:12px;padding:14px 0;font-style:italic}
-
-/* CONSISTENCY BAR */
-.cons-row{margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-.cons-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
-.cons-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
-.cons-formula{font-size:9px;color:var(--text3);font-style:italic;margin-top:2px}
-.cons-val{font-family:var(--ff);font-size:15px;font-weight:900;flex-shrink:0}
-.cons-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.cons-fill{height:100%;background:var(--accent);border-radius:3px}
-.cons-grade{font-size:11px;color:var(--text3);margin-top:7px;font-style:italic}
-
-/* SUBS EFFICIENCY */
-.sub-eff{margin-top:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
-.sub-eff-title{font-family:var(--ff);font-size:9px;font-weight:900;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.sub-eff-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.sub-eff-cell{flex:1;text-align:center}
-.sub-eff-val{font-family:var(--ff);font-size:17px;font-weight:900;color:var(--text1);display:block}
-.sub-eff-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;display:block}
-.sub-eff-vs{font-family:var(--ff);font-size:10px;font-weight:900;color:var(--text3)}
-.sub-eff-verdict{font-size:11px;color:var(--text2);border-top:1px solid var(--border);padding-top:8px;line-height:1.5}
-
-/* SKELETON */
-.skeleton-list{display:flex;flex-direction:column;gap:10px;padding:12px 16px}
-.sk{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:14px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-/* RANK JOURNEY NOTE */
-.rj-note{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;font-style:italic}
-
-/* H2H scope */
-.scope-note{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.18);border-radius:8px;padding:7px 10px;font-size:10px;color:var(--gold);margin-bottom:12px;line-height:1.5}
-
-/* NAV placeholder */
-.bottom-nav{display:flex;background:rgba(10,15,26,0.98);border-top:1px solid var(--border2);padding:8px 0 12px}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer}
-.nav-item.on{color:var(--accent)}
-.nav-ico{font-size:17px}
-
-/* AUDIT BANNER */
-.audit-banner{background:rgba(154,224,0,0.06);border:1px solid rgba(154,224,0,0.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:2px}
-.audit-banner strong{color:var(--accent)}
-</style>
-
-<div style="background:var(--bg);min-height:100vh">
-
-<!-- HEADER -->
-<div class="hdr">
-  <div style="flex:1">
-    <div class="hdr-title">Experts Dugout</div>
-    <div class="hdr-sub">Team Intelligence</div>
+<!-- ═══════════════════════════════════════════════
+     SKELETON SCREEN
+════════════════════════════════════════════════ -->
+<div id="skeletonScreen">
+  <div class="sk-header">
+    <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div class="sk-block" style="width:140px;height:18px;border-radius:6px"></div>
+      <div class="sk-block" style="width:100px;height:12px;border-radius:4px"></div>
+    </div>
+    <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
   </div>
-  <div class="hdr-icon">&#128202;</div>
-</div>
-
-<!-- TEAM SELECTOR -->
-<div class="sel-wrap">
-  <div class="sel-label">Select a team to analyse</div>
-  <select class="sel" id="teamSel" onchange="loadTeam(this.value)">
-    <option value="">Choose a team...</option>
-    <option value="satyaranjan">AvengersCTC &#9733; (You) — 8,809 pts · Rank 3</option>
-    <option value="sankar">Whistle Podu — 9,141 pts · Rank 1</option>
-    <option value="rk">RCC — 8,754 pts · Rank 2</option>
-    <option value="sonu">SB XI — 8,593 pts · Rank 4</option>
-    <option value="bablu">RED ZONE — 8,457 pts · Rank 5</option>
-    <option value="smruti">Achaanka — 8,390 pts · Rank 6</option>
-    <option value="bikash">Mumbai Indians &#9888; — 10,486 pts · Rank 1 (Fake)</option>
-    <option value="prafulla">Mumbai Hitmans — 7,892 pts · Rank 7</option>
-    <option value="badal">Charlie — 6,907 pts · Rank 8</option>
-  </select>
-  <div class="toggle-row">
-    <button class="tgl on" onclick="setMode('overall',this)">Overall</button>
-    <button class="tgl" onclick="setMode('league',this)">My League</button>
+  <div class="sk-block" style="height:44px;border-radius:10px;margin-bottom:10px"></div>
+  <div class="sk-block" style="height:52px;border-radius:10px;margin-bottom:16px"></div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="sk-block" style="height:100px;border-radius:14px"></div>
+    <div class="sk-block" style="height:80px;border-radius:14px"></div>
+    <div class="sk-block" style="height:120px;border-radius:14px"></div>
+    <div class="sk-block" style="height:80px;border-radius:14px"></div>
   </div>
 </div>
 
-<!-- CONTENT -->
-<div id="mainContent">
-  <div class="empty-state">
-    <div class="empty-ico">&#128202;</div>
-    <div class="empty-title">Pick a team to analyse</div>
-    <div class="empty-sub">Select from the dropdown above to see full team intelligence</div>
+<!-- ═══════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════ -->
+<div class="app-container page-with-nav">
+
+  <!-- HEADER -->
+  <header class="ed-header">
+    <a href="more.html" class="icon-back" aria-label="Back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="ed-header-center">
+      <h1 class="ed-title">Experts Dugout</h1>
+      <p class="ed-subtitle">Team Intelligence</p>
+    </div>
+    <div class="ed-header-icon">
+      <i class="fas fa-magnifying-glass-chart"></i>
+    </div>
+    <button class="ed-info-btn" id="infoBtn" aria-label="How analytics work">
+      <i class="fas fa-circle-info"></i>
+    </button>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       INFO POPUP
+  ══════════════════════════════════════════════ -->
+  <div class="ed-info-overlay hidden" id="infoOverlay">
+    <div class="ed-info-modal">
+      <div class="ed-info-modal-header">
+        <h2 class="ed-info-title">How Analytics Work</h2>
+        <button class="ed-info-close" id="infoClose">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="ed-info-body">
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#128200;</span>
+            <span class="ed-info-item-title">Total Points & Rank</span>
+          </div>
+          <p class="ed-info-item-desc">Your total points are the sum of all your match scores across the season. Your rank is where you stand among all managers based on those points.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#127941;</span>
+            <span class="ed-info-item-title">Tournament Percentile</span>
+          </div>
+          <p class="ed-info-item-desc">"Top 12%" means you scored more than 88% of all managers. The smaller the number, the better you are doing.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon red">&#128293;</span>
+            <span class="ed-info-item-title">Current Form (Dots)</span>
+          </div>
+          <p class="ed-info-item-desc">Shows your last 5 matches newest first. Bright green dot = 250+ pts. Dim green = above your season average. Amber = near average. Red = below average.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#9868;</span>
+            <span class="ed-info-item-title">Consistency Score</span>
+          </div>
+          <p class="ed-info-item-desc">Scores out of 100. Measures how similar your scores are match to match. 70+ is green, 50–69 is amber, below 50 is red.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#128202;</span>
+            <span class="ed-info-item-title">Score Trends (Last 3 / 6 / 10)</span>
+          </div>
+          <p class="ed-info-item-desc">Your average score across your last 3, 6 or 10 matches. If your Last 3 average is higher than your season average you are in improving form.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon blue">&#8594;</span>
+            <span class="ed-info-item-title">Rank Journey</span>
+          </div>
+          <p class="ed-info-item-desc">Shows how your rank changed across your last 10 matches. Going down on the chart means your rank improved — rank 1 is at the top. Gold dot means you were rank 1 after that match.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon blue">&#8644;</span>
+            <span class="ed-info-item-title">Subs Analysis</span>
+          </div>
+          <p class="ed-info-item-desc">How many player transfers you have made. Shows your total subs used, your average per match, and your recent trend across last 3, 6 and 10 matches.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon gold">&#128293;</span>
+            <span class="ed-info-item-title">Streaks</span>
+          </div>
+          <p class="ed-info-item-desc">Best streak = how many matches in a row you scored 250 or more points. Worst streak = how many matches in a row you scored 150 pts or below.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon gold">&#128081;</span>
+            <span class="ed-info-item-title">Captain Performance</span>
+          </div>
+          <p class="ed-info-item-desc">In how many matches did your captain score above the average of all players in that match? Good captaincy decisions directly lead to big scores.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon purple">&#128640;</span>
+            <span class="ed-info-item-title">Booster ROI</span>
+          </div>
+          <p class="ed-info-item-desc">Shows every match where you used a booster and how many total points you scored that match. The best booster match is highlighted in gold.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon red">&#9876;</span>
+            <span class="ed-info-item-title">Head to Head vs Rank 1</span>
+          </div>
+          <p class="ed-info-item-desc">In how many individual matches did you score more points than the current rank 1 manager? Shows how competitive you are against the best team.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon gold">&#9733;</span>
+            <span class="ed-info-item-title">Top Point Earners</span>
+          </div>
+          <p class="ed-info-item-desc">The 3 players who earned you the most fantasy points this season. Only counts matches where they actually played.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon purple">&#10084;</span>
+            <span class="ed-info-item-title">Most Loyal Players</span>
+          </div>
+          <p class="ed-info-item-desc">The 3 players who actually took the field most often while in your team. Ranked by how many matches they played, not just how many times you picked them.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon purple">&#128101;</span>
+            <span class="ed-info-item-title">Player Usage</span>
+          </div>
+          <p class="ed-info-item-desc">Unique Players Appeared = how many different players actually took the field. Total Appearances = total count across all matches. Avg Points per Appearance = total season points divided by total appearances.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon blue">&#128101;</span>
+            <span class="ed-info-item-title">Top by Role</span>
+          </div>
+          <p class="ed-info-item-desc">Your best performing WK, BAT, AR and BOWL this season by total points earned while in your team. Tap each role tab to switch.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#127987;</span>
+            <span class="ed-info-item-title">Player Categories</span>
+          </div>
+          <p class="ed-info-item-desc">Breaks your squad into Indian, Overseas and Uncapped players. The colored bar shows what percentage of your total points came from each group.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#128737;</span>
+            <span class="ed-info-item-title">Strong & Weak Zones</span>
+          </div>
+          <p class="ed-info-item-desc">The app automatically analyses all your stats and picks up to 3 things you are doing really well (Strong Zone) and up to 3 things that are hurting your score (Weak Zone).</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon purple">&#9878;</span>
+            <span class="ed-info-item-title">Compare with Another Team</span>
+          </div>
+          <p class="ed-info-item-desc">Pick any other manager to compare your stats side by side across 5 categories — Season, Captaincy, Subs, Boosters and Players. Green value = that team wins that stat.</p>
+        </div>
+
+        <div class="ed-info-item">
+          <div class="ed-info-item-header">
+            <span class="ed-info-icon green">&#128257;</span>
+            <span class="ed-info-item-title">Share Your Stats</span>
+          </div>
+          <p class="ed-info-item-desc">Tap the Share button to share your season stats card with friends. On mobile it opens your native share menu. On desktop it copies the stats text to your clipboard.</p>
+        </div>
+
+      </div><!-- /ed-info-body -->
+    </div><!-- /ed-info-modal -->
+  </div><!-- /ed-info-overlay -->
+
+  <!-- ═══════════════════════════════════════════
+       CONTROLS — Overall / My League toggle + team selector
+  ══════════════════════════════════════════════ -->
+  <div class="ed-controls">
+    <div class="ed-toggle-row">
+      <button class="ed-toggle-btn active" id="toggleOverall">
+        <i class="fas fa-globe"></i> Overall
+      </button>
+      <button class="ed-toggle-btn" id="toggleLeague">
+        <i class="fas fa-shield-alt"></i> My League
+      </button>
+    </div>
+    <div class="ed-select-wrap">
+      <i class="fas fa-users ed-select-icon"></i>
+      <select id="teamSelector" class="ed-select">
+        <option value="">Select a team...</option>
+      </select>
+      <i class="fas fa-chevron-down ed-select-arrow"></i>
+    </div>
   </div>
-</div>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN CONTENT — populated by JS
+  ══════════════════════════════════════════════ -->
+  <main class="ed-main" id="dugoutContent">
+    <div class="ed-empty-state">
+      <div class="ed-empty-icon">
+        <i class="fas fa-magnifying-glass-chart"></i>
+      </div>
+      <p class="ed-empty-title">Pick a team to analyse</p>
+      <p class="ed-empty-sub">Select from the dropdown above to see full team intelligence</p>
+    </div>
+  </main>
+
+</div><!-- /app-container -->
 
 <!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <div class="nav-item"><span class="nav-ico">&#127968;</span>Home</div>
-  <div class="nav-item on"><span class="nav-ico">&#128202;</span>Dugout</div>
-  <div class="nav-item"><span class="nav-ico">&#9889;</span>Fun</div>
-  <div class="nav-item"><span class="nav-ico">&#128187;</span>Stats</div>
-</div>
+<nav class="bottom-nav">
+  <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="experts-dugout.html" class="active"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
+  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
+  <a href="stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+</nav>
 
-</div>
+<div id="toastContainer" class="toast-container"></div>
 
-<script>
-const TEAMS={
-  satyaranjan:{
-    team_name:"AvengersCTC",initials:"AC",rank:3,total_points:8809,
-    avg_score:367,last3:390,last6:372,last10:361,
-    best_match:943,worst_match:118,consistency:71,
-    matches_played:24,subs_used:37,subs_remaining:93,boosters_remaining:6,
-    best_streak:4,worst_streak:2,
-    captain_success_rate:68,
-    last5:[390,310,415,280,943],
-    match_history:[943,415,390,310,280,420,350,290,385,410,330,260,470,388,290,410,330,260,380,290,330,260,290,118],
-    booster_history:[{booster:"MOM_2X",match:12,pts:943}],
-    rank_journey:[{m:1,r:5},{m:5,r:4},{m:10,r:4},{m:15,r:3},{m:20,r:3},{m:24,r:3}],
-    captain_picks:[{name:"Shubman Gill",times:6,pts:480},{name:"Prabhsimran Singh",times:4,pts:310},{name:"Shreyas Iyer",times:3,pts:240},{name:"Rohit Sharma",times:3,pts:195},{name:"Virat Kohli",times:2,pts:160}],
-    top_scorers:[{name:"Shubman Gill",role:"BAT",matches_played:19,pts:1240},{name:"Prabhsimran Singh",role:"WK",matches_played:17,pts:890},{name:"Shreyas Iyer",role:"BAT",matches_played:15,pts:670}],
-    most_picked:[{name:"Shubman Gill",role:"BAT",matches_played:19,pts:1240},{name:"Shreyas Iyer",role:"BAT",matches_played:15,pts:670},{name:"Jasprit Bumrah",role:"BOWL",matches_played:14,pts:560}],
-    top_wk:[{name:"Prabhsimran Singh",role:"WK",matches_played:17,pts:890},{name:"KL Rahul",role:"WK",matches_played:6,pts:310},{name:"MS Dhoni",role:"WK",matches_played:3,pts:120}],
-    top_bat:[{name:"Shubman Gill",role:"BAT",matches_played:19,pts:1240},{name:"Shreyas Iyer",role:"BAT",matches_played:15,pts:670},{name:"Virat Kohli",role:"BAT",matches_played:12,pts:540}],
-    top_ar:[{name:"Sunil Narine",role:"AR",matches_played:12,pts:440},{name:"Hardik Pandya",role:"AR",matches_played:10,pts:360},{name:"Ravindra Jadeja",role:"AR",matches_played:8,pts:290}],
-    top_bowl:[{name:"Jasprit Bumrah",role:"BOWL",matches_played:14,pts:560},{name:"Yuzvendra Chahal",role:"BOWL",matches_played:11,pts:390},{name:"Arshdeep Singh",role:"BOWL",matches_played:9,pts:280}],
-    top_indian:[{name:"Shubman Gill",role:"BAT",matches_played:19,pts:1240},{name:"Jasprit Bumrah",role:"BOWL",matches_played:14,pts:560},{name:"Shreyas Iyer",role:"BAT",matches_played:15,pts:670}],
-    top_overseas:[{name:"Sunil Narine",role:"AR",matches_played:12,pts:440},{name:"Nicholas Pooran",role:"WK",matches_played:8,pts:320},{name:"Pat Cummins",role:"BOWL",matches_played:7,pts:290}],
-    top_uncapped:[{name:"Prabhsimran Singh",role:"WK",matches_played:17,pts:890},{name:"Rinku Singh",role:"BAT",matches_played:9,pts:310},{name:"Mayank Yadav",role:"BOWL",matches_played:5,pts:180}],
-    dead_weight:[],
-    cat_breakdown:[{cat:"indian",pts:5280,players:7},{cat:"overseas",pts:2180,players:3},{cat:"uncapped",pts:1349,players:4}],
-    h2h_wins:14,h2h_vs:"Whistle Podu",
-    avg_subs_last3:1.3,avg_subs_last6:1.5,avg_subs_last10:1.6,
-    sub_eff:{avg_in:48,avg_out:38},
-    autopsy:{match:3,score:118,cap_pts:22,players_played:7,total:11},
-    worst_match_num:3,
-    unique_players:21,total_appearances:264,avg_per_match:11,avg_pts_per_appear:33.4,
-  },
-  sankar:{
-    team_name:"Whistle Podu",initials:"WP",rank:1,total_points:9141,
-    avg_score:381,last3:402,last6:389,last10:378,
-    best_match:968,worst_match:135,consistency:74,
-    matches_played:24,subs_used:32,subs_remaining:98,boosters_remaining:7,
-    best_streak:5,worst_streak:2,captain_success_rate:72,
-    last5:[402,388,415,340,968],
-    match_history:[968,415,402,388,340,430,360,300,395,420,345,270,480,398,300,420,340,270,390,300,340,270,300,135],
-    booster_history:[],
-    rank_journey:[{m:1,r:3},{m:5,r:2},{m:10,r:2},{m:15,r:1},{m:20,r:1},{m:24,r:1}],
-    captain_picks:[{name:"Shubman Gill",times:8,pts:640},{name:"Jos Buttler",times:5,pts:420},{name:"Shreyas Iyer",times:4,pts:310},{name:"Rohit Sharma",times:3,pts:205},{name:"Suryakumar Yadav",times:2,pts:140}],
-    top_scorers:[{name:"Shubman Gill",role:"BAT",matches_played:21,pts:1370},{name:"Jos Buttler",role:"WK",matches_played:18,pts:920},{name:"Shreyas Iyer",role:"BAT",matches_played:16,pts:720}],
-    most_picked:[{name:"Shubman Gill",role:"BAT",matches_played:21,pts:1370},{name:"Jos Buttler",role:"WK",matches_played:18,pts:920},{name:"Jasprit Bumrah",role:"BOWL",matches_played:15,pts:600}],
-    top_wk:[{name:"Jos Buttler",role:"WK",matches_played:18,pts:920},{name:"KL Rahul",role:"WK",matches_played:5,pts:260},{name:"MS Dhoni",role:"WK",matches_played:2,pts:80}],
-    top_bat:[{name:"Shubman Gill",role:"BAT",matches_played:21,pts:1370},{name:"Shreyas Iyer",role:"BAT",matches_played:16,pts:720},{name:"Virat Kohli",role:"BAT",matches_played:13,pts:560}],
-    top_ar:[{name:"Sunil Narine",role:"AR",matches_played:14,pts:510},{name:"Hardik Pandya",role:"AR",matches_played:11,pts:390},{name:"Ravindra Jadeja",role:"AR",matches_played:9,pts:310}],
-    top_bowl:[{name:"Jasprit Bumrah",role:"BOWL",matches_played:15,pts:600},{name:"Yuzvendra Chahal",role:"BOWL",matches_played:12,pts:420},{name:"Rashid Khan",role:"BOWL",matches_played:10,pts:350}],
-    top_indian:[{name:"Shubman Gill",role:"BAT",matches_played:21,pts:1370},{name:"Jasprit Bumrah",role:"BOWL",matches_played:15,pts:600},{name:"Shreyas Iyer",role:"BAT",matches_played:16,pts:720}],
-    top_overseas:[{name:"Jos Buttler",role:"WK",matches_played:18,pts:920},{name:"Sunil Narine",role:"AR",matches_played:14,pts:510},{name:"Rashid Khan",role:"BOWL",matches_played:10,pts:350}],
-    top_uncapped:[{name:"Rinku Singh",role:"BAT",matches_played:12,pts:420},{name:"Mayank Yadav",role:"BOWL",matches_played:6,pts:195},{name:"Tilak Varma",role:"BAT",matches_played:10,pts:360}],
-    dead_weight:[],
-    cat_breakdown:[{cat:"indian",pts:5480,players:7},{cat:"overseas",pts:2360,players:3},{cat:"uncapped",pts:1301,players:4}],
-    h2h_wins:10,h2h_vs:"Rank 2 (RCC)",
-    avg_subs_last3:1.0,avg_subs_last6:1.2,avg_subs_last10:1.3,
-    sub_eff:{avg_in:52,avg_out:41},
-    autopsy:{match:5,score:135,cap_pts:28,players_played:8,total:11},
-    worst_match_num:5,
-    unique_players:19,total_appearances:264,avg_per_match:11,avg_pts_per_appear:34.6,
-  },
-  bikash:{
-    team_name:"Mumbai Indians",initials:"MI",rank:1,total_points:10486,
-    avg_score:544,last3:410,last6:388,last10:380,
-    best_match:1556,worst_match:180,consistency:58,
-    matches_played:17,subs_used:136,subs_remaining:-6,boosters_remaining:1,
-    best_streak:3,worst_streak:1,captain_success_rate:65,
-    last5:[410,340,388,350,1556],
-    match_history:[1556,880,760,650,580,544,520,490,410,388,370,340,320,310,290,260,180],
-    booster_history:[
-      {booster:"TOTAL_2X",match:1,pts:1556},{booster:"TOTAL_2X",match:3,pts:880},
-      {booster:"INDIAN_2X",match:5,pts:760},{booster:"CAPTAIN_3X",match:7,pts:650},
-      {booster:"OVERSEAS_2X",match:9,pts:580},{booster:"MOM_2X",match:11,pts:520}
-    ],
-    rank_journey:[{m:1,r:1},{m:3,r:1},{m:7,r:1},{m:12,r:1},{m:17,r:1}],
-    captain_picks:[{name:"Virat Kohli",times:6,pts:580},{name:"Rohit Sharma",times:5,pts:440},{name:"Shubman Gill",times:3,pts:280},{name:"Hardik Pandya",times:2,pts:160},{name:"KL Rahul",times:1,pts:60}],
-    top_scorers:[{name:"Virat Kohli",role:"BAT",matches_played:14,pts:1180},{name:"Rohit Sharma",role:"BAT",matches_played:12,pts:890},{name:"Jasprit Bumrah",role:"BOWL",matches_played:13,pts:680}],
-    most_picked:[{name:"Virat Kohli",role:"BAT",matches_played:14,pts:1180},{name:"Rohit Sharma",role:"BAT",matches_played:12,pts:890},{name:"Hardik Pandya",role:"AR",matches_played:11,pts:520}],
-    top_wk:[{name:"KL Rahul",role:"WK",matches_played:10,pts:540},{name:"Ishan Kishan",role:"WK",matches_played:5,pts:210},{name:"MS Dhoni",role:"WK",matches_played:2,pts:80}],
-    top_bat:[{name:"Virat Kohli",role:"BAT",matches_played:14,pts:1180},{name:"Rohit Sharma",role:"BAT",matches_played:12,pts:890},{name:"Suryakumar Yadav",role:"BAT",matches_played:9,pts:480}],
-    top_ar:[{name:"Hardik Pandya",role:"AR",matches_played:11,pts:520},{name:"Ravindra Jadeja",role:"AR",matches_played:7,pts:290},{name:"Axar Patel",role:"AR",matches_played:5,pts:195}],
-    top_bowl:[{name:"Jasprit Bumrah",role:"BOWL",matches_played:13,pts:680},{name:"Rashid Khan",role:"BOWL",matches_played:8,pts:340},{name:"Mohammad Shami",role:"BOWL",matches_played:6,pts:240}],
-    top_indian:[{name:"Virat Kohli",role:"BAT",matches_played:14,pts:1180},{name:"Rohit Sharma",role:"BAT",matches_played:12,pts:890},{name:"Jasprit Bumrah",role:"BOWL",matches_played:13,pts:680}],
-    top_overseas:[{name:"Rashid Khan",role:"BOWL",matches_played:8,pts:340},{name:"Nicholas Pooran",role:"WK",matches_played:6,pts:280},{name:"Tim David",role:"BAT",matches_played:7,pts:260}],
-    top_uncapped:[{name:"Rinku Singh",role:"BAT",matches_played:6,pts:220},{name:"Mayank Yadav",role:"BOWL",matches_played:4,pts:140},{name:"Tilak Varma",role:"BAT",matches_played:8,pts:310}],
-    dead_weight:[{name:"Ishan Kishan",role:"WK",in_team:8,played:1,pts:22},{name:"Tim David",role:"BAT",in_team:7,played:2,pts:60}],
-    cat_breakdown:[{cat:"indian",pts:6890,players:8},{cat:"overseas",pts:2296,players:3},{cat:"uncapped",pts:1300,players:4}],
-    h2h_wins:11,h2h_vs:"Rank 2",
-    avg_subs_last3:4.5,avg_subs_last6:5.2,avg_subs_last10:6.8,
-    sub_eff:{avg_in:45,avg_out:35},
-    autopsy:{match:8,score:180,cap_pts:30,players_played:7,total:11},
-    worst_match_num:8,
-    unique_players:28,total_appearances:187,avg_per_match:11,avg_pts_per_appear:56.1,
-  }
-};
-
-const DEFAULT_TEAM={
-  team_name:"This Team",initials:"TM",rank:5,total_points:8400,
-  avg_score:350,last3:360,last6:355,last10:348,
-  best_match:720,worst_match:130,consistency:62,
-  matches_played:24,subs_used:45,subs_remaining:85,boosters_remaining:5,
-  best_streak:3,worst_streak:2,captain_success_rate:58,
-  last5:[360,310,390,280,720],
-  match_history:[720,390,360,310,280,380,330,270,370,400,320,255,450,370,280,400,320,255,370,280,320,255,280,130],
-  booster_history:[{booster:"OVERSEAS_2X",match:9,pts:614}],
-  rank_journey:[{m:1,r:8},{m:5,r:6},{m:10,r:5},{m:15,r:5},{m:20,r:5},{m:24,r:5}],
-  captain_picks:[{name:"Shubman Gill",times:5,pts:385},{name:"Virat Kohli",times:4,pts:290},{name:"Rohit Sharma",times:4,pts:260},{name:"Hardik Pandya",times:3,pts:180},{name:"KL Rahul",times:2,pts:115}],
-  top_scorers:[{name:"Shubman Gill",role:"BAT",matches_played:16,pts:980},{name:"KL Rahul",role:"WK",matches_played:14,pts:620},{name:"Jasprit Bumrah",role:"BOWL",matches_played:12,pts:480}],
-  most_picked:[{name:"Shubman Gill",role:"BAT",matches_played:16,pts:980},{name:"KL Rahul",role:"WK",matches_played:14,pts:620},{name:"Hardik Pandya",role:"AR",matches_played:11,pts:380}],
-  top_wk:[{name:"KL Rahul",role:"WK",matches_played:14,pts:620},{name:"MS Dhoni",role:"WK",matches_played:6,pts:220},{name:"Ishan Kishan",role:"WK",matches_played:3,pts:90}],
-  top_bat:[{name:"Shubman Gill",role:"BAT",matches_played:16,pts:980},{name:"Virat Kohli",role:"BAT",matches_played:12,pts:520},{name:"Shreyas Iyer",role:"BAT",matches_played:10,pts:410}],
-  top_ar:[{name:"Hardik Pandya",role:"AR",matches_played:11,pts:380},{name:"Sunil Narine",role:"AR",matches_played:9,pts:310},{name:"Ravindra Jadeja",role:"AR",matches_played:7,pts:240}],
-  top_bowl:[{name:"Jasprit Bumrah",role:"BOWL",matches_played:12,pts:480},{name:"Yuzvendra Chahal",role:"BOWL",matches_played:10,pts:330},{name:"Arshdeep Singh",role:"BOWL",matches_played:8,pts:240}],
-  top_indian:[{name:"Shubman Gill",role:"BAT",matches_played:16,pts:980},{name:"Jasprit Bumrah",role:"BOWL",matches_played:12,pts:480},{name:"Virat Kohli",role:"BAT",matches_played:12,pts:520}],
-  top_overseas:[{name:"Sunil Narine",role:"AR",matches_played:9,pts:310},{name:"Nicholas Pooran",role:"WK",matches_played:7,pts:260},{name:"Pat Cummins",role:"BOWL",matches_played:6,pts:220}],
-  top_uncapped:[{name:"Rinku Singh",role:"BAT",matches_played:8,pts:270},{name:"Tilak Varma",role:"BAT",matches_played:7,pts:230},{name:"Mayank Yadav",role:"BOWL",matches_played:4,pts:130}],
-  dead_weight:[{name:"Ishan Kishan",role:"WK",in_team:6,played:1,pts:18}],
-  cat_breakdown:[{cat:"indian",pts:4900,players:7},{cat:"overseas",pts:2100,players:3},{cat:"uncapped",pts:1400,players:4}],
-  h2h_wins:10,h2h_vs:"Rank 1",
-  avg_subs_last3:1.7,avg_subs_last6:1.9,avg_subs_last10:1.8,
-  sub_eff:{avg_in:44,avg_out:40},
-  autopsy:{match:3,score:130,cap_pts:18,players_played:6,total:11},
-  worst_match_num:3,
-  unique_players:20,total_appearances:264,avg_per_match:11,avg_pts_per_appear:31.8,
-};
-
-let currentMode='overall';
-function setMode(m,btn){
-  currentMode=m;
-  document.querySelectorAll('.tgl').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-}
-
-function loadTeam(id){
-  if(!id){
-    document.getElementById('mainContent').innerHTML=`<div class="empty-state"><div class="empty-ico">&#128202;</div><div class="empty-title">Pick a team to analyse</div><div class="empty-sub">Select from the dropdown above</div></div>`;
-    return;
-  }
-  const d=TEAMS[id]||{...DEFAULT_TEAM,team_name:id.charAt(0).toUpperCase()+id.slice(1),initials:id.slice(0,2).toUpperCase()};
-  renderDugout(d,id);
-}
-
-function renderDugout(d,id){
-  const mc=document.getElementById('mainContent');
-  mc.innerHTML='<div class="skeleton-list">'+[90,60,130,100,160,120,80].map(h=>`<div class="sk" style="height:${h}px"></div>`).join('')+'</div>';
-  setTimeout(()=>{
-    mc.innerHTML='';
-    mc.className='content';
-
-    const totalPlayers=9;
-    const rank1Team=TEAMS['sankar'];
-
-    // Audit Banner
-    const banner=document.createElement('div');
-    banner.className='audit-banner';
-    banner.innerHTML=`<strong>Season Snapshot (M25):</strong> League avg ~310 pts/match · Top players avg 125 pts (Gill), 102 (Prabhsimran) · TOTAL_2X = 1,109 avg · Ideal sub pace: &lt;2/match`;
-    mc.appendChild(banner);
-
-    // Hero
-    mc.appendChild(buildHero(d,totalPlayers));
-    // Key Insights
-    mc.appendChild(buildKeyInsights(d,totalPlayers));
-    // Strength/Weak
-    mc.appendChild(buildStrengthZone(d));
-    // Momentum
-    mc.appendChild(buildMomentum(d));
-    // Form Indicator
-    mc.appendChild(buildForm(d));
-    // Season Overview
-    mc.appendChild(buildOverview(d));
-    // Score Trends
-    mc.appendChild(buildScoreTrends(d));
-    // Rank Journey
-    mc.appendChild(buildRankJourney(d,totalPlayers));
-    // Best/Worst
-    mc.appendChild(buildBestWorst(d));
-    // Worst Autopsy
-    mc.appendChild(buildAutopsy(d));
-    // Streaks
-    mc.appendChild(buildStreaks(d));
-    // Subs
-    mc.appendChild(buildSubs(d));
-    // Captain
-    mc.appendChild(buildCaptain(d));
-    // Booster ROI
-    mc.appendChild(buildBoosterROI(d));
-    // H2H
-    mc.appendChild(buildH2H(d,id,rank1Team));
-    // Dead Weight
-    mc.appendChild(buildDeadWeight(d));
-    // Player sections
-    mc.appendChild(buildTopScorers(d));
-    mc.appendChild(buildMostPicked(d));
-    mc.appendChild(buildByRole(d));
-    mc.appendChild(buildPlayerCategories(d));
-    mc.appendChild(buildPlayerUsage(d));
-    // Compare
-    mc.appendChild(buildCompare(id,d));
-    // Share
-    mc.appendChild(buildShare(d,totalPlayers));
-
-    // Draw charts after render
-    setTimeout(()=>{
-      drawScoreChart(d);
-      drawRankChart(d,totalPlayers);
-    },80);
-  },300);
-}
-
-function sec(iconColor,iconEmoji,title){
-  const el=document.createElement('div');el.className='card';
-  el.innerHTML=`<div class="card-hdr"><div class="card-icon ${iconColor}">${iconEmoji}</div><div class="card-title">${title}</div></div><div class="card-body"></div>`;
-  return el;
-}
-
-function playerCard(p,rank){
-  const rc=rank<=3?`r${rank}`:'';
-  return `<div class="player-card"><div class="p-rank ${rc}">${rank}</div><div class="p-info"><span class="p-name">${p.name||'Unknown'}</span><span class="p-meta">${p.role} · ${p.matches_played} matches</span></div><div style="text-align:right"><span class="p-pts">${p.pts}</span><span class="p-pts-lbl">pts earned</span></div></div>`;
-}
-
-function buildHero(d,totalPlayers){
-  const pct=d.rank&&totalPlayers>1?Math.round(((totalPlayers-d.rank)/(totalPlayers-1))*100):null;
-  const el=document.createElement('div');el.className='hero';
-  el.innerHTML=`<div class="hero-avatar">${d.initials}</div><div class="hero-info"><div class="hero-name">${d.team_name}</div><div class="hero-rank">Rank #${d.rank}</div>${pct!==null?`<span class="hero-badge">Top ${100-pct}% of ${totalPlayers} managers</span>`:''}</div><div class="hero-pts"><div class="hero-pts-val">${d.total_points.toLocaleString()}</div><div class="hero-pts-lbl">Total pts</div></div>`;
-  return el;
-}
-
-function buildKeyInsights(d,totalPlayers){
-  const s=sec('ci-green','&#128161;','Key Insights');
-  const body=s.querySelector('.card-body');
-  const avg=d.avg_score,last3=d.last3,capRate=d.captain_success_rate,consistency=d.consistency,bestStreak=d.best_streak,boostersRem=d.boosters_remaining,matchCount=d.matches_played,boosterHistory=d.booster_history||[];
-  const boostersUsed=boosterHistory.length;
-  const boosterPtsTotal=boosterHistory.reduce((a,b)=>a+(b.pts||0),0);
-  const boosterAvgDelta=boostersUsed>0&&avg>0?Math.round(boosterPtsTotal/boostersUsed-avg):null;
-  const pct=d.rank&&totalPlayers>1?Math.round(((totalPlayers-d.rank)/(totalPlayers-1))*100):null;
-  const insights=[];
-  if(d.rank===1)insights.push({cls:'pos',ico:'&#128081;',txt:`You are <strong>Rank #1</strong> — the best manager in the tournament right now!`});
-  else if(pct!==null&&pct>=70)insights.push({cls:'pos',ico:'&#127942;',txt:`You are in the <strong>Top ${100-pct}%</strong> of all ${totalPlayers} managers — elite territory.`});
-  if(d.subs_remaining<0)insights.push({cls:'warn',ico:'&#9888;',txt:`<strong>Sub budget overdrawn</strong> — you have ${Math.abs(d.subs_remaining)} negative subs. Your team is essentially frozen from here.`});
-  else if(boostersRem<=1&&boostersUsed>=5)insights.push({cls:'warn',ico:'&#128293;',txt:`<strong>${boostersRem} booster left</strong> after using ${boostersUsed} — your edge from here will be base avg only.`});
-  if(avg>0&&last3>0){const delta=Math.round(last3-avg);if(delta>=20)insights.push({cls:'pos',ico:'&#128200;',txt:`On fire — last 3 match avg is <strong>+${delta} pts above</strong> your season average.`});else if(delta<=-20)insights.push({cls:'warn',ico:'&#128201;',txt:`Form has dipped — last 3 avg is <strong>${Math.abs(delta)} pts below</strong> your season average.`});}
-  if(capRate>=70)insights.push({cls:'pos',ico:'&#128081;',txt:`Elite captaincy — your captain beat the match average in <strong>${capRate}% of matches</strong>.`});
-  else if(capRate>0&&capRate<50)insights.push({cls:'warn',ico:'&#9888;',txt:`Captain picks need work — only <strong>${capRate}% success rate</strong>. You're losing points here.`});
-  if(boosterAvgDelta!==null&&boostersUsed>=2){if(boosterAvgDelta>=30)insights.push({cls:'pos',ico:'&#128640;',txt:`Excellent booster timing — on avg your boosters earned <strong>+${boosterAvgDelta} pts above your season avg</strong>.`});else if(boosterAvgDelta<0)insights.push({cls:'warn',ico:'&#9888;',txt:`Boosters underperforming — averaging <strong>${Math.abs(boosterAvgDelta)} pts BELOW</strong> your season avg. Poor timing.`});}
-  if(boostersRem>=4&&matchCount>=6&&d.subs_remaining>0)insights.push({cls:'warn',ico:'&#9888;',txt:`You still have <strong>${boostersRem} boosters left</strong> after ${matchCount} matches — leaving massive pts on the table.`});
-  if(bestStreak>=4)insights.push({cls:'pos',ico:'&#128293;',txt:`Your best hot streak was <strong>${bestStreak} matches in a row</strong> scoring 250+ pts — incredibly consistent.`});
-  if(consistency>=70)insights.push({cls:'pos',ico:'&#127919;',txt:`Rock-solid consistency score of <strong>${consistency}/100</strong> — you show up every single match.`});
-  const shown=insights.slice(0,5);
-  if(!shown.length){body.innerHTML='<div class="no-data">Play more matches to unlock key insights.</div>';return s;}
-  body.innerHTML=shown.map(i=>`<div class="insight ${i.cls}"><span class="insight-ico">${i.ico}</span><span class="insight-txt">${i.txt}</span></div>`).join('');
-  return s;
-}
-
-function buildStrengthZone(d){
-  const s=sec('ci-green','&#128737;','Strong & Weak Zones');
-  const body=s.querySelector('.card-body');
-  const avg=d.avg_score,last3=d.last3,capRate=d.captain_success_rate,consistency=d.consistency;
-  const strengths=[],weaknesses=[];
-  if(d.subs_remaining<0){weaknesses.push({ico:'&#128680;',title:'Sub Budget Overdrawn',desc:`${Math.abs(d.subs_remaining)} subs over budget — team is effectively frozen for the rest of the season.`});}
-  if(capRate>=70)strengths.push({ico:'&#128081;',title:'Elite Captaincy',desc:`Captain beat avg in ${capRate}% of matches — a huge multiplier.`});
-  if(consistency>=70)strengths.push({ico:'&#127919;',title:'Rock Solid',desc:`Consistency ${consistency}/100 — you deliver every match.`});
-  if(avg>0&&last3>avg)strengths.push({ico:'&#128293;',title:'Red Hot Form',desc:`Last 3 avg (${last3}) above season avg (${avg}).`});
-  if(d.best_streak>=3)strengths.push({ico:'&#9889;',title:'Explosive Scorer',desc:`${d.best_streak} matches in a row above 250 pts.`});
-  if(d.worst_match>150&&d.matches_played>=3)strengths.push({ico:'&#128737;',title:'No Bad Days',desc:`Worst match still ${d.worst_match} pts — high floor.`});
-  if(d.booster_history&&d.booster_history.length>0&&d.booster_history.some(b=>(b.pts||0)>avg*1.3))strengths.push({ico:'&#128640;',title:'Booster Master',desc:`Best booster scored ${Math.max(...d.booster_history.map(b=>b.pts||0))} pts — well above avg.`});
-  if(capRate>0&&capRate<50)weaknesses.push({ico:'&#128078;',title:'Poor Captain Picks',desc:`Only ${capRate}% success rate — captain choice is costing you.`});
-  if(consistency>0&&consistency<50)weaknesses.push({ico:'&#128201;',title:'Very Inconsistent',desc:`Score ${consistency}/100 — big swings match to match.`});
-  if(avg>0&&last3>0&&last3<avg*0.8)weaknesses.push({ico:'&#10052;',title:'Dropping Form',desc:`Last 3 avg (${last3}) well below season avg (${avg}).`});
-  if(d.worst_streak>=3)weaknesses.push({ico:'&#129398;',title:'Cold Spells',desc:`${d.worst_streak} matches in a row at 150 pts or below.`});
-  if(d.boosters_remaining>=4&&d.matches_played>5&&d.subs_remaining>0)weaknesses.push({ico:'&#9888;',title:'Underusing Boosters',desc:`${d.boosters_remaining} boosters left after ${d.matches_played} matches.`});
-  const topS=strengths.slice(0,3),topW=weaknesses.slice(0,3);
-  if(!topS.length&&!topW.length){body.innerHTML='<div class="no-data">Not enough data to analyse zones yet.</div>';return s;}
-  const buildItems=list=>list.map(i=>`<div class="zone-item"><span class="zone-ico">${i.ico}</span><div><div class="zone-title">${i.title}</div><div class="zone-desc">${i.desc}</div></div></div>`).join('');
-  body.innerHTML=(topS.length?`<div class="zone-block zone-strong"><div class="zone-hdr"><span>&#10003;</span> Strong Zone</div>${buildItems(topS)}</div>`:'')+
-    (topW.length?`<div class="zone-block zone-weak" style="${topS.length?'margin-top:8px':''}""><div class="zone-hdr"><span>&#9888;</span> Weak Zone</div>${buildItems(topW)}</div>`:'');
-  return s;
-}
-
-function buildMomentum(d){
-  const s=sec('ci-green','&#9889;','Momentum Score');
-  const body=s.querySelector('.card-body');
-  const avg=d.avg_score,last3=d.last3,last6=d.last6,consistency=d.consistency,matchCount=d.matches_played;
-  if(matchCount<3||!avg){body.innerHTML='<div class="no-data">Play at least 3 matches to see momentum score.</div>';return s;}
-  let formScore=20;
-  if(last3>0&&last6>0){const tp=((last3-last6)/last6)*100;if(tp>=20)formScore=40;else if(tp>=10)formScore=35;else if(tp>=0)formScore=28;else if(tp>=-10)formScore=15;else formScore=5;}
-  const consScore=Math.round((consistency/100)*30);
-  let recentScore=15;
-  if(last3>0&&avg>0){const p=((last3-avg)/avg)*100;if(p>=20)recentScore=30;else if(p>=10)recentScore=25;else if(p>=0)recentScore=18;else if(p>=-10)recentScore=10;else recentScore=3;}
-  const total=Math.min(100,formScore+consScore+recentScore);
-  let grade,gradeColor,gradeDesc,gradeEmoji;
-  if(total>=80){grade='A+';gradeColor='#9AE000';gradeDesc='Unstoppable right now';gradeEmoji='&#128640;';}
-  else if(total>=65){grade='A';gradeColor='#9AE000';gradeDesc='Strong upward momentum';gradeEmoji='&#128200;';}
-  else if(total>=50){grade='B';gradeColor='#f59e0b';gradeDesc='Steady — holding your own';gradeEmoji='&#10145;';}
-  else if(total>=35){grade='C';gradeColor='#fb923c';gradeDesc='Losing ground recently';gradeEmoji='&#128201;';}
-  else{grade='D';gradeColor='#ef4444';gradeDesc='Form has dropped sharply';gradeEmoji='&#129398;';}
-  function var_(v){return v==='--accent'?'#9AE000':v;}
-  const bar=(label,score,max,explain)=>`<div class="mmt-bar-row"><div class="mmt-bar-label">${label}</div><div class="mmt-bar-track"><div class="mmt-bar-fill" style="width:${Math.round((score/max)*100)}%;background:${gradeColor}"></div></div><div class="mmt-bar-val">${score}/${max}</div></div><div class="mmt-bar-explain">${explain}</div>`;
-  body.innerHTML=`<div class="mmt-wrap"><div class="mmt-circle" style="border-color:${gradeColor}"><div class="mmt-grade" style="color:${gradeColor}">${grade}</div><div class="mmt-total" style="color:${gradeColor}">${total}/100</div></div><div class="mmt-info"><div class="mmt-emoji">${gradeEmoji}</div><div class="mmt-desc" style="color:${gradeColor}">${gradeDesc}</div><div class="mmt-sub">Form Trend (40) + Consistency (30) + Recent vs Avg (30)</div></div></div><div class="mmt-bars">${bar('Form Trend',formScore,40,'Last 3 vs last 6 avg trend')}${bar('Consistency',consScore,30,`Consistency score ${consistency}/100`)}${bar('Recent Form',recentScore,30,`Last 3 avg (${last3}) vs season avg (${avg})`)}</div>`;
-  return s;
-}
-
-function buildForm(d){
-  const s=sec('ci-red','&#128293;','Current Form');
-  const body=s.querySelector('.card-body');
-  const scores=d.last5||[];
-  const avg=d.avg_score||0;
-  if(!scores.length){body.innerHTML='<div class="no-data">No matches played yet.</div>';return s;}
-  const hot=Math.max(avg*1.15,200),good=avg,ok=avg*0.75;
-  const dots=scores.map(sc=>{
-    let cls='fd-bad',emo='&#10060;';
-    if(sc>=hot){cls='fd-hot';emo='&#128293;';}
-    else if(sc>=good){cls='fd-good';emo='&#9989;';}
-    else if(sc>=ok){cls='fd-ok';emo='&#129001;';}
-    return `<div class="form-dot-wrap"><div class="form-dot ${cls}"><span class="fd-emoji">${emo}</span></div><span class="fd-score">${sc}</span></div>`;
-  }).join('');
-  const recent=scores.slice(0,3);
-  const avgRecent=Math.round(recent.reduce((a,b)=>a+b,0)/recent.length);
-  const delta=Math.round(avgRecent-avg);
-  const trend=delta>=0?`&#128200; Last 3 avg is <strong>+${delta} pts</strong> above season avg — improving!`:`&#128201; Last 3 avg is <strong>${Math.abs(delta)} pts</strong> below season avg — declining.`;
-  body.innerHTML=`<div class="form-row">${dots}</div><div class="form-legend"><span class="fl-item">&#128293; &gt;${Math.round(hot)} pts</span><span class="fl-item">&#9989; Above avg (${avg})</span><span class="fl-item">&#129001; Near avg</span><span class="fl-item">&#10060; Below avg</span></div><div class="form-note">${trend} · Newest first</div>`;
-  return s;
-}
-
-function buildOverview(d){
-  const s=sec('ci-green','&#128202;','Season Overview');
-  const body=s.querySelector('.card-body');
-  const cc=!d.consistency?'sv-white':d.consistency>=70?'sv-green':d.consistency>=50?'sv-gold':'sv-red';
-  body.innerHTML=`<div class="stat-grid"><div class="stat-cell"><span class="stat-val sv-white">${d.matches_played}</span><span class="stat-lbl">Matches Played</span></div><div class="stat-cell"><span class="stat-val sv-gold">${d.boosters_remaining}</span><span class="stat-lbl">Boosters Left</span></div><div class="stat-cell"><span class="stat-val sv-blue">${d.subs_remaining<0?'&#9888; '+d.subs_remaining:(d.subs_remaining===999?'&#8734;':d.subs_remaining)}</span><span class="stat-lbl">Subs Left</span></div></div><div class="cons-row"><div class="cons-hdr"><div><div class="cons-lbl">Consistency Score</div><div class="cons-formula">Score variance + captain hit rate + sub efficiency</div></div><span class="cons-val ${cc}">${d.consistency!=null?d.consistency+'/100':'N/A'}</span></div>${d.consistency!=null?`<div class="cons-bar"><div class="cons-fill" style="width:${d.consistency}%"></div></div><div class="cons-grade">${d.consistency>=70?'&#127919; Rock solid — you show up every match.':d.consistency>=50?'&#128202; Average — some big swings.':'&#9888; Very inconsistent — scores vary a lot.'}</div>`:''}</div>`;
-  return s;
-}
-
-function buildScoreTrends(d){
-  const s=sec('ci-green','&#128201;','Score Trends');
-  const body=s.querySelector('.card-body');
-  const tc=(r,sea)=>r&&sea?(r>=sea?'sv-green':'sv-red'):'';
-  const ta=(r,sea)=>{if(!r||!sea)return '';const delta=Math.round(r-sea);const sign=delta>=0?'+':'';return `<span class="${delta>=0?'trend-up':'trend-dn'}">${sign}${delta} vs avg</span>`;};
-  body.innerHTML=`<div class="stat-grid two" style="margin-bottom:10px"><div class="stat-cell"><span class="stat-val sv-green">${d.avg_score}</span><span class="stat-lbl">Season Avg / Match</span></div><div class="stat-cell"><span class="stat-val sv-white">${d.total_points.toLocaleString()}</span><span class="stat-lbl">Total Points</span></div></div><div class="trend-row"><div class="trend-cell"><span class="trend-label">Last 3</span><span class="trend-val ${tc(d.last3,d.avg_score)}">${d.last3||'--'}</span><span class="trend-sub">avg pts</span>${ta(d.last3,d.avg_score)}</div><div class="trend-cell"><span class="trend-label">Last 6</span><span class="trend-val ${tc(d.last6,d.avg_score)}">${d.last6||'--'}</span><span class="trend-sub">avg pts</span>${ta(d.last6,d.avg_score)}</div><div class="trend-cell"><span class="trend-label">Last 10</span><span class="trend-val ${tc(d.last10,d.avg_score)}">${d.last10||'--'}</span><span class="trend-sub">avg pts</span>${ta(d.last10,d.avg_score)}</div></div><div style="margin-top:12px"><div class="chart-lbl">Match-by-match scores</div><div class="chart-wrap"><canvas id="scoreChart" role="img" aria-label="Bar chart of match-by-match fantasy scores">Score history shown.</canvas></div></div>`;
-  return s;
-}
-
-function buildRankJourney(d,totalPlayers){
-  const s=sec('ci-blue','&#8594;','Rank Journey');
-  const body=s.querySelector('.card-body');
-  const journey=(d.rank_journey||[]).sort((a,b)=>a.m-b.m);
-  if(!journey.length){body.innerHTML='<div class="no-data">Not enough data yet.</div>';return s;}
-  body.innerHTML=`<div class="rank-wrap"><canvas id="rankChart" role="img" aria-label="Line chart of rank over matches">Rank journey shown.</canvas></div><div class="rj-note">Lower = better rank · Gold dot = Rank 1 · Green line = your journey</div>`;
-  return s;
-}
-
-function buildBestWorst(d){
-  const s=sec('ci-gold','&#127942;','Best & Worst Match');
-  const body=s.querySelector('.card-body');
-  const avg=d.avg_score||0;
-  const bd=avg>0?Math.round(d.best_match-avg):null;
-  const wd=avg>0?Math.round(d.worst_match-avg):null;
-  body.innerHTML=`<div class="bw-grid"><div class="bw-cell bw-best"><span class="bw-ico">&#127942;</span><span class="bw-val">${d.best_match}</span><span class="bw-lbl">Best Match</span>${bd!==null?`<span class="bw-delta bw-pos">+${bd} vs avg</span>`:''}</div><div class="bw-cell bw-worst"><span class="bw-ico">&#128201;</span><span class="bw-val">${d.worst_match}</span><span class="bw-lbl">Worst Match</span>${wd!==null?`<span class="bw-delta bw-neg">${wd} vs avg</span>`:''}</div></div><div style="margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.7"><strong style="color:var(--text1)">Context from audit:</strong> League avg best match ≈415–557 pts in top games (M1, M16–M18). Worst games (M3,M5,M8) averaged 125–172 pts for everyone — your ${d.worst_match} pts worst match reflects the game's ceiling, not just your decisions.</div>`;
-  return s;
-}
-
-function buildAutopsy(d){
-  const s=sec('ci-red','&#128300;','Worst Match Autopsy');
-  const body=s.querySelector('.card-body');
-  const a=d.autopsy||null;
-  if(!a){body.innerHTML='<div class="no-data">No autopsy data available — needs match-level breakdown.</div>';return s;}
-  const cg=a.cap_pts>=60?'&#9989; Good':a.cap_pts>=30?'&#129001; Average':'&#10060; Poor';
-  const verdict=a.players_played<8?'&#9888; Too many non-playing players hurt your score.':a.cap_pts<30?'&#9888; Poor captain pick was the main culprit.':'&#128202; Just a bad day — all factors were against you.';
-  body.innerHTML=`<div class="autopsy-hdr"><span class="autopsy-badge">Match ${a.match}</span><span class="autopsy-score">${a.score} pts</span></div><div class="autopsy-grid"><div class="autopsy-cell"><span class="autopsy-ico">&#128081;</span><div><div class="autopsy-val">${a.cap_pts} pts</div><div class="autopsy-lbl">Captain scored · ${cg}</div></div></div><div class="autopsy-cell"><span class="autopsy-ico">&#9917;</span><div><div class="autopsy-val">${a.players_played}/${a.total}</div><div class="autopsy-lbl">Players actually played</div></div></div></div><div class="autopsy-verdict">${verdict}</div>`;
-  return s;
-}
-
-function buildStreaks(d){
-  const s=sec('ci-gold','&#9889;','Streaks');
-  const body=s.querySelector('.card-body');
-  body.innerHTML=`<div class="streak-grid"><div class="streak-cell sk-hot"><span class="sk-ico">&#128293;</span><span class="sk-val">${d.best_streak||0}</span><span class="sk-lbl">Best Streak</span><span class="sk-sub">250+ pts in a row</span></div><div class="streak-cell sk-cold"><span class="sk-ico">&#129398;</span><span class="sk-val">${d.worst_streak||0}</span><span class="sk-lbl">Worst Streak</span><span class="sk-sub">150 pts or below in a row</span></div></div>`;
-  return s;
-}
-
-function buildSubs(d){
-  const s=sec('ci-blue','&#8646;','Subs Analysis');
-  const body=s.querySelector('.card-body');
-  const totalSubs=d.subs_used||0,matchCount=d.matches_played||0;
-  const avgPerMatch=matchCount>0?(totalSubs/matchCount).toFixed(1):'--';
-  const se=d.sub_eff||null;
-  let effHtml='';
-  if(se){
-    const delta=Math.round((se.avg_in||0)-(se.avg_out||0));
-    const cls=delta>=0?'sv-green':'sv-red';const sign=delta>=0?'+':'';
-    effHtml=`<div class="sub-eff"><div class="sub-eff-title">Sub Profitability</div><div class="sub-eff-row"><div class="sub-eff-cell"><span class="sub-eff-val">${se.avg_in}</span><span class="sub-eff-lbl">Avg pts (subbed IN)</span></div><div class="sub-eff-vs">vs</div><div class="sub-eff-cell"><span class="sub-eff-val">${se.avg_out}</span><span class="sub-eff-lbl">Avg pts (subbed OUT)</span></div></div><div class="sub-eff-verdict">Net: <span class="stat-val ${cls}" style="font-size:14px">${sign}${delta} pts per sub</span> ${delta>=0?' — your subs are profitable &#9989;':' — dropping better players than you bring in &#9888;'}</div></div>`;
-  }
-  body.innerHTML=`<div class="stat-grid two" style="margin-bottom:10px"><div class="stat-cell"><span class="stat-val sv-blue">${avgPerMatch}</span><span class="stat-lbl">Avg Subs / Match</span></div><div class="stat-cell"><span class="stat-val sv-white">${totalSubs}</span><span class="stat-lbl">Total Subs Used</span></div></div><div class="trend-row"><div class="trend-cell"><span class="trend-label">Last 3</span><span class="trend-val">${d.avg_subs_last3||'--'}</span><span class="trend-sub">avg subs</span></div><div class="trend-cell"><span class="trend-label">Last 6</span><span class="trend-val">${d.avg_subs_last6||'--'}</span><span class="trend-sub">avg subs</span></div><div class="trend-cell"><span class="trend-label">Last 10</span><span class="trend-val">${d.avg_subs_last10||'--'}</span><span class="trend-sub">avg subs</span></div></div>${effHtml}<div style="margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.7"><strong style="color:var(--text1)">Pace check:</strong> Ideal pace is &lt;1.86 subs/match across 70 matches. League avg by M25 was ~1.67/match. ${parseFloat(avgPerMatch)>2.5?'&#9888; You are burning subs too fast.':'&#9989; Your pace looks sustainable.'}</div>`;
-  return s;
-}
-
-function buildCaptain(d){
-  const s=sec('ci-gold','&#128081;','Captain Performance');
-  const body=s.querySelector('.card-body');
-  const rate=d.captain_success_rate;
-  const color=rate==null?'#64748b':rate>=70?'#9AE000':rate>=50?'#f59e0b':'#ef4444';
-  const label=rate==null?'Not enough data':rate>=70?'Excellent captaincy!':rate>=50?'Good captaincy':'Room to improve';
-  const picks=(d.captain_picks||[]).slice(0,5);
-  const picksHtml=picks.length?`<div class="cap-picks"><div class="cp-title">Your Captain Choices</div>${picks.map(p=>{const avg2=p.times>0?Math.round(p.pts/p.times):0;return `<div class="cp-row"><span class="cp-name">${p.name}</span><span class="cp-times">${p.times}x capt</span><span class="cp-pts">${avg2} avg</span></div>`;}).join('')}</div>`:'';
-  body.innerHTML=`<div class="cap-wrap"><div class="cap-circle" style="border-color:${color}"><span class="cap-pct" style="color:${color}">${rate!=null?rate+'%':'--'}</span><span class="cap-sub">success</span></div><div class="cap-info"><div class="cap-label" style="color:${color}">${label}</div><div class="cap-desc">Captain scored above match avg in ${rate!=null?rate+'%':'--'} of your matches. <strong style="color:var(--text1)">Benchmark from audit: top managers hit 68–74%.</strong></div></div></div>${picksHtml}`;
-  return s;
-}
-
-function buildBoosterROI(d){
-  const s=sec('ci-purple','&#128640;','Booster ROI');
-  const body=s.querySelector('.card-body');
-  const history=d.booster_history||[];
-  if(!history.length){body.innerHTML='<div class="no-data">No boosters used yet.</div>';return s;}
-  const avg=d.avg_score||0;
-  const emoMap={TOTAL_2X:'&#128640;',INDIAN_2X:'&#127988;',OVERSEAS_2X:'&#9992;',UNCAPPED_2X:'&#129510;',CAPTAIN_3X:'&#128081;',MOM_2X:'&#127942;',FREE_11:'&#128084;'};
-  const nameMap={TOTAL_2X:'Total 2X',INDIAN_2X:'Indian 2X',OVERSEAS_2X:'Overseas 2X',UNCAPPED_2X:'Uncapped 2X',CAPTAIN_3X:'Captain 3X',MOM_2X:'MOM 2X',FREE_11:'Free 11'};
-  const best=[...history].sort((a,b)=>(b.pts||0)-(a.pts||0))[0];
-  const totalPts=history.reduce((a,b)=>a+(b.pts||0),0);
-  const avgPts=Math.round(totalPts/history.length);
-  const avgDelta=avg>0?Math.round(avgPts-avg):null;
-  const deltaStr=avgDelta!==null?(avgDelta>=0?`<span style="color:var(--accent)">+${avgDelta} above your avg</span>`:`<span style="color:var(--red)">${avgDelta} below your avg &#9888;</span>`):'';
-  const rows=history.map(b=>{
-    const isBest=b.match===best.match&&b.booster===best.booster;
-    const delta=avg>0?Math.round((b.pts||0)-avg):null;
-    const dh=delta!==null?`<span class="boost-delta ${delta>=0?'bd-pos':'bd-neg'}">${delta>=0?'+':''}${delta}</span>`:'';
-    return `<div class="boost-row${isBest?' best':''}"><span class="boost-ico">${emoMap[b.booster]||'&#9889;'}</span><div class="boost-info"><span class="boost-name">${nameMap[b.booster]||b.booster}</span><span class="boost-match">Match ${b.match}</span></div><div class="boost-right"><span class="boost-pts">${b.pts||0}</span><span class="boost-ptsl">pts</span>${dh}</div></div>`;
-  }).join('');
-  body.innerHTML=`<div class="boost-summary"><div class="bs-stat"><span class="stat-val sv-purple">${history.length}</span><span class="stat-lbl">Used</span></div><div class="bs-stat"><span class="stat-val sv-white">${avgPts}</span><span class="stat-lbl">Avg pts</span></div><div style="flex:2;text-align:left;padding-left:8px"><span class="stat-lbl">vs season avg: ${deltaStr}</span></div></div><div class="boost-tag">Best: ${emoMap[best.booster]||'&#9889;'} ${nameMap[best.booster]||best.booster} &#8594; ${best.pts||0} pts in M${best.match}</div><div class="boost-list">${rows}</div><div style="margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.7"><strong style="color:var(--text1)">From audit:</strong> TOTAL_2X avg 1,109 pts · INDIAN_2X avg 963 pts · CAPTAIN_3X avg 811 pts. These are the boosters that move ranks. Save big ones for high-scoring fixture clusters.</div>`;
-  return s;
-}
-
-function buildH2H(d,id,rank1Team){
-  const s=sec('ci-red','&#9876;','Head to Head vs Rank 1');
-  const body=s.querySelector('.card-body');
-  if(id==='sankar'||d.rank===1){body.innerHTML='<div class="no-data">You ARE rank 1! Nothing to compare.</div>';return s;}
-  const wins=d.h2h_wins||0,total=d.matches_played||0;
-  const losses=Math.max(0,total-wins);
-  const pct=total>0?Math.round((wins/total)*100):0;
-  const r1Name=rank1Team?rank1Team.team_name:'Rank 1';
-  body.innerHTML=`<div class="scope-note">&#9888; Compared against <strong>${r1Name}</strong> — match by match score comparison.</div><div class="h2h-row"><div class="h2h-side h2h-win"><div class="h2h-val">${wins}</div><div class="h2h-lbl">You Won</div></div><div class="h2h-vs">VS<br><span style="font-size:9px;color:var(--text3)">${r1Name}</span></div><div class="h2h-side h2h-loss"><div class="h2h-val">${losses}</div><div class="h2h-lbl">They Won</div></div></div><div class="h2h-bar"><div class="h2h-fill" style="width:${pct}%"></div></div><div class="h2h-note">You beat rank 1 in ${pct}% of individual matches</div>`;
-  return s;
-}
-
-function buildDeadWeight(d){
-  const s=sec('ci-red','&#128128;','Dead Weight Alert');
-  const body=s.querySelector('.card-body');
-  const dead=d.dead_weight||[];
-  if(!dead.length){body.innerHTML=`<div class="dw-clean"><div class="dw-clean-ico">&#9989;</div><div class="dw-clean-txt">No dead weight!</div><div class="dw-clean-sub">Every regular pick contributed points.</div></div>`;return s;}
-  const rows=dead.map(p=>{
-    const urgency=p.in_team>=5?'&#128308; Critical':p.in_team>=3?'&#128993; Watch':'&#9899; Minor';
-    return `<div class="dw-row"><div class="dw-left"><span style="font-size:18px">&#128128;</span><div class="dw-info"><span class="dw-name">${p.name}</span><span class="dw-meta">${p.role} · picked ${p.in_team}x · played ${p.played}x</span><span class="dw-urgency">${urgency} — consider subbing out</span></div></div><div class="dw-pts">${p.pts} pts</div></div>`;
-  }).join('');
-  body.innerHTML=`<div class="dw-warning">&#9651; ${dead.length} player${dead.length>1?'s':''} took squad slots without contributing</div><div class="dw-list">${rows}</div>`;
-  return s;
-}
-
-function buildTopScorers(d){
-  const s=sec('ci-gold','&#11088;','Top Point Earners');
-  const body=s.querySelector('.card-body');
-  const list=d.top_scorers||[];
-  if(!list.length){body.innerHTML='<div class="no-data">No match data yet.</div>';return s;}
-  body.innerHTML=`<div class="player-list">${list.map((p,i)=>playerCard(p,i+1)).join('')}</div>`;
-  return s;
-}
-
-function buildMostPicked(d){
-  const s=sec('ci-purple','&#10084;','Most Loyal Players');
-  const body=s.querySelector('.card-body');
-  const list=d.most_picked||[];
-  if(!list.length){body.innerHTML='<div class="no-data">No match data yet.</div>';return s;}
-  body.innerHTML=`<div class="player-list">${list.map((p,i)=>playerCard(p,i+1)).join('')}</div>`;
-  return s;
-}
-
-function buildByRole(d){
-  const s=sec('ci-blue','&#128101;','Top by Role');
-  const body=s.querySelector('.card-body');
-  const roles=[{key:'top_wk',label:'&#129510; WK'},{key:'top_bat',label:'&#127951; BAT'},{key:'top_ar',label:'&#9889; AR'},{key:'top_bowl',label:'&#127951; BOWL'}];
-  let activeKey='top_wk';
-  const tabs=document.createElement('div');tabs.className='role-tabs';
-  const listWrap=document.createElement('div');listWrap.className='player-list';
-  const renderRole=k=>{listWrap.innerHTML='';const list=d[k]||[];if(!list.length){listWrap.innerHTML='<div class="no-data">No data for this role yet.</div>';return;}list.forEach((p,i)=>{listWrap.innerHTML+=playerCard(p,i+1);});};
-  roles.forEach(r=>{const btn=document.createElement('button');btn.className='role-tab'+(r.key===activeKey?' on':'');btn.innerHTML=r.label;btn.onclick=()=>{tabs.querySelectorAll('.role-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');activeKey=r.key;renderRole(r.key);};tabs.appendChild(btn);});
-  renderRole(activeKey);body.appendChild(tabs);body.appendChild(listWrap);return s;
-}
-
-function buildPlayerCategories(d){
-  const s=sec('ci-green','&#127987;','Player Categories');
-  const body=s.querySelector('.card-body');
-  const breakdown=d.cat_breakdown||[];
-  const totalPts=breakdown.reduce((a,b)=>a+(b.pts||0),0);
-  const catColors={indian:'#9AE000',overseas:'#7cc4ff',uncapped:'#f59e0b'};
-  const catLabels={indian:'Indian',overseas:'Overseas',uncapped:'Uncapped'};
-  const catIcons={indian:'&#127988;',overseas:'&#9992;',uncapped:'&#129510;'};
-  const barSegs=breakdown.map(c=>{const pct=totalPts>0?Math.round((c.pts/totalPts)*100):0;return `<div class="cat-bar-seg" style="width:${pct}%;background:${catColors[c.cat]||'#64748b'}"></div>`;}).join('');
-  const summaryRows=breakdown.map(c=>{const pct=totalPts>0?Math.round((c.pts/totalPts)*100):0;return `<div class="cat-row"><div class="cat-left"><span class="cat-dot" style="background:${catColors[c.cat]||'#64748b'}"></span><span class="cat-name">${catIcons[c.cat]||''} ${catLabels[c.cat]||c.cat}</span></div><div class="cat-right"><div class="cat-pill"><span class="cat-pill-val">${c.players}</span><span class="cat-pill-lbl">players</span></div><div class="cat-pill"><span class="cat-pill-val" style="color:${catColors[c.cat]||'#64748b'}">${c.pts.toLocaleString()}</span><span class="cat-pill-lbl">pts</span></div><div class="cat-pill"><span class="cat-pill-val" style="color:${catColors[c.cat]||'#64748b'}">${pct}%</span><span class="cat-pill-lbl">share</span></div></div></div>`;}).join('');
-  body.innerHTML=`<div class="cat-bar">${barSegs}</div><div class="cat-summary">${summaryRows}</div>`;
-  const tabs=document.createElement('div');tabs.className='role-tabs';
-  const listWrap=document.createElement('div');listWrap.className='player-list';
-  const tabList=[{key:'top_indian',label:catIcons.indian+' Indian'},{key:'top_overseas',label:catIcons.overseas+' Overseas'},{key:'top_uncapped',label:catIcons.uncapped+' Uncapped'}];
-  let activeKey='top_indian';
-  const renderCat=k=>{listWrap.innerHTML='';const list=d[k]||[];if(!list.length){listWrap.innerHTML='<div class="no-data">No data for this category yet.</div>';return;}list.forEach((p,i)=>{listWrap.innerHTML+=playerCard(p,i+1);});};
-  tabList.forEach(t=>{const btn=document.createElement('button');btn.className='role-tab'+(t.key===activeKey?' on':'');btn.innerHTML=t.label;btn.onclick=()=>{tabs.querySelectorAll('.role-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');activeKey=t.key;renderCat(t.key);};tabs.appendChild(btn);});
-  renderCat(activeKey);body.appendChild(tabs);body.appendChild(listWrap);return s;
-}
-
-function buildPlayerUsage(d){
-  const s=sec('ci-purple','&#128101;','Player Usage Stats');
-  const body=s.querySelector('.card-body');
-  body.innerHTML=`<div class="stat-grid two" style="margin-bottom:8px"><div class="stat-cell"><span class="stat-val sv-purple">${d.unique_players||'--'}</span><span class="stat-lbl">Unique Players Used</span></div><div class="stat-cell"><span class="stat-val sv-white">${d.total_appearances||'--'}</span><span class="stat-lbl">Total Appearances</span></div></div><div class="stat-grid two"><div class="stat-cell"><span class="stat-val sv-blue">${d.avg_per_match||'--'}</span><span class="stat-lbl">Avg per Match</span></div><div class="stat-cell"><span class="stat-val sv-green">${d.avg_pts_per_appear||'--'}</span><span class="stat-lbl">Avg Pts/Appearance</span></div></div>`;
-  return s;
-}
-
-function buildCompare(currentId,currentData){
-  const s=sec('ci-purple','&#9878;','Compare With Another Team');
-  const body=s.querySelector('.card-body');
-  const others=Object.keys(TEAMS).filter(k=>k!==currentId);
-  const opts=others.map(k=>`<option value="${k}">${TEAMS[k].team_name} — ${TEAMS[k].total_points.toLocaleString()} pts</option>`).join('');
-  body.innerHTML=`<select class="sel" id="compareSelector" style="margin-bottom:10px"><option value="">Pick a team to compare...</option>${opts}</select><div id="compareResult"></div>`;
-  setTimeout(()=>{
-    document.getElementById('compareSelector')?.addEventListener('change',e=>{
-      const cid=e.target.value;
-      const result=document.getElementById('compareResult');
-      if(!cid){result.innerHTML='';return;}
-      const b=TEAMS[cid]||DEFAULT_TEAM;
-      const a=currentData;
-      const aBoosters=7-(a.boosters_remaining??7);
-      const bBoosters=7-(b.boosters_remaining??7);
-      const aBoostPts=(a.booster_history||[]).reduce((s,x)=>s+(x.pts||0),0);
-      const bBoostPts=(b.booster_history||[]).reduce((s,x)=>s+(x.pts||0),0);
-      const aAvgPerBoost=aBoosters>0?Math.round(aBoostPts/aBoosters):'--';
-      const bAvgPerBoost=bBoosters>0?Math.round(bBoostPts/bBoosters):'--';
-      const allStats=[
-        [a.total_points,b.total_points,true],[a.avg_score,b.avg_score,true],
-        [a.best_match,b.best_match,true],[a.worst_match,b.worst_match,true],
-        [a.consistency,b.consistency,true],[a.captain_success_rate,b.captain_success_rate,true],
-        [a.subs_used,b.subs_used,false],[aBoosters,bBoosters,false],
-        [aBoostPts,bBoostPts,true]
-      ];
-      let aWins=0,bWins=0;
-      allStats.forEach(([v1,v2,hb])=>{const n1=parseFloat(v1),n2=parseFloat(v2);if(isNaN(n1)||isNaN(n2)||n1===n2)return;if(hb?n1>n2:n1<n2)aWins++;else bWins++;});
-      const vc=aWins>bWins?'var(--accent)':bWins>aWins?'var(--red)':'var(--text3)';
-      const vt=aWins>bWins?`${a.team_name} leads ${aWins}–${bWins}`:bWins>aWins?`${b.team_name} leads ${bWins}–${aWins}`:`Dead heat — ${aWins}–${bWins}`;
-      const row=(lbl,v1,v2,hib=true)=>{const n1=parseFloat(v1),n2=parseFloat(v2);let w1=false,w2=false;if(!isNaN(n1)&&!isNaN(n2)){if(hib){w1=n1>=n2;w2=n2>=n1;}else{w1=n1<=n2;w2=n2<=n1;}}return `<div class="cmp-row"><div class="cmp-val${w1?' win':''}">${v1??'--'}</div><div class="cmp-lbl">${lbl}</div><div class="cmp-val${w2?' win':''}">${v2??'--'}</div></div>`;};
-      result.innerHTML=`<div class="cmp-verdict" style="border-color:${vc}"><div class="cmp-verdict-main" style="color:${vc}">${vt}</div><div class="cmp-verdict-sub">across ${allStats.length} stat categories</div></div><div class="cmp-hdr"><div class="cmp-team">${a.team_name}</div><div class="cmp-vs">VS</div><div class="cmp-team">${b.team_name}</div></div><div class="cmp-section">&#128202; Season</div>${row('Total Points',a.total_points.toLocaleString(),b.total_points.toLocaleString())}${row('Avg / Match',a.avg_score,b.avg_score)}${row('Best Match',a.best_match,b.best_match)}${row('Worst Match',a.worst_match,b.worst_match)}${row('Consistency',a.consistency,b.consistency)}<div class="cmp-section">&#128081; Captaincy</div>${row('Captain Success %',a.captain_success_rate,b.captain_success_rate)}<div class="cmp-section">&#8646; Subs</div>${row('Total Subs Used',a.subs_used,b.subs_used,false)}${row('Subs Remaining',a.subs_remaining,b.subs_remaining)}<div class="cmp-section">&#128640; Boosters</div>${row('Boosters Used',aBoosters,bBoosters,false)}${row('Total Booster Pts',aBoostPts,bBoostPts)}${row('Avg Pts/Booster',aAvgPerBoost,bAvgPerBoost)}`;
-    });
-  },100);
-  return s;
-}
-
-function buildShare(d,totalPlayers){
-  const s=sec('ci-green','&#128257;','Share Your Stats');
-  const body=s.querySelector('.card-body');
-  const pct=d.rank&&totalPlayers>1?Math.round(((totalPlayers-d.rank)/(totalPlayers-1))*100):null;
-  const pctStr=pct!==null?`Top ${100-pct}% of all managers`:'';
-  body.innerHTML=`<div class="share-card"><div class="share-top"><span>Cricket Experts</span> · Experts Dugout</div><div class="share-team">${d.team_name}</div><div class="share-stats"><div class="share-stat"><span class="share-val">${d.total_points.toLocaleString()}</span><span class="share-lbl">Total pts</span></div><div class="share-stat"><span class="share-val">#${d.rank}</span><span class="share-lbl">Rank</span></div><div class="share-stat"><span class="share-val">${d.avg_score}</span><span class="share-lbl">Avg/match</span></div></div>${pctStr?`<div class="share-pct">${pctStr}</div>`:''}<div class="share-tagline">cricket-experts.app</div></div><button class="share-btn" onclick="shareStats()">&#128257; Share My Stats</button>`;
-  return s;
-}
-
-window.shareStats=async()=>{
-  const card=document.querySelector('.share-card');if(!card)return;
-  const text=card.innerText.replace(/\n+/g,' · ');
-  if(navigator.share){try{await navigator.share({title:'My Cricket Experts Stats',text});}catch(_){}}
-  else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('Stats copied to clipboard!');}
-};
-
-function drawScoreChart(d){
-  const canvas=document.getElementById('scoreChart');if(!canvas)return;
-  const history=d.match_history||[];if(!history.length){return;}
-  const dpr=window.devicePixelRatio||1;
-  const W=canvas.offsetWidth||300;const H=130;
-  canvas.width=W*dpr;canvas.height=H*dpr;
-  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
-  const avg=d.avg_score||0;
-  const max=Math.max(...history,1);
-  const pL=4,pR=4,pT=14,pB=22;
-  const cW=W-pL-pR,cH=H-pT-pB;
-  const bW=Math.max(5,Math.floor(cW/history.length)-2);
-  const gap=Math.max(1,Math.floor((cW-bW*history.length)/Math.max(history.length-1,1)));
-  ctx.clearRect(0,0,W,H);
-  if(avg){
-    const ay=pT+cH-Math.round((avg/max)*cH);
-    ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(154,224,0,0.35)';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(pL,ay);ctx.lineTo(W-pR,ay);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(154,224,0,0.6)';ctx.font='bold 7px sans-serif';ctx.textAlign='right';
-    ctx.fillText('avg '+avg,W-pR-2,ay-3);
-  }
-  history.forEach((val,i)=>{
-    const bH=Math.max(3,Math.round((val/max)*cH));
-    const x=pL+i*(bW+gap);const y=pT+cH-bH;
-    const isHot=val>=avg*1.15;const isAbove=val>=avg;
-    ctx.fillStyle=isHot?'#9AE000':isAbove?'rgba(154,224,0,0.55)':'rgba(154,224,0,0.18)';
-    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,bW,bH,[2,2,0,0]);else ctx.rect(x,y,bW,bH);
-    ctx.fill();
-    if(history.length<=25){
-      ctx.fillStyle='rgba(100,116,139,0.7)';ctx.font='600 6px sans-serif';ctx.textAlign='center';
-      ctx.fillText('M'+(i+1),x+bW/2,H-4);
-    }
-  });
-}
-
-function drawRankChart(d,totalPlayers){
-  const canvas=document.getElementById('rankChart');if(!canvas)return;
-  const journey=(d.rank_journey||[]).sort((a,b)=>a.m-b.m);if(journey.length<2)return;
-  const dpr=window.devicePixelRatio||1;
-  const W=canvas.offsetWidth||300;const H=110;
-  canvas.width=W*dpr;canvas.height=H*dpr;
-  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
-  const ranks=journey.map(r=>r.r);
-  const minR=Math.min(...ranks);const maxR=Math.max(...ranks,totalPlayers>0?totalPlayers:maxR);
-  const range=Math.max(maxR-minR,1);
-  const pL=30,pR=8,pT=14,pB=22;
-  const cW=W-pL-pR,cH=H-pT-pB;
-  ctx.clearRect(0,0,W,H);
-  [minR,Math.round((minR+maxR)/2),maxR].forEach(r=>{
-    const y=pT+Math.round(((r-minR)/range)*cH);
-    ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;ctx.setLineDash([3,3]);
-    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(W-pR,y);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(100,116,139,0.7)';ctx.font='600 7px sans-serif';ctx.textAlign='right';
-    ctx.fillText('#'+r,pL-4,y+3);
-  });
-  ctx.beginPath();
-  journey.forEach((pt,i)=>{const x=pL+(i/Math.max(journey.length-1,1))*cW;const y=pT+Math.round(((pt.r-minR)/range)*cH);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.strokeStyle='rgba(154,224,0,0.7)';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
-  ctx.beginPath();
-  journey.forEach((pt,i)=>{const x=pL+(i/Math.max(journey.length-1,1))*cW;const y=pT+Math.round(((pt.r-minR)/range)*cH);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  ctx.lineTo(pL+cW,pT+cH);ctx.lineTo(pL,pT+cH);ctx.closePath();
-  const g=ctx.createLinearGradient(0,pT,0,pT+cH);g.addColorStop(0,'rgba(154,224,0,0.12)');g.addColorStop(1,'rgba(154,224,0,0)');
-  ctx.fillStyle=g;ctx.fill();
-  journey.forEach((pt,i)=>{
-    const x=pL+(i/Math.max(journey.length-1,1))*cW;const y=pT+Math.round(((pt.r-minR)/range)*cH);
-    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);
-    ctx.fillStyle=pt.r===1?'#f59e0b':'#9AE000';ctx.fill();
-    ctx.fillStyle=pt.r===1?'#f59e0b':'rgba(154,224,0,0.9)';
-    ctx.font='700 8px sans-serif';ctx.textAlign='center';ctx.fillText('#'+pt.r,x,y-8);
-    ctx.fillStyle='rgba(100,116,139,0.7)';ctx.font='600 7px sans-serif';
-    ctx.fillText('M'+pt.m,x,H-5);
-  });
-}
-</script>
+<script type="module" src="experts-dugout.js"></script>
+<script type="module" src="ad-manager.js"></script>
+<script src="transitions.js"></script>
+</body>
+</html>
