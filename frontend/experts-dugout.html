@@ -25,14 +25,12 @@
 </head>
 <body class="loading-state">
 
-<!-- ═══════════════════════════════════════════════
-     SKELETON SCREEN
-════════════════════════════════════════════════ -->
+<!-- SKELETON SCREEN -->
 <div id="skeletonScreen">
   <div class="sk-header">
     <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
     <div style="display:flex;flex-direction:column;gap:4px">
-      <div class="sk-block" style="width:140px;height:18px;border-radius:6px"></div>
+      <div class="sk-block" style="width:150px;height:18px;border-radius:6px"></div>
       <div class="sk-block" style="width:100px;height:12px;border-radius:4px"></div>
     </div>
     <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
@@ -40,16 +38,13 @@
   <div class="sk-block" style="height:44px;border-radius:10px;margin-bottom:10px"></div>
   <div class="sk-block" style="height:52px;border-radius:10px;margin-bottom:16px"></div>
   <div style="display:flex;flex-direction:column;gap:12px">
-    <div class="sk-block" style="height:100px;border-radius:14px"></div>
-    <div class="sk-block" style="height:80px;border-radius:14px"></div>
-    <div class="sk-block" style="height:120px;border-radius:14px"></div>
-    <div class="sk-block" style="height:80px;border-radius:14px"></div>
+    <div class="sk-block" style="height:110px;border-radius:14px"></div>
+    <div class="sk-block" style="height:90px;border-radius:14px"></div>
+    <div class="sk-block" style="height:130px;border-radius:14px"></div>
+    <div class="sk-block" style="height:90px;border-radius:14px"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     MAIN APP
-════════════════════════════════════════════════ -->
 <div class="app-container page-with-nav">
 
   <!-- HEADER -->
@@ -69,178 +64,83 @@
     </button>
   </header>
 
-  <!-- ═══════════════════════════════════════════
-       INFO POPUP
-  ══════════════════════════════════════════════ -->
+  <!-- INFO OVERLAY -->
   <div class="ed-info-overlay hidden" id="infoOverlay">
     <div class="ed-info-modal">
       <div class="ed-info-modal-header">
         <h2 class="ed-info-title">How Analytics Work</h2>
-        <button class="ed-info-close" id="infoClose">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="ed-info-close" id="infoClose"><i class="fas fa-times"></i></button>
       </div>
       <div class="ed-info-body">
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#128200;</span>
-            <span class="ed-info-item-title">Total Points & Rank</span>
-          </div>
-          <p class="ed-info-item-desc">Your total points are the sum of all your match scores across the season. Your rank is where you stand among all managers based on those points.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon green">📊</span><span class="ed-info-item-title">Total Points & Rank</span></div>
+          <p class="ed-info-item-desc">Sum of all your match scores across the season. Rank = where you stand among all managers by points.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#127941;</span>
-            <span class="ed-info-item-title">Tournament Percentile</span>
-          </div>
-          <p class="ed-info-item-desc">"Top 12%" means you scored more than 88% of all managers. The smaller the number, the better you are doing.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon green">🏆</span><span class="ed-info-item-title">Tournament Percentile</span></div>
+          <p class="ed-info-item-desc">"Top 12%" means you scored more than 88% of all managers. Smaller = better.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon red">&#128293;</span>
-            <span class="ed-info-item-title">Current Form (Dots)</span>
-          </div>
-          <p class="ed-info-item-desc">Shows your last 5 matches newest first. Bright green dot = 250+ pts. Dim green = above your season average. Amber = near average. Red = below average.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon red">🔥</span><span class="ed-info-item-title">Current Form (Dots)</span></div>
+          <p class="ed-info-item-desc">Your last 5 matches newest first. 🔥 = 15% above your avg. ✅ = above avg. 🟡 = near avg. ❌ = below avg.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#9868;</span>
-            <span class="ed-info-item-title">Consistency Score</span>
-          </div>
-          <p class="ed-info-item-desc">Scores out of 100. Measures how similar your scores are match to match. 70+ is green, 50–69 is amber, below 50 is red.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon green">⚙️</span><span class="ed-info-item-title">Consistency Score</span></div>
+          <p class="ed-info-item-desc">How similar are your scores match to match? Computed from score variance, captain hit rate, and sub efficiency. 70+ is elite, below 50 is volatile.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#128202;</span>
-            <span class="ed-info-item-title">Score Trends (Last 3 / 6 / 10)</span>
-          </div>
-          <p class="ed-info-item-desc">Your average score across your last 3, 6 or 10 matches. If your Last 3 average is higher than your season average you are in improving form.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon green">📈</span><span class="ed-info-item-title">Score Trends</span></div>
+          <p class="ed-info-item-desc">Your average over last 3, 6, 10 matches vs your season average. Green = improving, red = declining.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon blue">&#8594;</span>
-            <span class="ed-info-item-title">Rank Journey</span>
-          </div>
-          <p class="ed-info-item-desc">Shows how your rank changed across your last 10 matches. Going down on the chart means your rank improved — rank 1 is at the top. Gold dot means you were rank 1 after that match.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon blue">→</span><span class="ed-info-item-title">Rank Journey</span></div>
+          <p class="ed-info-item-desc">How your rank changed across your last 10 matches. Going down = rank improved. Gold dot = you were Rank 1.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon blue">&#8644;</span>
-            <span class="ed-info-item-title">Subs Analysis</span>
-          </div>
-          <p class="ed-info-item-desc">How many player transfers you have made. Shows your total subs used, your average per match, and your recent trend across last 3, 6 and 10 matches.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon blue">⇄</span><span class="ed-info-item-title">Subs Analysis</span></div>
+          <p class="ed-info-item-desc">Total subs used, pace per match, and trend. Ideal pace is under 1.86/match across 70 matches.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon gold">&#128293;</span>
-            <span class="ed-info-item-title">Streaks</span>
-          </div>
-          <p class="ed-info-item-desc">Best streak = how many matches in a row you scored 250 or more points. Worst streak = how many matches in a row you scored 150 pts or below.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon gold">🔥</span><span class="ed-info-item-title">Streaks</span></div>
+          <p class="ed-info-item-desc">Best streak = consecutive matches at 250+ pts. Worst streak = consecutive matches at 150 pts or below.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon gold">&#128081;</span>
-            <span class="ed-info-item-title">Captain Performance</span>
-          </div>
-          <p class="ed-info-item-desc">In how many matches did your captain score above the average of all players in that match? Good captaincy decisions directly lead to big scores.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon gold">👑</span><span class="ed-info-item-title">Captain Performance</span></div>
+          <p class="ed-info-item-desc">% of matches where your captain scored above the average of all players that match. 70%+ = elite. League average is ~52%.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon purple">&#128640;</span>
-            <span class="ed-info-item-title">Booster ROI</span>
-          </div>
-          <p class="ed-info-item-desc">Shows every match where you used a booster and how many total points you scored that match. The best booster match is highlighted in gold.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon purple">🚀</span><span class="ed-info-item-title">Booster ROI</span></div>
+          <p class="ed-info-item-desc">Every booster match and total score vs your no-booster average. Benchmark: TOTAL_2X avg 1,109 pts, INDIAN_2X 963, CAPTAIN_3X 811.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon red">&#9876;</span>
-            <span class="ed-info-item-title">Head to Head vs Rank 1</span>
-          </div>
-          <p class="ed-info-item-desc">In how many individual matches did you score more points than the current rank 1 manager? Shows how competitive you are against the best team.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon red">⚔️</span><span class="ed-info-item-title">Head to Head vs Rank 1</span></div>
+          <p class="ed-info-item-desc">How many individual matches did you score more points than today's Rank 1?</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon gold">&#9733;</span>
-            <span class="ed-info-item-title">Top Point Earners</span>
-          </div>
-          <p class="ed-info-item-desc">The 3 players who earned you the most fantasy points this season. Only counts matches where they actually played.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon gold">⭐</span><span class="ed-info-item-title">Top Point Earners</span></div>
+          <p class="ed-info-item-desc">Players who earned you the most points this season. Only counts matches where they actually played (points ≠ 0).</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon purple">&#10084;</span>
-            <span class="ed-info-item-title">Most Loyal Players</span>
-          </div>
-          <p class="ed-info-item-desc">The 3 players who actually took the field most often while in your team. Ranked by how many matches they played, not just how many times you picked them.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon purple">❤️</span><span class="ed-info-item-title">Most Loyal Players</span></div>
+          <p class="ed-info-item-desc">Players who took the field most often while in your team — ranked by actual appearances, not just selections.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon purple">&#128101;</span>
-            <span class="ed-info-item-title">Player Usage</span>
-          </div>
-          <p class="ed-info-item-desc">Unique Players Appeared = how many different players actually took the field. Total Appearances = total count across all matches. Avg Points per Appearance = total season points divided by total appearances.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon green">🏴</span><span class="ed-info-item-title">Player Categories</span></div>
+          <p class="ed-info-item-desc">Points share from Indian, Overseas, and Uncapped players. Colored bar shows split. Tap tabs for top players in each group.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon blue">&#128101;</span>
-            <span class="ed-info-item-title">Top by Role</span>
-          </div>
-          <p class="ed-info-item-desc">Your best performing WK, BAT, AR and BOWL this season by total points earned while in your team. Tap each role tab to switch.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon green">🛡️</span><span class="ed-info-item-title">Strong & Weak Zones</span></div>
+          <p class="ed-info-item-desc">Auto-generated from all your stats — up to 3 things you're doing well and 3 areas hurting your score.</p>
         </div>
-
         <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#127987;</span>
-            <span class="ed-info-item-title">Player Categories</span>
-          </div>
-          <p class="ed-info-item-desc">Breaks your squad into Indian, Overseas and Uncapped players. The colored bar shows what percentage of your total points came from each group.</p>
+          <div class="ed-info-item-header"><span class="ed-info-icon purple">⚖️</span><span class="ed-info-item-title">Compare With Another Team</span></div>
+          <p class="ed-info-item-desc">Side-by-side stat comparison across Season, Captaincy, Subs, Boosters, Players. Green = winner of that stat.</p>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#128737;</span>
-            <span class="ed-info-item-title">Strong & Weak Zones</span>
-          </div>
-          <p class="ed-info-item-desc">The app automatically analyses all your stats and picks up to 3 things you are doing really well (Strong Zone) and up to 3 things that are hurting your score (Weak Zone).</p>
-        </div>
-
-        <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon purple">&#9878;</span>
-            <span class="ed-info-item-title">Compare with Another Team</span>
-          </div>
-          <p class="ed-info-item-desc">Pick any other manager to compare your stats side by side across 5 categories — Season, Captaincy, Subs, Boosters and Players. Green value = that team wins that stat.</p>
-        </div>
-
-        <div class="ed-info-item">
-          <div class="ed-info-item-header">
-            <span class="ed-info-icon green">&#128257;</span>
-            <span class="ed-info-item-title">Share Your Stats</span>
-          </div>
-          <p class="ed-info-item-desc">Tap the Share button to share your season stats card with friends. On mobile it opens your native share menu. On desktop it copies the stats text to your clipboard.</p>
-        </div>
-
-      </div><!-- /ed-info-body -->
-    </div><!-- /ed-info-modal -->
-  </div><!-- /ed-info-overlay -->
-
-  <!-- ═══════════════════════════════════════════
-       CONTROLS — Overall / My League toggle + team selector
-  ══════════════════════════════════════════════ -->
+  <!-- CONTROLS -->
   <div class="ed-controls">
     <div class="ed-toggle-row">
       <button class="ed-toggle-btn active" id="toggleOverall">
@@ -253,28 +153,23 @@
     <div class="ed-select-wrap">
       <i class="fas fa-users ed-select-icon"></i>
       <select id="teamSelector" class="ed-select">
-        <option value="">Select a team...</option>
+        <option value="">Select a team to analyse...</option>
       </select>
       <i class="fas fa-chevron-down ed-select-arrow"></i>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       MAIN CONTENT — populated by JS
-  ══════════════════════════════════════════════ -->
+  <!-- MAIN CONTENT -->
   <main class="ed-main" id="dugoutContent">
     <div class="ed-empty-state">
-      <div class="ed-empty-icon">
-        <i class="fas fa-magnifying-glass-chart"></i>
-      </div>
+      <div class="ed-empty-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
       <p class="ed-empty-title">Pick a team to analyse</p>
       <p class="ed-empty-sub">Select from the dropdown above to see full team intelligence</p>
     </div>
   </main>
 
-</div><!-- /app-container -->
+</div>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a href="/home"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="experts-dugout.html" class="active"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
@@ -283,7 +178,6 @@
 </nav>
 
 <div id="toastContainer" class="toast-container"></div>
-
 <script type="module" src="experts-dugout.js"></script>
 <script type="module" src="ad-manager.js"></script>
 <script src="transitions.js"></script>
