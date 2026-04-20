@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Future Planner · Cricket Experts</title>
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/team-builder.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script type="module" src="auth-guard.js"></script>
+
+  <style>
+    /* ── FUTURE PLANNER OVERRIDES & ADDITIONS ────────────────────── */
+
+    /* Header stripe — amber/gold theme to distinguish from real edit team */
+    .fp-header {
+      height: 64px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(20, 14, 2, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .fp-header-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .fp-header-subtitle {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(245, 158, 11, 0.55);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 1px;
+    }
+
+    .fp-sandbox-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(245, 158, 11, 0.10);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .fp-sandbox-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: fpPulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes fpPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Match navigator strip */
+    .fp-match-nav {
+      padding: 10px 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fp-match-nav-label {
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 900;
+      color: rgba(245, 158, 11, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .fp-match-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+
+    .fp-match-scroll::-webkit-scrollbar { display: none; }
+
+    .fp-match-chip {
+      flex: 0 0 auto;
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      background: var(--bg-card);
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .fp-match-chip.active {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #f59e0b;
+    }
+
+    .fp-match-chip.has-changes::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+      border: 1.5px solid var(--bg-page);
+    }
+
+    .fp-match-chip.base-chip {
+      border-style: dashed;
+      border-color: rgba(245, 158, 11, 0.3);
+      color: rgba(245, 158, 11, 0.6);
+    }
+
+    /* Cumulative stats banner */
+    .fp-cumulative-banner {
+      margin: 8px 16px 0;
+      padding: 10px 14px;
+      background: rgba(245, 158, 11, 0.06);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      border-radius: var(--card-radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .fp-cum-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      flex: 1;
+    }
+
+    .fp-cum-value {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      color: #f59e0b;
+      line-height: 1;
+    }
+
+    .fp-cum-value.danger { color: var(--red); }
+    .fp-cum-value.ok { color: var(--accent); }
+
+    .fp-cum-label {
+      font-family: var(--font-body);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    .fp-cum-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(245, 158, 11, 0.15);
+      flex-shrink: 0;
+    }
+
+    /* Subs diff pill on dashboard */
+    .fp-subs-diff {
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: 3px;
+    }
+
+    .fp-subs-diff.used {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .fp-subs-diff.free {
+      background: rgba(154, 224, 0, 0.12);
+      color: var(--accent);
+    }
+
+    /* Match-change log in My XI view */
+    .fp-change-log {
+      margin: 0 16px 12px;
+      padding: 10px 14px;
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      border-radius: var(--card-radius-sm);
+    }
+
+    .fp-change-log-title {
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 900;
+      color: rgba(245, 158, 11, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+
+    .fp-change-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 5px;
+      margin: 2px 3px 2px 0;
+    }
+
+    .fp-change-pill.in {
+      background: rgba(154, 224, 0, 0.08);
+      border: 1px solid rgba(154, 224, 0, 0.2);
+      color: var(--accent);
+    }
+
+    .fp-change-pill.out {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .fp-change-pill .fp-pill-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .fp-change-pill.in .fp-pill-dot { background: var(--accent); }
+    .fp-change-pill.out .fp-pill-dot { background: #f59e0b; }
+
+    .fp-no-changes {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-faint);
+      font-style: italic;
+    }
+
+    /* Reset match button in bottom bar */
+    .fp-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--app-max-width);
+      padding: 8px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+      background: rgba(20, 14, 2, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(245, 158, 11, 0.2);
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fp-bar-hint {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(245, 158, 11, 0.6);
+      text-align: center;
+      min-height: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    .fp-bar-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .fp-btn-reset {
+      flex: 0 0 auto;
+      padding: 14px 14px;
+      background: transparent;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: var(--btn-radius);
+      color: rgba(245, 158, 11, 0.6);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .fp-btn-reset:hover {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #f59e0b;
+    }
+
+    .fp-btn-next {
+      flex: 1;
+      padding: 14px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--btn-radius);
+      color: #f59e0b;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .fp-btn-next:not(:disabled):hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.6);
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+    }
+
+    .fp-btn-next:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .fp-btn-export {
+      flex: 0 0 auto;
+      padding: 14px 14px;
+      background: transparent;
+      border: 1px solid rgba(154, 224, 0, 0.25);
+      border-radius: var(--btn-radius);
+      color: rgba(154, 224, 0, 0.6);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .fp-btn-export:hover {
+      background: rgba(154, 224, 0, 0.08);
+      border-color: rgba(154, 224, 0, 0.4);
+      color: var(--accent);
+    }
+
+    /* Override save-bar so it doesn't interfere */
+    .save-bar { display: none !important; }
+
+    /* Sandbox watermark on player cards */
+    .fp-player-new-badge {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 8px;
+      font-weight: 900;
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .fp-player-dropped-badge {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 8px;
+      font-weight: 900;
+      color: var(--text-faint);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Highlight accent override for booster header */
+    .b-count {
+      background: rgba(245, 158, 11, 0.7) !important;
+    }
+
+    .booster-card.active {
+      background: rgba(245, 158, 11, 0.10) !important;
+      border-color: rgba(245, 158, 11, 0.35) !important;
+    }
+
+    .active-badge {
+      background: #f59e0b !important;
+    }
+
+    /* Summary panel when viewing future plan */
+    .fp-summary-sheet {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      max-height: 80vh;
+      background: var(--bg-elevated);
+      border-radius: 24px 24px 0 0;
+      border-top: 1px solid rgba(245, 158, 11, 0.25);
+      z-index: 3000;
+      transition: bottom 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+      padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+      overflow-y: auto;
+    }
+
+    .fp-summary-sheet.show { bottom: 0; }
+
+    .fp-summary-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .fp-summary-match-row {
+      padding: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm);
+      margin-bottom: 8px;
+    }
+
+    .fp-summary-match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .fp-summary-match-num {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      color: #f59e0b;
+      text-transform: uppercase;
+    }
+
+    .fp-summary-subs {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .fp-summary-subs.warn { color: #f59e0b; }
+    .fp-summary-subs.ok { color: var(--accent); }
+    .fp-summary-subs.none { color: var(--text-faint); }
+
+    .fp-summary-changes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .fp-no-change-text {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-faint);
+      font-style: italic;
+    }
+
+    /* accent on role tabs for sandbox */
+    .fp-mode .role-tab.active {
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      background: rgba(245, 158, 11, 0.08) !important;
+      color: #f59e0b !important;
+    }
+
+    .fp-mode .role-tab.req-met {
+      color: var(--accent) !important;
+    }
+
+    .fp-mode .toggle-btn.active {
+      background: #f59e0b !important;
+      border-color: #f59e0b !important;
+      color: #000 !important;
+    }
+
+    .fp-mode .action-btn.add {
+      color: #f59e0b !important;
+      border-color: #f59e0b !important;
+    }
+
+    .fp-mode .action-btn.add:hover {
+      background: #f59e0b !important;
+      color: #000 !important;
+    }
+
+    /* Instructions overlay shown once */
+    .fp-intro-toast {
+      position: fixed;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: calc(var(--app-max-width) - 32px);
+      background: rgba(20, 14, 2, 0.97);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--card-radius-sm);
+      padding: 12px 14px;
+      z-index: 1500;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      animation: slideDown 0.4s ease forwards;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .fp-intro-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .fp-intro-text {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .fp-intro-text strong {
+      color: #f59e0b;
+      font-weight: 700;
+    }
+
+    .fp-intro-close {
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body class="loading-state fp-mode">
+
+  <div id="loadingOverlay">
+    <div class="tb-spinner"></div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- HEADER — amber theme, clearly different from real edit page -->
+    <header class="fp-header">
+      <div class="header-left">
+        <a href="/home" class="icon-back" aria-label="Back to home">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+          <div class="fp-header-title">Future Planner</div>
+          <div class="fp-header-subtitle">Strategy Sandbox</div>
+        </div>
+      </div>
+      <div class="fp-sandbox-badge">
+        <div class="fp-sandbox-dot"></div>
+        Simulation
+      </div>
+    </header>
+
+    <!-- STICKY CONTROLS -->
+    <div class="sticky-controls">
+
+      <!-- MATCH NAVIGATOR -->
+      <div class="fp-match-nav">
+        <div class="fp-match-nav-label">Planning ahead — tap a match</div>
+        <div class="fp-match-scroll" id="fpMatchScroll"></div>
+      </div>
+
+      <!-- CUMULATIVE SUBS BANNER -->
+      <div class="fp-cumulative-banner" id="fpCumulativeBanner">
+        <div class="fp-cum-item">
+          <span class="fp-cum-value" id="fpCumSubsLeft">—</span>
+          <span class="fp-cum-label">Subs Left</span>
+        </div>
+        <div class="fp-cum-divider"></div>
+        <div class="fp-cum-item">
+          <span class="fp-cum-value" id="fpCumSubsUsed">0</span>
+          <span class="fp-cum-label">Subs Used</span>
+        </div>
+        <div class="fp-cum-divider"></div>
+        <div class="fp-cum-item">
+          <span class="fp-cum-value" id="fpCumMatches">0</span>
+          <span class="fp-cum-label">Matches Planned</span>
+        </div>
+        <div class="fp-cum-divider"></div>
+        <div class="fp-cum-item">
+          <span class="fp-cum-value" id="fpCumBoosters">—</span>
+          <span class="fp-cum-label">Boosters Left</span>
+        </div>
+      </div>
+
+      <!-- PROGRESS + STATS (reused from edit-team) -->
+      <div class="premium-progress">
+        <div id="teamDotsRow" class="team-dots-row"></div>
+        <div class="progress-labels">
+          <div class="dashboard-item">
+            <i class="di-icon fas fa-user"></i>
+            <span id="playerCountLabel">0</span><span class="di-max">/11</span>
+          </div>
+          <div class="dashboard-item">
+            <i class="di-icon fas fa-plane"></i>
+            <span id="overseasCountLabel">0/4</span>
+          </div>
+          <div class="dashboard-item">
+            <i class="di-icon fas fa-coins"></i>
+            <span id="creditCount">100</span><span class="di-max"> left</span>
+          </div>
+          <div class="dashboard-item">
+            <i class="di-icon fas fa-bolt"></i>
+            <span id="boosterUsedLabel">7/7</span>
+          </div>
+          <div class="dashboard-item">
+            <i class="di-icon fas fa-arrow-right-arrow-left"></i>
+            <span id="subsRemainingLabel">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW TABS -->
+      <div class="view-tabs">
+        <button class="toggle-btn" data-mode="myxi">My XI</button>
+        <button class="toggle-btn active" data-mode="playerPool">Edit Squad</button>
+      </div>
+
+      <!-- SEARCH + ROLE TABS + FILTER PILLS -->
+      <div class="search-filter-wrapper">
+        <div class="role-search-row">
+          <div class="role-navigation-wrapper">
+            <div class="role-tabs-container">
+              <div class="role-tab active" data-role="WK">WK <span>0</span></div>
+              <div class="role-tab" data-role="BAT">BAT <span>0</span></div>
+              <div class="role-tab" data-role="AR">AR <span>0</span></div>
+              <div class="role-tab" data-role="BOWL">BOWL <span>0</span></div>
+              <div class="role-slider-bg"></div>
+            </div>
+          </div>
+          <button class="search-icon-btn" id="searchIconBtn" aria-label="Search players">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+
+        <div class="search-overlay-row hidden" id="searchOverlayRow">
+          <input type="text" id="playerSearch" placeholder="Search any player…" autocomplete="off" spellcheck="false">
+          <button class="search-close-btn" id="searchCloseBtn">✕</button>
+        </div>
+
+        <div class="dropdown-filters">
+          <button id="matchToggle" class="pill-filter">Matches</button>
+          <button id="teamToggle"  class="pill-filter">Teams</button>
+          <button id="creditToggle" class="pill-filter">Credits</button>
+          <button id="typeToggle"  class="pill-filter">Type</button>
+        </div>
+      </div>
+
+    </div><!-- end .sticky-controls -->
+
+    <!-- MAIN CONTENT -->
+    <main class="content-area">
+
+      <div id="myxi-view" class="view-mode">
+        <!-- Change log for current planning match -->
+        <div class="fp-change-log" id="fpChangeLog">
+          <div class="fp-change-log-title">Changes vs previous match</div>
+          <div id="fpChangeLogContent"><span class="fp-no-changes">No changes yet for this match.</span></div>
+        </div>
+        <div id="boosterContainer" class="booster-wrapper hidden"></div>
+        <div id="myXIList" class="player-list"></div>
+      </div>
+
+      <div id="playerPool-view" class="view-mode active">
+        <div id="playerPoolList" class="player-list"></div>
+      </div>
+
+    </main>
+
+  </div><!-- end .app-container -->
+
+  <!-- FUTURE PLANNER BOTTOM BAR -->
+  <div class="fp-bar">
+    <div class="fp-bar-hint" id="fpBarHint">Sandbox only — nothing is saved to your real team</div>
+    <div class="fp-bar-buttons">
+      <button class="fp-btn-reset" id="fpResetBtn" title="Reset this match to base team">↺ Reset</button>
+      <button class="fp-btn-next" id="fpNextBtn">Lock & Plan Next Match →</button>
+      <button class="fp-btn-export" id="fpSummaryBtn" title="View full plan summary">📋</button>
+    </div>
+  </div>
+
+  <!-- REAL SAVE BAR (hidden in future planner mode) -->
+  <div class="save-bar" style="display:none">
+    <button id="saveTeamBtn" disabled></button>
+  </div>
+
+  <!-- FILTER BACKDROP -->
+  <div id="filterBackdrop" class="filter-backdrop hidden"></div>
+
+  <!-- FILTER BOTTOM SHEETS -->
+  <div id="matchMenu"  class="dropdown-menu bottom-sheet"></div>
+  <div id="teamMenu"   class="dropdown-menu bottom-sheet"></div>
+  <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
+  <div id="typeMenu"   class="dropdown-menu bottom-sheet"></div>
+
+  <!-- SUMMARY SHEET -->
+  <div id="fpSummaryBackdrop" class="filter-backdrop hidden" style="z-index:2900"></div>
+  <div id="fpSummarySheet" class="fp-summary-sheet">
+    <div class="fp-summary-title">
+      <span>Full Plan Summary</span>
+      <button class="ts-close" onclick="closeFpSummary()">✕</button>
+    </div>
+    <div id="fpSummaryContent"></div>
+  </div>
+
+  <!-- INTRO TOAST -->
+  <div class="fp-intro-toast" id="fpIntroToast">
+    <div class="fp-intro-icon">🧪</div>
+    <div class="fp-intro-text">
+      <strong>Sandbox mode.</strong> Make transfers match by match — your subs, boosters &amp; credits update in real time.
+      <strong>Nothing here affects your real team.</strong>
+    </div>
+    <button class="fp-intro-close" onclick="document.getElementById('fpIntroToast').remove()">✕</button>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- CONFIRM DIALOG -->
+  <div id="customConfirmOverlay" class="confirm-overlay hidden">
+    <div class="confirm-card">
+      <h3 id="confirmTitle" class="confirm-title"></h3>
+      <p  id="confirmText"  class="confirm-text"></p>
+      <div class="confirm-actions">
+        <button id="confirmCancelBtn" class="btn-cancel-confirm">Cancel</button>
+        <button id="confirmApplyBtn"  class="btn-apply-confirm" style="background:#f59e0b">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYER PROFILE POPUP -->
+  <div id="playerProfileOverlay" class="profile-overlay hidden" onclick="closePlayerProfile(event)">
+    <div class="profile-card" id="playerProfileCard">
+      <button class="profile-close" onclick="closePlayerProfile()">✕</button>
+      <div id="profileContent" class="profile-content">
+        <div class="profile-loading"><div class="tb-spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSFER BACKDROP (reused) -->
+  <div id="transferBackdrop" class="filter-backdrop hidden"></div>
+  <div id="transferSheet" class="dropdown-menu bottom-sheet transfer-sheet hidden">
+    <div id="transferSheetBody"></div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./supabase.js";
+    import { authReady } from "./auth-state.js";
+
+    // ─── CONSTANTS ───────────────────────────────────────────────────
+    const LEAGUE_STAGE_END    = 70;
+    const PLAYOFF_START_MATCH = 71;
+    const BOOSTER_WINDOW_START = 2;
+    const BOOSTER_WINDOW_END   = 70;
+    const ROLE_PRIORITY        = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
+    const BOOSTER_NAMES = {
+      TOTAL_2X: "Total 2X", INDIAN_2X: "Indian 2X", OVERSEAS_2X: "Overseas 2X",
+      UNCAPPED_2X: "Uncapped 2X", CAPTAIN_3X: "Captain 3X",
+      MOM_2X: "MOM 2X", FREE_11: "Free 11",
+    };
+    const BOOSTER_ICONS = {
+      TOTAL_2X: "🚀", INDIAN_2X: "🇮🇳", OVERSEAS_2X: "✈️",
+      UNCAPPED_2X: "🧢", CAPTAIN_3X: "👑", MOM_2X: "🏆", FREE_11: "🆓",
+    };
+
+    // ─── GLOBAL STATE ────────────────────────────────────────────────
+    // allPlayers & real data — fetched once
+    let allPlayers   = [];
+    let allMatches   = [];
+    let realTeamsMap = {};
+
+    // BASE = the user's real current team (read-only reference)
+    let base = {
+      playerIds:   [],
+      captainId:   null,
+      viceCaptainId: null,
+      subsRemaining: 130,
+      usedBoosters: [],
+      activeBooster: "NONE",
+    };
+
+    // PLAN = ordered array of per-match snapshots
+    // plan[0] = match currently being viewed
+    // Each entry: { matchId, matchNumber, playerIds, captainId, viceCaptainId,
+    //               activeBooster, usedBoosters, subsAtStart, subsRemaining }
+    let plan = [];
+
+    // Index into plan[] of what the user is currently viewing/editing
+    let currentPlanIdx = 0;
+
+    // Local filter state
+    let filters = {
+      search: "", role: "WK",
+      teams: [], credits: [], matches: [], type: [],
+    };
+
+    let activeTournamentId = null;
+
+    // ─── BOOT ────────────────────────────────────────────────────────
+    async function boot() {
+      try {
+        const user = await authReady;
+        await init(user);
+      } catch (err) {
+        console.warn("Auth failed on future-planner:", err.message);
+      }
+    }
+
+    boot();
+
+    async function init(user) {
+      if (!user) return;
+      document.body.classList.add("loading-state");
+
+      try {
+        const { data: activeTournament } = await supabase
+          .from("active_tournament").select("*").maybeSingle();
+        if (!activeTournament) { showEmpty(); return; }
+        activeTournamentId = activeTournament.id;
+
+        // Fetch upcoming matches
+        const { data: matches } = await supabase
+          .from("matches")
+          .select("*, team_a:real_teams!team_a_id(short_code, photo_name), team_b:real_teams!team_b_id(short_code, photo_name)")
+          .eq("tournament_id", activeTournamentId)
+          .eq("status", "upcoming")
+          .gt("actual_start_time", new Date().toISOString())
+          .order("actual_start_time", { ascending: true });
+
+        allMatches = matches || [];
+        if (allMatches.length === 0) { showEmpty("No upcoming matches to plan for."); return; }
+
+        // Parallel fetches
+        const [
+          { data: players },
+          { data: dashData },
+          { data: boosterData },
+          { data: lastLock },
+          { data: currentTeam },
+          { data: realTeamsData },
+        ] = await Promise.all([
+          supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", activeTournamentId),
+          supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
+          supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
+          supabase.from("user_match_teams")
+            .select("id, matches!inner(match_number), user_match_team_players(player_id)")
+            .eq("user_id", user.id)
+            .eq("tournament_id", activeTournamentId)
+            .neq("match_id", allMatches[0].id)
+            .order("locked_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase.from("user_fantasy_teams")
+            .select("*, user_fantasy_team_players(player_id)")
+            .eq("user_id", user.id)
+            .eq("tournament_id", activeTournamentId)
+            .maybeSingle(),
+          supabase.from("real_teams").select("id, name, short_code, photo_name"),
+        ]);
+
+        realTeamsMap = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
+
+        // Season points
+        const { data: seasonTotals } = await supabase
+          .from("player_match_stats")
+          .select("player_id, fantasy_points, matches!inner(tournament_id)")
+          .eq("matches.tournament_id", activeTournamentId);
+
+        const seasonPtsMap = {};
+        for (const row of seasonTotals || []) {
+          seasonPtsMap[row.player_id] = (seasonPtsMap[row.player_id] || 0) + (row.fantasy_points || 0);
+        }
+
+        allPlayers = (players || []).map(p => ({ ...p, season_points: seasonPtsMap[p.id] || 0 }));
+
+        // Build base from user's current saved team
+        const savedBooster = currentTeam?.active_booster ?? "NONE";
+        const usedBoosters = boosterData?.used_boosters ?? [];
+        base = {
+          playerIds:     (currentTeam?.user_fantasy_team_players || []).map(r => r.player_id),
+          captainId:     currentTeam?.captain_id ?? null,
+          viceCaptainId: currentTeam?.vice_captain_id ?? null,
+          subsRemaining: dashData?.subs_remaining ?? 130,
+          usedBoosters,
+          activeBooster: usedBoosters.includes(savedBooster) ? "NONE" : savedBooster,
+          lockedPlayerIds: lastLock?.user_match_team_players?.map(p => p.player_id) || [],
+        };
+
+        // Seed plan with the first upcoming match using current real team as starting point
+        seedPlan();
+
+        initUI();
+        render();
+
+        // Dismiss intro toast after 6s
+        setTimeout(() => {
+          const t = document.getElementById("fpIntroToast");
+          if (t) { t.style.opacity = "0"; t.style.transition = "opacity 0.5s"; setTimeout(() => t.remove(), 500); }
+        }, 6000);
+
+      } catch (err) {
+        console.error("Future planner init failed:", err);
+        showEmpty("Failed to load. Please try again.");
+      } finally {
+        document.body.classList.remove("loading-state");
+      }
+    }
+
+    // ─── PLAN MANAGEMENT ─────────────────────────────────────────────
+    function seedPlan() {
+      // First match — inherit base team
+      plan = [];
+      if (allMatches.length === 0) return;
+
+      const m0 = allMatches[0];
+      const isReset = m0.match_number === 1 || m0.match_number === PLAYOFF_START_MATCH;
+
+      plan.push({
+        matchId:       m0.id,
+        matchNumber:   m0.match_number,
+        playerIds:     [...base.playerIds],
+        captainId:     base.captainId,
+        viceCaptainId: base.viceCaptainId,
+        activeBooster: base.activeBooster,
+        usedBoosters:  [...base.usedBoosters],
+        subsAtStart:   base.subsRemaining,
+        subsRemaining: base.subsRemaining, // will recalc
+        isReset,
+        lockedIds:     base.lockedPlayerIds, // the players they locked in the previous match
+      });
+      recalcSubsForSlot(0);
+      currentPlanIdx = 0;
+    }
+
+    function recalcSubsForSlot(idx) {
+      const slot = plan[idx];
+      const isReset = slot.isReset || slot.activeBooster === "FREE_11";
+
+      if (isReset || slot.lockedIds.length === 0) {
+        slot.subsRemaining = slot.subsAtStart;
+        slot.subsUsed = 0;
+        return;
+      }
+
+      const newPlayers = slot.playerIds.filter(id => !slot.lockedIds.includes(id));
+      const hasUncapped = newPlayers.some(id => {
+        const p = allPlayers.find(x => x.id === id);
+        return p?.category === "uncapped";
+      });
+      const subsUsed = (hasUncapped && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
+
+      slot.subsUsed = subsUsed;
+      slot.subsRemaining = slot.subsAtStart - subsUsed;
+    }
+
+    function currentSlot() { return plan[currentPlanIdx]; }
+
+    function currentMatchObj() { return allMatches.find(m => m.id === currentSlot().matchId); }
+
+    // ─── LOCK & ADVANCE ───────────────────────────────────────────────
+    function lockAndAdvance() {
+      const slot = currentSlot();
+
+      // Validate
+      const pList = slot.playerIds.map(id => allPlayers.find(p => p.id === id)).filter(Boolean);
+      const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+      for (const p of pList) roles[p.role] = (roles[p.role] || 0) + 1;
+
+      if (pList.length < 11) { showToast("Add 11 players first", "error"); return; }
+      if (!slot.captainId || !slot.viceCaptainId) { showToast("Set Captain & Vice-Captain", "error"); return; }
+      if (roles.WK < 1 || roles.BAT < 3 || roles.AR < 1 || roles.BOWL < 3) {
+        showToast("Role requirements not met", "error"); return;
+      }
+      if (slot.subsRemaining < 0) { showToast("Too many subs used!", "error"); return; }
+
+      // Find next match in allMatches beyond current slot
+      const currentMatchIdx = allMatches.findIndex(m => m.id === slot.matchId);
+      const nextMatch = allMatches[currentMatchIdx + 1];
+
+      if (!nextMatch) {
+        showToast("No more upcoming matches to plan!", "error");
+        return;
+      }
+
+      // Determine if next match is a reset
+      const isNextReset = nextMatch.match_number === PLAYOFF_START_MATCH;
+
+      // Build next slot — carry over from this slot
+      const usedBoostersNext = slot.activeBooster !== "NONE"
+        ? [...slot.usedBoosters, slot.activeBooster]
+        : [...slot.usedBoosters];
+
+      // Check if a plan slot already exists for next match
+      const existingIdx = plan.findIndex(s => s.matchId === nextMatch.id);
+
+      const nextSlot = {
+        matchId:       nextMatch.id,
+        matchNumber:   nextMatch.match_number,
+        playerIds:     [...slot.playerIds],     // inherit team
+        captainId:     slot.captainId,
+        viceCaptainId: slot.viceCaptainId,
+        activeBooster: "NONE",                 // fresh booster choice each match
+        usedBoosters:  usedBoostersNext,
+        subsAtStart:   slot.subsRemaining,      // subs carry over
+        subsRemaining: slot.subsRemaining,
+        isReset:       isNextReset,
+        lockedIds:     slot.playerIds,          // current slot's XI becomes "locked" for next match
+      };
+      recalcSubsForSlot_external(nextSlot);
+
+      if (existingIdx > -1) {
+        // Overwrite the existing slot but warn if it would lose their work
+        plan[existingIdx] = nextSlot;
+        // Trim any plan entries beyond this (they'd be stale)
+        plan = plan.slice(0, existingIdx + 1);
+      } else {
+        plan.push(nextSlot);
+      }
+
+      currentPlanIdx = plan.length - 1;
+
+      showToast(`Match ${slot.matchNumber} locked! Now planning M${nextMatch.match_number}`, "success");
+      renderMatchNav();
+      render();
+
+      // Scroll match chip into view
+      setTimeout(() => {
+        const chip = document.querySelector(`.fp-match-chip[data-match-id="${nextMatch.id}"]`);
+        chip?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }, 100);
+    }
+
+    function recalcSubsForSlot_external(slot) {
+      const isReset = slot.isReset || slot.activeBooster === "FREE_11";
+      if (isReset || !slot.lockedIds || slot.lockedIds.length === 0) {
+        slot.subsRemaining = slot.subsAtStart;
+        slot.subsUsed = 0;
+        return;
+      }
+      const newPlayers = slot.playerIds.filter(id => !slot.lockedIds.includes(id));
+      const hasUncapped = newPlayers.some(id => {
+        const p = allPlayers.find(x => x.id === id);
+        return p?.category === "uncapped";
+      });
+      const subsUsed = (hasUncapped && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
+      slot.subsUsed = subsUsed;
+      slot.subsRemaining = slot.subsAtStart - subsUsed;
+    }
+
+    function resetCurrentMatch() {
+      const slot = currentSlot();
+
+      // For the first plan entry, revert to base
+      if (currentPlanIdx === 0) {
+        slot.playerIds     = [...base.playerIds];
+        slot.captainId     = base.captainId;
+        slot.viceCaptainId = base.viceCaptainId;
+        slot.activeBooster = base.activeBooster;
+        slot.usedBoosters  = [...base.usedBoosters];
+      } else {
+        // Revert to previous plan slot
+        const prev = plan[currentPlanIdx - 1];
+        slot.playerIds     = [...prev.playerIds];
+        slot.captainId     = prev.captainId;
+        slot.viceCaptainId = prev.viceCaptainId;
+        slot.activeBooster = "NONE";
+        slot.usedBoosters  = slot.activeBooster !== "NONE"
+          ? [...prev.usedBoosters, prev.activeBooster]
+          : [...prev.usedBoosters];
+        slot.subsAtStart   = prev.subsRemaining;
+      }
+      recalcSubsForSlot(currentPlanIdx);
+      render();
+      showToast("Match reset to inherited team", "success");
+    }
+
+    // ─── PLAYER ACTIONS ───────────────────────────────────────────────
+    function togglePlayer(id) {
+      const slot = currentSlot();
+      const idx  = slot.playerIds.indexOf(id);
+      if (idx > -1) {
+        slot.playerIds.splice(idx, 1);
+        if (slot.captainId === id)    slot.captainId = null;
+        if (slot.viceCaptainId === id) slot.viceCaptainId = null;
+      } else {
+        if (slot.playerIds.length < 11) slot.playerIds.push(id);
+      }
+      recalcSubsForSlot(currentPlanIdx);
+      const stats = calcStats();
+      updateDashboard(stats);
+      renderMyXI(stats);
+      renderPlayerPool(stats);
+      updateNavBtn(stats);
+      updateChangeLog();
+
+      // Auto-switch to My XI when 11 players done + C/VC missing
+      if (stats.count === 11 && (!slot.captainId || !slot.viceCaptainId)) {
+        const myXiBtn = document.querySelector(".toggle-btn[data-mode='myxi']");
+        const myXiView = document.getElementById("myxi-view");
+        const poolView = document.getElementById("playerPool-view");
+        const fw = document.querySelector(".search-filter-wrapper");
+        if (myXiBtn && myXiView) {
+          document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
+          myXiBtn.classList.add("active");
+          myXiView.classList.add("active");
+          if (fw) fw.style.display = "none";
+          showToast("11 players added! Now set your C & VC 👑", "success");
+        }
+      }
+    }
+
+    function setRole(id, type) {
+      const slot = currentSlot();
+      if (type === "C") {
+        slot.captainId = slot.captainId === id ? null : id;
+        if (slot.captainId === slot.viceCaptainId) slot.viceCaptainId = null;
+      } else {
+        slot.viceCaptainId = slot.viceCaptainId === id ? null : id;
+        if (slot.viceCaptainId === slot.captainId) slot.captainId = null;
+      }
+      const stats = calcStats();
+      updateDashboard(stats);
+      renderMyXI(stats);
+      updateNavBtn(stats);
+    }
+
+    // ─── BOOSTER ──────────────────────────────────────────────────────
+    function handleBoosterChange(val) {
+      const slot = currentSlot();
+      if (val === "NONE") { slot.activeBooster = "NONE"; recalcSubsForSlot(currentPlanIdx); render(); return; }
+
+      showConfirm(
+        `Apply ${BOOSTER_NAMES[val]}?`,
+        "This is simulation only — your real booster is unchanged."
+      ).then(confirmed => {
+        if (confirmed) {
+          slot.activeBooster = val;
+          recalcSubsForSlot(currentPlanIdx);
+          showToast(`${BOOSTER_NAMES[val]} applied to M${slot.matchNumber}!`, "success");
+          render();
+        }
+      });
+    }
+
+    window.handleBoosterChange = handleBoosterChange;
+
+    // ─── CALC STATS ───────────────────────────────────────────────────
+    function calcStats() {
+      const slot     = currentSlot();
+      const selected = slot.playerIds.map(id => allPlayers.find(p => p.id === id)).filter(Boolean);
+      const roles    = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+      let overseas   = 0, credits = 0;
+
+      for (const p of selected) {
+        roles[p.role] = (roles[p.role] || 0) + 1;
+        if (p.category === "overseas") overseas++;
+        credits += Number(p.credit);
+      }
+
+      const isResetMatch = slot.isReset || slot.activeBooster === "FREE_11";
+      const liveSubs     = isResetMatch ? "FREE" : slot.subsRemaining;
+      const isOverLimit  = !isResetMatch && slot.subsRemaining < 0;
+
+      return { count: selected.length, overseas, credits, roles, liveSubs, isOverLimit, isResetMatch, selected };
+    }
+
+    // ─── RENDER ───────────────────────────────────────────────────────
+    function render() {
+      const stats = calcStats();
+      updateDashboard(stats);
+      renderBoosterUI();
+      renderMyXI(stats);
+      renderPlayerPool(stats);
+      updateNavBtn(stats);
+      updateFilterButtonStates();
+      updateCumulativeBanner();
+      updateChangeLog();
+      renderMatchNav();
+    }
+
+    function updateCumulativeBanner() {
+      // Total subs used across all planned matches
+      let totalSubsUsed = 0;
+      let boostersUsedTotal = new Set(base.usedBoosters);
+      for (const slot of plan) {
+        totalSubsUsed += (slot.subsUsed || 0);
+        if (slot.activeBooster !== "NONE") boostersUsedTotal.add(slot.activeBooster);
+      }
+
+      const lastSlot   = plan[plan.length - 1];
+      const subsLeft   = lastSlot.subsRemaining;
+      const matchesPlanned = plan.length;
+      const boostersLeft = 7 - boostersUsedTotal.size;
+
+      const leftEl    = document.getElementById("fpCumSubsLeft");
+      const usedEl    = document.getElementById("fpCumSubsUsed");
+      const matchEl   = document.getElementById("fpCumMatches");
+      const boostEl   = document.getElementById("fpCumBoosters");
+
+      if (leftEl) {
+        leftEl.textContent = subsLeft;
+        leftEl.className   = `fp-cum-value ${subsLeft < 0 ? "danger" : subsLeft < 20 ? "" : "ok"}`;
+      }
+      if (usedEl) usedEl.textContent = totalSubsUsed;
+      if (matchEl) matchEl.textContent = matchesPlanned;
+      if (boostEl) boostEl.textContent = boostersLeft;
+    }
+
+    function updateChangeLog() {
+      const content = document.getElementById("fpChangeLogContent");
+      if (!content) return;
+
+      const slot = currentSlot();
+      let prevIds = [];
+
+      if (currentPlanIdx === 0) {
+        prevIds = base.lockedPlayerIds;
+      } else {
+        prevIds = plan[currentPlanIdx - 1].playerIds;
+      }
+
+      if (!prevIds || prevIds.length === 0) {
+        content.innerHTML = `<span class="fp-no-changes">Base match — comparing against previous locked team.</span>`;
+        return;
+      }
+
+      const inIds  = slot.playerIds.filter(id => !prevIds.includes(id));
+      const outIds = prevIds.filter(id => !slot.playerIds.includes(id));
+
+      if (inIds.length === 0 && outIds.length === 0) {
+        content.innerHTML = `<span class="fp-no-changes">No changes — same team as previous match.</span>`;
+        return;
+      }
+
+      let html = "";
+      for (const id of outIds) {
+        const p = allPlayers.find(x => x.id === id);
+        if (p) html += `<span class="fp-change-pill out"><span class="fp-pill-dot"></span>▼ ${p.name}</span>`;
+      }
+      for (const id of inIds) {
+        const p = allPlayers.find(x => x.id === id);
+        if (p) html += `<span class="fp-change-pill in"><span class="fp-pill-dot"></span>▲ ${p.name}</span>`;
+      }
+
+      content.innerHTML = html;
+    }
+
+    function renderMatchNav() {
+      const scroll = document.getElementById("fpMatchScroll");
+      if (!scroll) return;
+      scroll.innerHTML = "";
+
+      // Base chip
+      const baseChip = document.createElement("div");
+      baseChip.className = "fp-match-chip base-chip";
+      baseChip.textContent = "Current";
+      baseChip.title = "Your real current team (read-only base)";
+      scroll.appendChild(baseChip);
+
+      // Plan chips
+      for (let i = 0; i < plan.length; i++) {
+        const slot = plan[i];
+        const m    = allMatches.find(x => x.id === slot.matchId);
+        const chip = document.createElement("div");
+        chip.className     = `fp-match-chip ${i === currentPlanIdx ? "active" : ""}`;
+        chip.dataset.matchId = slot.matchId;
+        chip.dataset.planIdx = i;
+        chip.textContent   = `M${slot.matchNumber}`;
+        chip.title         = m ? `${m.team_a?.short_code} vs ${m.team_b?.short_code}` : "";
+
+        // Has changes vs previous?
+        const prevIds = i === 0 ? base.lockedPlayerIds : plan[i - 1].playerIds;
+        const hasChanges = prevIds.length > 0 && slot.playerIds.some(id => !prevIds.includes(id));
+        if (hasChanges) chip.classList.add("has-changes");
+
+        chip.onclick = () => {
+          currentPlanIdx = i;
+          renderMatchNav();
+          render();
+        };
+
+        scroll.appendChild(chip);
+      }
+
+      // "+ Next" chip if more matches available
+      const lastSlot     = plan[plan.length - 1];
+      const lastMatchIdx = allMatches.findIndex(m => m.id === lastSlot.matchId);
+      if (lastMatchIdx < allMatches.length - 1) {
+        const peek = document.createElement("div");
+        peek.className   = "fp-match-chip";
+        peek.style.opacity = "0.5";
+        peek.style.borderStyle = "dashed";
+        peek.textContent = `M${allMatches[lastMatchIdx + 1].match_number} →`;
+        peek.title       = "Lock current match to plan this one";
+        scroll.appendChild(peek);
+      }
+    }
+
+    function updateNavBtn(stats) {
+      const btn  = document.getElementById("fpNextBtn");
+      const hint = document.getElementById("fpBarHint");
+      if (!btn) return;
+
+      const slot = currentSlot();
+      const checks = [
+        [stats.count < 11,                         "NEXT →",  `Add ${11 - stats.count} more player${11 - stats.count > 1 ? "s" : ""} first`],
+        [!slot.captainId || !slot.viceCaptainId,   "NEXT →",  "Set Captain & Vice-Captain"],
+        [stats.roles.WK   < 1,                     "NEXT →",  "Need at least 1 Wicket-Keeper"],
+        [stats.roles.BAT  < 3,                     "NEXT →",  "Need at least 3 Batters"],
+        [stats.roles.AR   < 1,                     "NEXT →",  "Need at least 1 All-Rounder"],
+        [stats.roles.BOWL < 3,                     "NEXT →",  "Need at least 3 Bowlers"],
+        [stats.overseas   > 4,                     "NEXT →",  "Max 4 overseas players"],
+        [stats.credits    > 100.05,                "NEXT →",  "Credits exceeded"],
+        [stats.isOverLimit,                         "NEXT →",  "Not enough subs remaining"],
+      ];
+
+      // Check if any more matches available
+      const lastSlot     = plan[plan.length - 1];
+      const lastMatchIdx = allMatches.findIndex(m => m.id === lastSlot.matchId);
+      const noMoreMatches = lastMatchIdx >= allMatches.length - 1 && currentPlanIdx === plan.length - 1;
+
+      if (noMoreMatches) {
+        btn.disabled     = true;
+        btn.textContent  = "End of Schedule";
+        if (hint) hint.textContent = "No more matches to plan — view your summary 📋";
+        return;
+      }
+
+      // Only "Lock & Next" is available from the latest plan entry
+      if (currentPlanIdx < plan.length - 1) {
+        btn.disabled    = true;
+        btn.textContent = "Viewing Past Plan";
+        if (hint) hint.textContent = `Jump to M${lastSlot.matchNumber} to continue planning`;
+        return;
+      }
+
+      for (const [cond, label, hintText] of checks) {
+        if (cond) {
+          btn.disabled    = true;
+          btn.textContent = label;
+          if (hint) hint.textContent = hintText;
+          return;
+        }
+      }
+
+      btn.disabled    = false;
+      btn.textContent = "Lock & Plan Next Match →";
+      if (hint) hint.textContent = "Sandbox only — nothing is saved to your real team";
+    }
+
+    // ─── DASHBOARD ────────────────────────────────────────────────────
+    function updateDashboard(stats) {
+      renderTeamDots();
+      setText("playerCountLabel", stats.count);
+      setText("overseasCountLabel", `${stats.overseas}/4`);
+      setText("creditCount", (100 - stats.credits).toFixed(1));
+
+      const creditEl = document.getElementById("creditCount");
+      if (creditEl) {
+        const remaining = 100 - stats.credits;
+        creditEl.closest(".dashboard-item")?.classList.toggle("negative", remaining < 5);
+      }
+
+      const slot = currentSlot();
+      const boostersLeft = 7 - (slot.usedBoosters?.length || 0) - (slot.activeBooster !== "NONE" ? 1 : 0);
+      setText("boosterUsedLabel", `${boostersLeft}/7`);
+
+      const subsEl = document.getElementById("subsRemainingLabel");
+      if (subsEl) {
+        subsEl.textContent = stats.liveSubs;
+        subsEl.closest(".dashboard-item")?.classList.toggle("negative", stats.isOverLimit);
+      }
+
+      updateRoleTabStates(stats);
+    }
+
+    function renderTeamDots() {
+      const container = document.getElementById("teamDotsRow");
+      if (!container) return;
+      const bucket = supabase.storage.from("team-logos");
+      const slot   = currentSlot();
+      const frag   = document.createDocumentFragment();
+
+      for (let i = 0; i < 11; i++) {
+        const player = slot.playerIds[i] ? allPlayers.find(p => p.id === slot.playerIds[i]) : null;
+        const dot = document.createElement("div");
+        dot.className = "team-dot";
+
+        if (player) {
+          const team = realTeamsMap[player.real_team_id];
+          if (team?.photo_name) {
+            const url = bucket.getPublicUrl(team.photo_name).data.publicUrl;
+            dot.style.backgroundImage = `url('${url}')`;
+            dot.classList.add("filled");
+          } else {
+            dot.classList.add("filled", "no-logo");
+            dot.textContent = team?.short_code?.[0] || "?";
+          }
+        } else if (i === 10) {
+          dot.classList.add("no-logo", "dot-eleven");
+          dot.textContent = "11";
+        }
+        frag.appendChild(dot);
+      }
+
+      container.innerHTML = "";
+      container.appendChild(frag);
+    }
+
+    // ─── RENDER MY XI ────────────────────────────────────────────────
+    function renderMyXI(stats) {
+      const slot   = currentSlot();
+      const sorted = slot.playerIds
+        .map(id => allPlayers.find(p => p.id === id))
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role])
+            return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
+          return Number(b.credit) - Number(a.credit);
+        });
+      renderList("myXIList", sorted, true, stats);
+    }
+
+    // ─── RENDER PLAYER POOL ───────────────────────────────────────────
+    function renderPlayerPool(stats) {
+      const slot      = currentSlot();
+      const nextMatch = allMatches.find(m => m.id === slot.matchId);
+      const s         = filters.search.toLowerCase();
+
+      const filtered = allPlayers.filter(p => {
+        const cat = (p.category || "").toLowerCase();
+        if (s && !p.name.toLowerCase().includes(s) &&
+            !(p.team_short_code || "").toLowerCase().includes(s) &&
+            !cat.includes(s)) return false;
+        if (!filters.search && p.role !== filters.role) return false;
+        if (filters.teams.length && !filters.teams.includes(p.real_team_id)) return false;
+        if (filters.credits.length && !filters.credits.includes(p.credit)) return false;
+        if (filters.type.length && !filters.type.includes(cat)) return false;
+        if (filters.matches.length) {
+          const inMatch = allMatches.some(m =>
+            filters.matches.includes(m.id) &&
+            (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id)
+          );
+          if (!inMatch) return false;
+        }
+        return true;
+      }).sort((a, b) => {
+        const pri = id =>
+          id === nextMatch?.team_a_id ? 1 :
+          id === nextMatch?.team_b_id ? 2 : 3;
+        return pri(a.real_team_id) - pri(b.real_team_id)
+          || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]
+          || b.credit - a.credit;
+      });
+
+      renderList("playerPoolList", filtered, false, stats);
+    }
+
+    // ─── LIST RENDERER ────────────────────────────────────────────────
+    function renderList(containerId, list, isMyXi, stats) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const slot     = currentSlot();
+      const minReq   = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+      const curRoles = {
+        WK:   slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "WK").length,
+        BAT:  slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "BAT").length,
+        AR:   slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "AR").length,
+        BOWL: slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "BOWL").length,
+      };
+      const neededSlots = Object.keys(minReq).reduce((acc, r) => acc + Math.max(0, minReq[r] - curRoles[r]), 0);
+
+      const bucket = supabase.storage.from("player-photos");
+      const frag   = document.createDocumentFragment();
+
+      // Prev locked ids (for "new in plan" badge)
+      const prevIds = currentPlanIdx === 0 ? base.lockedPlayerIds : plan[currentPlanIdx - 1].playerIds;
+
+      if (list.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-pool-msg";
+        empty.textContent = isMyXi ? "Select players from the Edit tab." : "No players match your filters.";
+        frag.appendChild(empty);
+        container.innerHTML = "";
+        container.appendChild(frag);
+        return;
+      }
+
+      for (const p of list) {
+        const isSelected   = slot.playerIds.includes(p.id);
+        const totalCredits = slot.playerIds
+          .map(id => allPlayers.find(x => x.id === id))
+          .filter(Boolean)
+          .reduce((s, x) => s + Number(x.credit), 0);
+        const tooExpensive = p.credit > (100 - totalCredits + (isSelected ? p.credit : 0));
+        const overseasLim  = stats.overseas >= 4 && p.category === "overseas" && !isSelected;
+        const roleLocked   = !isSelected && (11 - stats.count) <= neededSlots &&
+                             (minReq[p.role] - curRoles[p.role]) <= 0;
+        const isDisabled   = !isMyXi && !isSelected &&
+                             (stats.count >= 11 || tooExpensive || overseasLim || roleLocked);
+
+        const photoUrl = p.photo_url
+          ? bucket.getPublicUrl(p.photo_url).data.publicUrl
+          : "images/default-avatar.png";
+
+        const cat = (p.category || "").toLowerCase();
+        const catBadge = cat === "overseas" ? '<span class="cat-badge overseas">✈</span>'
+                       : cat === "uncapped"  ? '<span class="cat-badge uncapped">U</span>'
+                       : "";
+
+        // Is this player new in this plan (not in prev slot)?
+        const isNewInPlan    = isSelected && prevIds.length > 0 && !prevIds.includes(p.id);
+        const isDroppedInPlan = !isSelected && prevIds.includes(p.id);
+
+        const newBadge     = isNewInPlan    ? '<span class="fp-player-new-badge">▲ IN</span>' : "";
+        const droppedBadge = isDroppedInPlan ? '<span class="fp-player-dropped-badge">▼ OUT</span>' : "";
+
+        const card = document.createElement("div");
+        card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
+        card.dataset.id = p.id;
+
+        card.innerHTML = `
+          <div class="avatar-col" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer">
+            <div class="avatar-wrap">
+              <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+              ${catBadge}
+            </div>
+            <span class="p-team-badge">${p.team_short_code}</span>
+          </div>
+          <div class="player-info">
+            <strong class="p-name">${p.name}</strong>
+            <span class="p-meta">${p.credit} Cr · ${p.selected_by_percent ?? "—"}% · ${p.season_points ?? 0} pts</span>
+            ${newBadge}${droppedBadge}
+          </div>
+          <div class="controls">
+            ${isMyXi ? `
+              <button class="role-btn ${slot.captainId === p.id ? "active-c" : ""}"
+                data-action="C" data-id="${p.id}" aria-label="Set captain">C</button>
+              <button class="role-btn ${slot.viceCaptainId === p.id ? "active-vc" : ""}"
+                data-action="VC" data-id="${p.id}" aria-label="Set vice-captain">VC</button>
+            ` : ""}
+            <button class="action-btn ${isSelected ? "remove" : "add"}"
+              data-action="toggle" data-id="${p.id}"
+              ${isDisabled ? "disabled" : ""}
+              aria-label="${isSelected ? "Remove player" : "Add player"}">
+              ${isSelected ? "−" : "+"}
+            </button>
+          </div>`;
+
+        frag.appendChild(card);
+      }
+
+      container.innerHTML = "";
+      container.appendChild(frag);
+    }
+
+    // ─── BOOSTER UI ───────────────────────────────────────────────────
+    function renderBoosterUI() {
+      const container = document.getElementById("boosterContainer");
+      if (!container) return;
+
+      const slot = currentSlot();
+      const afterTournament = slot.matchNumber > BOOSTER_WINDOW_END;
+      if (afterTournament) { container.classList.add("hidden"); return; }
+      container.classList.remove("hidden");
+
+      const isMatch1 = slot.matchNumber < BOOSTER_WINDOW_START;
+      const activePenalty = slot.activeBooster !== "NONE" ? 1 : 0;
+      const boostersLeft  = 7 - (slot.usedBoosters?.length || 0) - activePenalty;
+
+      const configs = {
+        TOTAL_2X: { name: "Total 2X", icon: "🚀" }, INDIAN_2X: { name: "Indian 2X", icon: "🇮🇳" },
+        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" }, UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
+        CAPTAIN_3X: { name: "Captain 3X", icon: "👑" }, MOM_2X: { name: "MOM 2X", icon: "🏆" },
+        FREE_11: { name: "Free 11", icon: "🆓" },
+      };
+
+      const cards = Object.entries(configs).map(([key, cfg]) => {
+        const isUsed   = slot.usedBoosters?.includes(key);
+        const isActive = slot.activeBooster === key;
+        const disabled = isUsed || isMatch1;
+
+        return `
+          <div class="booster-card ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 && !isUsed ? "locked" : ""}"
+               ${disabled ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
+            <div class="booster-icon">${cfg.icon}</div>
+            <div class="b-name">${cfg.name}</div>
+            ${isActive ? '<div class="active-badge">On</div>' : ""}
+            ${isUsed   ? '<div class="used-overlay"><span>USED</span></div>' : ""}
+          </div>`;
+      }).join("");
+
+      container.innerHTML = `
+        <div class="booster-shelf">
+          <div class="booster-header">
+            <span class="b-title">BOOSTERS</span>
+            ${isMatch1
+              ? '<span class="b-count b-count-locked">From Match 2</span>'
+              : `<span class="b-count">${boostersLeft} left</span>`}
+          </div>
+          <div class="booster-scroll">${cards}</div>
+        </div>`;
+    }
+
+    // ─── SUMMARY SHEET ────────────────────────────────────────────────
+    function openFpSummary() {
+      const content = document.getElementById("fpSummaryContent");
+      if (!content) return;
+
+      let totalSubsUsed = 0;
+
+      const rows = plan.map((slot, i) => {
+        const prevIds = i === 0 ? base.lockedPlayerIds : plan[i - 1].playerIds;
+        const inIds   = slot.playerIds.filter(id => !prevIds.includes(id));
+        const outIds  = prevIds.filter(id => !slot.playerIds.includes(id));
+        const subsUsed = slot.subsUsed || 0;
+        totalSubsUsed += subsUsed;
+
+        const inPills  = inIds.map(id => {
+          const p = allPlayers.find(x => x.id === id);
+          return p ? `<span class="fp-change-pill in"><span class="fp-pill-dot"></span>▲ ${p.name}</span>` : "";
+        }).join("");
+
+        const outPills = outIds.map(id => {
+          const p = allPlayers.find(x => x.id === id);
+          return p ? `<span class="fp-change-pill out"><span class="fp-pill-dot"></span>▼ ${p.name}</span>` : "";
+        }).join("");
+
+        const subsClass = subsUsed > 0 ? "warn" : "none";
+        const boosterHtml = slot.activeBooster !== "NONE"
+          ? `<span class="ts-tag booster">${BOOSTER_ICONS[slot.activeBooster]} ${BOOSTER_NAMES[slot.activeBooster]}</span>`
+          : "";
+
+        return `
+          <div class="fp-summary-match-row">
+            <div class="fp-summary-match-header">
+              <span class="fp-summary-match-num">Match ${slot.matchNumber}</span>
+              <span class="fp-summary-subs ${slot.isReset ? "ok" : subsClass}">
+                ${slot.isReset ? "FREE" : `${subsUsed} subs · ${slot.subsRemaining} left`}
+              </span>
+            </div>
+            ${boosterHtml ? `<div style="margin-bottom:6px">${boosterHtml}</div>` : ""}
+            <div class="fp-summary-changes">
+              ${inPills || outPills
+                ? inPills + outPills
+                : '<span class="fp-no-change-text">No changes</span>'}
+            </div>
+          </div>`;
+      }).join("");
+
+      const lastSlot = plan[plan.length - 1];
+
+      content.innerHTML = `
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <div class="ts-stat-pill">
+            <span class="ts-stat-value">${totalSubsUsed}</span>
+            <span class="ts-stat-label">Total Subs Used</span>
+          </div>
+          <div class="ts-stat-pill">
+            <span class="ts-stat-value ${lastSlot.subsRemaining < 0 ? "danger" : ""}">${lastSlot.subsRemaining}</span>
+            <span class="ts-stat-label">Subs Remaining</span>
+          </div>
+          <div class="ts-stat-pill">
+            <span class="ts-stat-value">${plan.length}</span>
+            <span class="ts-stat-label">Matches Planned</span>
+          </div>
+        </div>
+        ${rows}`;
+
+      const sheet   = document.getElementById("fpSummarySheet");
+      const backdrop = document.getElementById("fpSummaryBackdrop");
+      backdrop?.classList.remove("hidden");
+      sheet?.classList.add("show");
+      document.body.style.overflow = "hidden";
+    }
+
+    window.closeFpSummary = () => {
+      document.getElementById("fpSummarySheet")?.classList.remove("show");
+      document.getElementById("fpSummaryBackdrop")?.classList.add("hidden");
+      document.body.style.overflow = "";
+    };
+
+    // ─── UI INIT ──────────────────────────────────────────────────────
+    function initUI() {
+      // Player pool — delegated
+      document.getElementById("playerPoolList")?.addEventListener("click", e => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn || btn.disabled) return;
+        if (btn.dataset.action === "toggle") togglePlayer(btn.dataset.id);
+      });
+
+      // My XI — delegated
+      document.getElementById("myXIList")?.addEventListener("click", e => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+        if (btn.dataset.action === "toggle") togglePlayer(btn.dataset.id);
+        else if (btn.dataset.action === "C")  setRole(btn.dataset.id, "C");
+        else if (btn.dataset.action === "VC") setRole(btn.dataset.id, "VC");
+      });
+
+      // Search
+      const searchIconBtn = document.getElementById("searchIconBtn");
+      const searchOverlay = document.getElementById("searchOverlayRow");
+      const searchCloseBtn = document.getElementById("searchCloseBtn");
+      const searchInput   = document.getElementById("playerSearch");
+      let searchTimeout;
+
+      if (searchIconBtn) {
+        searchIconBtn.onclick = () => {
+          searchOverlay?.classList.remove("hidden");
+          searchIconBtn.classList.add("active");
+          searchInput?.focus();
+        };
+      }
+
+      if (searchCloseBtn) {
+        searchCloseBtn.onclick = () => {
+          searchOverlay?.classList.add("hidden");
+          searchIconBtn?.classList.remove("active");
+          if (searchInput) searchInput.value = "";
+          filters.search = "";
+          renderPlayerPool(calcStats());
+          updateFilterButtonStates();
+        };
+      }
+
+      if (searchInput) {
+        searchInput.oninput = e => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            const term = e.target.value.toLowerCase().trim();
+            filters.search = term;
+            if (term) {
+              const match = allPlayers.find(p =>
+                p.name.toLowerCase().includes(term) ||
+                (p.team_short_code || "").toLowerCase().includes(term)
+              );
+              if (match && match.role !== filters.role) {
+                filters.role = match.role;
+                document.querySelectorAll(".role-tab").forEach(t =>
+                  t.classList.toggle("active", t.dataset.role === match.role));
+              }
+            }
+            renderPlayerPool(calcStats());
+            updateFilterButtonStates();
+          }, 250);
+        };
+      }
+
+      // Filter dropdowns
+      const backdrop = document.getElementById("filterBackdrop");
+      for (const type of ["match", "team", "credit", "type"]) {
+        const btn  = document.getElementById(`${type}Toggle`);
+        const menu = document.getElementById(`${type}Menu`);
+        if (btn && menu) {
+          btn.onclick = e => {
+            e.stopPropagation();
+            document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
+            menu.classList.add("show");
+            backdrop?.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+          };
+        }
+      }
+      if (backdrop) backdrop.onclick = closeFilters;
+
+      // View tabs
+      document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(`${btn.dataset.mode}-view`)?.classList.add("active");
+          const fw = document.querySelector(".search-filter-wrapper");
+          if (fw) fw.style.display = btn.dataset.mode === "myxi" ? "none" : "flex";
+        };
+      });
+
+      // Role tabs
+      document.querySelectorAll(".role-tab").forEach(tab => {
+        tab.onclick = () => {
+          document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          filters.role = tab.dataset.role;
+          if (searchInput) searchInput.value = "";
+          filters.search = "";
+          searchOverlay?.classList.add("hidden");
+          searchIconBtn?.classList.remove("active");
+          renderPlayerPool(calcStats());
+          updateFilterButtonStates();
+        };
+      });
+
+      // Bottom bar
+      document.getElementById("fpNextBtn")?.addEventListener("click", lockAndAdvance);
+      document.getElementById("fpResetBtn")?.addEventListener("click", resetCurrentMatch);
+      document.getElementById("fpSummaryBtn")?.addEventListener("click", openFpSummary);
+      document.getElementById("fpSummaryBackdrop")?.addEventListener("click", closeFpSummary);
+
+      // Filters init
+      initFilters();
+    }
+
+    // ─── FILTERS ──────────────────────────────────────────────────────
+    function initFilters() {
+      renderTeamDropdown();
+      renderMatchDropdown();
+      const uniqueCredits = [...new Set(allPlayers.map(p => p.credit))].sort((a, b) => a - b);
+      renderCheckboxDropdown("creditMenu", uniqueCredits, "credits", c => `${c} Cr`);
+      renderCheckboxDropdown("typeMenu",
+        [{ id: "uncapped", label: "Uncapped 🧢" }, { id: "overseas", label: "Overseas ✈️" }],
+        "type", t => t.label);
+    }
+
+    function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
+      const container = document.getElementById(elementId);
+      if (!container) return;
+      const listHtml = items.map(item => {
+        const val = item.id ?? item;
+        return `<label class="filter-item">
+          <span>${labelFn(item)}</span>
+          <input type="checkbox" value="${val}"
+            ${filters[filterKey].includes(val) ? "checked" : ""}
+            onchange="toggleFilter('${filterKey}', '${val}', this)">
+        </label>`;
+      }).join("");
+      container.innerHTML = `
+        <div class="dropdown-content">${listHtml || '<p class="empty-pool-msg">No options.</p>'}</div>
+        <div class="dropdown-actions">
+          <button onclick="clearFilters('${filterKey}')">Clear</button>
+          <button onclick="closeFilters()">Apply</button>
+        </div>`;
+    }
+
+    function renderMatchDropdown() {
+      const container = document.getElementById("matchMenu");
+      if (!container) return;
+      if (allMatches.length === 0) {
+        container.innerHTML = `<p class="empty-pool-msg" style="padding:20px;text-align:center;">No upcoming matches.</p>
+          <div class="dropdown-actions"><button onclick="closeFilters()">Close</button></div>`;
+        return;
+      }
+      const bucket = supabase.storage.from("team-logos");
+      const listHtml = allMatches.map(m => {
+        const isSelected = filters.matches.includes(m.id);
+        const logoA = m.team_a?.photo_name ? bucket.getPublicUrl(m.team_a.photo_name).data.publicUrl : "images/default-team.png";
+        const logoB = m.team_b?.photo_name ? bucket.getPublicUrl(m.team_b.photo_name).data.publicUrl : "images/default-team.png";
+        const d    = new Date(m.actual_start_time);
+        const date = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+        const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+        return `
+          <div class="match-filter-card ${isSelected ? "selected" : ""}" onclick="toggleMatchFilterCard('${m.id}', this)">
+            <span class="mfc-selected-tick">✔</span>
+            <div class="mfc-top-row">
+              <span class="mfc-match-num">Match ${m.match_number}</span>
+              <span class="mfc-venue">${m.venue || "Venue TBA"}</span>
+            </div>
+            <div class="mfc-main-row">
+              <div class="mfc-team-side">
+                <div class="mfc-logo" style="background-image:url('${logoA}')"></div>
+                <span class="mfc-team-name">${m.team_a?.short_code}</span>
+              </div>
+              <div class="mfc-center">
+                <span class="mfc-vs">vs</span>
+                <span class="mfc-datetime">${date}, ${time}</span>
+              </div>
+              <div class="mfc-team-side right">
+                <div class="mfc-logo" style="background-image:url('${logoB}')"></div>
+                <span class="mfc-team-name">${m.team_b?.short_code}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join("");
+      container.innerHTML = `
+        <div class="dropdown-content match-filter-grid">${listHtml}</div>
+        <div class="dropdown-actions">
+          <button onclick="clearFilters('matches')">Clear</button>
+          <button onclick="closeFilters()">Apply</button>
+        </div>`;
+    }
+
+    function renderTeamDropdown() {
+      const container = document.getElementById("teamMenu");
+      if (!container) return;
+      const bucket       = supabase.storage.from("team-logos");
+      const uniqueTeamIds = [...new Set(allPlayers.map(p => p.real_team_id))];
+      const listHtml = uniqueTeamIds.map(teamId => {
+        const isSelected = filters.teams.includes(teamId);
+        const info       = realTeamsMap[teamId] || { name: "Unknown", short_code: "UNK" };
+        const logoUrl    = info.photo_name ? bucket.getPublicUrl(info.photo_name).data.publicUrl : "images/default-team.png";
+        return `
+          <div class="team-filter-card ${isSelected ? "selected" : ""}" onclick="toggleTeamFilterCard('${teamId}', this)">
+            <div class="tfc-logo" style="background-image:url('${logoUrl}')"></div>
+            <span class="tfc-name">${info.name} (${info.short_code})</span>
+          </div>`;
+      }).join("");
+      container.innerHTML = `
+        <div class="dropdown-content team-filter-grid">${listHtml}</div>
+        <div class="dropdown-actions">
+          <button onclick="clearFilters('teams')">Clear</button>
+          <button onclick="closeFilters()">Apply</button>
+        </div>`;
+    }
+
+    // ─── FILTER UTILITIES ─────────────────────────────────────────────
+    window.toggleFilter = (k, v, el) => {
+      const val = k === "credits" ? parseFloat(v) : v;
+      if (el.checked) filters[k].push(val);
+      else filters[k] = filters[k].filter(i => i !== val);
+      renderPlayerPool(calcStats());
+      updateFilterButtonStates();
+    };
+
+    window.clearFilters = k => {
+      filters[k] = [];
+      renderPlayerPool(calcStats());
+      updateFilterButtonStates();
+      initFilters();
+    };
+
+    window.closeFilters = () => {
+      document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
+      document.getElementById("filterBackdrop")?.classList.add("hidden");
+      document.body.style.overflow = "";
+    };
+
+    window.toggleTeamFilterCard = (teamId, el) => {
+      if (filters.teams.includes(teamId)) {
+        filters.teams = filters.teams.filter(id => id !== teamId);
+        el.classList.remove("selected");
+      } else {
+        filters.teams.push(teamId);
+        el.classList.add("selected");
+      }
+      renderPlayerPool(calcStats());
+      updateFilterButtonStates();
+    };
+
+    window.toggleMatchFilterCard = (matchId, el) => {
+      if (filters.matches.includes(matchId)) {
+        filters.matches = filters.matches.filter(id => id !== matchId);
+        el.classList.remove("selected");
+      } else {
+        filters.matches.push(matchId);
+        el.classList.add("selected");
+      }
+      renderPlayerPool(calcStats());
+      updateFilterButtonStates();
+    };
+
+    function updateFilterButtonStates() {
+      const map = {
+        matchToggle: filters.matches, teamToggle: filters.teams,
+        creditToggle: filters.credits, typeToggle: filters.type,
+      };
+      for (const [id, arr] of Object.entries(map)) {
+        document.getElementById(id)?.classList.toggle("active-filter", arr.length > 0);
+      }
+    }
+
+    function updateRoleTabStates(stats) {
+      const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
+      document.querySelectorAll(".role-tab[data-role]").forEach(tab => {
+        const role  = tab.dataset.role;
+        const count = stats.roles[role] || 0;
+        const min   = minReq[role] || 0;
+        const badge = tab.querySelector("span");
+        if (badge) badge.textContent = count;
+        tab.classList.remove("req-met", "req-unmet");
+        if (count >= min) tab.classList.add("req-met");
+        else              tab.classList.add("req-unmet");
+      });
+    }
+
+    // ─── HELPERS ──────────────────────────────────────────────────────
+    function setText(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+
+    function showEmpty(msg = "No upcoming matches.") {
+      document.body.classList.remove("loading-state");
+      const main = document.querySelector(".content-area");
+      if (main) main.innerHTML = `<p class="empty-pool-msg">${msg}</p>`;
+    }
+
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const toast = document.createElement("div");
+      toast.className   = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity   = "0";
+        toast.style.transform = "translateX(120%)";
+        toast.style.transition = "all 0.4s ease";
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    window.showConfirm = (title, message) => {
+      return new Promise(resolve => {
+        const overlay   = document.getElementById("customConfirmOverlay");
+        const titleEl   = document.getElementById("confirmTitle");
+        const textEl    = document.getElementById("confirmText");
+        const btnCancel = document.getElementById("confirmCancelBtn");
+        const btnApply  = document.getElementById("confirmApplyBtn");
+        if (!overlay) return resolve(true);
+        titleEl.textContent = title;
+        textEl.textContent  = message;
+        overlay.classList.remove("hidden");
+        const cleanup = () => { overlay.classList.add("hidden"); btnCancel.onclick = null; btnApply.onclick = null; };
+        btnCancel.onclick = () => { cleanup(); resolve(false); };
+        btnApply.onclick  = () => { cleanup(); resolve(true); };
+      });
+    };
+
+    // ─── PLAYER PROFILE (reused from edit-team) ───────────────────────
+    window.openPlayerProfile = async (playerId) => {
+      const overlay = document.getElementById("playerProfileOverlay");
+      const content = document.getElementById("profileContent");
+      if (!overlay || !content) return;
+      content.innerHTML = '<div class="profile-loading"><div class="tb-spinner"></div></div>';
+      overlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      try {
+        const [playerRes, statsRes] = await Promise.all([
+          supabase.from("player_pool_view").select("*").eq("id", playerId).maybeSingle(),
+          supabase.from("player_match_stats")
+            .select("*, match:matches!inner(match_number)")
+            .eq("player_id", playerId)
+            .order("match_id", { ascending: true }),
+        ]);
+
+        const p     = playerRes.data;
+        const stats = statsRes.data || [];
+        if (!p) { content.innerHTML = '<p class="profile-no-history">Player not found.</p>'; return; }
+
+        const bucket   = supabase.storage.from("player-photos");
+        const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
+        const totalPts = stats.reduce((s, m) => s + (m.fantasy_points || 0), 0);
+        const cat      = (p.category || "").toLowerCase();
+        const slot     = currentSlot();
+        const isSelected = slot.playerIds.includes(p.id);
+        const currStats  = calcStats();
+        const canAdd     = !isSelected && currStats.count < 11 && !(currStats.overseas >= 4 && cat === "overseas");
+        const catBadge   = cat === "overseas"
+          ? '<span class="profile-badge overseas">✈ Overseas</span>'
+          : cat === "uncapped"
+          ? '<span class="profile-badge uncapped">🧢 Uncapped</span>'
+          : "";
+
+        const historyHtml = stats.length > 0
+          ? stats.map(m => {
+              const isBig = m.fantasy_points >= 100;
+              const chips = buildProfileChips(m);
+              return `
+                <div class="profile-match-row ${isBig ? "big-game" : ""}">
+                  <div class="pmr-top">
+                    <span class="pmr-match">Match ${m.match?.match_number || "#"}</span>
+                    <span class="pmr-pts">${isBig ? "🌟 " : ""}+${m.fantasy_points} pts</span>
+                  </div>
+                  ${chips.length > 0 ? `<div class="pmr-chips">${chips.join("")}</div>` : ""}
+                </div>`;
+            }).join("")
+          : '<p class="profile-no-history">No match data yet.</p>';
+
+        content.innerHTML = `
+          <div class="profile-hero">
+            <img src="${photoUrl}" class="profile-avatar" alt="${p.name}">
+            <span class="profile-name">${p.name}</span>
+            <div class="profile-badges">
+              <span class="profile-badge role">${p.role}</span>
+              <span class="profile-badge team">${p.team_short_code}</span>
+              ${catBadge}
+            </div>
+          </div>
+          <div class="profile-stats-row">
+            <div class="profile-stat"><span class="ps-value">${p.credit} Cr</span><span class="ps-label">Credits</span></div>
+            <div class="profile-stat"><span class="ps-value">${totalPts}</span><span class="ps-label">Season Pts</span></div>
+            <div class="profile-stat"><span class="ps-value">${p.selected_by_percent ?? "—"}%</span><span class="ps-label">Selected By</span></div>
+            <div class="profile-stat"><span class="ps-value">${stats.length}</span><span class="ps-label">Matches</span></div>
+          </div>
+          <div class="profile-history">
+            <div class="profile-history-label">Match Breakdown</div>
+            ${historyHtml}
+          </div>
+          <div class="profile-action-wrap">
+            <button class="profile-action-btn ${isSelected ? "remove" : "add"}"
+              ${!isSelected && !canAdd ? "disabled" : ""}
+              onclick="profileTogglePlayer('${p.id}')">
+              ${isSelected ? "− Remove from XI" : "+ Add to XI"}
+            </button>
+          </div>`;
+      } catch (err) {
+        console.error("Profile load error:", err);
+        content.innerHTML = '<p class="profile-no-history">Failed to load. Try again.</p>';
+      }
+    };
+
+    window.closePlayerProfile = (e) => {
+      if (e && e.target !== document.getElementById("playerProfileOverlay")) return;
+      document.getElementById("playerProfileOverlay")?.classList.add("hidden");
+      document.body.style.overflow = "";
+    };
+
+    window.profileTogglePlayer = (id) => {
+      closePlayerProfile();
+      setTimeout(() => togglePlayer(id), 200);
+    };
+
+    function buildProfileChips(m) {
+      const chips = [];
+      const chip  = (text, type) => `<span class="stat-tag ${type}">${text}</span>`;
+      if (m.runs   > 0) chips.push(chip(`🏏 ${m.runs}${m.balls ? ` (${m.balls}b)` : ""}`, "bat"));
+      if (m.fours  > 0 || m.sixes > 0) chips.push(chip(`🎯 ${m.fours||0}×4 ${m.sixes||0}×6`, "boundary"));
+      if (m.sr_points && m.sr_points !== 0) chips.push(chip(`⚡ SR ${m.sr_points > 0 ? "+" : ""}${m.sr_points}`, "bonus"));
+      if (m.milestone_points > 0) chips.push(chip(`🏆 +${m.milestone_points}`, "bonus"));
+      if (m.duck_penalty && m.duck_penalty < 0) chips.push(chip(`🦆 Duck ${m.duck_penalty}`, "penalty"));
+      if (m.wickets  > 0) chips.push(chip(`🎳 ${m.wickets}W`, "bowl"));
+      if (m.maidens  > 0) chips.push(chip(`🧱 ${m.maidens} Maiden${m.maidens > 1 ? "s" : ""}`, "bowl"));
+      if (m.er_points && m.er_points !== 0) chips.push(chip(`📉 Econ ${m.er_points > 0 ? "+" : ""}${m.er_points}`, "bonus"));
+      if (m.catches   > 0) chips.push(chip(`🧤 ${m.catches}C`, "field"));
+      if (m.stumpings > 0) chips.push(chip(`🏃 ${m.stumpings}St`, "field"));
+      const ro = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
+      if (ro > 0) chips.push(chip(`🎯 ${ro}RO`, "field"));
+      if (m.is_player_of_match) chips.push(chip("🏆 POM +20", "gold"));
+      return chips;
+    }
+
+  </script>
+</body>
+</html>
