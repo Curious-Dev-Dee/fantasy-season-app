@@ -16,1604 +16,1783 @@
   <script type="module" src="auth-guard.js"></script>
 
   <style>
-    /* ── FUTURE PLANNER OVERRIDES & ADDITIONS ────────────────────── */
+    /* ══════════════════════════════════════════════
+       FUTURE PLANNER — MOBILE-FIRST COMPACT REWRITE
+    ══════════════════════════════════════════════ */
 
-    /* Header stripe — amber/gold theme to distinguish from real edit team */
+    :root {
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.15);
+      --amber-border: rgba(245,158,11,0.25);
+      --amber-glow: rgba(245,158,11,0.08);
+      --accent: #9ae000;
+      --red: #ef4444;
+      --bg-page: #0d0a01;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-elevated: #191208;
+      --border: rgba(255,255,255,0.07);
+      --border-card: rgba(255,255,255,0.08);
+      --text-dim: rgba(255,255,255,0.75);
+      --text-faint: rgba(255,255,255,0.35);
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --card-r: 10px;
+      --bar-h: 68px; /* bottom bar height */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-page);
+      color: #fff;
+      font-family: var(--font-body);
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+
+    /* ── HEADER ─────────────────────────────────── */
     .fp-header {
-      height: 64px;
-      padding: 0 16px;
+      height: 48px;
+      padding: 0 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(20, 14, 2, 0.96);
+      background: rgba(13,10,1,0.97);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+      border-bottom: 1px solid var(--amber-border);
       position: sticky;
       top: 0;
       z-index: 1000;
     }
 
-    .fp-header-title {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: #f59e0b;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    .fp-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .fp-header-subtitle {
-      font-family: var(--font-body);
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(245, 158, 11, 0.55);
+    .fp-back {
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--amber);
+      font-size: 14px;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+
+    .fp-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--amber);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-top: 1px;
+      letter-spacing: 0.8px;
+      line-height: 1;
     }
 
     .fp-sandbox-badge {
       display: flex;
       align-items: center;
-      gap: 5px;
-      background: rgba(245, 158, 11, 0.10);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 900;
-      color: #f59e0b;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .fp-sandbox-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #f59e0b;
-      animation: fpPulse 2s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes fpPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    /* Match navigator strip */
-    .fp-match-nav {
-      padding: 10px 16px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .fp-match-nav-label {
+      gap: 4px;
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-border);
+      border-radius: 5px;
+      padding: 3px 7px;
       font-family: var(--font-display);
       font-size: 9px;
       font-weight: 900;
-      color: rgba(245, 158, 11, 0.5);
+      color: var(--amber);
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 0.8px;
     }
 
-    .fp-match-scroll {
+    .fp-sandbox-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--amber);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── STICKY TOP ZONE ────────────────────────── */
+    .fp-sticky {
+      position: sticky;
+      top: 48px;
+      z-index: 900;
+      background: var(--bg-page);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── MATCH CHIPS ────────────────────────────── */
+    .fp-match-strip {
       display: flex;
-      gap: 8px;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
       overflow-x: auto;
       scrollbar-width: none;
-      padding-bottom: 2px;
     }
+    .fp-match-strip::-webkit-scrollbar { display: none; }
 
-    .fp-match-scroll::-webkit-scrollbar { display: none; }
-
-    .fp-match-chip {
+    .fp-chip {
       flex: 0 0 auto;
-      padding: 7px 12px;
-      border-radius: 8px;
+      height: 26px;
+      padding: 0 9px;
+      border-radius: 6px;
       border: 1px solid var(--border-card);
       background: var(--bg-card);
       font-family: var(--font-display);
       font-size: 11px;
       font-weight: 900;
-      color: var(--text-dim);
+      color: var(--text-faint);
       text-transform: uppercase;
-      letter-spacing: 0.3px;
       cursor: pointer;
-      transition: all 0.2s ease;
       white-space: nowrap;
       position: relative;
+      transition: all 0.15s;
     }
-
-    .fp-match-chip.active {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: rgba(245, 158, 11, 0.4);
-      color: #f59e0b;
+    .fp-chip.active {
+      background: var(--amber-dim);
+      border-color: var(--amber-border);
+      color: var(--amber);
     }
-
-    .fp-match-chip.has-changes::after {
+    .fp-chip.base { border-style: dashed; }
+    .fp-chip.changed::after {
       content: '';
       position: absolute;
-      top: -3px;
-      right: -3px;
-      width: 7px;
-      height: 7px;
+      top: -2px; right: -2px;
+      width: 6px; height: 6px;
       border-radius: 50%;
-      background: #f59e0b;
+      background: var(--amber);
       border: 1.5px solid var(--bg-page);
     }
 
-    .fp-match-chip.base-chip {
-      border-style: dashed;
-      border-color: rgba(245, 158, 11, 0.3);
-      color: rgba(245, 158, 11, 0.6);
-    }
-
-    /* Cumulative stats banner */
-    .fp-cumulative-banner {
-      margin: 8px 16px 0;
-      padding: 10px 14px;
-      background: rgba(245, 158, 11, 0.06);
-      border: 1px solid rgba(245, 158, 11, 0.15);
-      border-radius: var(--card-radius-sm);
+    /* ── MINI STATS BAR ─────────────────────────── */
+    .fp-stats-bar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      padding: 0 12px 7px;
+      gap: 0;
     }
 
-    .fp-cum-item {
+    .fp-stat {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 1px;
-      flex: 1;
     }
 
-    .fp-cum-value {
+    .fp-stat-val {
       font-family: var(--font-display);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
-      color: #f59e0b;
+      color: var(--amber);
       line-height: 1;
     }
+    .fp-stat-val.ok { color: var(--accent); }
+    .fp-stat-val.bad { color: var(--red); }
 
-    .fp-cum-value.danger { color: var(--red); }
-    .fp-cum-value.ok { color: var(--accent); }
-
-    .fp-cum-label {
-      font-family: var(--font-body);
-      font-size: 9px;
+    .fp-stat-lbl {
+      font-size: 8px;
       font-weight: 600;
       color: var(--text-faint);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      text-align: center;
+      letter-spacing: 0.4px;
     }
 
-    .fp-cum-divider {
-      width: 1px;
-      height: 28px;
-      background: rgba(245, 158, 11, 0.15);
+    .fp-stat-sep {
+      width: 1px; height: 22px;
+      background: var(--border);
       flex-shrink: 0;
     }
 
-    /* Subs diff pill on dashboard */
-    .fp-subs-diff {
+    /* ── VIEW TOGGLE (compact pill) ─────────────── */
+    .fp-view-toggle {
+      display: flex;
+      margin: 0 12px 7px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .fp-view-btn {
+      flex: 1;
+      height: 30px;
+      background: none;
+      border: none;
+      color: var(--text-faint);
       font-family: var(--font-display);
-      font-size: 9px;
+      font-size: 11px;
       font-weight: 900;
-      padding: 1px 5px;
-      border-radius: 4px;
-      margin-left: 3px;
-    }
-
-    .fp-subs-diff.used {
-      background: rgba(245, 158, 11, 0.15);
-      color: #f59e0b;
-    }
-
-    .fp-subs-diff.free {
-      background: rgba(154, 224, 0, 0.12);
-      color: var(--accent);
-    }
-
-    /* Match-change log in My XI view */
-    .fp-change-log {
-      margin: 0 16px 12px;
-      padding: 10px 14px;
-      background: rgba(245, 158, 11, 0.05);
-      border: 1px solid rgba(245, 158, 11, 0.15);
-      border-radius: var(--card-radius-sm);
-    }
-
-    .fp-change-log-title {
-      font-family: var(--font-display);
-      font-size: 9px;
-      font-weight: 900;
-      color: rgba(245, 158, 11, 0.5);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
     }
 
-    .fp-change-pill {
+    .fp-view-btn.active {
+      background: var(--amber-dim);
+      color: var(--amber);
+    }
+
+    /* Role count badge inside view btn */
+    .fp-view-btn .vb-count {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-family: var(--font-body);
+      justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 4px;
+      background: var(--amber);
+      color: #000;
+      font-size: 9px;
+      font-weight: 900;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+
+    /* ── ROLE TABS ───────────────────────────────── */
+    .fp-role-bar {
+      display: flex;
+      padding: 0 12px 7px;
+      gap: 5px;
+    }
+
+    .fp-role-tab {
+      flex: 1;
+      height: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-family: var(--font-display);
       font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 5px;
-      margin: 2px 3px 2px 0;
+      font-weight: 900;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
     }
 
-    .fp-change-pill.in {
-      background: rgba(154, 224, 0, 0.08);
-      border: 1px solid rgba(154, 224, 0, 0.2);
-      color: var(--accent);
+    .fp-role-tab .rt-count {
+      font-size: 9px;
+      opacity: 0.7;
     }
 
-    .fp-change-pill.out {
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      color: #f59e0b;
+    .fp-role-tab.active {
+      background: var(--amber-dim);
+      border-color: var(--amber-border);
+      color: var(--amber);
+    }
+    .fp-role-tab.req-met { color: var(--accent); border-color: rgba(154,224,0,0.2); background: rgba(154,224,0,0.06); }
+    .fp-role-tab.req-met.active { color: var(--amber); border-color: var(--amber-border); background: var(--amber-dim); }
+
+    /* ── SEARCH ROW ─────────────────────────────── */
+    .fp-search-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 12px 8px;
     }
 
-    .fp-change-pill .fp-pill-dot {
-      width: 5px;
-      height: 5px;
+    .fp-search-input {
+      flex: 1;
+      height: 30px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 12px;
+      padding: 0 10px;
+      outline: none;
+    }
+    .fp-search-input::placeholder { color: var(--text-faint); }
+    .fp-search-input:focus { border-color: var(--amber-border); }
+
+    .fp-filter-pill {
+      height: 30px;
+      padding: 0 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-faint);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .fp-filter-pill.active-filter {
+      background: var(--amber-dim);
+      border-color: var(--amber-border);
+      color: var(--amber);
+    }
+
+    /* ── TEAM DOTS (tiny) ───────────────────────── */
+    .fp-dots-row {
+      display: flex;
+      gap: 3px;
+      padding: 0 12px 7px;
+      align-items: center;
+    }
+
+    .fp-dot {
+      width: 20px; height: 20px;
       border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      background-size: cover;
+      background-position: center;
       flex-shrink: 0;
     }
+    .fp-dot.filled { border-color: var(--amber-border); }
+    .fp-dot.empty { opacity: 0.3; }
 
-    .fp-change-pill.in .fp-pill-dot { background: var(--accent); }
-    .fp-change-pill.out .fp-pill-dot { background: #f59e0b; }
+    .fp-dot-credits {
+      margin-left: auto;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--amber);
+    }
+    .fp-dot-credits.tight { color: var(--red); }
+    .fp-dot-overseas {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-faint);
+      margin-left: 4px;
+    }
 
-    .fp-no-changes {
-      font-family: var(--font-body);
+    /* ── CONTENT ─────────────────────────────────── */
+    .fp-content {
+      padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom, 0px) + 4px);
+    }
+
+    /* ── CHANGE LOG (compact) ───────────────────── */
+    .fp-changelog {
+      margin: 0 12px 6px;
+      padding: 7px 10px;
+      background: var(--amber-glow);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--card-r);
+    }
+
+    .fp-changelog-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .fp-cl-label {
+      font-family: var(--font-display);
+      font-size: 8px;
+      font-weight: 900;
+      color: rgba(245,158,11,0.45);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      width: 100%;
+      margin-bottom: 2px;
+    }
+
+    .fp-cl-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+    }
+    .fp-cl-pill.in { background: rgba(154,224,0,0.08); border: 1px solid rgba(154,224,0,0.2); color: var(--accent); }
+    .fp-cl-pill.out { background: var(--amber-dim); border: 1px solid var(--amber-border); color: var(--amber); }
+
+    .fp-cl-empty {
       font-size: 11px;
       color: var(--text-faint);
       font-style: italic;
     }
 
-    /* Reset match button in bottom bar */
-    .fp-bar {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: var(--app-max-width);
-      padding: 8px 16px calc(14px + env(safe-area-inset-bottom, 0px));
-      background: rgba(20, 14, 2, 0.96);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(245, 158, 11, 0.2);
-      z-index: 1100;
+    /* ── PLAYER CARD (compact mobile) ──────────── */
+    .fp-player-list { padding: 0 12px; }
+
+    .fp-player-card {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      margin-bottom: 5px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-r);
+      cursor: pointer;
+      transition: border-color 0.15s;
+      position: relative;
+      overflow: hidden;
     }
 
-    .fp-bar-hint {
-      font-family: var(--font-body);
-      font-size: 11px;
+    .fp-player-card.selected {
+      border-color: rgba(245,158,11,0.3);
+      background: var(--amber-glow);
+    }
+
+    .fp-player-card.faded { opacity: 0.38; pointer-events: none; }
+
+    /* Swipe OUT flash */
+    .fp-player-card.flash-out { animation: flashOut 0.3s ease; }
+    @keyframes flashOut { 0%{background:rgba(245,158,11,0.15)} 100%{background:var(--amber-glow)} }
+
+    /* Avatar */
+    .fp-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      background: #222;
+    }
+    .fp-player-card.selected .fp-avatar { border-color: var(--amber-border); }
+
+    /* Info */
+    .fp-pinfo { flex: 1; min-width: 0; }
+
+    .fp-pname {
       font-weight: 600;
-      color: rgba(245, 158, 11, 0.6);
-      text-align: center;
-      min-height: 14px;
-      letter-spacing: 0.2px;
+      font-size: 13px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
     }
 
-    .fp-bar-buttons {
+    .fp-pmeta {
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-top: 1px;
       display: flex;
-      gap: 8px;
+      align-items: center;
+      gap: 5px;
     }
 
-    .fp-btn-reset {
-      flex: 0 0 auto;
-      padding: 14px 14px;
-      background: transparent;
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      border-radius: var(--btn-radius);
-      color: rgba(245, 158, 11, 0.6);
-      font-family: var(--font-display);
-      font-size: 12px;
+    .fp-cat-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+    .fp-cat-badge.os { background: rgba(99,179,237,0.12); color: #63b3ed; }
+    .fp-cat-badge.uc { background: rgba(154,224,0,0.10); color: var(--accent); }
+
+    .fp-pin-badge {
+      font-size: 8px;
       font-weight: 900;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .fp-btn-reset:hover {
-      background: rgba(245, 158, 11, 0.08);
-      border-color: rgba(245, 158, 11, 0.4);
-      color: #f59e0b;
-    }
-
-    .fp-btn-next {
-      flex: 1;
-      padding: 14px;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: var(--btn-radius);
-      color: #f59e0b;
       font-family: var(--font-display);
-      font-size: 15px;
-      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 3px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+    }
+    .fp-pin-badge.new-in { background: rgba(154,224,0,0.1); color: var(--accent); border: 1px solid rgba(154,224,0,0.2); }
+    .fp-pin-badge.out { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); }
+
+    /* Controls (right side) */
+    .fp-pcontrols {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* C / VC buttons */
+    .fp-role-btn {
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-faint);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s;
     }
+    .fp-role-btn.active-c { background: var(--amber); border-color: var(--amber); color: #000; }
+    .fp-role-btn.active-vc { background: rgba(245,158,11,0.35); border-color: var(--amber); color: var(--amber); }
 
-    .fp-btn-next:not(:disabled):hover {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: rgba(245, 158, 11, 0.6);
-      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+    /* +/- toggle — the star of the show */
+    .fp-toggle-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(154,224,0,0.35);
+      background: rgba(154,224,0,0.06);
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 300;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
     }
-
-    .fp-btn-next:disabled {
+    .fp-toggle-btn:active { transform: scale(0.9); }
+    .fp-toggle-btn.selected {
+      border-color: var(--amber-border);
+      background: var(--amber-dim);
+      color: var(--amber);
+    }
+    .fp-toggle-btn:disabled {
+      border-color: var(--border);
+      background: none;
+      color: var(--text-faint);
       opacity: 0.4;
       cursor: not-allowed;
     }
 
-    .fp-btn-export {
-      flex: 0 0 auto;
-      padding: 14px 14px;
-      background: transparent;
-      border: 1px solid rgba(154, 224, 0, 0.25);
-      border-radius: var(--btn-radius);
-      color: rgba(154, 224, 0, 0.6);
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    /* Booster section — minimal strip */
+    .fp-booster-strip {
+      margin: 0 12px 8px;
     }
 
-    .fp-btn-export:hover {
-      background: rgba(154, 224, 0, 0.08);
-      border-color: rgba(154, 224, 0, 0.4);
-      color: var(--accent);
-    }
-
-    /* Override save-bar so it doesn't interfere */
-    .save-bar { display: none !important; }
-
-    /* Sandbox watermark on player cards */
-    .fp-player-new-badge {
-      display: inline-block;
-      font-family: var(--font-display);
-      font-size: 8px;
-      font-weight: 900;
-      color: #f59e0b;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      padding: 1px 5px;
-      border-radius: 4px;
-      margin-top: 3px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .fp-player-dropped-badge {
-      display: inline-block;
+    .fp-booster-label {
       font-family: var(--font-display);
       font-size: 8px;
       font-weight: 900;
       color: var(--text-faint);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fp-booster-left-badge {
+      font-size: 8px;
       padding: 1px 5px;
       border-radius: 4px;
-      margin-top: 3px;
+      background: var(--amber-dim);
+      color: var(--amber);
+      font-weight: 900;
+    }
+
+    .fp-booster-scroll {
+      display: flex;
+      gap: 5px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .fp-booster-scroll::-webkit-scrollbar { display: none; }
+
+    .fp-booster-card {
+      flex: 0 0 auto;
+      height: 38px;
+      padding: 0 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      white-space: nowrap;
+      position: relative;
+    }
+    .fp-booster-card .bic { font-size: 14px; }
+    .fp-booster-card.active { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+    .fp-booster-card.used { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .fp-booster-card.locked { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+
+    /* ── BOTTOM BAR ─────────────────────────────── */
+    .fp-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--bar-h);
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+      background: rgba(13,10,1,0.97);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--amber-border);
+      z-index: 1100;
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .fp-btn-reset {
+      width: 38px; height: 42px;
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--amber-border);
+      border-radius: 9px;
+      color: var(--amber);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fp-btn-reset:active { background: var(--amber-dim); }
+
+    .fp-btn-next {
+      flex: 1;
+      height: 42px;
+      background: var(--amber-dim);
+      border: 1.5px solid var(--amber-border);
+      border-radius: 9px;
+      color: var(--amber);
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .fp-btn-next:not(:disabled):active { background: rgba(245,158,11,0.25); }
+    .fp-btn-next:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    .fp-btn-summary {
+      width: 38px; height: 42px;
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid rgba(154,224,0,0.2);
+      border-radius: 9px;
+      color: var(--accent);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    /* Highlight accent override for booster header */
-    .b-count {
-      background: rgba(245, 158, 11, 0.7) !important;
-    }
-
-    .booster-card.active {
-      background: rgba(245, 158, 11, 0.10) !important;
-      border-color: rgba(245, 158, 11, 0.35) !important;
-    }
-
-    .active-badge {
-      background: #f59e0b !important;
-    }
-
-    /* Summary panel when viewing future plan */
+    /* ── SUMMARY SHEET ───────────────────────────── */
     .fp-summary-sheet {
       position: fixed;
-      bottom: -100%;
-      left: 0;
-      width: 100%;
+      bottom: -100%; left: 0; right: 0;
       max-height: 80vh;
       background: var(--bg-elevated);
-      border-radius: 24px 24px 0 0;
-      border-top: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--amber-border);
       z-index: 3000;
-      transition: bottom 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
-      padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+      transition: bottom 0.35s cubic-bezier(0.34,1.1,0.64,1);
+      padding: 16px 14px calc(20px + env(safe-area-inset-bottom, 0px));
       overflow-y: auto;
     }
-
     .fp-summary-sheet.show { bottom: 0; }
+
+    .fp-summary-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
 
     .fp-summary-title {
       font-family: var(--font-display);
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 900;
-      color: #f59e0b;
+      color: var(--amber);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
     }
 
-    .fp-summary-match-row {
-      padding: 12px;
+    .fp-summary-close {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-faint);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .fp-summary-pills {
+      display: flex; gap: 6px; margin-bottom: 12px;
+    }
+
+    .fp-summary-pill {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .fp-summary-pill .spv {
+      font-family: var(--font-display);
+      font-size: 18px; font-weight: 900;
+      color: var(--amber);
+      display: block;
+    }
+    .fp-summary-pill .spl {
+      font-size: 8px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .fp-smatch-row {
+      padding: 9px 10px;
       background: var(--bg-card);
       border: 1px solid var(--border-card);
-      border-radius: var(--card-radius-sm);
-      margin-bottom: 8px;
-    }
-
-    .fp-summary-match-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      border-radius: var(--card-r);
       margin-bottom: 6px;
     }
 
-    .fp-summary-match-num {
-      font-family: var(--font-display);
-      font-size: 11px;
-      font-weight: 900;
-      color: #f59e0b;
-      text-transform: uppercase;
-    }
-
-    .fp-summary-subs {
-      font-family: var(--font-display);
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .fp-summary-subs.warn { color: #f59e0b; }
-    .fp-summary-subs.ok { color: var(--accent); }
-    .fp-summary-subs.none { color: var(--text-faint); }
-
-    .fp-summary-changes {
+    .fp-smatch-hdr {
       display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
     }
 
-    .fp-no-change-text {
-      font-family: var(--font-body);
-      font-size: 11px;
+    .fp-smatch-num {
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 900;
+      color: var(--amber);
+    }
+
+    .fp-smatch-subs {
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 900;
+    }
+    .fp-smatch-subs.ok { color: var(--accent); }
+    .fp-smatch-subs.warn { color: var(--amber); }
+    .fp-smatch-subs.none { color: var(--text-faint); }
+
+    .fp-smatch-changes { display: flex; flex-wrap: wrap; gap: 3px; }
+
+    /* ── BACKDROP ────────────────────────────────── */
+    .fp-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 2900;
+      display: none;
+    }
+    .fp-backdrop.show { display: block; }
+
+    /* ── FILTER SHEETS (reused) ──────────────────── */
+    .fp-filter-sheet {
+      position: fixed;
+      bottom: -100%; left: 0; right: 0;
+      max-height: 70vh;
+      background: var(--bg-elevated);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      z-index: 3100;
+      transition: bottom 0.3s ease;
+      padding: 14px;
+      overflow-y: auto;
+    }
+    .fp-filter-sheet.show { bottom: 0; }
+
+    .fp-filter-sheet-hdr {
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 900;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .fp-filter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .fp-filter-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--amber); }
+
+    .fp-sheet-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .fp-sheet-btn {
+      flex: 1; height: 40px;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-size: 12px; font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .fp-sheet-btn.clear { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-faint); }
+    .fp-sheet-btn.apply { background: var(--amber-dim); border: 1px solid var(--amber-border); color: var(--amber); }
+
+    /* ── CONFIRM DIALOG ───────────────────────────── */
+    .fp-confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 5000;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .fp-confirm-overlay.hidden { display: none; }
+    .fp-confirm-card {
+      width: 100%; max-width: 480px;
+      background: var(--bg-elevated);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    }
+    .fp-confirm-title {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 900;
+      color: #fff;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .fp-confirm-text {
+      font-size: 12px;
       color: var(--text-faint);
-      font-style: italic;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .fp-confirm-btns { display: flex; gap: 8px; }
+    .fp-confirm-btns button {
+      flex: 1; height: 44px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    #fpConfirmCancelBtn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-faint); }
+    #fpConfirmApplyBtn { background: var(--amber-dim); border: 1.5px solid var(--amber-border); color: var(--amber); }
+
+    /* ── PLAYER PROFILE OVERLAY ──────────────────── */
+    .fp-profile-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 4000;
+      display: flex; align-items: flex-end;
+    }
+    .fp-profile-overlay.hidden { display: none; }
+    .fp-profile-card {
+      width: 100%; max-width: 480px; margin: 0 auto;
+      background: var(--bg-elevated);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
-    /* accent on role tabs for sandbox */
-    .fp-mode .role-tab.active {
-      border-color: rgba(245, 158, 11, 0.4) !important;
-      background: rgba(245, 158, 11, 0.08) !important;
-      color: #f59e0b !important;
-    }
-
-    .fp-mode .role-tab.req-met {
-      color: var(--accent) !important;
-    }
-
-    .fp-mode .toggle-btn.active {
-      background: #f59e0b !important;
-      border-color: #f59e0b !important;
-      color: #000 !important;
-    }
-
-    .fp-mode .action-btn.add {
-      color: #f59e0b !important;
-      border-color: #f59e0b !important;
-    }
-
-    .fp-mode .action-btn.add:hover {
-      background: #f59e0b !important;
-      color: #000 !important;
-    }
-
-    /* Instructions overlay shown once */
+    /* ── INTRO TOAST ─────────────────────────────── */
     .fp-intro-toast {
       position: fixed;
-      top: 72px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 32px);
-      max-width: calc(var(--app-max-width) - 32px);
-      background: rgba(20, 14, 2, 0.97);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: var(--card-radius-sm);
-      padding: 12px 14px;
+      top: 54px; left: 12px; right: 12px;
+      background: rgba(13,10,1,0.97);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--card-r);
+      padding: 9px 12px;
       z-index: 1500;
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      animation: slideDown 0.4s ease forwards;
+      align-items: center;
+      gap: 8px;
+      animation: slideDown 0.4s ease;
     }
-
     @keyframes slideDown {
-      from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      from { opacity:0; transform: translateY(-8px); }
+      to { opacity:1; transform: translateY(0); }
     }
+    .fp-intro-text { font-size: 11px; color: var(--text-dim); line-height: 1.4; flex:1; }
+    .fp-intro-text strong { color: var(--amber); }
+    .fp-intro-close { background: none; border: none; color: var(--text-faint); font-size: 14px; cursor: pointer; padding: 0 2px; }
 
-    .fp-intro-icon {
-      font-size: 20px;
-      flex-shrink: 0;
-      margin-top: 1px;
+    /* ── TOAST ────────────────────────────────────── */
+    .fp-toast-container {
+      position: fixed;
+      bottom: calc(var(--bar-h) + 8px);
+      left: 12px; right: 12px;
+      z-index: 9000;
+      display: flex; flex-direction: column; gap: 5px;
+      pointer-events: none;
     }
-
-    .fp-intro-text {
-      font-family: var(--font-body);
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-dim);
-      line-height: 1.5;
-      flex: 1;
+    .fp-toast {
+      padding: 9px 12px;
+      border-radius: 9px;
+      font-size: 12px; font-weight: 600;
+      color: #fff;
+      transition: all 0.35s ease;
     }
+    .fp-toast.success { background: rgba(154,224,0,0.15); border: 1px solid rgba(154,224,0,0.25); color: var(--accent); }
+    .fp-toast.error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+    .fp-toast.info { background: var(--amber-dim); border: 1px solid var(--amber-border); color: var(--amber); }
 
-    .fp-intro-text strong {
-      color: #f59e0b;
-      font-weight: 700;
+    /* loading */
+    .fp-loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 40px;
     }
+    .fp-spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .fp-intro-close {
-      background: none;
-      border: none;
-      color: var(--text-faint);
-      font-size: 14px;
+    .fp-empty { font-size: 12px; color: var(--text-faint); font-style: italic; padding: 20px 0; text-align: center; }
+
+    /* override legacy save bar */
+    .save-bar { display: none !important; }
+
+    /* Team filter grid */
+    .fp-team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .fp-team-card {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       cursor: pointer;
-      padding: 0 4px;
+      transition: all 0.15s;
+    }
+    .fp-team-card.selected { background: var(--amber-dim); border-color: var(--amber-border); }
+    .fp-team-logo {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
       flex-shrink: 0;
     }
+    .fp-team-name { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+
+    /* Match filter cards */
+    .fp-match-card {
+      padding: 9px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 5px;
+      transition: all 0.15s;
+    }
+    .fp-match-card.selected { background: var(--amber-dim); border-color: var(--amber-border); }
+    .fp-match-card-top {
+      display: flex; justify-content: space-between;
+      font-family: var(--font-display);
+      font-size: 10px; font-weight: 900;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .fp-match-card-teams {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 600; font-size: 12px;
+    }
+    .fp-mct-logo {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      flex-shrink: 0;
+    }
+    .fp-mct-vs { font-size: 9px; color: var(--text-faint); flex: 1; text-align: center; }
   </style>
 </head>
 
-<body class="loading-state fp-mode">
+<body>
 
-  <div id="loadingOverlay">
-    <div class="tb-spinner"></div>
+  <!-- ── HEADER ───────────────────────────────────── -->
+  <header class="fp-header">
+    <div class="fp-header-left">
+      <a href="/home" class="fp-back" aria-label="Back">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <span class="fp-title">Future Planner</span>
+    </div>
+    <div class="fp-sandbox-badge">
+      <div class="fp-sandbox-dot"></div>
+      Sandbox
+    </div>
+  </header>
+
+  <!-- ── STICKY ZONE ───────────────────────────────── -->
+  <div class="fp-sticky">
+
+    <!-- Match chips -->
+    <div class="fp-match-strip" id="fpMatchStrip"></div>
+
+    <!-- Mini stats bar -->
+    <div class="fp-stats-bar">
+      <div class="fp-stat">
+        <span class="fp-stat-val" id="fsSubsLeft">—</span>
+        <span class="fp-stat-lbl">Subs Left</span>
+      </div>
+      <div class="fp-stat-sep"></div>
+      <div class="fp-stat">
+        <span class="fp-stat-val" id="fsSubsUsed">0</span>
+        <span class="fp-stat-lbl">Used</span>
+      </div>
+      <div class="fp-stat-sep"></div>
+      <div class="fp-stat">
+        <span class="fp-stat-val" id="fsMatches">1</span>
+        <span class="fp-stat-lbl">Planned</span>
+      </div>
+      <div class="fp-stat-sep"></div>
+      <div class="fp-stat">
+        <span class="fp-stat-val" id="fsBoosters">—</span>
+        <span class="fp-stat-lbl">Boosters</span>
+      </div>
+    </div>
+
+    <!-- Dots row + credits -->
+    <div class="fp-dots-row" id="fpDotsRow">
+      <!-- dots injected by JS -->
+    </div>
+
+    <!-- View toggle -->
+    <div class="fp-view-toggle">
+      <button class="fp-view-btn" data-mode="myxi" id="fpBtnMyXI">
+        My XI <span class="vb-count" id="fpCountBadge">0</span>
+      </button>
+      <button class="fp-view-btn active" data-mode="pool" id="fpBtnPool">
+        Edit Squad
+      </button>
+    </div>
+
+    <!-- Role tabs (only in pool view) -->
+    <div class="fp-role-bar" id="fpRoleBar">
+      <div class="fp-role-tab active" data-role="WK">WK <span class="rt-count" id="rcWK">0</span></div>
+      <div class="fp-role-tab" data-role="BAT">BAT <span class="rt-count" id="rcBAT">0</span></div>
+      <div class="fp-role-tab" data-role="AR">AR <span class="rt-count" id="rcAR">0</span></div>
+      <div class="fp-role-tab" data-role="BOWL">BOWL <span class="rt-count" id="rcBOWL">0</span></div>
+    </div>
+
+    <!-- Search + filter pills -->
+    <div class="fp-search-row" id="fpSearchRow">
+      <input type="text" class="fp-search-input" id="fpSearch" placeholder="Search players…">
+      <button class="fp-filter-pill" id="fpFilterTeam">Teams</button>
+      <button class="fp-filter-pill" id="fpFilterMatch">Match</button>
+    </div>
+
   </div>
 
-  <div class="app-container">
+  <!-- ── CONTENT ────────────────────────────────────── -->
+  <div class="fp-content" id="fpContent">
 
-    <!-- HEADER — amber theme, clearly different from real edit page -->
-    <header class="fp-header">
-      <div class="header-left">
-        <a href="/home" class="icon-back" aria-label="Back to home">
-          <i class="fas fa-arrow-left"></i>
-        </a>
-        <div>
-          <div class="fp-header-title">Future Planner</div>
-          <div class="fp-header-subtitle">Strategy Sandbox</div>
+    <!-- My XI view -->
+    <div id="fpMyXIView" style="display:none; padding-top:6px;">
+      <!-- change log -->
+      <div class="fp-changelog" id="fpChangelog">
+        <div class="fp-cl-label">Changes vs previous</div>
+        <div class="fp-changelog-inner" id="fpChangelogInner">
+          <span class="fp-cl-empty">No changes</span>
         </div>
       </div>
-      <div class="fp-sandbox-badge">
-        <div class="fp-sandbox-dot"></div>
-        Simulation
-      </div>
-    </header>
+      <!-- booster strip -->
+      <div class="fp-booster-strip" id="fpBoosterStrip"></div>
+      <!-- XI list -->
+      <div class="fp-player-list" id="fpMyXIList"></div>
+    </div>
 
-    <!-- STICKY CONTROLS -->
-    <div class="sticky-controls">
+    <!-- Pool view -->
+    <div id="fpPoolView" style="padding-top:6px;">
+      <div class="fp-player-list" id="fpPoolList"></div>
+    </div>
 
-      <!-- MATCH NAVIGATOR -->
-      <div class="fp-match-nav">
-        <div class="fp-match-nav-label">Planning ahead — tap a match</div>
-        <div class="fp-match-scroll" id="fpMatchScroll"></div>
-      </div>
+  </div>
 
-      <!-- CUMULATIVE SUBS BANNER -->
-      <div class="fp-cumulative-banner" id="fpCumulativeBanner">
-        <div class="fp-cum-item">
-          <span class="fp-cum-value" id="fpCumSubsLeft">—</span>
-          <span class="fp-cum-label">Subs Left</span>
-        </div>
-        <div class="fp-cum-divider"></div>
-        <div class="fp-cum-item">
-          <span class="fp-cum-value" id="fpCumSubsUsed">0</span>
-          <span class="fp-cum-label">Subs Used</span>
-        </div>
-        <div class="fp-cum-divider"></div>
-        <div class="fp-cum-item">
-          <span class="fp-cum-value" id="fpCumMatches">0</span>
-          <span class="fp-cum-label">Matches Planned</span>
-        </div>
-        <div class="fp-cum-divider"></div>
-        <div class="fp-cum-item">
-          <span class="fp-cum-value" id="fpCumBoosters">—</span>
-          <span class="fp-cum-label">Boosters Left</span>
-        </div>
-      </div>
-
-      <!-- PROGRESS + STATS (reused from edit-team) -->
-      <div class="premium-progress">
-        <div id="teamDotsRow" class="team-dots-row"></div>
-        <div class="progress-labels">
-          <div class="dashboard-item">
-            <i class="di-icon fas fa-user"></i>
-            <span id="playerCountLabel">0</span><span class="di-max">/11</span>
-          </div>
-          <div class="dashboard-item">
-            <i class="di-icon fas fa-plane"></i>
-            <span id="overseasCountLabel">0/4</span>
-          </div>
-          <div class="dashboard-item">
-            <i class="di-icon fas fa-coins"></i>
-            <span id="creditCount">100</span><span class="di-max"> left</span>
-          </div>
-          <div class="dashboard-item">
-            <i class="di-icon fas fa-bolt"></i>
-            <span id="boosterUsedLabel">7/7</span>
-          </div>
-          <div class="dashboard-item">
-            <i class="di-icon fas fa-arrow-right-arrow-left"></i>
-            <span id="subsRemainingLabel">—</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- VIEW TABS -->
-      <div class="view-tabs">
-        <button class="toggle-btn" data-mode="myxi">My XI</button>
-        <button class="toggle-btn active" data-mode="playerPool">Edit Squad</button>
-      </div>
-
-      <!-- SEARCH + ROLE TABS + FILTER PILLS -->
-      <div class="search-filter-wrapper">
-        <div class="role-search-row">
-          <div class="role-navigation-wrapper">
-            <div class="role-tabs-container">
-              <div class="role-tab active" data-role="WK">WK <span>0</span></div>
-              <div class="role-tab" data-role="BAT">BAT <span>0</span></div>
-              <div class="role-tab" data-role="AR">AR <span>0</span></div>
-              <div class="role-tab" data-role="BOWL">BOWL <span>0</span></div>
-              <div class="role-slider-bg"></div>
-            </div>
-          </div>
-          <button class="search-icon-btn" id="searchIconBtn" aria-label="Search players">
-            <i class="fas fa-search"></i>
-          </button>
-        </div>
-
-        <div class="search-overlay-row hidden" id="searchOverlayRow">
-          <input type="text" id="playerSearch" placeholder="Search any player…" autocomplete="off" spellcheck="false">
-          <button class="search-close-btn" id="searchCloseBtn">✕</button>
-        </div>
-
-        <div class="dropdown-filters">
-          <button id="matchToggle" class="pill-filter">Matches</button>
-          <button id="teamToggle"  class="pill-filter">Teams</button>
-          <button id="creditToggle" class="pill-filter">Credits</button>
-          <button id="typeToggle"  class="pill-filter">Type</button>
-        </div>
-      </div>
-
-    </div><!-- end .sticky-controls -->
-
-    <!-- MAIN CONTENT -->
-    <main class="content-area">
-
-      <div id="myxi-view" class="view-mode">
-        <!-- Change log for current planning match -->
-        <div class="fp-change-log" id="fpChangeLog">
-          <div class="fp-change-log-title">Changes vs previous match</div>
-          <div id="fpChangeLogContent"><span class="fp-no-changes">No changes yet for this match.</span></div>
-        </div>
-        <div id="boosterContainer" class="booster-wrapper hidden"></div>
-        <div id="myXIList" class="player-list"></div>
-      </div>
-
-      <div id="playerPool-view" class="view-mode active">
-        <div id="playerPoolList" class="player-list"></div>
-      </div>
-
-    </main>
-
-  </div><!-- end .app-container -->
-
-  <!-- FUTURE PLANNER BOTTOM BAR -->
+  <!-- ── BOTTOM BAR ─────────────────────────────────── -->
   <div class="fp-bar">
-    <div class="fp-bar-hint" id="fpBarHint">Sandbox only — nothing is saved to your real team</div>
-    <div class="fp-bar-buttons">
-      <button class="fp-btn-reset" id="fpResetBtn" title="Reset this match to base team">↺ Reset</button>
-      <button class="fp-btn-next" id="fpNextBtn">Lock & Plan Next Match →</button>
-      <button class="fp-btn-export" id="fpSummaryBtn" title="View full plan summary">📋</button>
+    <button class="fp-btn-reset" id="fpResetBtn" title="Reset match to inherited team">
+      <i class="fas fa-rotate-left"></i>
+    </button>
+    <button class="fp-btn-next" id="fpNextBtn">Lock &amp; Next →</button>
+    <button class="fp-btn-summary" id="fpSummaryBtn" title="View full plan">
+      <i class="fas fa-list-check"></i>
+    </button>
+  </div>
+
+  <!-- ── FILTER BACKDROP ───────────────────────────── -->
+  <div class="fp-backdrop" id="fpFilterBackdrop"></div>
+
+  <!-- ── TEAM FILTER SHEET ────────────────────────── -->
+  <div class="fp-filter-sheet" id="fpTeamSheet">
+    <div class="fp-filter-sheet-hdr">Filter by Team</div>
+    <div class="fp-team-grid" id="fpTeamGrid"></div>
+    <div class="fp-sheet-actions">
+      <button class="fp-sheet-btn clear" onclick="clearFilter('teams')">Clear</button>
+      <button class="fp-sheet-btn apply" onclick="closeFilterSheet()">Apply</button>
     </div>
   </div>
 
-  <!-- REAL SAVE BAR (hidden in future planner mode) -->
-  <div class="save-bar" style="display:none">
-    <button id="saveTeamBtn" disabled></button>
+  <!-- ── MATCH FILTER SHEET ───────────────────────── -->
+  <div class="fp-filter-sheet" id="fpMatchSheet">
+    <div class="fp-filter-sheet-hdr">Filter by Match</div>
+    <div id="fpMatchFilterList"></div>
+    <div class="fp-sheet-actions">
+      <button class="fp-sheet-btn clear" onclick="clearFilter('matches')">Clear</button>
+      <button class="fp-sheet-btn apply" onclick="closeFilterSheet()">Apply</button>
+    </div>
   </div>
 
-  <!-- FILTER BACKDROP -->
-  <div id="filterBackdrop" class="filter-backdrop hidden"></div>
-
-  <!-- FILTER BOTTOM SHEETS -->
-  <div id="matchMenu"  class="dropdown-menu bottom-sheet"></div>
-  <div id="teamMenu"   class="dropdown-menu bottom-sheet"></div>
-  <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
-  <div id="typeMenu"   class="dropdown-menu bottom-sheet"></div>
-
-  <!-- SUMMARY SHEET -->
-  <div id="fpSummaryBackdrop" class="filter-backdrop hidden" style="z-index:2900"></div>
-  <div id="fpSummarySheet" class="fp-summary-sheet">
-    <div class="fp-summary-title">
-      <span>Full Plan Summary</span>
-      <button class="ts-close" onclick="closeFpSummary()">✕</button>
+  <!-- ── SUMMARY SHEET ─────────────────────────────── -->
+  <div class="fp-backdrop" id="fpSummaryBackdrop"></div>
+  <div class="fp-summary-sheet" id="fpSummarySheet">
+    <div class="fp-summary-hdr">
+      <span class="fp-summary-title">Plan Summary</span>
+      <button class="fp-summary-close" onclick="closeSummary()">✕</button>
     </div>
     <div id="fpSummaryContent"></div>
   </div>
 
-  <!-- INTRO TOAST -->
+  <!-- ── CONFIRM DIALOG ────────────────────────────── -->
+  <div class="fp-confirm-overlay hidden" id="fpConfirmOverlay">
+    <div class="fp-confirm-card">
+      <div class="fp-confirm-title" id="fpConfirmTitle"></div>
+      <div class="fp-confirm-text" id="fpConfirmText"></div>
+      <div class="fp-confirm-btns">
+        <button id="fpConfirmCancelBtn">Cancel</button>
+        <button id="fpConfirmApplyBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLAYER PROFILE ────────────────────────────── -->
+  <div class="fp-profile-overlay hidden" id="fpProfileOverlay" onclick="closeProfile(event)">
+    <div class="fp-profile-card" id="fpProfileCard">
+      <div id="fpProfileContent">
+        <div class="fp-loading"><div class="fp-spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INTRO TOAST ───────────────────────────────── -->
   <div class="fp-intro-toast" id="fpIntroToast">
-    <div class="fp-intro-icon">🧪</div>
     <div class="fp-intro-text">
-      <strong>Sandbox mode.</strong> Make transfers match by match — your subs, boosters &amp; credits update in real time.
-      <strong>Nothing here affects your real team.</strong>
+      🧪 <strong>Sandbox.</strong> Plan transfers match by match — your real team is untouched.
     </div>
     <button class="fp-intro-close" onclick="document.getElementById('fpIntroToast').remove()">✕</button>
   </div>
 
-  <!-- TOAST -->
-  <div id="toastContainer" class="toast-container"></div>
-
-  <!-- CONFIRM DIALOG -->
-  <div id="customConfirmOverlay" class="confirm-overlay hidden">
-    <div class="confirm-card">
-      <h3 id="confirmTitle" class="confirm-title"></h3>
-      <p  id="confirmText"  class="confirm-text"></p>
-      <div class="confirm-actions">
-        <button id="confirmCancelBtn" class="btn-cancel-confirm">Cancel</button>
-        <button id="confirmApplyBtn"  class="btn-apply-confirm" style="background:#f59e0b">Apply</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PLAYER PROFILE POPUP -->
-  <div id="playerProfileOverlay" class="profile-overlay hidden" onclick="closePlayerProfile(event)">
-    <div class="profile-card" id="playerProfileCard">
-      <button class="profile-close" onclick="closePlayerProfile()">✕</button>
-      <div id="profileContent" class="profile-content">
-        <div class="profile-loading"><div class="tb-spinner"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TRANSFER BACKDROP (reused) -->
-  <div id="transferBackdrop" class="filter-backdrop hidden"></div>
-  <div id="transferSheet" class="dropdown-menu bottom-sheet transfer-sheet hidden">
-    <div id="transferSheetBody"></div>
-  </div>
+  <!-- ── TOASTS ────────────────────────────────────── -->
+  <div class="fp-toast-container" id="fpToastContainer"></div>
 
   <script type="module">
     import { supabase } from "./supabase.js";
     import { authReady } from "./auth-state.js";
 
-    // ─── CONSTANTS ───────────────────────────────────────────────────
-    const LEAGUE_STAGE_END    = 70;
-    const PLAYOFF_START_MATCH = 71;
-    const BOOSTER_WINDOW_START = 2;
-    const BOOSTER_WINDOW_END   = 70;
-    const ROLE_PRIORITY        = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
-    const BOOSTER_NAMES = {
-      TOTAL_2X: "Total 2X", INDIAN_2X: "Indian 2X", OVERSEAS_2X: "Overseas 2X",
-      UNCAPPED_2X: "Uncapped 2X", CAPTAIN_3X: "Captain 3X",
-      MOM_2X: "MOM 2X", FREE_11: "Free 11",
-    };
-    const BOOSTER_ICONS = {
-      TOTAL_2X: "🚀", INDIAN_2X: "🇮🇳", OVERSEAS_2X: "✈️",
-      UNCAPPED_2X: "🧢", CAPTAIN_3X: "👑", MOM_2X: "🏆", FREE_11: "🆓",
-    };
-
-    // ─── GLOBAL STATE ────────────────────────────────────────────────
-    // allPlayers & real data — fetched once
-    let allPlayers   = [];
-    let allMatches   = [];
-    let realTeamsMap = {};
-
-    // BASE = the user's real current team (read-only reference)
-    let base = {
-      playerIds:   [],
-      captainId:   null,
-      viceCaptainId: null,
-      subsRemaining: 130,
-      usedBoosters: [],
-      activeBooster: "NONE",
+    /* ═══════════════════════════════════════════════
+       CONSTANTS
+    ═══════════════════════════════════════════════ */
+    const PLAYOFF_START  = 71;
+    const BOOSTER_START  = 2;
+    const BOOSTER_END    = 70;
+    const ROLE_ORDER     = { WK:1, BAT:2, AR:3, BOWL:4 };
+    const BOOSTER_META   = {
+      TOTAL_2X:    { name:"Total 2X",    icon:"🚀" },
+      INDIAN_2X:   { name:"Indian 2X",   icon:"🇮🇳" },
+      OVERSEAS_2X: { name:"Overseas 2X", icon:"✈️" },
+      UNCAPPED_2X: { name:"Uncapped 2X", icon:"🧢" },
+      CAPTAIN_3X:  { name:"Captain 3X",  icon:"👑" },
+      MOM_2X:      { name:"MOM 2X",      icon:"🏆" },
+      FREE_11:     { name:"Free 11",     icon:"🆓" },
     };
 
-    // PLAN = ordered array of per-match snapshots
-    // plan[0] = match currently being viewed
-    // Each entry: { matchId, matchNumber, playerIds, captainId, viceCaptainId,
-    //               activeBooster, usedBoosters, subsAtStart, subsRemaining }
-    let plan = [];
+    /* ═══════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════ */
+    let allPlayers    = [];
+    let allMatches    = [];
+    let realTeamsMap  = {};
+    let base          = {};
+    let plan          = [];
+    let planIdx       = 0;
+    let activeTid     = null;
+    let filters       = { role:"WK", search:"", teams:[], matches:[] };
+    let activeView    = "pool"; // "myxi" | "pool"
 
-    // Index into plan[] of what the user is currently viewing/editing
-    let currentPlanIdx = 0;
-
-    // Local filter state
-    let filters = {
-      search: "", role: "WK",
-      teams: [], credits: [], matches: [], type: [],
-    };
-
-    let activeTournamentId = null;
-
-    // ─── BOOT ────────────────────────────────────────────────────────
-    async function boot() {
+    /* ═══════════════════════════════════════════════
+       BOOT
+    ═══════════════════════════════════════════════ */
+    (async () => {
       try {
         const user = await authReady;
+        if (!user) return;
         await init(user);
-      } catch (err) {
-        console.warn("Auth failed on future-planner:", err.message);
-      }
-    }
-
-    boot();
+      } catch(e) { console.warn(e); }
+    })();
 
     async function init(user) {
-      if (!user) return;
-      document.body.classList.add("loading-state");
-
       try {
-        const { data: activeTournament } = await supabase
-          .from("active_tournament").select("*").maybeSingle();
-        if (!activeTournament) { showEmpty(); return; }
-        activeTournamentId = activeTournament.id;
+        const { data: tournament } = await supabase.from("active_tournament").select("*").maybeSingle();
+        if (!tournament) { showEmpty("No active tournament."); return; }
+        activeTid = tournament.id;
 
-        // Fetch upcoming matches
         const { data: matches } = await supabase
           .from("matches")
-          .select("*, team_a:real_teams!team_a_id(short_code, photo_name), team_b:real_teams!team_b_id(short_code, photo_name)")
-          .eq("tournament_id", activeTournamentId)
+          .select("*, team_a:real_teams!team_a_id(short_code,photo_name), team_b:real_teams!team_b_id(short_code,photo_name)")
+          .eq("tournament_id", activeTid)
           .eq("status", "upcoming")
           .gt("actual_start_time", new Date().toISOString())
-          .order("actual_start_time", { ascending: true });
+          .order("actual_start_time", { ascending:true });
 
         allMatches = matches || [];
-        if (allMatches.length === 0) { showEmpty("No upcoming matches to plan for."); return; }
+        if (!allMatches.length) { showEmpty("No upcoming matches."); return; }
 
-        // Parallel fetches
         const [
           { data: players },
-          { data: dashData },
-          { data: boosterData },
+          { data: dash },
+          { data: boostData },
           { data: lastLock },
           { data: currentTeam },
-          { data: realTeamsData },
+          { data: teamsData },
         ] = await Promise.all([
-          supabase.from("player_pool_view").select("*").eq("is_active", true).eq("tournament_id", activeTournamentId),
-          supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id", user.id).maybeSingle(),
-          supabase.from("user_tournament_points").select("used_boosters").eq("user_id", user.id).eq("tournament_id", activeTournamentId).maybeSingle(),
+          supabase.from("player_pool_view").select("*").eq("is_active",true).eq("tournament_id",activeTid),
+          supabase.from("home_dashboard_view").select("subs_remaining").eq("user_id",user.id).maybeSingle(),
+          supabase.from("user_tournament_points").select("used_boosters").eq("user_id",user.id).eq("tournament_id",activeTid).maybeSingle(),
           supabase.from("user_match_teams")
             .select("id, matches!inner(match_number), user_match_team_players(player_id)")
-            .eq("user_id", user.id)
-            .eq("tournament_id", activeTournamentId)
+            .eq("user_id",user.id).eq("tournament_id",activeTid)
             .neq("match_id", allMatches[0].id)
-            .order("locked_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+            .order("locked_at",{ascending:false}).limit(1).maybeSingle(),
           supabase.from("user_fantasy_teams")
             .select("*, user_fantasy_team_players(player_id)")
-            .eq("user_id", user.id)
-            .eq("tournament_id", activeTournamentId)
-            .maybeSingle(),
-          supabase.from("real_teams").select("id, name, short_code, photo_name"),
+            .eq("user_id",user.id).eq("tournament_id",activeTid).maybeSingle(),
+          supabase.from("real_teams").select("id,name,short_code,photo_name"),
         ]);
 
-        realTeamsMap = Object.fromEntries((realTeamsData || []).map(t => [t.id, t]));
+        realTeamsMap = Object.fromEntries((teamsData||[]).map(t=>[t.id,t]));
 
-        // Season points
-        const { data: seasonTotals } = await supabase
+        const { data: seasonRows } = await supabase
           .from("player_match_stats")
           .select("player_id, fantasy_points, matches!inner(tournament_id)")
-          .eq("matches.tournament_id", activeTournamentId);
+          .eq("matches.tournament_id", activeTid);
 
-        const seasonPtsMap = {};
-        for (const row of seasonTotals || []) {
-          seasonPtsMap[row.player_id] = (seasonPtsMap[row.player_id] || 0) + (row.fantasy_points || 0);
-        }
+        const seasonPts = {};
+        for (const r of seasonRows||[]) seasonPts[r.player_id] = (seasonPts[r.player_id]||0) + (r.fantasy_points||0);
 
-        allPlayers = (players || []).map(p => ({ ...p, season_points: seasonPtsMap[p.id] || 0 }));
+        allPlayers = (players||[]).map(p => ({ ...p, season_points: seasonPts[p.id]||0 }));
 
-        // Build base from user's current saved team
-        const savedBooster = currentTeam?.active_booster ?? "NONE";
-        const usedBoosters = boosterData?.used_boosters ?? [];
+        const usedBoosters = boostData?.used_boosters || [];
+        const savedBooster = currentTeam?.active_booster || "NONE";
+
         base = {
-          playerIds:     (currentTeam?.user_fantasy_team_players || []).map(r => r.player_id),
-          captainId:     currentTeam?.captain_id ?? null,
-          viceCaptainId: currentTeam?.vice_captain_id ?? null,
-          subsRemaining: dashData?.subs_remaining ?? 130,
+          playerIds:     (currentTeam?.user_fantasy_team_players||[]).map(r=>r.player_id),
+          captainId:     currentTeam?.captain_id || null,
+          viceCaptainId: currentTeam?.vice_captain_id || null,
+          subsRemaining: dash?.subs_remaining ?? 130,
           usedBoosters,
           activeBooster: usedBoosters.includes(savedBooster) ? "NONE" : savedBooster,
-          lockedPlayerIds: lastLock?.user_match_team_players?.map(p => p.player_id) || [],
+          lockedIds:     lastLock?.user_match_team_players?.map(p=>p.player_id) || [],
         };
 
-        // Seed plan with the first upcoming match using current real team as starting point
         seedPlan();
-
-        initUI();
+        initEvents();
         render();
 
-        // Dismiss intro toast after 6s
         setTimeout(() => {
           const t = document.getElementById("fpIntroToast");
-          if (t) { t.style.opacity = "0"; t.style.transition = "opacity 0.5s"; setTimeout(() => t.remove(), 500); }
-        }, 6000);
+          if (t) { t.style.transition="opacity 0.5s"; t.style.opacity="0"; setTimeout(()=>t.remove(),500); }
+        }, 5000);
 
-      } catch (err) {
-        console.error("Future planner init failed:", err);
-        showEmpty("Failed to load. Please try again.");
-      } finally {
-        document.body.classList.remove("loading-state");
-      }
+      } catch(err) { console.error(err); showEmpty("Failed to load. Please try again."); }
     }
 
-    // ─── PLAN MANAGEMENT ─────────────────────────────────────────────
+    /* ═══════════════════════════════════════════════
+       PLAN MANAGEMENT
+    ═══════════════════════════════════════════════ */
     function seedPlan() {
-      // First match — inherit base team
       plan = [];
-      if (allMatches.length === 0) return;
-
-      const m0 = allMatches[0];
-      const isReset = m0.match_number === 1 || m0.match_number === PLAYOFF_START_MATCH;
-
-      plan.push({
-        matchId:       m0.id,
-        matchNumber:   m0.match_number,
-        playerIds:     [...base.playerIds],
-        captainId:     base.captainId,
-        viceCaptainId: base.viceCaptainId,
-        activeBooster: base.activeBooster,
-        usedBoosters:  [...base.usedBoosters],
-        subsAtStart:   base.subsRemaining,
-        subsRemaining: base.subsRemaining, // will recalc
-        isReset,
-        lockedIds:     base.lockedPlayerIds, // the players they locked in the previous match
-      });
-      recalcSubsForSlot(0);
-      currentPlanIdx = 0;
-    }
-
-    function recalcSubsForSlot(idx) {
-      const slot = plan[idx];
-      const isReset = slot.isReset || slot.activeBooster === "FREE_11";
-
-      if (isReset || slot.lockedIds.length === 0) {
-        slot.subsRemaining = slot.subsAtStart;
-        slot.subsUsed = 0;
-        return;
-      }
-
-      const newPlayers = slot.playerIds.filter(id => !slot.lockedIds.includes(id));
-      const hasUncapped = newPlayers.some(id => {
-        const p = allPlayers.find(x => x.id === id);
-        return p?.category === "uncapped";
-      });
-      const subsUsed = (hasUncapped && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
-
-      slot.subsUsed = subsUsed;
-      slot.subsRemaining = slot.subsAtStart - subsUsed;
-    }
-
-    function currentSlot() { return plan[currentPlanIdx]; }
-
-    function currentMatchObj() { return allMatches.find(m => m.id === currentSlot().matchId); }
-
-    // ─── LOCK & ADVANCE ───────────────────────────────────────────────
-    function lockAndAdvance() {
-      const slot = currentSlot();
-
-      // Validate
-      const pList = slot.playerIds.map(id => allPlayers.find(p => p.id === id)).filter(Boolean);
-      const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-      for (const p of pList) roles[p.role] = (roles[p.role] || 0) + 1;
-
-      if (pList.length < 11) { showToast("Add 11 players first", "error"); return; }
-      if (!slot.captainId || !slot.viceCaptainId) { showToast("Set Captain & Vice-Captain", "error"); return; }
-      if (roles.WK < 1 || roles.BAT < 3 || roles.AR < 1 || roles.BOWL < 3) {
-        showToast("Role requirements not met", "error"); return;
-      }
-      if (slot.subsRemaining < 0) { showToast("Too many subs used!", "error"); return; }
-
-      // Find next match in allMatches beyond current slot
-      const currentMatchIdx = allMatches.findIndex(m => m.id === slot.matchId);
-      const nextMatch = allMatches[currentMatchIdx + 1];
-
-      if (!nextMatch) {
-        showToast("No more upcoming matches to plan!", "error");
-        return;
-      }
-
-      // Determine if next match is a reset
-      const isNextReset = nextMatch.match_number === PLAYOFF_START_MATCH;
-
-      // Build next slot — carry over from this slot
-      const usedBoostersNext = slot.activeBooster !== "NONE"
-        ? [...slot.usedBoosters, slot.activeBooster]
-        : [...slot.usedBoosters];
-
-      // Check if a plan slot already exists for next match
-      const existingIdx = plan.findIndex(s => s.matchId === nextMatch.id);
-
-      const nextSlot = {
-        matchId:       nextMatch.id,
-        matchNumber:   nextMatch.match_number,
-        playerIds:     [...slot.playerIds],     // inherit team
-        captainId:     slot.captainId,
-        viceCaptainId: slot.viceCaptainId,
-        activeBooster: "NONE",                 // fresh booster choice each match
-        usedBoosters:  usedBoostersNext,
-        subsAtStart:   slot.subsRemaining,      // subs carry over
-        subsRemaining: slot.subsRemaining,
-        isReset:       isNextReset,
-        lockedIds:     slot.playerIds,          // current slot's XI becomes "locked" for next match
+      const m = allMatches[0];
+      const isReset = m.match_number === 1 || m.match_number === PLAYOFF_START;
+      const slot = {
+        matchId: m.id, matchNumber: m.match_number,
+        playerIds: [...base.playerIds],
+        captainId: base.captainId, viceCaptainId: base.viceCaptainId,
+        activeBooster: base.activeBooster, usedBoosters: [...base.usedBoosters],
+        subsAtStart: base.subsRemaining, subsRemaining: base.subsRemaining,
+        isReset, lockedIds: base.lockedIds,
       };
-      recalcSubsForSlot_external(nextSlot);
-
-      if (existingIdx > -1) {
-        // Overwrite the existing slot but warn if it would lose their work
-        plan[existingIdx] = nextSlot;
-        // Trim any plan entries beyond this (they'd be stale)
-        plan = plan.slice(0, existingIdx + 1);
-      } else {
-        plan.push(nextSlot);
-      }
-
-      currentPlanIdx = plan.length - 1;
-
-      showToast(`Match ${slot.matchNumber} locked! Now planning M${nextMatch.match_number}`, "success");
-      renderMatchNav();
-      render();
-
-      // Scroll match chip into view
-      setTimeout(() => {
-        const chip = document.querySelector(`.fp-match-chip[data-match-id="${nextMatch.id}"]`);
-        chip?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }, 100);
+      recalcSubs(slot);
+      plan.push(slot);
+      planIdx = 0;
     }
 
-    function recalcSubsForSlot_external(slot) {
-      const isReset = slot.isReset || slot.activeBooster === "FREE_11";
-      if (isReset || !slot.lockedIds || slot.lockedIds.length === 0) {
+    function recalcSubs(slot) {
+      if (slot.isReset || slot.activeBooster === "FREE_11" || !slot.lockedIds?.length) {
         slot.subsRemaining = slot.subsAtStart;
         slot.subsUsed = 0;
         return;
       }
-      const newPlayers = slot.playerIds.filter(id => !slot.lockedIds.includes(id));
-      const hasUncapped = newPlayers.some(id => {
-        const p = allPlayers.find(x => x.id === id);
-        return p?.category === "uncapped";
-      });
-      const subsUsed = (hasUncapped && newPlayers.length > 0) ? newPlayers.length - 1 : newPlayers.length;
-      slot.subsUsed = subsUsed;
-      slot.subsRemaining = slot.subsAtStart - subsUsed;
+      const newIds = slot.playerIds.filter(id => !slot.lockedIds.includes(id));
+      const hasUncapped = newIds.some(id => allPlayers.find(p=>p.id===id)?.category==="uncapped");
+      const used = (hasUncapped && newIds.length > 0) ? newIds.length - 1 : newIds.length;
+      slot.subsUsed = used;
+      slot.subsRemaining = slot.subsAtStart - used;
     }
 
-    function resetCurrentMatch() {
-      const slot = currentSlot();
+    function slot() { return plan[planIdx]; }
 
-      // For the first plan entry, revert to base
-      if (currentPlanIdx === 0) {
-        slot.playerIds     = [...base.playerIds];
-        slot.captainId     = base.captainId;
-        slot.viceCaptainId = base.viceCaptainId;
-        slot.activeBooster = base.activeBooster;
-        slot.usedBoosters  = [...base.usedBoosters];
-      } else {
-        // Revert to previous plan slot
-        const prev = plan[currentPlanIdx - 1];
-        slot.playerIds     = [...prev.playerIds];
-        slot.captainId     = prev.captainId;
-        slot.viceCaptainId = prev.viceCaptainId;
-        slot.activeBooster = "NONE";
-        slot.usedBoosters  = slot.activeBooster !== "NONE"
-          ? [...prev.usedBoosters, prev.activeBooster]
-          : [...prev.usedBoosters];
-        slot.subsAtStart   = prev.subsRemaining;
-      }
-      recalcSubsForSlot(currentPlanIdx);
-      render();
-      showToast("Match reset to inherited team", "success");
-    }
-
-    // ─── PLAYER ACTIONS ───────────────────────────────────────────────
-    function togglePlayer(id) {
-      const slot = currentSlot();
-      const idx  = slot.playerIds.indexOf(id);
-      if (idx > -1) {
-        slot.playerIds.splice(idx, 1);
-        if (slot.captainId === id)    slot.captainId = null;
-        if (slot.viceCaptainId === id) slot.viceCaptainId = null;
-      } else {
-        if (slot.playerIds.length < 11) slot.playerIds.push(id);
-      }
-      recalcSubsForSlot(currentPlanIdx);
+    function lockAndAdvance() {
+      const s = slot();
       const stats = calcStats();
-      updateDashboard(stats);
-      renderMyXI(stats);
-      renderPlayerPool(stats);
-      updateNavBtn(stats);
-      updateChangeLog();
+      const errors = validateSlot(s, stats);
+      if (errors) { toast(errors, "error"); return; }
 
-      // Auto-switch to My XI when 11 players done + C/VC missing
-      if (stats.count === 11 && (!slot.captainId || !slot.viceCaptainId)) {
-        const myXiBtn = document.querySelector(".toggle-btn[data-mode='myxi']");
-        const myXiView = document.getElementById("myxi-view");
-        const poolView = document.getElementById("playerPool-view");
-        const fw = document.querySelector(".search-filter-wrapper");
-        if (myXiBtn && myXiView) {
-          document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
-          document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
-          myXiBtn.classList.add("active");
-          myXiView.classList.add("active");
-          if (fw) fw.style.display = "none";
-          showToast("11 players added! Now set your C & VC 👑", "success");
-        }
+      const curIdx = allMatches.findIndex(m => m.id === s.matchId);
+      const next   = allMatches[curIdx + 1];
+      if (!next) { toast("No more matches to plan!", "error"); return; }
+
+      const usedNext = s.activeBooster !== "NONE" ? [...s.usedBoosters, s.activeBooster] : [...s.usedBoosters];
+      const nextSlot = {
+        matchId: next.id, matchNumber: next.match_number,
+        playerIds: [...s.playerIds],
+        captainId: s.captainId, viceCaptainId: s.viceCaptainId,
+        activeBooster: "NONE", usedBoosters: usedNext,
+        subsAtStart: s.subsRemaining, subsRemaining: s.subsRemaining,
+        isReset: next.match_number === PLAYOFF_START,
+        lockedIds: s.playerIds,
+      };
+      recalcSubs(nextSlot);
+
+      const existIdx = plan.findIndex(p => p.matchId === next.id);
+      if (existIdx > -1) { plan[existIdx] = nextSlot; plan = plan.slice(0, existIdx+1); }
+      else plan.push(nextSlot);
+
+      planIdx = plan.length - 1;
+      toast(`M${s.matchNumber} locked! Planning M${next.match_number}`, "success");
+
+      // auto-switch to pool
+      activeView = "pool";
+      render();
+      scrollChipIntoView(next.id);
+    }
+
+    function validateSlot(s, stats) {
+      if (stats.count < 11) return `Add ${11-stats.count} more player${11-stats.count>1?"s":""}`;
+      if (!s.captainId || !s.viceCaptainId) return "Set Captain & Vice-Captain";
+      if (stats.roles.WK   < 1) return "Need ≥1 WK";
+      if (stats.roles.BAT  < 3) return "Need ≥3 BAT";
+      if (stats.roles.AR   < 1) return "Need ≥1 AR";
+      if (stats.roles.BOWL < 3) return "Need ≥3 BOWL";
+      if (stats.overseas   > 4) return "Max 4 overseas";
+      if (stats.credits    > 100.05) return "Credits exceeded";
+      if (stats.isOverLimit) return "Not enough subs remaining";
+      return null;
+    }
+
+    function resetMatch() {
+      const s = slot();
+      if (planIdx === 0) {
+        s.playerIds = [...base.playerIds];
+        s.captainId = base.captainId;
+        s.viceCaptainId = base.viceCaptainId;
+        s.activeBooster = base.activeBooster;
+        s.usedBoosters  = [...base.usedBoosters];
+      } else {
+        const prev = plan[planIdx - 1];
+        s.playerIds    = [...prev.playerIds];
+        s.captainId    = prev.captainId;
+        s.viceCaptainId = prev.viceCaptainId;
+        s.activeBooster = "NONE";
+        s.usedBoosters  = prev.activeBooster !== "NONE" ? [...prev.usedBoosters, prev.activeBooster] : [...prev.usedBoosters];
+        s.subsAtStart   = prev.subsRemaining;
+      }
+      recalcSubs(s);
+      render();
+      toast("Match reset", "info");
+    }
+
+    /* ═══════════════════════════════════════════════
+       PLAYER ACTIONS
+    ═══════════════════════════════════════════════ */
+    function togglePlayer(id) {
+      const s   = slot();
+      const idx = s.playerIds.indexOf(id);
+      if (idx > -1) {
+        s.playerIds.splice(idx, 1);
+        if (s.captainId === id)    s.captainId = null;
+        if (s.viceCaptainId === id) s.viceCaptainId = null;
+      } else {
+        if (s.playerIds.length >= 11) return;
+        s.playerIds.push(id);
+      }
+      recalcSubs(s);
+      render();
+
+      // Auto switch to My XI when full
+      if (s.playerIds.length === 11 && (!s.captainId || !s.viceCaptainId)) {
+        activeView = "myxi";
+        updateViewUI();
+        toast("11 players! Now set C & VC 👑", "success");
       }
     }
 
     function setRole(id, type) {
-      const slot = currentSlot();
+      const s = slot();
       if (type === "C") {
-        slot.captainId = slot.captainId === id ? null : id;
-        if (slot.captainId === slot.viceCaptainId) slot.viceCaptainId = null;
+        s.captainId = s.captainId === id ? null : id;
+        if (s.captainId === s.viceCaptainId) s.viceCaptainId = null;
       } else {
-        slot.viceCaptainId = slot.viceCaptainId === id ? null : id;
-        if (slot.viceCaptainId === slot.captainId) slot.captainId = null;
+        s.viceCaptainId = s.viceCaptainId === id ? null : id;
+        if (s.viceCaptainId === s.captainId) s.captainId = null;
       }
-      const stats = calcStats();
-      updateDashboard(stats);
-      renderMyXI(stats);
-      updateNavBtn(stats);
+      render();
     }
 
-    // ─── BOOSTER ──────────────────────────────────────────────────────
-    function handleBoosterChange(val) {
-      const slot = currentSlot();
-      if (val === "NONE") { slot.activeBooster = "NONE"; recalcSubsForSlot(currentPlanIdx); render(); return; }
-
-      showConfirm(
-        `Apply ${BOOSTER_NAMES[val]}?`,
-        "This is simulation only — your real booster is unchanged."
-      ).then(confirmed => {
-        if (confirmed) {
-          slot.activeBooster = val;
-          recalcSubsForSlot(currentPlanIdx);
-          showToast(`${BOOSTER_NAMES[val]} applied to M${slot.matchNumber}!`, "success");
-          render();
-        }
+    window.handleBoosterChange = val => {
+      const s = slot();
+      if (val === "NONE") { s.activeBooster = "NONE"; recalcSubs(s); render(); return; }
+      showConfirm(`Apply ${BOOSTER_META[val].name}?`, "Simulation only — real booster unchanged.").then(ok => {
+        if (ok) { s.activeBooster = val; recalcSubs(s); render(); toast(`${BOOSTER_META[val].name} applied!`, "info"); }
       });
-    }
+    };
 
-    window.handleBoosterChange = handleBoosterChange;
-
-    // ─── CALC STATS ───────────────────────────────────────────────────
+    /* ═══════════════════════════════════════════════
+       CALC STATS
+    ═══════════════════════════════════════════════ */
     function calcStats() {
-      const slot     = currentSlot();
-      const selected = slot.playerIds.map(id => allPlayers.find(p => p.id === id)).filter(Boolean);
-      const roles    = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-      let overseas   = 0, credits = 0;
-
+      const s        = slot();
+      const selected = s.playerIds.map(id => allPlayers.find(p=>p.id===id)).filter(Boolean);
+      const roles    = { WK:0, BAT:0, AR:0, BOWL:0 };
+      let overseas = 0, credits = 0;
       for (const p of selected) {
-        roles[p.role] = (roles[p.role] || 0) + 1;
-        if (p.category === "overseas") overseas++;
+        roles[p.role] = (roles[p.role]||0)+1;
+        if (p.category==="overseas") overseas++;
         credits += Number(p.credit);
       }
-
-      const isResetMatch = slot.isReset || slot.activeBooster === "FREE_11";
-      const liveSubs     = isResetMatch ? "FREE" : slot.subsRemaining;
-      const isOverLimit  = !isResetMatch && slot.subsRemaining < 0;
-
-      return { count: selected.length, overseas, credits, roles, liveSubs, isOverLimit, isResetMatch, selected };
+      const isReset    = s.isReset || s.activeBooster === "FREE_11";
+      const liveSubs   = isReset ? "FREE" : s.subsRemaining;
+      const isOverLimit = !isReset && s.subsRemaining < 0;
+      return { count:selected.length, overseas, credits, roles, liveSubs, isOverLimit, isReset, selected };
     }
 
-    // ─── RENDER ───────────────────────────────────────────────────────
+    /* ═══════════════════════════════════════════════
+       RENDER
+    ═══════════════════════════════════════════════ */
     function render() {
       const stats = calcStats();
-      updateDashboard(stats);
-      renderBoosterUI();
-      renderMyXI(stats);
-      renderPlayerPool(stats);
-      updateNavBtn(stats);
-      updateFilterButtonStates();
-      updateCumulativeBanner();
-      updateChangeLog();
-      renderMatchNav();
+      renderMatchStrip();
+      renderMiniStats();
+      renderDots(stats);
+      updateRoleTabs(stats);
+      updateNextBtn(stats);
+      renderChangelog();
+      renderBoosterStrip();
+      if (activeView === "myxi") renderMyXI(stats);
+      else renderPool(stats);
     }
 
-    function updateCumulativeBanner() {
-      // Total subs used across all planned matches
-      let totalSubsUsed = 0;
-      let boostersUsedTotal = new Set(base.usedBoosters);
-      for (const slot of plan) {
-        totalSubsUsed += (slot.subsUsed || 0);
-        if (slot.activeBooster !== "NONE") boostersUsedTotal.add(slot.activeBooster);
-      }
-
-      const lastSlot   = plan[plan.length - 1];
-      const subsLeft   = lastSlot.subsRemaining;
-      const matchesPlanned = plan.length;
-      const boostersLeft = 7 - boostersUsedTotal.size;
-
-      const leftEl    = document.getElementById("fpCumSubsLeft");
-      const usedEl    = document.getElementById("fpCumSubsUsed");
-      const matchEl   = document.getElementById("fpCumMatches");
-      const boostEl   = document.getElementById("fpCumBoosters");
-
-      if (leftEl) {
-        leftEl.textContent = subsLeft;
-        leftEl.className   = `fp-cum-value ${subsLeft < 0 ? "danger" : subsLeft < 20 ? "" : "ok"}`;
-      }
-      if (usedEl) usedEl.textContent = totalSubsUsed;
-      if (matchEl) matchEl.textContent = matchesPlanned;
-      if (boostEl) boostEl.textContent = boostersLeft;
-    }
-
-    function updateChangeLog() {
-      const content = document.getElementById("fpChangeLogContent");
-      if (!content) return;
-
-      const slot = currentSlot();
-      let prevIds = [];
-
-      if (currentPlanIdx === 0) {
-        prevIds = base.lockedPlayerIds;
-      } else {
-        prevIds = plan[currentPlanIdx - 1].playerIds;
-      }
-
-      if (!prevIds || prevIds.length === 0) {
-        content.innerHTML = `<span class="fp-no-changes">Base match — comparing against previous locked team.</span>`;
-        return;
-      }
-
-      const inIds  = slot.playerIds.filter(id => !prevIds.includes(id));
-      const outIds = prevIds.filter(id => !slot.playerIds.includes(id));
-
-      if (inIds.length === 0 && outIds.length === 0) {
-        content.innerHTML = `<span class="fp-no-changes">No changes — same team as previous match.</span>`;
-        return;
-      }
-
-      let html = "";
-      for (const id of outIds) {
-        const p = allPlayers.find(x => x.id === id);
-        if (p) html += `<span class="fp-change-pill out"><span class="fp-pill-dot"></span>▼ ${p.name}</span>`;
-      }
-      for (const id of inIds) {
-        const p = allPlayers.find(x => x.id === id);
-        if (p) html += `<span class="fp-change-pill in"><span class="fp-pill-dot"></span>▲ ${p.name}</span>`;
-      }
-
-      content.innerHTML = html;
-    }
-
-    function renderMatchNav() {
-      const scroll = document.getElementById("fpMatchScroll");
-      if (!scroll) return;
-      scroll.innerHTML = "";
+    function renderMatchStrip() {
+      const strip = document.getElementById("fpMatchStrip");
+      if (!strip) return;
+      strip.innerHTML = "";
 
       // Base chip
-      const baseChip = document.createElement("div");
-      baseChip.className = "fp-match-chip base-chip";
-      baseChip.textContent = "Current";
-      baseChip.title = "Your real current team (read-only base)";
-      scroll.appendChild(baseChip);
+      const base_c = el("div","fp-chip base","Current");
+      base_c.title = "Your real current team";
+      strip.appendChild(base_c);
 
-      // Plan chips
       for (let i = 0; i < plan.length; i++) {
-        const slot = plan[i];
-        const m    = allMatches.find(x => x.id === slot.matchId);
-        const chip = document.createElement("div");
-        chip.className     = `fp-match-chip ${i === currentPlanIdx ? "active" : ""}`;
-        chip.dataset.matchId = slot.matchId;
-        chip.dataset.planIdx = i;
-        chip.textContent   = `M${slot.matchNumber}`;
-        chip.title         = m ? `${m.team_a?.short_code} vs ${m.team_b?.short_code}` : "";
+        const s   = plan[i];
+        const m   = allMatches.find(x=>x.id===s.matchId);
+        const c   = el("div", `fp-chip ${i===planIdx?"active":""}`, `M${s.matchNumber}`);
+        c.dataset.planIdx = i;
+        c.title = m ? `${m.team_a?.short_code} vs ${m.team_b?.short_code}` : "";
 
-        // Has changes vs previous?
-        const prevIds = i === 0 ? base.lockedPlayerIds : plan[i - 1].playerIds;
-        const hasChanges = prevIds.length > 0 && slot.playerIds.some(id => !prevIds.includes(id));
-        if (hasChanges) chip.classList.add("has-changes");
+        const prevIds = i===0 ? base.lockedIds : plan[i-1].playerIds;
+        if (prevIds?.length && s.playerIds.some(id=>!prevIds.includes(id))) c.classList.add("changed");
 
-        chip.onclick = () => {
-          currentPlanIdx = i;
-          renderMatchNav();
-          render();
-        };
-
-        scroll.appendChild(chip);
+        c.onclick = () => { planIdx = i; render(); };
+        strip.appendChild(c);
       }
 
-      // "+ Next" chip if more matches available
-      const lastSlot     = plan[plan.length - 1];
-      const lastMatchIdx = allMatches.findIndex(m => m.id === lastSlot.matchId);
-      if (lastMatchIdx < allMatches.length - 1) {
-        const peek = document.createElement("div");
-        peek.className   = "fp-match-chip";
-        peek.style.opacity = "0.5";
-        peek.style.borderStyle = "dashed";
-        peek.textContent = `M${allMatches[lastMatchIdx + 1].match_number} →`;
-        peek.title       = "Lock current match to plan this one";
-        scroll.appendChild(peek);
+      // Peek next
+      const lastMIdx = allMatches.findIndex(m=>m.id===plan[plan.length-1].matchId);
+      if (lastMIdx < allMatches.length-1) {
+        const peek = el("div","fp-chip","M"+allMatches[lastMIdx+1].match_number+" →");
+        peek.style.cssText = "opacity:.4;border-style:dashed;pointer-events:none";
+        strip.appendChild(peek);
       }
     }
 
-    function updateNavBtn(stats) {
-      const btn  = document.getElementById("fpNextBtn");
-      const hint = document.getElementById("fpBarHint");
-      if (!btn) return;
-
-      const slot = currentSlot();
-      const checks = [
-        [stats.count < 11,                         "NEXT →",  `Add ${11 - stats.count} more player${11 - stats.count > 1 ? "s" : ""} first`],
-        [!slot.captainId || !slot.viceCaptainId,   "NEXT →",  "Set Captain & Vice-Captain"],
-        [stats.roles.WK   < 1,                     "NEXT →",  "Need at least 1 Wicket-Keeper"],
-        [stats.roles.BAT  < 3,                     "NEXT →",  "Need at least 3 Batters"],
-        [stats.roles.AR   < 1,                     "NEXT →",  "Need at least 1 All-Rounder"],
-        [stats.roles.BOWL < 3,                     "NEXT →",  "Need at least 3 Bowlers"],
-        [stats.overseas   > 4,                     "NEXT →",  "Max 4 overseas players"],
-        [stats.credits    > 100.05,                "NEXT →",  "Credits exceeded"],
-        [stats.isOverLimit,                         "NEXT →",  "Not enough subs remaining"],
-      ];
-
-      // Check if any more matches available
-      const lastSlot     = plan[plan.length - 1];
-      const lastMatchIdx = allMatches.findIndex(m => m.id === lastSlot.matchId);
-      const noMoreMatches = lastMatchIdx >= allMatches.length - 1 && currentPlanIdx === plan.length - 1;
-
-      if (noMoreMatches) {
-        btn.disabled     = true;
-        btn.textContent  = "End of Schedule";
-        if (hint) hint.textContent = "No more matches to plan — view your summary 📋";
-        return;
-      }
-
-      // Only "Lock & Next" is available from the latest plan entry
-      if (currentPlanIdx < plan.length - 1) {
-        btn.disabled    = true;
-        btn.textContent = "Viewing Past Plan";
-        if (hint) hint.textContent = `Jump to M${lastSlot.matchNumber} to continue planning`;
-        return;
-      }
-
-      for (const [cond, label, hintText] of checks) {
-        if (cond) {
-          btn.disabled    = true;
-          btn.textContent = label;
-          if (hint) hint.textContent = hintText;
-          return;
-        }
-      }
-
-      btn.disabled    = false;
-      btn.textContent = "Lock & Plan Next Match →";
-      if (hint) hint.textContent = "Sandbox only — nothing is saved to your real team";
+    function scrollChipIntoView(matchId) {
+      setTimeout(() => {
+        const s = document.querySelector(`.fp-chip[data-match-id="${matchId}"]`);
+        s?.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"center" });
+      }, 80);
     }
 
-    // ─── DASHBOARD ────────────────────────────────────────────────────
-    function updateDashboard(stats) {
-      renderTeamDots();
-      setText("playerCountLabel", stats.count);
-      setText("overseasCountLabel", `${stats.overseas}/4`);
-      setText("creditCount", (100 - stats.credits).toFixed(1));
-
-      const creditEl = document.getElementById("creditCount");
-      if (creditEl) {
-        const remaining = 100 - stats.credits;
-        creditEl.closest(".dashboard-item")?.classList.toggle("negative", remaining < 5);
+    function renderMiniStats() {
+      let totalUsed = 0;
+      const usedBoosters = new Set(base.usedBoosters);
+      for (const s of plan) {
+        totalUsed += (s.subsUsed||0);
+        if (s.activeBooster !== "NONE") usedBoosters.add(s.activeBooster);
       }
+      const lastSlot  = plan[plan.length-1];
+      const subsLeft  = lastSlot.subsRemaining;
+      const boostLeft = 7 - usedBoosters.size;
 
-      const slot = currentSlot();
-      const boostersLeft = 7 - (slot.usedBoosters?.length || 0) - (slot.activeBooster !== "NONE" ? 1 : 0);
-      setText("boosterUsedLabel", `${boostersLeft}/7`);
-
-      const subsEl = document.getElementById("subsRemainingLabel");
-      if (subsEl) {
-        subsEl.textContent = stats.liveSubs;
-        subsEl.closest(".dashboard-item")?.classList.toggle("negative", stats.isOverLimit);
-      }
-
-      updateRoleTabStates(stats);
+      setTxt("fsSubsLeft",  subsLeft,  subsLeft < 0 ? "bad" : subsLeft < 20 ? "" : "ok");
+      setTxt("fsSubsUsed",  totalUsed);
+      setTxt("fsMatches",   plan.length);
+      setTxt("fsBoosters",  boostLeft, boostLeft <= 1 ? "bad" : "");
     }
 
-    function renderTeamDots() {
-      const container = document.getElementById("teamDotsRow");
-      if (!container) return;
+    function renderDots(stats) {
+      const row = document.getElementById("fpDotsRow");
+      if (!row) return;
+      const s      = slot();
       const bucket = supabase.storage.from("team-logos");
-      const slot   = currentSlot();
-      const frag   = document.createDocumentFragment();
+      row.innerHTML = "";
 
       for (let i = 0; i < 11; i++) {
-        const player = slot.playerIds[i] ? allPlayers.find(p => p.id === slot.playerIds[i]) : null;
-        const dot = document.createElement("div");
-        dot.className = "team-dot";
-
-        if (player) {
-          const team = realTeamsMap[player.real_team_id];
+        const p    = s.playerIds[i] ? allPlayers.find(x=>x.id===s.playerIds[i]) : null;
+        const dot  = document.createElement("div");
+        dot.className = "fp-dot";
+        if (p) {
+          const team = realTeamsMap[p.real_team_id];
           if (team?.photo_name) {
             const url = bucket.getPublicUrl(team.photo_name).data.publicUrl;
             dot.style.backgroundImage = `url('${url}')`;
-            dot.classList.add("filled");
-          } else {
-            dot.classList.add("filled", "no-logo");
-            dot.textContent = team?.short_code?.[0] || "?";
           }
-        } else if (i === 10) {
-          dot.classList.add("no-logo", "dot-eleven");
-          dot.textContent = "11";
+          dot.classList.add("filled");
+        } else {
+          dot.classList.add("empty");
         }
-        frag.appendChild(dot);
+        row.appendChild(dot);
       }
 
-      container.innerHTML = "";
-      container.appendChild(frag);
+      const credEl = document.createElement("span");
+      const rem = (100 - stats.credits).toFixed(1);
+      credEl.className = `fp-dot-credits${rem < 5 ? " tight" : ""}`;
+      credEl.textContent = rem + "cr";
+      row.appendChild(credEl);
+
+      const osEl = document.createElement("span");
+      osEl.className = "fp-dot-overseas";
+      osEl.textContent = `✈${stats.overseas}/4`;
+      row.appendChild(osEl);
     }
 
-    // ─── RENDER MY XI ────────────────────────────────────────────────
-    function renderMyXI(stats) {
-      const slot   = currentSlot();
-      const sorted = slot.playerIds
-        .map(id => allPlayers.find(p => p.id === id))
-        .filter(Boolean)
-        .sort((a, b) => {
-          if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role])
-            return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
-          return Number(b.credit) - Number(a.credit);
-        });
-      renderList("myXIList", sorted, true, stats);
-    }
-
-    // ─── RENDER PLAYER POOL ───────────────────────────────────────────
-    function renderPlayerPool(stats) {
-      const slot      = currentSlot();
-      const nextMatch = allMatches.find(m => m.id === slot.matchId);
-      const s         = filters.search.toLowerCase();
-
-      const filtered = allPlayers.filter(p => {
-        const cat = (p.category || "").toLowerCase();
-        if (s && !p.name.toLowerCase().includes(s) &&
-            !(p.team_short_code || "").toLowerCase().includes(s) &&
-            !cat.includes(s)) return false;
-        if (!filters.search && p.role !== filters.role) return false;
-        if (filters.teams.length && !filters.teams.includes(p.real_team_id)) return false;
-        if (filters.credits.length && !filters.credits.includes(p.credit)) return false;
-        if (filters.type.length && !filters.type.includes(cat)) return false;
-        if (filters.matches.length) {
-          const inMatch = allMatches.some(m =>
-            filters.matches.includes(m.id) &&
-            (p.real_team_id === m.team_a_id || p.real_team_id === m.team_b_id)
-          );
-          if (!inMatch) return false;
-        }
-        return true;
-      }).sort((a, b) => {
-        const pri = id =>
-          id === nextMatch?.team_a_id ? 1 :
-          id === nextMatch?.team_b_id ? 2 : 3;
-        return pri(a.real_team_id) - pri(b.real_team_id)
-          || ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role]
-          || b.credit - a.credit;
+    function updateRoleTabs(stats) {
+      const req = { WK:1, BAT:3, AR:1, BOWL:3 };
+      document.querySelectorAll(".fp-role-tab[data-role]").forEach(tab => {
+        const r     = tab.dataset.role;
+        const count = stats.roles[r]||0;
+        const min   = req[r]||0;
+        const span  = tab.querySelector(".rt-count");
+        if (span) span.textContent = count;
+        tab.classList.remove("req-met");
+        if (count >= min) tab.classList.add("req-met");
       });
 
-      renderList("playerPoolList", filtered, false, stats);
+      const badge = document.getElementById("fpCountBadge");
+      if (badge) badge.textContent = stats.count;
     }
 
-    // ─── LIST RENDERER ────────────────────────────────────────────────
-    function renderList(containerId, list, isMyXi, stats) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
+    function updateNextBtn(stats) {
+      const btn     = document.getElementById("fpNextBtn");
+      if (!btn) return;
+      const s       = slot();
+      const lastMI  = allMatches.findIndex(m=>m.id===plan[plan.length-1].matchId);
+      const noMore  = lastMI >= allMatches.length-1 && planIdx === plan.length-1;
 
-      const slot     = currentSlot();
-      const minReq   = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-      const curRoles = {
-        WK:   slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "WK").length,
-        BAT:  slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "BAT").length,
-        AR:   slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "AR").length,
-        BOWL: slot.playerIds.filter(id => allPlayers.find(p => p.id === id)?.role === "BOWL").length,
-      };
-      const neededSlots = Object.keys(minReq).reduce((acc, r) => acc + Math.max(0, minReq[r] - curRoles[r]), 0);
+      if (noMore) { btn.disabled=true; btn.textContent="End of Schedule"; return; }
+      if (planIdx < plan.length-1) { btn.disabled=true; btn.textContent="Viewing Past Plan"; return; }
 
-      const bucket = supabase.storage.from("player-photos");
-      const frag   = document.createDocumentFragment();
+      const err = validateSlot(s, stats);
+      if (err) { btn.disabled=true; btn.textContent="Lock & Next →"; return; }
+      btn.disabled=false; btn.textContent="Lock & Next Match →";
+    }
 
-      // Prev locked ids (for "new in plan" badge)
-      const prevIds = currentPlanIdx === 0 ? base.lockedPlayerIds : plan[currentPlanIdx - 1].playerIds;
+    /* ═══════════════════════════════════════════════
+       CHANGELOG
+    ═══════════════════════════════════════════════ */
+    function renderChangelog() {
+      const inner = document.getElementById("fpChangelogInner");
+      if (!inner) return;
+      const s       = slot();
+      const prevIds = planIdx===0 ? base.lockedIds : plan[planIdx-1].playerIds;
 
-      if (list.length === 0) {
-        const empty = document.createElement("p");
-        empty.className = "empty-pool-msg";
-        empty.textContent = isMyXi ? "Select players from the Edit tab." : "No players match your filters.";
-        frag.appendChild(empty);
+      if (!prevIds?.length) { inner.innerHTML=`<span class="fp-cl-empty">Base match.</span>`; return; }
+
+      const inIds  = s.playerIds.filter(id=>!prevIds.includes(id));
+      const outIds = prevIds.filter(id=>!s.playerIds.includes(id));
+
+      if (!inIds.length && !outIds.length) { inner.innerHTML=`<span class="fp-cl-empty">Same team as previous.</span>`; return; }
+
+      inner.innerHTML = [
+        ...outIds.map(id=>{ const p=allPlayers.find(x=>x.id===id); return p?`<span class="fp-cl-pill out">▼ ${p.name}</span>`:""; }),
+        ...inIds.map(id=>{ const p=allPlayers.find(x=>x.id===id); return p?`<span class="fp-cl-pill in">▲ ${p.name}</span>`:""; }),
+      ].join("");
+    }
+
+    /* ═══════════════════════════════════════════════
+       BOOSTER STRIP
+    ═══════════════════════════════════════════════ */
+    function renderBoosterStrip() {
+      const strip = document.getElementById("fpBoosterStrip");
+      if (!strip) return;
+      const s = slot();
+      if (s.matchNumber > BOOSTER_END) { strip.innerHTML=""; return; }
+
+      const isLocked  = s.matchNumber < BOOSTER_START;
+      const usedCount = (s.usedBoosters||[]).length + (s.activeBooster!=="NONE"?1:0);
+      const leftCount = 7 - usedCount;
+
+      strip.innerHTML = `
+        <div class="fp-booster-label">
+          Boosters
+          ${isLocked
+            ? '<span class="fp-booster-left-badge">from M2</span>'
+            : `<span class="fp-booster-left-badge">${leftCount} left</span>`}
+        </div>
+        <div class="fp-booster-scroll">
+          ${Object.entries(BOOSTER_META).map(([key,cfg]) => {
+            const isUsed   = s.usedBoosters?.includes(key);
+            const isActive = s.activeBooster === key;
+            const dis      = isUsed || isLocked;
+            return `<div class="fp-booster-card ${isActive?"active":""} ${isUsed?"used":""} ${isLocked&&!isUsed?"locked":""}"
+              ${dis?"":"onclick=\"handleBoosterChange('"+(isActive?"NONE":key)+"')\""}>
+              <span class="bic">${cfg.icon}</span>${cfg.name}
+              ${isActive?'<span style="font-size:8px;background:var(--amber);color:#000;padding:1px 4px;border-radius:3px;margin-left:2px;">ON</span>':""}
+            </div>`;
+          }).join("")}
+        </div>`;
+    }
+
+    /* ═══════════════════════════════════════════════
+       MY XI RENDER
+    ═══════════════════════════════════════════════ */
+    function renderMyXI(stats) {
+      const s      = slot();
+      const list   = document.getElementById("fpMyXIList");
+      if (!list) return;
+      const sorted = s.playerIds
+        .map(id=>allPlayers.find(p=>p.id===id)).filter(Boolean)
+        .sort((a,b) => ROLE_ORDER[a.role]-ROLE_ORDER[b.role] || b.credit-a.credit);
+
+      renderList(list, sorted, true, stats, s);
+    }
+
+    /* ═══════════════════════════════════════════════
+       POOL RENDER
+    ═══════════════════════════════════════════════ */
+    function renderPool(stats) {
+      const s    = slot();
+      const cur  = allMatches.find(m=>m.id===s.matchId);
+      const term = filters.search;
+      const req  = { WK:1, BAT:3, AR:1, BOWL:3 };
+      const cur_roles = { WK:0, BAT:0, AR:0, BOWL:0 };
+      for (const id of s.playerIds) {
+        const p = allPlayers.find(x=>x.id===id);
+        if (p) cur_roles[p.role]++;
+      }
+      const needed = Object.keys(req).reduce((a,r)=>a+Math.max(0,req[r]-cur_roles[r]),0);
+
+      const filtered = allPlayers.filter(p => {
+        const cat = (p.category||"").toLowerCase();
+        if (term && !p.name.toLowerCase().includes(term) && !(p.team_short_code||"").toLowerCase().includes(term)) return false;
+        if (!term && p.role !== filters.role) return false;
+        if (filters.teams.length && !filters.teams.includes(p.real_team_id)) return false;
+        if (filters.matches.length) {
+          const inM = allMatches.some(m => filters.matches.includes(m.id) &&
+            (p.real_team_id===m.team_a_id||p.real_team_id===m.team_b_id));
+          if (!inM) return false;
+        }
+        return true;
+      }).sort((a,b) => {
+        const pri = id => id===cur?.team_a_id?1:id===cur?.team_b_id?2:3;
+        return pri(a.real_team_id)-pri(b.real_team_id) || ROLE_ORDER[a.role]-ROLE_ORDER[b.role] || b.credit-a.credit;
+      });
+
+      const list = document.getElementById("fpPoolList");
+      if (!list) return;
+      renderList(list, filtered, false, stats, s, needed, cur_roles, req);
+    }
+
+    function renderList(container, players, isMyXI, stats, s, needed=0, curRoles={}, req={WK:1,BAT:3,AR:1,BOWL:3}) {
+      const bucket  = supabase.storage.from("player-photos");
+      const prevIds = planIdx===0 ? base.lockedIds : plan[planIdx-1].playerIds;
+      const frag    = document.createDocumentFragment();
+
+      if (!players.length) {
+        const e = document.createElement("p");
+        e.className = "fp-empty";
+        e.textContent = isMyXI ? "Select players from Edit Squad." : "No players match filters.";
+        frag.appendChild(e);
         container.innerHTML = "";
         container.appendChild(frag);
         return;
       }
 
-      for (const p of list) {
-        const isSelected   = slot.playerIds.includes(p.id);
-        const totalCredits = slot.playerIds
-          .map(id => allPlayers.find(x => x.id === id))
-          .filter(Boolean)
-          .reduce((s, x) => s + Number(x.credit), 0);
-        const tooExpensive = p.credit > (100 - totalCredits + (isSelected ? p.credit : 0));
-        const overseasLim  = stats.overseas >= 4 && p.category === "overseas" && !isSelected;
-        const roleLocked   = !isSelected && (11 - stats.count) <= neededSlots &&
-                             (minReq[p.role] - curRoles[p.role]) <= 0;
-        const isDisabled   = !isMyXi && !isSelected &&
-                             (stats.count >= 11 || tooExpensive || overseasLim || roleLocked);
+      for (const p of players) {
+        const isSelected = s.playerIds.includes(p.id);
+        const selCredits = s.playerIds.map(id=>allPlayers.find(x=>x.id===id)).filter(Boolean).reduce((a,x)=>a+Number(x.credit),0);
+        const tooPricey  = p.credit > (100 - selCredits + (isSelected?p.credit:0));
+        const osBlocked  = stats.overseas>=4 && p.category==="overseas" && !isSelected;
+        const roleBlock  = !isSelected && (11-stats.count)<=needed && (req[p.role]-curRoles[p.role])<=0;
+        const disabled   = !isMyXI && !isSelected && (stats.count>=11 || tooPricey || osBlocked || roleBlock);
 
-        const photoUrl = p.photo_url
-          ? bucket.getPublicUrl(p.photo_url).data.publicUrl
-          : "images/default-avatar.png";
+        const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
+        const cat      = (p.category||"").toLowerCase();
+        const catBadge = cat==="overseas"
+          ? '<span class="fp-cat-badge os">✈</span>'
+          : cat==="uncapped"
+          ? '<span class="fp-cat-badge uc">U</span>'
+          : "";
 
-        const cat = (p.category || "").toLowerCase();
-        const catBadge = cat === "overseas" ? '<span class="cat-badge overseas">✈</span>'
-                       : cat === "uncapped"  ? '<span class="cat-badge uncapped">U</span>'
-                       : "";
-
-        // Is this player new in this plan (not in prev slot)?
-        const isNewInPlan    = isSelected && prevIds.length > 0 && !prevIds.includes(p.id);
-        const isDroppedInPlan = !isSelected && prevIds.includes(p.id);
-
-        const newBadge     = isNewInPlan    ? '<span class="fp-player-new-badge">▲ IN</span>' : "";
-        const droppedBadge = isDroppedInPlan ? '<span class="fp-player-dropped-badge">▼ OUT</span>' : "";
+        const isNew  = isSelected && prevIds?.length && !prevIds.includes(p.id);
+        const isOut  = !isSelected && prevIds?.includes(p.id);
+        const pinBadge = isNew
+          ? '<span class="fp-pin-badge new-in">▲ IN</span>'
+          : isOut
+          ? '<span class="fp-pin-badge out">▼ OUT</span>'
+          : "";
 
         const card = document.createElement("div");
-        card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
+        card.className = `fp-player-card ${isSelected?"selected":""} ${disabled?"faded":""}`;
         card.dataset.id = p.id;
 
         card.innerHTML = `
-          <div class="avatar-col" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer">
-            <div class="avatar-wrap">
-              <img src="${photoUrl}" class="player-avatar" loading="lazy" alt="${p.name}">
+          <img class="fp-avatar" src="${photoUrl}" loading="lazy" alt="${p.name}"
+            onerror="this.src='images/default-avatar.png'"
+            onclick="openProfile('${p.id}')" style="cursor:pointer">
+          <div class="fp-pinfo">
+            <div class="fp-pname">${p.name}</div>
+            <div class="fp-pmeta">
+              <span>${p.team_short_code}</span>
               ${catBadge}
+              <span>${p.credit}cr</span>
+              <span>${p.season_points??0}pts</span>
+              ${pinBadge}
             </div>
-            <span class="p-team-badge">${p.team_short_code}</span>
           </div>
-          <div class="player-info">
-            <strong class="p-name">${p.name}</strong>
-            <span class="p-meta">${p.credit} Cr · ${p.selected_by_percent ?? "—"}% · ${p.season_points ?? 0} pts</span>
-            ${newBadge}${droppedBadge}
-          </div>
-          <div class="controls">
-            ${isMyXi ? `
-              <button class="role-btn ${slot.captainId === p.id ? "active-c" : ""}"
-                data-action="C" data-id="${p.id}" aria-label="Set captain">C</button>
-              <button class="role-btn ${slot.viceCaptainId === p.id ? "active-vc" : ""}"
-                data-action="VC" data-id="${p.id}" aria-label="Set vice-captain">VC</button>
+          <div class="fp-pcontrols">
+            ${isMyXI ? `
+              <button class="fp-role-btn ${s.captainId===p.id?"active-c":""}"
+                data-action="C" data-id="${p.id}">C</button>
+              <button class="fp-role-btn ${s.viceCaptainId===p.id?"active-vc":""}"
+                data-action="VC" data-id="${p.id}">VC</button>
             ` : ""}
-            <button class="action-btn ${isSelected ? "remove" : "add"}"
+            <button class="fp-toggle-btn ${isSelected?"selected":""}"
               data-action="toggle" data-id="${p.id}"
-              ${isDisabled ? "disabled" : ""}
-              aria-label="${isSelected ? "Remove player" : "Add player"}">
-              ${isSelected ? "−" : "+"}
+              ${disabled?"disabled":""}
+              aria-label="${isSelected?"Remove":"Add"}">
+              ${isSelected?"−":"+"}
             </button>
           </div>`;
 
@@ -1624,580 +1803,335 @@
       container.appendChild(frag);
     }
 
-    // ─── BOOSTER UI ───────────────────────────────────────────────────
-    function renderBoosterUI() {
-      const container = document.getElementById("boosterContainer");
-      if (!container) return;
+    /* ═══════════════════════════════════════════════
+       SUMMARY SHEET
+    ═══════════════════════════════════════════════ */
+    window.closeSummary = () => {
+      document.getElementById("fpSummarySheet")?.classList.remove("show");
+      document.getElementById("fpSummaryBackdrop")?.classList.remove("show");
+    };
 
-      const slot = currentSlot();
-      const afterTournament = slot.matchNumber > BOOSTER_WINDOW_END;
-      if (afterTournament) { container.classList.add("hidden"); return; }
-      container.classList.remove("hidden");
+    function openSummary() {
+      let totalUsed = 0;
+      const rows = plan.map((s,i) => {
+        const prevIds = i===0 ? base.lockedIds : plan[i-1].playerIds;
+        const inIds   = s.playerIds.filter(id=>!prevIds?.includes(id));
+        const outIds  = (prevIds||[]).filter(id=>!s.playerIds.includes(id));
+        const used    = s.subsUsed||0;
+        totalUsed += used;
 
-      const isMatch1 = slot.matchNumber < BOOSTER_WINDOW_START;
-      const activePenalty = slot.activeBooster !== "NONE" ? 1 : 0;
-      const boostersLeft  = 7 - (slot.usedBoosters?.length || 0) - activePenalty;
+        const pills = [
+          ...outIds.map(id=>{ const p=allPlayers.find(x=>x.id===id); return p?`<span class="fp-cl-pill out">▼ ${p.name}</span>`:""; }),
+          ...inIds.map(id=>{ const p=allPlayers.find(x=>x.id===id); return p?`<span class="fp-cl-pill in">▲ ${p.name}</span>`:""; }),
+        ].join("");
 
-      const configs = {
-        TOTAL_2X: { name: "Total 2X", icon: "🚀" }, INDIAN_2X: { name: "Indian 2X", icon: "🇮🇳" },
-        OVERSEAS_2X: { name: "Overseas 2X", icon: "✈️" }, UNCAPPED_2X: { name: "Uncapped 2X", icon: "🧢" },
-        CAPTAIN_3X: { name: "Captain 3X", icon: "👑" }, MOM_2X: { name: "MOM 2X", icon: "🏆" },
-        FREE_11: { name: "Free 11", icon: "🆓" },
-      };
-
-      const cards = Object.entries(configs).map(([key, cfg]) => {
-        const isUsed   = slot.usedBoosters?.includes(key);
-        const isActive = slot.activeBooster === key;
-        const disabled = isUsed || isMatch1;
-
+        const subsCls = used>0?"warn":"none";
         return `
-          <div class="booster-card ${isActive ? "active" : ""} ${isUsed ? "used" : ""} ${isMatch1 && !isUsed ? "locked" : ""}"
-               ${disabled ? "" : `onclick="handleBoosterChange('${isActive ? "NONE" : key}')"`}>
-            <div class="booster-icon">${cfg.icon}</div>
-            <div class="b-name">${cfg.name}</div>
-            ${isActive ? '<div class="active-badge">On</div>' : ""}
-            ${isUsed   ? '<div class="used-overlay"><span>USED</span></div>' : ""}
-          </div>`;
-      }).join("");
-
-      container.innerHTML = `
-        <div class="booster-shelf">
-          <div class="booster-header">
-            <span class="b-title">BOOSTERS</span>
-            ${isMatch1
-              ? '<span class="b-count b-count-locked">From Match 2</span>'
-              : `<span class="b-count">${boostersLeft} left</span>`}
-          </div>
-          <div class="booster-scroll">${cards}</div>
-        </div>`;
-    }
-
-    // ─── SUMMARY SHEET ────────────────────────────────────────────────
-    function openFpSummary() {
-      const content = document.getElementById("fpSummaryContent");
-      if (!content) return;
-
-      let totalSubsUsed = 0;
-
-      const rows = plan.map((slot, i) => {
-        const prevIds = i === 0 ? base.lockedPlayerIds : plan[i - 1].playerIds;
-        const inIds   = slot.playerIds.filter(id => !prevIds.includes(id));
-        const outIds  = prevIds.filter(id => !slot.playerIds.includes(id));
-        const subsUsed = slot.subsUsed || 0;
-        totalSubsUsed += subsUsed;
-
-        const inPills  = inIds.map(id => {
-          const p = allPlayers.find(x => x.id === id);
-          return p ? `<span class="fp-change-pill in"><span class="fp-pill-dot"></span>▲ ${p.name}</span>` : "";
-        }).join("");
-
-        const outPills = outIds.map(id => {
-          const p = allPlayers.find(x => x.id === id);
-          return p ? `<span class="fp-change-pill out"><span class="fp-pill-dot"></span>▼ ${p.name}</span>` : "";
-        }).join("");
-
-        const subsClass = subsUsed > 0 ? "warn" : "none";
-        const boosterHtml = slot.activeBooster !== "NONE"
-          ? `<span class="ts-tag booster">${BOOSTER_ICONS[slot.activeBooster]} ${BOOSTER_NAMES[slot.activeBooster]}</span>`
-          : "";
-
-        return `
-          <div class="fp-summary-match-row">
-            <div class="fp-summary-match-header">
-              <span class="fp-summary-match-num">Match ${slot.matchNumber}</span>
-              <span class="fp-summary-subs ${slot.isReset ? "ok" : subsClass}">
-                ${slot.isReset ? "FREE" : `${subsUsed} subs · ${slot.subsRemaining} left`}
+          <div class="fp-smatch-row">
+            <div class="fp-smatch-hdr">
+              <span class="fp-smatch-num">Match ${s.matchNumber}</span>
+              <span class="fp-smatch-subs ${s.isReset?"ok":subsCls}">
+                ${s.isReset?"FREE":used>0?`${used} subs · ${s.subsRemaining} left`:"No changes"}
               </span>
             </div>
-            ${boosterHtml ? `<div style="margin-bottom:6px">${boosterHtml}</div>` : ""}
-            <div class="fp-summary-changes">
-              ${inPills || outPills
-                ? inPills + outPills
-                : '<span class="fp-no-change-text">No changes</span>'}
-            </div>
+            ${s.activeBooster!=="NONE"?`<div style="margin-bottom:5px;font-size:11px;color:var(--amber)">${BOOSTER_META[s.activeBooster].icon} ${BOOSTER_META[s.activeBooster].name}</div>`:""}
+            <div class="fp-smatch-changes">${pills||'<span style="font-size:11px;color:var(--text-faint);font-style:italic;">No changes</span>'}</div>
           </div>`;
       }).join("");
 
-      const lastSlot = plan[plan.length - 1];
-
-      content.innerHTML = `
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <div class="ts-stat-pill">
-            <span class="ts-stat-value">${totalSubsUsed}</span>
-            <span class="ts-stat-label">Total Subs Used</span>
-          </div>
-          <div class="ts-stat-pill">
-            <span class="ts-stat-value ${lastSlot.subsRemaining < 0 ? "danger" : ""}">${lastSlot.subsRemaining}</span>
-            <span class="ts-stat-label">Subs Remaining</span>
-          </div>
-          <div class="ts-stat-pill">
-            <span class="ts-stat-value">${plan.length}</span>
-            <span class="ts-stat-label">Matches Planned</span>
-          </div>
+      const last = plan[plan.length-1];
+      document.getElementById("fpSummaryContent").innerHTML = `
+        <div class="fp-summary-pills">
+          <div class="fp-summary-pill"><span class="spv">${totalUsed}</span><span class="spl">Subs Used</span></div>
+          <div class="fp-summary-pill"><span class="spv ${last.subsRemaining<0?"bad":""}">${last.subsRemaining}</span><span class="spl">Subs Left</span></div>
+          <div class="fp-summary-pill"><span class="spv">${plan.length}</span><span class="spl">Planned</span></div>
         </div>
         ${rows}`;
 
-      const sheet   = document.getElementById("fpSummarySheet");
-      const backdrop = document.getElementById("fpSummaryBackdrop");
-      backdrop?.classList.remove("hidden");
-      sheet?.classList.add("show");
-      document.body.style.overflow = "hidden";
+      document.getElementById("fpSummaryBackdrop").classList.add("show");
+      document.getElementById("fpSummarySheet").classList.add("show");
     }
 
-    window.closeFpSummary = () => {
-      document.getElementById("fpSummarySheet")?.classList.remove("show");
-      document.getElementById("fpSummaryBackdrop")?.classList.add("hidden");
-      document.body.style.overflow = "";
+    /* ═══════════════════════════════════════════════
+       PROFILE
+    ═══════════════════════════════════════════════ */
+    window.openProfile = async (playerId) => {
+      const overlay = document.getElementById("fpProfileOverlay");
+      const content = document.getElementById("fpProfileContent");
+      if (!overlay||!content) return;
+      content.innerHTML = '<div class="fp-loading"><div class="fp-spinner"></div></div>';
+      overlay.classList.remove("hidden");
+
+      try {
+        const [{ data: p }, { data: statsData }] = await Promise.all([
+          supabase.from("player_pool_view").select("*").eq("id",playerId).maybeSingle(),
+          supabase.from("player_match_stats").select("*, match:matches!inner(match_number)")
+            .eq("player_id",playerId).order("match_id",{ascending:true}),
+        ]);
+        if (!p) { content.innerHTML='<p class="fp-empty">Not found.</p>'; return; }
+
+        const bucket   = supabase.storage.from("player-photos");
+        const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
+        const totalPts = (statsData||[]).reduce((a,m)=>a+(m.fantasy_points||0),0);
+        const s        = slot();
+        const isSelected = s.playerIds.includes(p.id);
+        const stats    = calcStats();
+        const cat      = (p.category||"").toLowerCase();
+        const canAdd   = !isSelected && stats.count < 11 && !(stats.overseas>=4&&cat==="overseas");
+
+        const history = (statsData||[]).map(m => {
+          const big = m.fantasy_points >= 100;
+          return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+            <span style="color:var(--text-faint)">M${m.match?.match_number||"#"}</span>
+            <span style="color:${big?"var(--amber)":"#fff"};font-weight:600">${big?"🌟 ":""}${m.fantasy_points}pts</span>
+          </div>`;
+        }).join("") || '<p class="fp-empty">No match data.</p>';
+
+        content.innerHTML = `
+          <div style="text-align:center;padding:14px 0 10px">
+            <img src="${photoUrl}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--amber-border);margin-bottom:8px" onerror="this.src='images/default-avatar.png'">
+            <div style="font-weight:700;font-size:15px">${p.name}</div>
+            <div style="font-size:11px;color:var(--text-faint);margin-top:3px">${p.role} · ${p.team_short_code} · ${p.credit}cr</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            ${[["Season Pts",totalPts],["Selected",`${p.selected_by_percent??"-"}%`],["Matches",statsData?.length||0]].map(([l,v])=>`
+              <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center">
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--amber)">${v}</div>
+                <div style="font-size:9px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.3px">${l}</div>
+              </div>`).join("")}
+          </div>
+          <div style="font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Match History</div>
+          ${history}
+          <button onclick="profileToggle('${p.id}')"
+            style="width:100%;height:42px;margin-top:12px;border-radius:9px;font-family:var(--font-display);font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer;background:${isSelected?"var(--amber-dim)":"rgba(154,224,0,0.08)"};border:1.5px solid ${isSelected?"var(--amber-border)":"rgba(154,224,0,0.25)"};color:${isSelected?"var(--amber)":"var(--accent)"}" ${!isSelected&&!canAdd?"disabled":""}>
+            ${isSelected?"− Remove from XI":"+ Add to XI"}
+          </button>`;
+      } catch(e) { content.innerHTML='<p class="fp-empty">Failed to load.</p>'; }
     };
 
-    // ─── UI INIT ──────────────────────────────────────────────────────
-    function initUI() {
-      // Player pool — delegated
-      document.getElementById("playerPoolList")?.addEventListener("click", e => {
+    window.closeProfile = e => {
+      if (e && e.target !== document.getElementById("fpProfileOverlay")) return;
+      document.getElementById("fpProfileOverlay")?.classList.add("hidden");
+    };
+
+    window.profileToggle = id => {
+      document.getElementById("fpProfileOverlay")?.classList.add("hidden");
+      setTimeout(() => togglePlayer(id), 150);
+    };
+
+    /* ═══════════════════════════════════════════════
+       VIEW MANAGEMENT
+    ═══════════════════════════════════════════════ */
+    function updateViewUI() {
+      const myxi = document.getElementById("fpMyXIView");
+      const pool = document.getElementById("fpPoolView");
+      const btnM = document.getElementById("fpBtnMyXI");
+      const btnP = document.getElementById("fpBtnPool");
+      const roleBar = document.getElementById("fpRoleBar");
+      const searchRow = document.getElementById("fpSearchRow");
+
+      if (activeView === "myxi") {
+        myxi.style.display = "block";
+        pool.style.display = "none";
+        btnM.classList.add("active");
+        btnP.classList.remove("active");
+        roleBar.style.display = "none";
+        searchRow.style.display = "none";
+        renderMyXI(calcStats());
+      } else {
+        myxi.style.display = "none";
+        pool.style.display = "block";
+        btnM.classList.remove("active");
+        btnP.classList.add("active");
+        roleBar.style.display = "flex";
+        searchRow.style.display = "flex";
+        renderPool(calcStats());
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       FILTER SHEETS
+    ═══════════════════════════════════════════════ */
+    function openFilterSheet(type) {
+      closeFilterSheet();
+      if (type === "teams") {
+        renderTeamGrid();
+        document.getElementById("fpTeamSheet").classList.add("show");
+      } else {
+        renderMatchFilter();
+        document.getElementById("fpMatchSheet").classList.add("show");
+      }
+      document.getElementById("fpFilterBackdrop").classList.add("show");
+    }
+
+    window.closeFilterSheet = () => {
+      ["fpTeamSheet","fpMatchSheet"].forEach(id => document.getElementById(id)?.classList.remove("show"));
+      document.getElementById("fpFilterBackdrop")?.classList.remove("show");
+      render();
+    };
+
+    function renderTeamGrid() {
+      const grid = document.getElementById("fpTeamGrid");
+      if (!grid) return;
+      const bucket = supabase.storage.from("team-logos");
+      const ids = [...new Set(allPlayers.map(p=>p.real_team_id))];
+      grid.innerHTML = ids.map(tid => {
+        const t = realTeamsMap[tid]||{name:"Unknown",short_code:"?"};
+        const logo = t.photo_name ? bucket.getPublicUrl(t.photo_name).data.publicUrl : "";
+        const sel  = filters.teams.includes(tid);
+        return `<div class="fp-team-card ${sel?"selected":""}" onclick="toggleTeamFilter('${tid}', this)">
+          <div class="fp-team-logo" style="background-image:url('${logo}')"></div>
+          <span class="fp-team-name">${t.short_code}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function renderMatchFilter() {
+      const list = document.getElementById("fpMatchFilterList");
+      if (!list) return;
+      const bucket = supabase.storage.from("team-logos");
+      list.innerHTML = allMatches.map(m => {
+        const sel  = filters.matches.includes(m.id);
+        const logoA = m.team_a?.photo_name ? bucket.getPublicUrl(m.team_a.photo_name).data.publicUrl : "";
+        const logoB = m.team_b?.photo_name ? bucket.getPublicUrl(m.team_b.photo_name).data.publicUrl : "";
+        const d = new Date(m.actual_start_time);
+        const dt = d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + " " + d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+        return `<div class="fp-match-card ${sel?"selected":""}" onclick="toggleMatchFilter('${m.id}', this)">
+          <div class="fp-match-card-top"><span>Match ${m.match_number}</span><span style="color:var(--text-faint);font-size:9px">${dt}</span></div>
+          <div class="fp-match-card-teams">
+            <div class="fp-mct-logo" style="background-image:url('${logoA}')"></div>
+            <span>${m.team_a?.short_code}</span>
+            <span class="fp-mct-vs">vs</span>
+            <span>${m.team_b?.short_code}</span>
+            <div class="fp-mct-logo" style="background-image:url('${logoB}')"></div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    window.toggleTeamFilter = (id, el) => {
+      if (filters.teams.includes(id)) { filters.teams = filters.teams.filter(x=>x!==id); el.classList.remove("selected"); }
+      else { filters.teams.push(id); el.classList.add("selected"); }
+      document.getElementById("fpFilterTeam")?.classList.toggle("active-filter", filters.teams.length>0);
+    };
+
+    window.toggleMatchFilter = (id, el) => {
+      if (filters.matches.includes(id)) { filters.matches = filters.matches.filter(x=>x!==id); el.classList.remove("selected"); }
+      else { filters.matches.push(id); el.classList.add("selected"); }
+      document.getElementById("fpFilterMatch")?.classList.toggle("active-filter", filters.matches.length>0);
+    };
+
+    window.clearFilter = key => {
+      filters[key] = [];
+      if (key==="teams") { renderTeamGrid(); document.getElementById("fpFilterTeam")?.classList.remove("active-filter"); }
+      else { renderMatchFilter(); document.getElementById("fpFilterMatch")?.classList.remove("active-filter"); }
+    };
+
+    /* ═══════════════════════════════════════════════
+       EVENTS INIT
+    ═══════════════════════════════════════════════ */
+    function initEvents() {
+      // Pool list events
+      document.getElementById("fpPoolList")?.addEventListener("click", e => {
         const btn = e.target.closest("button[data-action]");
         if (!btn || btn.disabled) return;
         if (btn.dataset.action === "toggle") togglePlayer(btn.dataset.id);
       });
 
-      // My XI — delegated
-      document.getElementById("myXIList")?.addEventListener("click", e => {
+      // My XI list events
+      document.getElementById("fpMyXIList")?.addEventListener("click", e => {
         const btn = e.target.closest("button[data-action]");
         if (!btn) return;
-        if (btn.dataset.action === "toggle") togglePlayer(btn.dataset.id);
-        else if (btn.dataset.action === "C")  setRole(btn.dataset.id, "C");
-        else if (btn.dataset.action === "VC") setRole(btn.dataset.id, "VC");
+        if (btn.dataset.action==="toggle") togglePlayer(btn.dataset.id);
+        else if (btn.dataset.action==="C")  setRole(btn.dataset.id,"C");
+        else if (btn.dataset.action==="VC") setRole(btn.dataset.id,"VC");
+      });
+
+      // View toggle
+      document.getElementById("fpBtnMyXI")?.addEventListener("click", () => { activeView="myxi"; updateViewUI(); });
+      document.getElementById("fpBtnPool")?.addEventListener("click", () => { activeView="pool"; updateViewUI(); });
+
+      // Role tabs
+      document.querySelectorAll(".fp-role-tab[data-role]").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".fp-role-tab").forEach(t=>t.classList.remove("active"));
+          tab.classList.add("active");
+          filters.role = tab.dataset.role;
+          filters.search = "";
+          const si = document.getElementById("fpSearch");
+          if (si) si.value = "";
+          renderPool(calcStats());
+        });
       });
 
       // Search
-      const searchIconBtn = document.getElementById("searchIconBtn");
-      const searchOverlay = document.getElementById("searchOverlayRow");
-      const searchCloseBtn = document.getElementById("searchCloseBtn");
-      const searchInput   = document.getElementById("playerSearch");
-      let searchTimeout;
-
-      if (searchIconBtn) {
-        searchIconBtn.onclick = () => {
-          searchOverlay?.classList.remove("hidden");
-          searchIconBtn.classList.add("active");
-          searchInput?.focus();
-        };
-      }
-
-      if (searchCloseBtn) {
-        searchCloseBtn.onclick = () => {
-          searchOverlay?.classList.add("hidden");
-          searchIconBtn?.classList.remove("active");
-          if (searchInput) searchInput.value = "";
-          filters.search = "";
-          renderPlayerPool(calcStats());
-          updateFilterButtonStates();
-        };
-      }
-
-      if (searchInput) {
-        searchInput.oninput = e => {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            const term = e.target.value.toLowerCase().trim();
-            filters.search = term;
-            if (term) {
-              const match = allPlayers.find(p =>
-                p.name.toLowerCase().includes(term) ||
-                (p.team_short_code || "").toLowerCase().includes(term)
-              );
-              if (match && match.role !== filters.role) {
-                filters.role = match.role;
-                document.querySelectorAll(".role-tab").forEach(t =>
-                  t.classList.toggle("active", t.dataset.role === match.role));
-              }
-            }
-            renderPlayerPool(calcStats());
-            updateFilterButtonStates();
-          }, 250);
-        };
-      }
-
-      // Filter dropdowns
-      const backdrop = document.getElementById("filterBackdrop");
-      for (const type of ["match", "team", "credit", "type"]) {
-        const btn  = document.getElementById(`${type}Toggle`);
-        const menu = document.getElementById(`${type}Menu`);
-        if (btn && menu) {
-          btn.onclick = e => {
-            e.stopPropagation();
-            document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
-            menu.classList.add("show");
-            backdrop?.classList.remove("hidden");
-            document.body.style.overflow = "hidden";
-          };
-        }
-      }
-      if (backdrop) backdrop.onclick = closeFilters;
-
-      // View tabs
-      document.querySelectorAll(".toggle-btn").forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
-          document.querySelectorAll(".view-mode").forEach(v => v.classList.remove("active"));
-          btn.classList.add("active");
-          document.getElementById(`${btn.dataset.mode}-view`)?.classList.add("active");
-          const fw = document.querySelector(".search-filter-wrapper");
-          if (fw) fw.style.display = btn.dataset.mode === "myxi" ? "none" : "flex";
-        };
+      let searchTimer;
+      document.getElementById("fpSearch")?.addEventListener("input", e => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          filters.search = e.target.value.toLowerCase().trim();
+          renderPool(calcStats());
+        }, 200);
       });
 
-      // Role tabs
-      document.querySelectorAll(".role-tab").forEach(tab => {
-        tab.onclick = () => {
-          document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
-          tab.classList.add("active");
-          filters.role = tab.dataset.role;
-          if (searchInput) searchInput.value = "";
-          filters.search = "";
-          searchOverlay?.classList.add("hidden");
-          searchIconBtn?.classList.remove("active");
-          renderPlayerPool(calcStats());
-          updateFilterButtonStates();
-        };
-      });
+      // Filter buttons
+      document.getElementById("fpFilterTeam")?.addEventListener("click", () => openFilterSheet("teams"));
+      document.getElementById("fpFilterMatch")?.addEventListener("click", () => openFilterSheet("matches"));
+      document.getElementById("fpFilterBackdrop")?.addEventListener("click", closeFilterSheet);
 
       // Bottom bar
       document.getElementById("fpNextBtn")?.addEventListener("click", lockAndAdvance);
-      document.getElementById("fpResetBtn")?.addEventListener("click", resetCurrentMatch);
-      document.getElementById("fpSummaryBtn")?.addEventListener("click", openFpSummary);
-      document.getElementById("fpSummaryBackdrop")?.addEventListener("click", closeFpSummary);
-
-      // Filters init
-      initFilters();
+      document.getElementById("fpResetBtn")?.addEventListener("click", resetMatch);
+      document.getElementById("fpSummaryBtn")?.addEventListener("click", openSummary);
+      document.getElementById("fpSummaryBackdrop")?.addEventListener("click", closeSummary);
     }
 
-    // ─── FILTERS ──────────────────────────────────────────────────────
-    function initFilters() {
-      renderTeamDropdown();
-      renderMatchDropdown();
-      const uniqueCredits = [...new Set(allPlayers.map(p => p.credit))].sort((a, b) => a - b);
-      renderCheckboxDropdown("creditMenu", uniqueCredits, "credits", c => `${c} Cr`);
-      renderCheckboxDropdown("typeMenu",
-        [{ id: "uncapped", label: "Uncapped 🧢" }, { id: "overseas", label: "Overseas ✈️" }],
-        "type", t => t.label);
+    /* ═══════════════════════════════════════════════
+       HELPERS
+    ═══════════════════════════════════════════════ */
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      e.className = cls;
+      if (text) e.textContent = text;
+      return e;
     }
 
-    function renderCheckboxDropdown(elementId, items, filterKey, labelFn) {
-      const container = document.getElementById(elementId);
-      if (!container) return;
-      const listHtml = items.map(item => {
-        const val = item.id ?? item;
-        return `<label class="filter-item">
-          <span>${labelFn(item)}</span>
-          <input type="checkbox" value="${val}"
-            ${filters[filterKey].includes(val) ? "checked" : ""}
-            onchange="toggleFilter('${filterKey}', '${val}', this)">
-        </label>`;
-      }).join("");
-      container.innerHTML = `
-        <div class="dropdown-content">${listHtml || '<p class="empty-pool-msg">No options.</p>'}</div>
-        <div class="dropdown-actions">
-          <button onclick="clearFilters('${filterKey}')">Clear</button>
-          <button onclick="closeFilters()">Apply</button>
-        </div>`;
+    function setTxt(id, val, cls) {
+      const e = document.getElementById(id);
+      if (!e) return;
+      e.textContent = val;
+      if (cls !== undefined) e.className = `fp-stat-val ${cls}`;
     }
 
-    function renderMatchDropdown() {
-      const container = document.getElementById("matchMenu");
-      if (!container) return;
-      if (allMatches.length === 0) {
-        container.innerHTML = `<p class="empty-pool-msg" style="padding:20px;text-align:center;">No upcoming matches.</p>
-          <div class="dropdown-actions"><button onclick="closeFilters()">Close</button></div>`;
-        return;
-      }
-      const bucket = supabase.storage.from("team-logos");
-      const listHtml = allMatches.map(m => {
-        const isSelected = filters.matches.includes(m.id);
-        const logoA = m.team_a?.photo_name ? bucket.getPublicUrl(m.team_a.photo_name).data.publicUrl : "images/default-team.png";
-        const logoB = m.team_b?.photo_name ? bucket.getPublicUrl(m.team_b.photo_name).data.publicUrl : "images/default-team.png";
-        const d    = new Date(m.actual_start_time);
-        const date = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-        const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-        return `
-          <div class="match-filter-card ${isSelected ? "selected" : ""}" onclick="toggleMatchFilterCard('${m.id}', this)">
-            <span class="mfc-selected-tick">✔</span>
-            <div class="mfc-top-row">
-              <span class="mfc-match-num">Match ${m.match_number}</span>
-              <span class="mfc-venue">${m.venue || "Venue TBA"}</span>
-            </div>
-            <div class="mfc-main-row">
-              <div class="mfc-team-side">
-                <div class="mfc-logo" style="background-image:url('${logoA}')"></div>
-                <span class="mfc-team-name">${m.team_a?.short_code}</span>
-              </div>
-              <div class="mfc-center">
-                <span class="mfc-vs">vs</span>
-                <span class="mfc-datetime">${date}, ${time}</span>
-              </div>
-              <div class="mfc-team-side right">
-                <div class="mfc-logo" style="background-image:url('${logoB}')"></div>
-                <span class="mfc-team-name">${m.team_b?.short_code}</span>
-              </div>
-            </div>
-          </div>`;
-      }).join("");
-      container.innerHTML = `
-        <div class="dropdown-content match-filter-grid">${listHtml}</div>
-        <div class="dropdown-actions">
-          <button onclick="clearFilters('matches')">Clear</button>
-          <button onclick="closeFilters()">Apply</button>
-        </div>`;
+    function showEmpty(msg) {
+      document.getElementById("fpContent").innerHTML = `<p class="fp-empty">${msg}</p>`;
     }
 
-    function renderTeamDropdown() {
-      const container = document.getElementById("teamMenu");
-      if (!container) return;
-      const bucket       = supabase.storage.from("team-logos");
-      const uniqueTeamIds = [...new Set(allPlayers.map(p => p.real_team_id))];
-      const listHtml = uniqueTeamIds.map(teamId => {
-        const isSelected = filters.teams.includes(teamId);
-        const info       = realTeamsMap[teamId] || { name: "Unknown", short_code: "UNK" };
-        const logoUrl    = info.photo_name ? bucket.getPublicUrl(info.photo_name).data.publicUrl : "images/default-team.png";
-        return `
-          <div class="team-filter-card ${isSelected ? "selected" : ""}" onclick="toggleTeamFilterCard('${teamId}', this)">
-            <div class="tfc-logo" style="background-image:url('${logoUrl}')"></div>
-            <span class="tfc-name">${info.name} (${info.short_code})</span>
-          </div>`;
-      }).join("");
-      container.innerHTML = `
-        <div class="dropdown-content team-filter-grid">${listHtml}</div>
-        <div class="dropdown-actions">
-          <button onclick="clearFilters('teams')">Clear</button>
-          <button onclick="closeFilters()">Apply</button>
-        </div>`;
+    function toast(msg, type="success") {
+      const c = document.getElementById("fpToastContainer");
+      if (!c) return;
+      const t = document.createElement("div");
+      t.className = `fp-toast ${type}`;
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity="0"; t.style.transform="translateY(6px)"; setTimeout(()=>t.remove(),350); }, 3000);
     }
 
-    // ─── FILTER UTILITIES ─────────────────────────────────────────────
-    window.toggleFilter = (k, v, el) => {
-      const val = k === "credits" ? parseFloat(v) : v;
-      if (el.checked) filters[k].push(val);
-      else filters[k] = filters[k].filter(i => i !== val);
-      renderPlayerPool(calcStats());
-      updateFilterButtonStates();
-    };
-
-    window.clearFilters = k => {
-      filters[k] = [];
-      renderPlayerPool(calcStats());
-      updateFilterButtonStates();
-      initFilters();
-    };
-
-    window.closeFilters = () => {
-      document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
-      document.getElementById("filterBackdrop")?.classList.add("hidden");
-      document.body.style.overflow = "";
-    };
-
-    window.toggleTeamFilterCard = (teamId, el) => {
-      if (filters.teams.includes(teamId)) {
-        filters.teams = filters.teams.filter(id => id !== teamId);
-        el.classList.remove("selected");
-      } else {
-        filters.teams.push(teamId);
-        el.classList.add("selected");
-      }
-      renderPlayerPool(calcStats());
-      updateFilterButtonStates();
-    };
-
-    window.toggleMatchFilterCard = (matchId, el) => {
-      if (filters.matches.includes(matchId)) {
-        filters.matches = filters.matches.filter(id => id !== matchId);
-        el.classList.remove("selected");
-      } else {
-        filters.matches.push(matchId);
-        el.classList.add("selected");
-      }
-      renderPlayerPool(calcStats());
-      updateFilterButtonStates();
-    };
-
-    function updateFilterButtonStates() {
-      const map = {
-        matchToggle: filters.matches, teamToggle: filters.teams,
-        creditToggle: filters.credits, typeToggle: filters.type,
-      };
-      for (const [id, arr] of Object.entries(map)) {
-        document.getElementById(id)?.classList.toggle("active-filter", arr.length > 0);
-      }
-    }
-
-    function updateRoleTabStates(stats) {
-      const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-      document.querySelectorAll(".role-tab[data-role]").forEach(tab => {
-        const role  = tab.dataset.role;
-        const count = stats.roles[role] || 0;
-        const min   = minReq[role] || 0;
-        const badge = tab.querySelector("span");
-        if (badge) badge.textContent = count;
-        tab.classList.remove("req-met", "req-unmet");
-        if (count >= min) tab.classList.add("req-met");
-        else              tab.classList.add("req-unmet");
-      });
-    }
-
-    // ─── HELPERS ──────────────────────────────────────────────────────
-    function setText(id, val) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    }
-
-    function showEmpty(msg = "No upcoming matches.") {
-      document.body.classList.remove("loading-state");
-      const main = document.querySelector(".content-area");
-      if (main) main.innerHTML = `<p class="empty-pool-msg">${msg}</p>`;
-    }
-
-    function showToast(message, type = "success") {
-      const container = document.getElementById("toastContainer");
-      if (!container) return;
-      const toast = document.createElement("div");
-      toast.className   = `toast ${type}`;
-      toast.textContent = message;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity   = "0";
-        toast.style.transform = "translateX(120%)";
-        toast.style.transition = "all 0.4s ease";
-        setTimeout(() => toast.remove(), 400);
-      }, 3500);
-    }
-
-    window.showConfirm = (title, message) => {
+    function showConfirm(title, text) {
       return new Promise(resolve => {
-        const overlay   = document.getElementById("customConfirmOverlay");
-        const titleEl   = document.getElementById("confirmTitle");
-        const textEl    = document.getElementById("confirmText");
-        const btnCancel = document.getElementById("confirmCancelBtn");
-        const btnApply  = document.getElementById("confirmApplyBtn");
-        if (!overlay) return resolve(true);
-        titleEl.textContent = title;
-        textEl.textContent  = message;
+        const overlay = document.getElementById("fpConfirmOverlay");
+        document.getElementById("fpConfirmTitle").textContent = title;
+        document.getElementById("fpConfirmText").textContent  = text;
         overlay.classList.remove("hidden");
-        const cleanup = () => { overlay.classList.add("hidden"); btnCancel.onclick = null; btnApply.onclick = null; };
-        btnCancel.onclick = () => { cleanup(); resolve(false); };
-        btnApply.onclick  = () => { cleanup(); resolve(true); };
+        const done = val => {
+          overlay.classList.add("hidden");
+          document.getElementById("fpConfirmCancelBtn").onclick = null;
+          document.getElementById("fpConfirmApplyBtn").onclick  = null;
+          resolve(val);
+        };
+        document.getElementById("fpConfirmCancelBtn").onclick = () => done(false);
+        document.getElementById("fpConfirmApplyBtn").onclick  = () => done(true);
       });
-    };
-
-    // ─── PLAYER PROFILE (reused from edit-team) ───────────────────────
-    window.openPlayerProfile = async (playerId) => {
-      const overlay = document.getElementById("playerProfileOverlay");
-      const content = document.getElementById("profileContent");
-      if (!overlay || !content) return;
-      content.innerHTML = '<div class="profile-loading"><div class="tb-spinner"></div></div>';
-      overlay.classList.remove("hidden");
-      document.body.style.overflow = "hidden";
-
-      try {
-        const [playerRes, statsRes] = await Promise.all([
-          supabase.from("player_pool_view").select("*").eq("id", playerId).maybeSingle(),
-          supabase.from("player_match_stats")
-            .select("*, match:matches!inner(match_number)")
-            .eq("player_id", playerId)
-            .order("match_id", { ascending: true }),
-        ]);
-
-        const p     = playerRes.data;
-        const stats = statsRes.data || [];
-        if (!p) { content.innerHTML = '<p class="profile-no-history">Player not found.</p>'; return; }
-
-        const bucket   = supabase.storage.from("player-photos");
-        const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
-        const totalPts = stats.reduce((s, m) => s + (m.fantasy_points || 0), 0);
-        const cat      = (p.category || "").toLowerCase();
-        const slot     = currentSlot();
-        const isSelected = slot.playerIds.includes(p.id);
-        const currStats  = calcStats();
-        const canAdd     = !isSelected && currStats.count < 11 && !(currStats.overseas >= 4 && cat === "overseas");
-        const catBadge   = cat === "overseas"
-          ? '<span class="profile-badge overseas">✈ Overseas</span>'
-          : cat === "uncapped"
-          ? '<span class="profile-badge uncapped">🧢 Uncapped</span>'
-          : "";
-
-        const historyHtml = stats.length > 0
-          ? stats.map(m => {
-              const isBig = m.fantasy_points >= 100;
-              const chips = buildProfileChips(m);
-              return `
-                <div class="profile-match-row ${isBig ? "big-game" : ""}">
-                  <div class="pmr-top">
-                    <span class="pmr-match">Match ${m.match?.match_number || "#"}</span>
-                    <span class="pmr-pts">${isBig ? "🌟 " : ""}+${m.fantasy_points} pts</span>
-                  </div>
-                  ${chips.length > 0 ? `<div class="pmr-chips">${chips.join("")}</div>` : ""}
-                </div>`;
-            }).join("")
-          : '<p class="profile-no-history">No match data yet.</p>';
-
-        content.innerHTML = `
-          <div class="profile-hero">
-            <img src="${photoUrl}" class="profile-avatar" alt="${p.name}">
-            <span class="profile-name">${p.name}</span>
-            <div class="profile-badges">
-              <span class="profile-badge role">${p.role}</span>
-              <span class="profile-badge team">${p.team_short_code}</span>
-              ${catBadge}
-            </div>
-          </div>
-          <div class="profile-stats-row">
-            <div class="profile-stat"><span class="ps-value">${p.credit} Cr</span><span class="ps-label">Credits</span></div>
-            <div class="profile-stat"><span class="ps-value">${totalPts}</span><span class="ps-label">Season Pts</span></div>
-            <div class="profile-stat"><span class="ps-value">${p.selected_by_percent ?? "—"}%</span><span class="ps-label">Selected By</span></div>
-            <div class="profile-stat"><span class="ps-value">${stats.length}</span><span class="ps-label">Matches</span></div>
-          </div>
-          <div class="profile-history">
-            <div class="profile-history-label">Match Breakdown</div>
-            ${historyHtml}
-          </div>
-          <div class="profile-action-wrap">
-            <button class="profile-action-btn ${isSelected ? "remove" : "add"}"
-              ${!isSelected && !canAdd ? "disabled" : ""}
-              onclick="profileTogglePlayer('${p.id}')">
-              ${isSelected ? "− Remove from XI" : "+ Add to XI"}
-            </button>
-          </div>`;
-      } catch (err) {
-        console.error("Profile load error:", err);
-        content.innerHTML = '<p class="profile-no-history">Failed to load. Try again.</p>';
-      }
-    };
-
-    window.closePlayerProfile = (e) => {
-      if (e && e.target !== document.getElementById("playerProfileOverlay")) return;
-      document.getElementById("playerProfileOverlay")?.classList.add("hidden");
-      document.body.style.overflow = "";
-    };
-
-    window.profileTogglePlayer = (id) => {
-      closePlayerProfile();
-      setTimeout(() => togglePlayer(id), 200);
-    };
-
-    function buildProfileChips(m) {
-      const chips = [];
-      const chip  = (text, type) => `<span class="stat-tag ${type}">${text}</span>`;
-      if (m.runs   > 0) chips.push(chip(`🏏 ${m.runs}${m.balls ? ` (${m.balls}b)` : ""}`, "bat"));
-      if (m.fours  > 0 || m.sixes > 0) chips.push(chip(`🎯 ${m.fours||0}×4 ${m.sixes||0}×6`, "boundary"));
-      if (m.sr_points && m.sr_points !== 0) chips.push(chip(`⚡ SR ${m.sr_points > 0 ? "+" : ""}${m.sr_points}`, "bonus"));
-      if (m.milestone_points > 0) chips.push(chip(`🏆 +${m.milestone_points}`, "bonus"));
-      if (m.duck_penalty && m.duck_penalty < 0) chips.push(chip(`🦆 Duck ${m.duck_penalty}`, "penalty"));
-      if (m.wickets  > 0) chips.push(chip(`🎳 ${m.wickets}W`, "bowl"));
-      if (m.maidens  > 0) chips.push(chip(`🧱 ${m.maidens} Maiden${m.maidens > 1 ? "s" : ""}`, "bowl"));
-      if (m.er_points && m.er_points !== 0) chips.push(chip(`📉 Econ ${m.er_points > 0 ? "+" : ""}${m.er_points}`, "bonus"));
-      if (m.catches   > 0) chips.push(chip(`🧤 ${m.catches}C`, "field"));
-      if (m.stumpings > 0) chips.push(chip(`🏃 ${m.stumpings}St`, "field"));
-      const ro = (m.runouts_direct || 0) + (m.runouts_assisted || 0);
-      if (ro > 0) chips.push(chip(`🎯 ${ro}RO`, "field"));
-      if (m.is_player_of_match) chips.push(chip("🏆 POM +20", "gold"));
-      return chips;
     }
 
   </script>
