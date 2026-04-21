@@ -52,10 +52,14 @@ if (leagueId) {
             .eq("tournament_id", activeTournament.id);
     }
 
-    const [leaderboardRes, profilesRes] = await Promise.all([
-        query.order("total_points", { ascending: false }),
-        supabase.from("user_profiles").select("user_id, team_photo_url"),
-    ]);
+    const [leaderboardRes, profilesRes, journeyRes] = await Promise.all([
+    query.order("total_points", { ascending: false }),
+    supabase.from("user_profiles").select("user_id, team_photo_url"),
+    supabase
+        .from("team_lab_view")
+        .select("user_id, rank_journey")
+        .eq("tournament_id", activeTournament.id),
+]);
 
     const leaderboard = leaderboardRes.data || [];
     const profiles    = profilesRes.data   || [];
@@ -66,8 +70,16 @@ if (leagueId) {
     }));
 
     const avatarMap = new Map(profiles.map(p => [p.user_id, p.team_photo_url]));
-    renderLeaderboard(normalized, userId, avatarMap);
-
+    const journeyMap = new Map(
+    (journeyRes.data || []).map(row => {
+        const j = typeof row.rank_journey === "string"
+            ? JSON.parse(row.rank_journey)
+            : (row.rank_journey || []);
+        j.sort((a, b) => a.matchnumber - b.matchnumber);
+        return [row.user_id, j];
+    })
+);
+renderLeaderboard(normalized, userId, avatarMap, journeyMap);
     setupPopunder();
     document.getElementById("skeletonScreen")?.classList.add("hidden");
 }
@@ -98,8 +110,8 @@ function buildRankCircle(rank, pct) {
 }
 
 /* ─── LEADERBOARD RENDERER ───────────────────────────────────────────────── */
-function renderLeaderboard(leaderboard, userId, avatarMap) {
-    if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
+function renderLeaderboard(leaderboard, userId, avatarMap, journeyMap) {
+        if (!podiumContainer || !leaderboardContainer || !leaderboardSummary) return;
 
     if (leaderboard.length === 0) {
         podiumContainer.innerHTML  = "";
@@ -192,12 +204,18 @@ pts.textContent = `${row.total_points} pts`;
 // Rank movement indicator
 const rankMove = document.createElement("div");
 rankMove.className = "rank-move";
-if (row.previous_rank == null) {
-    rankMove.innerHTML = `<span class="move-neutral">—</span>`;
-} else if (row.rank < row.previous_rank) {
-    rankMove.innerHTML = `<span class="move-up">▲</span>`;
-} else if (row.rank > row.previous_rank) {
-    rankMove.innerHTML = `<span class="move-down">▼</span>`;
+const journey = journeyMap?.get(row.user_id) || [];
+if (journey.length >= 2) {
+    const last = journey[journey.length - 1];
+    const prev = journey[journey.length - 2];
+    const diff = prev.rank - last.rank;
+    if (diff > 0) {
+        rankMove.innerHTML = `<span class="move-up">▲ ${diff}</span>`;
+    } else if (diff < 0) {
+        rankMove.innerHTML = `<span class="move-down">▼ ${Math.abs(diff)}</span>`;
+    } else {
+        rankMove.innerHTML = `<span class="move-neutral">—</span>`;
+    }
 } else {
     rankMove.innerHTML = `<span class="move-neutral">—</span>`;
 }
