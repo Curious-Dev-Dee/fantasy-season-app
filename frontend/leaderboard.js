@@ -86,11 +86,11 @@ renderLeaderboard(normalized, userId, avatarMap, journeyMap);
 
 init();
 
-function buildRankCircle(rank, pct) {
+function buildRankCircle(rank, pct, ptsDiff) {
     const radius = 16;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (pct / 100) * circumference;
-    const colorClass = pct >= 70 ? "neon" : "red";
+    const colorClass = (ptsDiff != null ? ptsDiff <= 500 : pct >= 70) ? "neon" : "red";
 
     const wrapper = document.createElement("div");
     wrapper.className = "rank-circle";
@@ -190,8 +190,10 @@ if (me) {
         rowEl.className = `leader-row ${row.user_id === userId ? "you" : ""} ${extraClass}`.trim();
         rowEl.onclick   = () => scoutUser(row.user_id, row.team_name || "Anonymous");
 
-const pct  = Math.round((row.total_points / rank1Points) * 100);
-const rank = buildRankCircle(row.rank, pct);
+const rank3Points = top3[2]?.total_points || top3[1]?.total_points || top3[0]?.total_points || 0;
+const pct         = Math.round((row.total_points / rank1Points) * 100);
+const ptsDiff     = rank3Points - row.total_points;
+const rank        = buildRankCircle(row.rank, pct, ptsDiff);
 
         const team = document.createElement("div");
         team.className   = "l-team";
