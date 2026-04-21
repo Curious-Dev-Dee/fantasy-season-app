@@ -577,7 +577,7 @@ function buildPlayerCard(player, rank) {
     meta.className = "player-meta-row";
     const ownPct = Math.round(((ownershipMap.get(player.id) || 0) / 27) * 100);
     meta.innerHTML = `
-        <span class="team-badge">${player.team}</span>
+        <span class="team-badge tb-${player.team.toLowerCase()}">${player.team}</span>
         <span class="role-badge">${player.role}</span>
         <span class="match-count">${player.matchesPlayed}M</span>
         <span class="own-badge">👥 ${ownPct}%</span>`;
