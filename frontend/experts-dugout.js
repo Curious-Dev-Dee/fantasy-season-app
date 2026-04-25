@@ -1540,24 +1540,9 @@ window.shareStats = async () => {
   }
 };
 
-// ─── AD SLOT ──────────────────────────────────────────
-//function buildAdSlot() {
-  //const wrap = document.createElement("div");
-  //wrap.className = "ed-ad-wrap";
-  //const body = document.createElement("div");
-  ///body.className = "ed-ad-body";
-  //const holder = document.createElement("div");
-  //holder.style.cssText = "width:100%;text-align:center";
-  //if (!document.querySelector('script[data-zone="225656"]')) {
-    //const s = document.createElement("script");
-    //s.src = "https://quge5.com/88/tag.min.js"; s.async = true;
-    //s.setAttribute("data-zone", "225656");
-    //s.setAttribute("data-cfasync", "false");
-    //holder.appendChild(s);
-  //}
-  //body.appendChild(holder); wrap.appendChild(body);
-  //return wrap;
-//}
+function buildAdSlot() {
+    return document.createDocumentFragment();
+}
 
 // ─── HELPERS ──────────────────────────────────────────
 function playerCardHTML(p, rank) {
