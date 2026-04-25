@@ -995,17 +995,4 @@ window.openPlayerPointLog = async (playerId, matchId) => {
     content.replaceChildren(list, total);
 }
 
-/* ─── IN-PAGE PUSH AD ────────────────────────────────────────────────────── */
-let pushAdInjected = false;
-
-function injectPushAd() {
-    // Only inject once per page session
-    if (pushAdInjected) return;
-    pushAdInjected = true;
-
-    const s = document.createElement("script");
-    s.dataset.zone = "10746396";
-    s.src = "https://nap5k.com/tag.min.js";
-    document.body.appendChild(s);
-}
 ;

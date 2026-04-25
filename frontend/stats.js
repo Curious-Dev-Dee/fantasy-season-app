@@ -686,23 +686,7 @@ function buildEmptyState(text) {
     return wrap;
 }
 
-function buildAdSlot() {
-    const wrap = document.createElement("div");
-    wrap.className = "st-section";
-    wrap.style.cssText = "margin:4px 0;padding:0;background:transparent;border:none;box-shadow:none;";
-    const holder = document.createElement("div");
-    holder.style.cssText = "width:100%;text-align:center;min-height:60px;display:flex;align-items:center;justify-content:center;";
-    if (!document.querySelector('script[data-zone="225656"]')) {
-        const s = document.createElement("script");
-        s.src = "https://quge5.com/88/tag.min.js";
-        s.async = true;
-        s.setAttribute("data-zone", "225656");
-        s.setAttribute("data-cfasync", "false");
-        holder.appendChild(s);
-    }
-    wrap.appendChild(holder);
-    return wrap;
-}
+
 
 /* ─── EVENT LISTENERS ─────────────────────────────────────────────── */
 let searchTimeout;
