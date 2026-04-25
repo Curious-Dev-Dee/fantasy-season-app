@@ -5,10 +5,10 @@
 // - Shows again every 120 seconds while user stays on page
 // - Respects Safari Private Mode (localStorage try/catch)
 
-const AD_ZONE      = "10742556";
-const AD_INTERVAL  = 120000; // 120 seconds
-const AD_COOLDOWN  = 10000;  // 10s min between any two ads
-const BLOCKED_PAGE = "edit-team";
+//const AD_ZONE      = "10742556";
+//const AD_INTERVAL  = 120000; // 120 seconds
+//const AD_COOLDOWN  = 10000;  // 10s min between any two ads
+//const BLOCKED_PAGE = "edit-team";
 
 let adInterval = null;
 let lastShown   = 0;
