@@ -1,0 +1,8 @@
+# Node modules - never push these
+node_modules/
+
+# Android build files - not needed on Vercel
+android/
+
+# Capacitor
+.capacitor/
