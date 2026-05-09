@@ -33,8 +33,11 @@ async function checkAndReveal() {
 ─────────────────────────────────────────────────────────────────────── */
 supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
-        // BUG FIX: /home not /home.html
-        window.location.replace("/home");
+        if (window.location.protocol === 'capacitor:') {
+            window.location.replace("/home.html");
+        } else {
+            window.location.replace("/home");
+        }
     } else {
         checkAndReveal();
     }
@@ -81,7 +84,9 @@ async function signInWithGoogle() {
                 // This must also match the redirect URL in your
                 // Supabase Dashboard → Authentication → URL Configuration → Redirect URLs
                 // Add both: https://yourdomain.com/home and https://yourdomain.com/home.html
-                redirectTo: `${window.location.origin}/home`,
+                redirectTo: window.location.protocol === 'capacitor:' 
+    ? 'com.cricketexperts.app://login-callback'
+    : `${window.location.origin}/home`,
             },
         });
 
