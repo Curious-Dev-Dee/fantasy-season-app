@@ -228,28 +228,38 @@ function crr() {
 
 // ── SCREEN 1: LOAD MATCHES ────────────────────────────────────
 async function loadMatches() {
-  const { data: matches } = await sb.from('ppl_matches')
+  const { data: matches, error } = await sb.from('ppl_matches')
     .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
     .in('status', ['upcoming','scheduled','in_progress'])
     .order('match_number');
+
+  if (error || !matches) { showToast('Failed to load matches','#dc2626'); return; }
+
+  // Pre-build teams lookup from all matches
+  matches.forEach(m => {
+    if (m.team_a) state.teams[m.team_a.id] = m.team_a.name;
+    if (m.team_b) state.teams[m.team_b.id] = m.team_b.name;
+  });
+
   const sel = document.getElementById('match-select');
   sel.innerHTML = '<option value="">— Select a match —</option>';
   matches.forEach(m => {
-    sel.innerHTML += `<option value="${m.id}">M${m.match_number}: ${m.team_a.name} vs ${m.team_b.name} (Day ${m.day})</option>`;
+    const ta = m.team_a ? m.team_a.name : m.team_a_id;
+    const tb = m.team_b ? m.team_b.name : m.team_b_id;
+    sel.innerHTML += `<option value="${m.id}">M${m.match_number}: ${ta} vs ${tb} (Day ${m.day})</option>`;
   });
-  sel.onchange = () => showMatchInfo(matches, sel.value);
-}
 
-function showMatchInfo(matches, id) {
-  const m = matches.find(x => x.id === id);
-  const box = document.getElementById('match-info');
-  if (!m) { box.style.display='none'; return; }
-  state.match = m;
-if (m.team_a) state.teams[m.team_a.id] = m.team_a.name;
-if (m.team_b) state.teams[m.team_b.id] = m.team_b.name;
-  box.style.display = 'block';
-  box.innerHTML = `<b>${m.team_a.name}</b> vs <b>${m.team_b.name}</b><br>
-    Day ${m.day} | Status: <span>${m.status}</span>`;
+  sel.onchange = () => {
+    const m = matches.find(x => x.id === sel.value);
+    const box = document.getElementById('match-info');
+    if (!m) { state.match = null; box.style.display = 'none'; return; }
+    state.match = m;
+    box.style.display = 'block';
+    const ta = m.team_a ? m.team_a.name : m.team_a_id;
+    const tb = m.team_b ? m.team_b.name : m.team_b_id;
+    box.innerHTML = `<b>${ta}</b> vs <b>${tb}</b><br>
+      Day ${m.day} | ${m.match_date} | Status: <span>${m.status}</span>`;
+  };
 }
 
 async function goToSetup() {
