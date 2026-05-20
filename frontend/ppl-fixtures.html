@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Fixtures & Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; gap: 12px; background: #1e293b;
+      padding: 14px 16px; border-bottom: 1px solid #334155; }
+    .back-btn { font-size: 1.2rem; cursor: pointer; color: #38bdf8; text-decoration: none; }
+    .topbar h2 { font-size: 1.1rem; color: #f1f5f9; font-weight: 700; }
+    .section { padding: 16px; max-width: 480px; margin: 0 auto; }
+    .day-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .day-tab { padding: 6px 16px; border-radius: 20px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.85rem; cursor: pointer; }
+    .day-tab.active { background: #0284c7; color: white; border-color: #0284c7; }
+    .group-label { font-size: 0.75rem; font-weight: 700; color: #64748b;
+      text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+    .match-card { background: #1e293b; border-radius: 12px; padding: 14px 16px;
+      margin-bottom: 10px; border: 1px solid #334155; cursor: pointer; transition: border-color 0.2s; }
+    .match-card:hover { border-color: #0284c7; }
+    .match-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .match-num  { font-size: 0.75rem; color: #64748b; }
+    .status-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .status-upcoming    { background: #1e3a5f; color: #60a5fa; }
+    .status-in_progress { background: #3b1a1a; color: #f87171; }
+    .status-completed   { background: #14532d; color: #86efac; }
+    .teams-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .team-name { font-size: 0.95rem; font-weight: 600; flex: 1; }
+    .team-name.right { text-align: right; }
+    .vs { color: #64748b; font-size: 0.8rem; flex: 0; }
+    .score-row { display: flex; justify-content: space-between; margin-top: 6px; }
+    .score-val { font-size: 0.88rem; color: #38bdf8; font-weight: 700; }
+    .result-str { font-size: 0.82rem; color: #94a3b8; text-align: center; margin-top: 6px; }
+    .mom-str { font-size: 0.78rem; color: #fbbf24; text-align: center; margin-top: 3px; }
+    .loading { text-align: center; color: #64748b; padding: 40px 0; }
+    .filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filter-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.8rem; cursor: pointer; }
+    .filter-btn.active { background: #334155; color: #f1f5f9; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="ppl-home.html">←</a>
+  <h2>📅 Fixtures & Results</h2>
+</div>
+
+<div class="section">
+  <div class="day-tabs" id="day-tabs"></div>
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+    <button class="filter-btn" data-filter="upcoming"    onclick="setFilter(this,'upcoming')">Upcoming</button>
+    <button class="filter-btn" data-filter="in_progress" onclick="setFilter(this,'in_progress')">Live</button>
+    <button class="filter-btn" data-filter="completed"   onclick="setFilter(this,'completed')">Results</button>
+  </div>
+  <div id="fixtures-list"><div class="loading">Loading…</div></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allMatches = [], activeDay = 1, activeFilter = 'all';
+
+async function init() {
+  const { data } = await sb.from('ppl_matches')
+    .select(`*, team_a:team_a_id(id,name,short_name), team_b:team_b_id(id,name,short_name),
+             winner:winner_id(name), mom:mom_player_id(name),
+             innings:ppl_innings(*)`)
+    .order('match_number');
+  allMatches = data || [];
+
+  renderDayTabs();
+  render();
+}
+
+function renderDayTabs() {
+  const el = document.getElementById('day-tabs');
+  [1,2,3].forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (d === activeDay ? ' active' : '');
+    btn.textContent = `Day ${d}`;
+    btn.onclick = () => {
+      activeDay = d;
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active'); render();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function setFilter(btn, filter) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  const list = document.getElementById('fixtures-list');
+  let matches = allMatches.filter(m => m.day === activeDay);
+  if (activeFilter !== 'all') matches = matches.filter(m => m.status === activeFilter);
+
+  // Group by group_name
+  const groups = {};
+  matches.forEach(m => {
+    const g = m.group_name || 'Knockout';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(m);
+  });
+
+  if (!matches.length) { list.innerHTML = '<div class="loading">No matches found</div>'; return; }
+
+  list.innerHTML = Object.entries(groups).map(([g, ms]) => `
+    <div class="group-label">${g}</div>
+    ${ms.map(m => {
+      const ta = m.team_a?.name || 'TBA';
+      const tb = m.team_b?.name || 'TBA';
+      const inns = (m.innings || []).sort((a,b)=>a.innings_number-b.innings_number);
+      const inn1 = inns.find(i => i.batting_team_id === m.team_a_id);
+      const inn2 = inns.find(i => i.batting_team_id === m.team_b_id);
+      const sc1 = inn1 ? `${inn1.total_runs}/${inn1.total_wickets} (${inn1.total_overs}ov)` : '-';
+      const sc2 = inn2 ? `${inn2.total_runs}/${inn2.total_wickets} (${inn2.total_overs}ov)` : '-';
+      const statusLabel = m.status === 'in_progress' ? '🔴 LIVE' : m.status === 'completed' ? '✅ Done' : '🕐 Soon';
+      const statusClass = `status-${m.status}`;
+      return `
+        <div class="match-card" onclick="location.href='ppl-scorecard.html?match=${m.id}'">
+          <div class="match-head">
+            <span class="match-num">Match ${m.match_number}</span>
+            <span class="status-badge ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="teams-row">
+            <span class="team-name">${ta}</span>
+            <span class="vs">vs</span>
+            <span class="team-name right">${tb}</span>
+          </div>
+          ${(inn1||inn2) ? `<div class="score-row"><span class="score-val">${sc1}</span><span class="score-val">${sc2}</span></div>` : ''}
+          ${m.result_description ? `<div class="result-str">${m.result_description}</div>` : ''}
+          ${m.mom?.name ? `<div class="mom-str">⭐ MOM: ${m.mom.name}</div>` : ''}
+        </div>`;
+    }).join('')}
+  `).join('');
+}
+
+init();
+</script>
+</body>
+</html>

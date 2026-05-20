@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Scorecard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; gap: 12px; background: #1e293b;
+      padding: 14px 16px; border-bottom: 1px solid #334155; }
+    .back-btn { font-size: 1.2rem; cursor: pointer; color: #38bdf8; text-decoration: none; }
+    .topbar h2 { font-size: 1rem; color: #f1f5f9; font-weight: 700; flex: 1; }
+    .section { padding: 14px 16px; max-width: 540px; margin: 0 auto; }
+    .match-header { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center; }
+    .match-header .teams { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+    .match-header .meta  { font-size: 0.8rem; color: #94a3b8; }
+    .match-header .result { font-size: 0.88rem; color: #86efac; margin-top: 6px; font-weight: 600; }
+    .match-header .mom { font-size: 0.8rem; color: #fbbf24; margin-top: 3px; }
+    .innings-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .inn-tab { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .inn-tab.active { background: #0284c7; color: white; border-color: #0284c7; }
+    .inn-summary { background: #1e293b; border-radius: 10px; padding: 12px 14px;
+      margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .inn-score  { font-size: 1.4rem; font-weight: 800; color: #38bdf8; }
+    .inn-detail { font-size: 0.82rem; color: #94a3b8; }
+    .table-title { font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;
+      letter-spacing: 1px; margin: 14px 0 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #0f172a; color: #64748b; font-size: 0.72rem; text-transform: uppercase;
+      padding: 6px 8px; text-align: left; letter-spacing: 0.5px; }
+    th:not(:first-child) { text-align: right; }
+    td { padding: 8px; font-size: 0.85rem; border-top: 1px solid #1e293b; }
+    td:not(:first-child) { text-align: right; }
+    tr:hover td { background: #1e293b; }
+    .player-name { font-weight: 600; }
+    .dismissal   { font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px; }
+    .highlight-4  { color: #4ade80; }
+    .highlight-6  { color: #60a5fa; }
+    .highlight-w  { color: #f87171; font-weight: 700; }
+    .over-by-over { margin-top: 8px; }
+    .over-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 8px; }
+    .over-label { font-size: 0.75rem; color: #64748b; min-width: 40px; padding-top: 3px; }
+    .balls-wrap { display: flex; gap: 4px; flex-wrap: wrap; }
+    .ball-dot { display: inline-block; width: 26px; height: 26px; border-radius: 50%;
+      line-height: 26px; text-align: center; font-size: 0.75rem; font-weight: 700; background: #1e293b; }
+    .ball-dot.b0 { color: #64748b; }
+    .ball-dot.b1,.ball-dot.b2,.ball-dot.b3 { color: #f1f5f9; background: #334155; }
+    .ball-dot.b4 { background: #166534; color: #bbf7d0; }
+    .ball-dot.b6 { background: #1d4ed8; color: #bfdbfe; }
+    .ball-dot.bW { background: #991b1b; color: #fecaca; }
+    .ball-dot.bWd,.ball-dot.bNb { background: #78350f; color: #fde68a; font-size: 0.65rem; }
+    .loading { text-align: center; color: #64748b; padding: 40px 0; }
+    .extras-row td { color: #94a3b8; font-style: italic; }
+    .total-row td  { font-weight: 700; }
+    .dnb { color: #64748b; font-size: 0.82rem; padding: 8px; }
+    .live-refresh { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="javascript:history.back()">←</a>
+  <h2 id="topbar-title">Scorecard</h2>
+  <span id="live-dot" style="display:none;color:#ef4444;font-size:0.8rem">🔴 LIVE</span>
+</div>
+
+<div class="section" id="main-section">
+  <div class="loading">Loading scorecard…</div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const matchId = new URLSearchParams(location.search).get('match');
+let matchData = null, deliveries = [], players = [], activeInn = 0;
+let refreshTimer = null;
+
+async function init() {
+  if (!matchId) {
+    document.getElementById('main-section').innerHTML = '<div class="loading">No match selected. <a href="ppl-fixtures.html" style="color:#38bdf8">Go to Fixtures</a></div>';
+    return;
+  }
+  await loadData();
+  if (matchData?.status === 'in_progress') {
+    document.getElementById('live-dot').style.display = 'inline';
+    refreshTimer = setInterval(loadData, 20000);
+  }
+}
+
+async function loadData() {
+  const { data: match } = await sb.from('ppl_matches')
+    .select(`*, team_a:team_a_id(id,name,short_name), team_b:team_b_id(id,name,short_name),
+             winner:winner_id(name), mom:mom_player_id(name),
+             innings:ppl_innings(*)`)
+    .eq('id', matchId).single();
+  matchData = match;
+
+  const { data: del } = await sb.from('ppl_deliveries')
+    .select('*').eq('match_id', matchId).order('innings_id').order('over_number').order('ball_number');
+  deliveries = del || [];
+
+  const teamIds = [match?.team_a_id, match?.team_b_id].filter(Boolean);
+  const { data: pl } = await sb.from('ppl_players').select('id,name,team_id').in('team_id', teamIds);
+  players = pl || [];
+
+  render();
+}
+
+function playerName(id) { return players.find(p=>p.id===id)?.name || id; }
+
+function render() {
+  const m = matchData;
+  if (!m) return;
+  const inns = (m.innings || []).sort((a,b)=>a.innings_number-b.innings_number);
+
+  document.getElementById('topbar-title').textContent = `${m.team_a?.short_name||'?'} vs ${m.team_b?.short_name||'?'}`;
+  const s = document.getElementById('main-section');
+
+  const momStr = m.mom?.name ? `<div class="mom">⭐ MOM: ${m.mom.name}</div>` : '';
+  s.innerHTML = `
+    <div class="match-header">
+      <div class="teams">${m.team_a?.name} vs ${m.team_b?.name}</div>
+      <div class="meta">Day ${m.day} · Match ${m.match_number}</div>
+      ${m.result_description ? `<div class="result">${m.result_description}</div>` : ''}
+      ${momStr}
+    </div>
+    ${inns.length > 0 ? `
+    <div class="innings-tabs" id="inn-tabs">
+      ${inns.map((inn, i) => `
+        <div class="inn-tab${i===activeInn?' active':''}" onclick="switchInn(${i})">
+          Innings ${inn.innings_number}
+        </div>`).join('')}
+    </div>` : ''}
+    <div id="inn-content"></div>`;
+
+  if (inns.length > 0) renderInnings(inns[activeInn]);
+  else s.innerHTML += '<div class="loading">Match not started yet</div>';
+}
+
+function switchInn(i) {
+  activeInn = i;
+  document.querySelectorAll('.inn-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  const inns = (matchData.innings || []).sort((a,b)=>a.innings_number-b.innings_number);
+  renderInnings(inns[i]);
+}
+
+function renderInnings(inn) {
+  const el = document.getElementById('inn-content');
+  const battingTeam = inn.batting_team_id === matchData.team_a_id ? matchData.team_a : matchData.team_b;
+  const bowlingTeam = inn.batting_team_id === matchData.team_a_id ? matchData.team_b : matchData.team_a;
+  const delvs = deliveries.filter(d => d.innings_id === inn.id);
+
+  // Batting stats per batter
+  const batters = {};
+  delvs.forEach(d => {
+    if (!d.batter_id) return;
+    if (!batters[d.batter_id]) batters[d.batter_id] = { runs:0, balls:0, fours:0, sixes:0, dismissed:false, how:'' };
+    const b = batters[d.batter_id];
+    b.runs += d.runs_off_bat || 0;
+    if (!d.extra_type || d.extra_type === 'no_ball') b.balls++;
+    if (d.is_four) b.fours++;
+    if (d.is_six) b.sixes++;
+    if (d.is_wicket && d.dismissed_player_id === d.batter_id) {
+      b.dismissed = true;
+      b.how = d.dismissal_type || 'out';
+      if (d.fielder_id) b.how += ` ${playerName(d.fielder_id)}`;
+      b.how += ` b ${playerName(d.bowler_id)}`;
+    }
+  });
+
+  // Bowling stats per bowler
+  const bowlers = {};
+  delvs.forEach(d => {
+    if (!d.bowler_id) return;
+    if (!bowlers[d.bowler_id]) bowlers[d.bowler_id] = { overs:0, balls:0, runs:0, wickets:0, maidens:0 };
+    const b = bowlers[d.bowler_id];
+    b.runs += (d.runs_off_bat||0) + (d.extras||0);
+    if (!d.extra_type || d.extra_type === 'no_ball') b.balls++;
+    if (d.is_wicket && !['run out'].includes(d.dismissal_type)) b.wickets++;
+  });
+  Object.values(bowlers).forEach(b => { b.overs = Math.floor(b.balls/6) + (b.balls%6)/10; });
+
+  // Over-by-over log
+  const overMap = {};
+  delvs.forEach(d => {
+    const k = d.over_number;
+    if (!overMap[k]) overMap[k] = [];
+    overMap[k].push(d);
+  });
+
+  const totalExtras = delvs.reduce((s,d) => s + (d.extras||0), 0);
+  const battingOrder = Object.keys(batters);
+  const dnb = players.filter(p => p.team_id === inn.batting_team_id && !batters[p.id]);
+
+  el.innerHTML = `
+    <div class="inn-summary">
+      <div>
+        <div class="inn-score">${inn.total_runs}/${inn.total_wickets}</div>
+        <div class="inn-detail">${battingTeam?.name} · ${inn.total_overs} overs</div>
+      </div>
+      <div class="inn-detail" style="text-align:right">
+        Extras: ${totalExtras}<br>
+        ${inn.is_complete ? '✅ Complete' : '🔴 In progress'}
+      </div>
+    </div>
+
+    <div class="table-title">Batting — ${battingTeam?.name}</div>
+    <table>
+      <thead><tr><th>Batter</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>SR</th></tr></thead>
+      <tbody>
+        ${battingOrder.map(id => {
+          const b = batters[id];
+          const sr = b.balls > 0 ? ((b.runs/b.balls)*100).toFixed(1) : '-';
+          return `<tr>
+            <td><span class="player-name">${playerName(id)}</span>
+              <span class="dismissal">${b.dismissed ? b.how : 'not out'}</span></td>
+            <td>${b.runs}</td>
+            <td>${b.balls}</td>
+            <td class="highlight-4">${b.fours}</td>
+            <td class="highlight-6">${b.sixes}</td>
+            <td>${sr}</td>
+          </tr>`;
+        }).join('')}
+        ${dnb.length ? `<tr class="extras-row"><td colspan="6">DNB: ${dnb.map(p=>p.name).join(', ')}</td></tr>` : ''}
+        <tr class="extras-row"><td colspan="6">Extras: ${totalExtras}</td></tr>
+        <tr class="total-row"><td colspan="6">Total: ${inn.total_runs}/${inn.total_wickets} (${inn.total_overs} ov)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="table-title" style="margin-top:20px">Bowling — ${bowlingTeam?.name}</div>
+    <table>
+      <thead><tr><th>Bowler</th><th>O</th><th>R</th><th>W</th><th>Econ</th></tr></thead>
+      <tbody>
+        ${Object.entries(bowlers).map(([id, b]) => {
+          const econ = b.overs > 0 ? (b.runs / b.overs).toFixed(1) : '-';
+          return `<tr>
+            <td class="player-name">${playerName(id)}</td>
+            <td>${b.overs.toFixed(1)}</td>
+            <td>${b.runs}</td>
+            <td class="highlight-w">${b.wickets}</td>
+            <td>${econ}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+
+    <div class="table-title" style="margin-top:20px">Over-by-Over</div>
+    <div class="over-by-over">
+      ${Object.entries(overMap).map(([ov, balls]) => `
+        <div class="over-row">
+          <span class="over-label">Ov ${parseInt(ov)+1}</span>
+          <div class="balls-wrap">
+            ${balls.map(d => {
+              let cls = 'b'+(d.runs_off_bat||0);
+              let label = String(d.runs_off_bat||0);
+              if (d.is_wicket) { cls='bW'; label='W'; }
+              else if (d.extra_type==='wide') { cls='bWd'; label='Wd'; }
+              else if (d.extra_type==='no_ball') { cls='bNb'; label='Nb'; }
+              else if (d.is_six) cls='b6';
+              else if (d.is_four) cls='b4';
+              return `<span class="ball-dot ${cls}">${label}</span>`;
+            }).join('')}
+          </div>
+        </div>`).join('')}
+    </div>
+    ${matchData?.status === 'in_progress' ? '<div class="live-refresh">Auto-refreshes every 20s</div>' : ''}
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

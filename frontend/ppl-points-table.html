@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Points Table</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; gap: 12px; background: #1e293b;
+      padding: 14px 16px; border-bottom: 1px solid #334155; }
+    .back-btn { font-size: 1.2rem; color: #38bdf8; text-decoration: none; }
+    .topbar h2 { font-size: 1.1rem; font-weight: 700; }
+    .section { padding: 16px; max-width: 540px; margin: 0 auto; }
+    .group-label { font-size: 0.78rem; font-weight: 700; color: #0ea5e9;
+      text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px;
+      background: #1e293b; padding: 8px 12px; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    thead th { background: #0f172a; color: #64748b; font-size: 0.7rem;
+      text-transform: uppercase; padding: 7px 8px; letter-spacing: 0.5px; }
+    thead th:not(:first-child) { text-align: right; }
+    tbody td { padding: 9px 8px; font-size: 0.85rem; border-top: 1px solid #1e293b; }
+    tbody td:not(:first-child) { text-align: right; }
+    tbody tr:nth-child(-n+2) td:first-child { border-left: 3px solid #16a34a; }
+    .team-cell { display: flex; align-items: center; gap: 8px; }
+    .team-rank { font-size: 0.75rem; color: #64748b; width: 16px; }
+    .team-name { font-weight: 600; font-size: 0.88rem; }
+    .team-short { font-size: 0.75rem; color: #94a3b8; display: block; }
+    .pts { font-weight: 800; color: #38bdf8; }
+    .nrr-pos { color: #4ade80; }
+    .nrr-neg { color: #f87171; }
+    .qualify-note { font-size: 0.75rem; color: #4ade80; margin-top: 6px; padding: 6px 12px;
+      background: #052e16; border-radius: 6px; border-left: 3px solid #16a34a; }
+    .loading { text-align: center; color: #64748b; padding: 40px 0; }
+    .qualified-tag { font-size: 0.65rem; color: #4ade80; font-weight: 700;
+      background: #052e16; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
+    .eliminated-tag { font-size: 0.65rem; color: #f87171; font-weight: 700;
+      background: #3b0a0a; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="ppl-home.html">←</a>
+  <h2>🏆 Points Table</h2>
+</div>
+
+<div class="section">
+  <div id="table-content"><div class="loading">Loading…</div></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function init() {
+  const { data: rows } = await sb.from('ppl_points_table')
+    .select('*, team:team_id(id,name,short_name,group_name)')
+    .order('points', { ascending: false })
+    .order('nrr', { ascending: false });
+
+  if (!rows) { document.getElementById('table-content').innerHTML = '<div class="loading">Failed to load</div>'; return; }
+
+  // Group by group
+  const groups = {};
+  rows.forEach(r => {
+    const g = r.team?.group_name || r.group_name || 'Group';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(r);
+  });
+
+  const el = document.getElementById('table-content');
+  el.innerHTML = Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).map(([g, teams]) => `
+    <div class="group-label">${g}</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Team</th><th>P</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${teams.map((t, i) => {
+          const nrr = t.nrr || 0;
+          const nrrClass = nrr >= 0 ? 'nrr-pos' : 'nrr-neg';
+          const nrrStr = (nrr >= 0 ? '+' : '') + Number(nrr).toFixed(3);
+          const qualifiedTag = i < 2 && t.played > 0 ? '<span class="qualified-tag">Q</span>' : '';
+          return `<tr>
+            <td>
+              <div class="team-cell">
+                <span class="team-rank">${i+1}</span>
+                <div>
+                  <span class="team-name">${t.team?.short_name || '?'}${qualifiedTag}</span>
+                  <span class="team-short">${t.team?.name || '?'}</span>
+                </div>
+              </div>
+            </td>
+            <td>${t.played||0}</td>
+            <td>${t.won||0}</td>
+            <td>${t.lost||0}</td>
+            <td class="pts">${t.points||0}</td>
+            <td class="${nrrClass}">${nrrStr}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="qualify-note">✅ Top 2 from each group qualify for Knockout</div>
+  `).join('');
+}
+
+init();
+</script>
+</body>
+</html>

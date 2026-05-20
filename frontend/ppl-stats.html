@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Player Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; gap: 12px; background: #1e293b;
+      padding: 14px 16px; border-bottom: 1px solid #334155; }
+    .back-btn { font-size: 1.2rem; color: #38bdf8; text-decoration: none; }
+    .topbar h2 { font-size: 1.1rem; font-weight: 700; }
+    .section { padding: 16px; max-width: 540px; margin: 0 auto; }
+    .tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #0f172a; color: #64748b; font-size: 0.7rem; text-transform: uppercase;
+      padding: 7px 6px; text-align: left; letter-spacing: 0.5px; }
+    thead th:not(:first-child) { text-align: right; }
+    tbody td { padding: 9px 6px; font-size: 0.82rem; border-top: 1px solid #1e293b; }
+    tbody td:not(:first-child) { text-align: right; }
+    .player-cell .name { font-weight: 600; font-size: 0.88rem; }
+    .player-cell .team { font-size: 0.72rem; color: #64748b; display: block; }
+    .rank-badge { font-size: 0.72rem; color: #64748b; margin-right: 6px; }
+    .top1 td:first-child { border-left: 3px solid #fbbf24; }
+    .top2 td:first-child { border-left: 3px solid #94a3b8; }
+    .top3 td:first-child { border-left: 3px solid #b45309; }
+    .highlight { color: #38bdf8; font-weight: 700; }
+    .loading { text-align: center; color: #64748b; padding: 40px 0; }
+    .empty { text-align: center; color: #64748b; padding: 30px; font-size: 0.9rem; }
+    .search-row { margin-bottom: 12px; }
+    .search-row input { width: 100%; padding: 9px 12px; border-radius: 8px;
+      border: 1px solid #334155; background: #1e293b; color: #f1f5f9; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="ppl-home.html">←</a>
+  <h2>📊 Player Stats</h2>
+</div>
+
+<div class="section">
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab(this,'batting')">🏏 Batting</button>
+    <button class="tab-btn" onclick="switchTab(this,'bowling')">🎳 Bowling</button>
+    <button class="tab-btn" onclick="switchTab(this,'fielding')">🧤 Fielding</button>
+    <button class="tab-btn" onclick="switchTab(this,'fantasy')">⚡ Fantasy</button>
+  </div>
+  <div class="search-row">
+    <input type="search" id="search-input" placeholder="Search player…" oninput="render()">
+  </div>
+  <div id="stats-content"><div class="loading">Loading…</div></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let statsData = [], playersMap = {}, activeTab = 'batting';
+
+async function init() {
+  const { data: pl }  = await sb.from('ppl_players').select('id,name,team_id,ppl_teams(short_name)');
+  const { data: stats } = await sb.from('ppl_player_stats').select('*');
+  (pl||[]).forEach(p => { playersMap[p.id] = p; });
+  statsData = stats || [];
+  render();
+}
+
+function switchTab(btn, tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const el = document.getElementById('stats-content');
+
+  if (!statsData.length) {
+    el.innerHTML = '<div class="empty">No stats yet. Stats appear after matches are completed.</div>';
+    return;
+  }
+
+  let data = statsData.filter(s => {
+    const p = playersMap[s.player_id];
+    return !q || (p?.name||'').toLowerCase().includes(q);
+  });
+
+  if (activeTab === 'batting') {
+    data = data.filter(s => (s.balls_faced||0) > 0).sort((a,b)=>b.runs-a.runs);
+    el.innerHTML = `<table>
+      <thead><tr><th>#&nbsp;Batter</th><th>M</th><th>R</th><th>HS</th><th>SR</th><th>4s</th><th>6s</th></tr></thead>
+      <tbody>${data.map((s,i)=>{
+        const p = playersMap[s.player_id];
+        const sr = s.balls_faced > 0 ? ((s.runs/s.balls_faced)*100).toFixed(1) : '-';
+        const rowCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
+        return `<tr class="${rowCls}">
+          <td><span class="rank-badge">${i+1}</span><div class="player-cell">
+            <span class="name">${p?.name||'?'}</span>
+            <span class="team">${p?.ppl_teams?.short_name||''}</span>
+          </div></td>
+          <td>${s.matches||0}</td><td class="highlight">${s.runs||0}</td>
+          <td>${s.highest_score||0}</td><td>${sr}</td>
+          <td>${s.fours||0}</td><td>${s.sixes||0}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  } else if (activeTab === 'bowling') {
+    data = data.filter(s => (s.overs_bowled||0) > 0).sort((a,b)=>b.wickets-a.wickets);
+    el.innerHTML = `<table>
+      <thead><tr><th>#&nbsp;Bowler</th><th>M</th><th>W</th><th>Best</th><th>Econ</th><th>Ov</th></tr></thead>
+      <tbody>${data.map((s,i)=>{
+        const p = playersMap[s.player_id];
+        const econ = s.overs_bowled > 0 ? (s.runs_conceded/s.overs_bowled).toFixed(1) : '-';
+        const rowCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
+        return `<tr class="${rowCls}">
+          <td><span class="rank-badge">${i+1}</span><div class="player-cell">
+            <span class="name">${p?.name||'?'}</span>
+            <span class="team">${p?.ppl_teams?.short_name||''}</span>
+          </div></td>
+          <td>${s.matches||0}</td><td class="highlight">${s.wickets||0}</td>
+          <td>${s.best_bowling||'-'}</td><td>${econ}</td><td>${(s.overs_bowled||0).toFixed(1)}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  } else if (activeTab === 'fielding') {
+    data = data.filter(s => (s.catches||0)+(s.stumpings||0)+(s.run_outs||0) > 0)
+      .sort((a,b)=>(b.catches+b.stumpings+b.run_outs)-(a.catches+a.stumpings+a.run_outs));
+    el.innerHTML = `<table>
+      <thead><tr><th>#&nbsp;Fielder</th><th>M</th><th>Ct</th><th>St</th><th>RO</th></tr></thead>
+      <tbody>${data.map((s,i)=>{
+        const p = playersMap[s.player_id];
+        const rowCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
+        return `<tr class="${rowCls}">
+          <td><span class="rank-badge">${i+1}</span><div class="player-cell">
+            <span class="name">${p?.name||'?'}</span>
+            <span class="team">${p?.ppl_teams?.short_name||''}</span>
+          </div></td>
+          <td>${s.matches||0}</td>
+          <td class="highlight">${s.catches||0}</td>
+          <td>${s.stumpings||0}</td><td>${s.run_outs||0}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  } else if (activeTab === 'fantasy') {
+    data = data.filter(s => (s.fantasy_points_total||0) > 0)
+      .sort((a,b)=>b.fantasy_points_total-a.fantasy_points_total);
+    el.innerHTML = `<table>
+      <thead><tr><th>#&nbsp;Player</th><th>M</th><th>Pts</th><th>Avg</th></tr></thead>
+      <tbody>${data.map((s,i)=>{
+        const p = playersMap[s.player_id];
+        const avg = s.matches > 0 ? (s.fantasy_points_total/s.matches).toFixed(1) : '-';
+        const rowCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
+        return `<tr class="${rowCls}">
+          <td><span class="rank-badge">${i+1}</span><div class="player-cell">
+            <span class="name">${p?.name||'?'}</span>
+            <span class="team">${p?.ppl_teams?.short_name||''}</span>
+          </div></td>
+          <td>${s.matches||0}</td>
+          <td class="highlight">${s.fantasy_points_total||0}</td>
+          <td>${avg}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Fantasy</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; gap: 12px; background: #1e293b;
+      padding: 14px 16px; border-bottom: 1px solid #334155; }
+    .back-btn { font-size: 1.2rem; color: #38bdf8; text-decoration: none; }
+    .topbar h2 { font-size: 1.1rem; font-weight: 700; }
+    .section { padding: 16px; max-width: 480px; margin: 0 auto; }
+    .day-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .day-tab { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .day-tab.active { background: #0284c7; color: white; border-color: #0284c7; }
+    .tab-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tab-btn { flex: 1; padding: 7px; border-radius: 8px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.82rem; cursor: pointer; text-align: center; }
+    .tab-btn.active { background: #7c3aed; color: white; border-color: #7c3aed; }
+    .deadline-bar { background: #1e293b; border-radius: 8px; padding: 10px 14px;
+      margin-bottom: 14px; font-size: 0.82rem; color: #94a3b8; }
+    .deadline-bar .status-open   { color: #4ade80; font-weight: 700; }
+    .deadline-bar .status-locked { color: #f87171; font-weight: 700; }
+    .player-list { display: flex; flex-direction: column; gap: 8px; }
+    .player-row { display: flex; align-items: center; gap: 10px; background: #1e293b;
+      border-radius: 10px; padding: 10px 12px; border: 1px solid #334155; cursor: pointer; }
+    .player-row.selected { border-color: #0284c7; background: #0c2a40; }
+    .player-row.captain    { border-color: #fbbf24; background: #1c1500; }
+    .player-row.vice-captain { border-color: #94a3b8; background: #14181d; }
+    .player-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #334155;
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
+    .player-row.selected .player-check { background: #0284c7; border-color: #0284c7; }
+    .player-info { flex: 1; }
+    .player-name { font-weight: 600; font-size: 0.9rem; }
+    .player-meta { font-size: 0.75rem; color: #64748b; }
+    .player-pts { font-size: 0.8rem; color: #94a3b8; text-align: right; }
+    .cap-badge  { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;
+      background: #78350f; color: #fde68a; font-weight: 700; margin-left: 4px; }
+    .vc-badge   { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;
+      background: #1e3a5f; color: #93c5fd; font-weight: 700; margin-left: 4px; }
+    .selection-bar { position: sticky; bottom: 0; background: #1e293b;
+      border-top: 1px solid #334155; padding: 12px 16px; max-width: 480px; margin: 0 auto; }
+    .sel-count { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; text-align: center; }
+    .sel-count span { color: #38bdf8; font-weight: 700; }
+    .btn-row { display: flex; gap: 8px; }
+    .btn { flex: 1; padding: 12px; border-radius: 8px; border: none;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: #0284c7; color: white; }
+    .btn-primary:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+    .btn-warn { background: #d97706; color: white; }
+    .role-filter { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
+    .role-btn { padding: 5px 12px; border-radius: 16px; border: 1px solid #334155;
+      background: #1e293b; color: #94a3b8; font-size: 0.78rem; cursor: pointer; white-space: nowrap; }
+    .role-btn.active { background: #334155; color: #f1f5f9; }
+    .loading { text-align: center; color: #64748b; padding: 30px 0; }
+    .section-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase;
+      letter-spacing: 1px; margin: 14px 0 8px; }
+
+    /* Leaderboard */
+    .lb-row { display: flex; align-items: center; gap: 10px; background: #1e293b;
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; border: 1px solid #334155; }
+    .lb-rank { font-size: 0.9rem; font-weight: 800; min-width: 28px; color: #94a3b8; }
+    .lb-rank.r1 { color: #fbbf24; }
+    .lb-rank.r2 { color: #94a3b8; }
+    .lb-rank.r3 { color: #b45309; }
+    .lb-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+    .lb-pts  { font-size: 1rem; font-weight: 800; color: #38bdf8; }
+    .lb-team { font-size: 0.72rem; color: #64748b; display: block; margin-top: 1px; }
+    .my-row  { border-color: #0284c7; background: #0c2a40; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="ppl-home.html">←</a>
+  <h2>⚡ PPL Fantasy</h2>
+</div>
+
+<div class="section" id="main-section">
+  <div class="loading">Loading…</div>
+</div>
+<div class="selection-bar" id="sel-bar" style="display:none">
+  <div class="sel-count" id="sel-count"></div>
+  <div class="btn-row">
+    <button class="btn btn-warn" onclick="clearSelection()">Clear</button>
+    <button class="btn btn-primary" id="btn-save" onclick="saveTeam()">Save Team</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let user = null, activeDay = 1, activeTab = 'pick', activeRole = 'all';
+let days = [], players = [], selected = new Set(), captainId = null, vcId = null;
+let existingTeamId = null, isLocked = false, statsMap = {};
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    document.getElementById('main-section').innerHTML =
+      `<div class="loading">Please <a href="login.html" style="color:#38bdf8">login</a> to play PPL Fantasy</div>`;
+    return;
+  }
+  user = session.user;
+
+  const { data: d } = await sb.from('ppl_fantasy_days').select('*').order('day_number');
+  days = d || [];
+
+  const { data: pl } = await sb.from('ppl_players')
+    .select('*, ppl_teams(id,name,short_name)').order('name');
+  players = pl || [];
+
+  const { data: st } = await sb.from('ppl_player_stats').select('*');
+  (st||[]).forEach(s => { statsMap[s.player_id] = s; });
+
+  renderDayTabs();
+  await loadForDay(activeDay);
+}
+
+function renderDayTabs() {
+  const el = document.getElementById('main-section');
+  const tabsHtml = `<div class="day-tabs" id="day-tabs">
+    ${days.map(d=>`<button class="day-tab${d.day_number===activeDay?' active':''}"
+      onclick="switchDay(${d.day_number})">${d.name||'Day '+d.day_number}</button>`).join('')}
+  </div>`;
+  el.innerHTML = tabsHtml + '<div id="day-content"><div class="loading">Loading…</div></div>';
+}
+
+async function switchDay(n) {
+  activeDay = n;
+  document.querySelectorAll('.day-tab').forEach((b,i)=>{
+    b.classList.toggle('active', days[i]?.day_number===n);
+  });
+  await loadForDay(n);
+}
+
+async function loadForDay(dayNum) {
+  const day = days.find(d=>d.day_number===dayNum);
+  if (!day) return;
+
+  const now = new Date();
+  isLocked = day.is_locked || (day.deadline && new Date(day.deadline) < now);
+
+  // Load existing user team for this day
+  const { data: ut } = await sb.from('ppl_user_teams')
+    .select('*, ppl_user_team_players(*)')
+    .eq('user_id', user.id).eq('day_id', day.id).maybeSingle();
+
+  selected = new Set();
+  captainId = null; vcId = null; existingTeamId = null;
+  if (ut) {
+    existingTeamId = ut.id;
+    ut.ppl_user_team_players?.forEach(p => {
+      selected.add(p.player_id);
+      if (p.is_captain) captainId = p.player_id;
+      if (p.is_vice_captain) vcId = p.player_id;
+    });
+  }
+
+  renderDayContent(day);
+}
+
+function renderDayContent(day) {
+  const now = new Date();
+  const deadlineStr = day.deadline ? new Date(day.deadline).toLocaleString('en-IN',{hour12:true}) : 'TBD';
+  const statusStr = isLocked
+    ? `<span class="status-locked">🔒 Locked</span>`
+    : `<span class="status-open">🟢 Open</span>`;
+
+  const el = document.getElementById('day-content');
+  el.innerHTML = `
+    <div class="deadline-bar">${statusStr} · Deadline: ${deadlineStr}</div>
+    <div class="tab-row">
+      <button class="tab-btn${activeTab==='pick'?' active':''}" onclick="setTab(this,'pick')">Pick XI</button>
+      <button class="tab-btn${activeTab==='myteam'?' active':''}" onclick="setTab(this,'myteam')">My Team</button>
+      <button class="tab-btn${activeTab==='leaderboard'?' active':''}" onclick="setTab(this,'leaderboard')">Leaderboard</button>
+    </div>
+    <div id="tab-content"></div>`;
+
+  document.getElementById('sel-bar').style.display = isLocked || activeTab !== 'pick' ? 'none' : 'block';
+  renderTab();
+}
+
+function setTab(btn, tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sel-bar').style.display = isLocked || tab !== 'pick' ? 'none' : 'block';
+  renderTab();
+}
+
+function renderTab() {
+  if (activeTab === 'pick') renderPick();
+  else if (activeTab === 'myteam') renderMyTeam();
+  else renderLeaderboard();
+}
+
+function renderPick() {
+  const el = document.getElementById('tab-content');
+  const roles = ['all','BAT','BOW','AR','WK'];
+  const filtered = activeRole === 'all' ? players : players.filter(p=>p.role===activeRole);
+
+  el.innerHTML = `
+    <div class="role-filter">
+      ${roles.map(r=>`<button class="role-btn${activeRole===r?' active':''}" onclick="setRole('${r}')">${r==='all'?'All':r}</button>`).join('')}
+    </div>
+    <div class="section-label">Select 11 Players · Pick Captain (2x) & Vice Captain (1.5x)</div>
+    <div class="player-list">
+      ${filtered.map(p => {
+        const isSel = selected.has(p.id);
+        const isCap = captainId === p.id;
+        const isVC  = vcId === p.id;
+        let cls = 'player-row';
+        if (isCap) cls += ' captain';
+        else if (isVC) cls += ' vice-captain';
+        else if (isSel) cls += ' selected';
+        const st = statsMap[p.id] || {};
+        const ptsTxt = st.fantasy_points_total ? `${st.fantasy_points_total} pts` : 'No data';
+        return `<div class="${cls}" onclick="togglePlayer('${p.id}')">
+          <div class="player-check">${isSel?'✓':''}</div>
+          <div class="player-info">
+            <div class="player-name">${p.name}${isCap?'<span class="cap-badge">C</span>':''}${isVC?'<span class="vc-badge">VC</span>':''}</div>
+            <div class="player-meta">${p.ppl_teams?.short_name||''} · ${p.role||'?'}</div>
+          </div>
+          <div class="player-pts">${ptsTxt}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  updateSelBar();
+}
+
+function setRole(r) { activeRole = r; renderPick(); }
+
+function togglePlayer(id) {
+  if (isLocked) return;
+  if (selected.has(id)) {
+    selected.delete(id);
+    if (captainId === id) captainId = null;
+    if (vcId === id) vcId = null;
+  } else {
+    if (selected.size >= 11) { alert('Max 11 players'); return; }
+    selected.add(id);
+    // Auto-assign C/VC
+    if (!captainId) captainId = id;
+    else if (!vcId && id !== captainId) vcId = id;
+  }
+  renderPick();
+}
+
+function clearSelection() { selected.clear(); captainId=null; vcId=null; renderPick(); }
+
+function updateSelBar() {
+  const cnt = selected.size;
+  document.getElementById('sel-count').innerHTML =
+    `<span>${cnt}</span>/11 selected · C: <span>${captainId?players.find(p=>p.id===captainId)?.name:'None'}</span> · VC: <span>${vcId?players.find(p=>p.id===vcId)?.name:'None'}</span>`;
+  document.getElementById('btn-save').disabled = cnt !== 11 || !captainId || !vcId;
+}
+
+async function saveTeam() {
+  const day = days.find(d=>d.day_number===activeDay);
+  if (!day || isLocked) return;
+  if (selected.size !== 11) { alert('Select exactly 11 players'); return; }
+  if (!captainId || !vcId) { alert('Set Captain and Vice Captain'); return; }
+
+  // Upsert user team
+  let teamId = existingTeamId;
+  if (!teamId) {
+    const { data: ut, error } = await sb.from('ppl_user_teams')
+      .insert({ user_id: user.id, day_id: day.id }).select().single();
+    if (error) { alert('Error: '+error.message); return; }
+    teamId = ut.id;
+    existingTeamId = teamId;
+  } else {
+    await sb.from('ppl_user_team_players').delete().eq('user_team_id', teamId);
+  }
+
+  const rows = [...selected].map(pid => ({
+    user_team_id: teamId,
+    player_id: pid,
+    user_id: user.id,
+    is_captain: pid === captainId,
+    is_vice_captain: pid === vcId
+  }));
+  const { error: e2 } = await sb.from('ppl_user_team_players').insert(rows);
+  if (e2) { alert('Error saving team: '+e2.message); return; }
+  alert('✅ Team saved!');
+}
+
+function renderMyTeam() {
+  const el = document.getElementById('tab-content');
+  if (!existingTeamId || !selected.size) {
+    el.innerHTML = '<div class="loading">No team picked yet for this day</div>'; return;
+  }
+  const myPlayers = [...selected].map(id => players.find(p=>p.id===id)).filter(Boolean);
+  el.innerHTML = `
+    <div class="section-label">Your Team — Day ${activeDay}</div>
+    <div class="player-list">
+      ${myPlayers.map(p => {
+        const isCap = captainId === p.id;
+        const isVC  = vcId === p.id;
+        const st = statsMap[p.id] || {};
+        const fp = st.fantasy_points_total || 0;
+        const mul = isCap ? 2 : isVC ? 1.5 : 1;
+        return `<div class="player-row${isCap?' captain':isVC?' vice-captain':' selected'}">
+          <div class="player-info">
+            <div class="player-name">${p.name}${isCap?'<span class="cap-badge">C</span>':''}${isVC?'<span class="vc-badge">VC</span>':''}</div>
+            <div class="player-meta">${p.ppl_teams?.short_name||''} · ${p.role||'?'}</div>
+          </div>
+          <div class="player-pts">${(fp*mul).toFixed(0)} pts</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function renderLeaderboard() {
+  const el = document.getElementById('tab-content');
+  el.innerHTML = '<div class="loading">Loading…</div>';
+
+  const day = days.find(d=>d.day_number===activeDay);
+  if (!day) return;
+
+  const { data: scores } = await sb.from('ppl_fantasy_scores')
+    .select('*, user:user_id(id,email)')
+    .eq('day_id', day.id)
+    .order('total_points', { ascending: false })
+    .limit(50);
+
+  if (!scores?.length) {
+    el.innerHTML = '<div class="loading">No scores yet for this day</div>'; return;
+  }
+
+  el.innerHTML = `
+    <div class="section-label">Leaderboard — Day ${activeDay}</div>
+    ${scores.map((s, i) => {
+      const isMe = s.user_id === user?.id;
+      const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
+      const email = s.user?.email || '?';
+      const username = email.split('@')[0];
+      return `<div class="lb-row${isMe?' my-row':''}">
+        <div class="lb-rank ${rankCls}">#${i+1}</div>
+        <div><div class="lb-name">${username}${isMe?' (You)':''}</div>
+          <span class="lb-team">Day ${activeDay}</span></div>
+        <div class="lb-pts">${s.total_points?.toFixed(1)||0}</div>
+      </div>`;
+    }).join('')}`;
+}
+
+init();
+</script>
+</body>
+</html>
