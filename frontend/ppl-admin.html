@@ -338,7 +338,7 @@ async function startInnings() {
   }
 
   // Create innings record
-  const { data: inn } = await sb.from('ppl_innings').insert({
+  const { data: inn, error: innErr } = await sb.from('ppl_innings').insert({
     match_id: state.match.id,
     innings_number: state.inningsNum,
     batting_team_id: state.battingTeamId,
@@ -346,6 +346,11 @@ async function startInnings() {
     total_runs: 0, total_wickets: 0, total_overs: 0,
     extras: 0, is_complete: false
   }).select().single();
+
+  if (innErr || !inn) {
+    showToast('Failed to create innings: ' + (innErr?.message || 'unknown'), '#dc2626');
+    return;
+  }
 
   state.inningsId = inn.id;
   state.runs = 0; state.wickets = 0; state.balls = 0;
