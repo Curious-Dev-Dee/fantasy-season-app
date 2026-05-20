@@ -229,7 +229,7 @@ function crr() {
 // ── SCREEN 1: LOAD MATCHES ────────────────────────────────────
 async function loadMatches() {
   const { data: matches } = await sb.from('ppl_matches')
-    .select('*, team_a:ppl_teams!team_a_id(id,name), team_b:ppl_teams!team_b_id(id,name)')
+    .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
     .in('status', ['upcoming','scheduled','in_progress'])
     .order('match_number');
   const sel = document.getElementById('match-select');
@@ -245,8 +245,8 @@ function showMatchInfo(matches, id) {
   const box = document.getElementById('match-info');
   if (!m) { box.style.display='none'; return; }
   state.match = m;
-  state.teams[m.team_a.id] = m.team_a.name;
-  state.teams[m.team_b.id] = m.team_b.name;
+if (m.team_a) state.teams[m.team_a.id] = m.team_a.name;
+if (m.team_b) state.teams[m.team_b.id] = m.team_b.name;
   box.style.display = 'block';
   box.innerHTML = `<b>${m.team_a.name}</b> vs <b>${m.team_b.name}</b><br>
     Day ${m.day} | Status: <span>${m.status}</span>`;
