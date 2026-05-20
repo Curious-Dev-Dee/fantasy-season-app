@@ -230,7 +230,7 @@ function crr() {
 async function loadMatches() {
   const { data: matches } = await sb.from('ppl_matches')
     .select('*, team_a:ppl_teams!team_a_id(id,name), team_b:ppl_teams!team_b_id(id,name)')
-    .in('status', ['scheduled','in_progress'])
+    .in('status', ['upcoming','scheduled','in_progress'])
     .order('match_number');
   const sel = document.getElementById('match-select');
   sel.innerHTML = '<option value="">— Select a match —</option>';
