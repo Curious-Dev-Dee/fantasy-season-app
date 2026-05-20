@@ -21,6 +21,7 @@
     .btn-danger  { background: #dc2626; color: white; }
     .btn-warn    { background: #d97706; color: white; }
     .btn-gray    { background: #334155; color: #f1f5f9; }
+    .btn-purple  { background: #7c3aed; color: white; }
     .ball-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
     .ball-btn { padding: 14px 0; border-radius: 8px; border: none; font-size: 1.1rem;
       font-weight: 700; cursor: pointer; }
@@ -29,6 +30,8 @@
     .ball-six   { background: #1d4ed8; color: #bfdbfe; }
     .ball-wide  { background: #78350f; color: #fde68a; }
     .ball-noball{ background: #7c2d12; color: #fed7aa; }
+    .ball-bye   { background: #1e3a5f; color: #bae6fd; }
+    .ball-legbye{ background: #312e81; color: #c7d2fe; }
     .ball-wicket{ background: #991b1b; color: #fecaca; }
     .ball-undo  { background: #374151; color: #e5e7eb; }
     .scorebar { background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
@@ -38,9 +41,11 @@
       font-size: 0.85rem; max-height: 120px; overflow-y: auto; }
     .ball-tag { display: inline-block; padding: 2px 7px; border-radius: 4px; margin: 2px;
       font-weight: 700; font-size: 0.8rem; background: #334155; }
-    .ball-tag.W { background: #991b1b; }
+    .ball-tag.W  { background: #991b1b; }
     .ball-tag.Wd { background: #78350f; color: #fde68a; }
     .ball-tag.Nb { background: #7c2d12; color: #fed7aa; }
+    .ball-tag.B  { background: #1e3a5f; color: #bae6fd; }
+    .ball-tag.Lb { background: #312e81; color: #c7d2fe; }
     .ball-tag.four { background: #166534; color: #bbf7d0; }
     .ball-tag.six  { background: #1d4ed8; color: #bfdbfe; }
     .info-box { background: #1e293b; border-radius: 8px; padding: 12px; margin-top: 8px;
@@ -50,14 +55,43 @@
       z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.active { display: flex; }
     .modal { background: #1e293b; border-radius: 12px; padding: 20px;
-      width: 90%; max-width: 400px; }
+      width: 90%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
     .modal h3 { margin-bottom: 12px; color: #38bdf8; }
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       background: #16a34a; color: white; padding: 10px 20px; border-radius: 8px;
-      font-weight: 600; display: none; z-index: 200; }
+      font-weight: 600; display: none; z-index: 200; min-width: 200px; text-align: center; }
+    .error-box { background: #7f1d1d; border: 1px solid #dc2626; border-radius: 8px;
+      padding: 10px; margin-top: 8px; font-size: 0.8rem; color: #fca5a5; display: none; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .hint { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
+    .batter-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+    .batter-card { background: #0f172a; border-radius: 6px; padding: 8px; font-size: 0.8rem; }
+    .batter-card .name { color: #38bdf8; font-weight: 700; }
+    .batter-card .stat { color: #94a3b8; }
+    .dismissed-tag { color: #ef4444; font-size: 0.7rem; }
+    #pin-screen { display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 100vh; padding: 24px; }
+    #pin-screen h2 { margin-bottom: 24px; }
+    #pin-input { width: 200px; text-align: center; font-size: 1.5rem;
+      letter-spacing: 8px; margin-bottom: 12px; }
+    .warning-tag { background: #78350f; color: #fde68a; border-radius: 4px;
+      padding: 2px 8px; font-size: 0.75rem; font-weight: 700; margin-left: 6px; }
+    .section-divider { border: none; border-top: 1px solid #334155; margin: 12px 0; }
   </style>
 </head>
 <body>
+
+<!-- PIN GATE -->
+<div id="pin-screen">
+  <h2>🏏 PPL 2026 Admin</h2>
+  <label style="text-align:center;display:block;margin-bottom:8px">Enter Admin PIN</label>
+  <input type="password" id="pin-input" maxlength="6" placeholder="••••" inputmode="numeric">
+  <button class="btn btn-primary" style="width:200px;margin-top:8px" onclick="checkPin()">Unlock →</button>
+  <div id="pin-error" style="color:#f87171;margin-top:8px;font-size:0.85rem;display:none">Wrong PIN. Try again.</div>
+</div>
+
+<!-- MAIN APP (hidden until PIN) -->
+<div id="main-app" style="display:none">
 
 <!-- SCREEN 1: MATCH SELECT -->
 <div class="screen active" id="screen-match">
@@ -66,13 +100,15 @@
   <select id="match-select"><option value="">Loading...</option></select>
   <div class="info-box" id="match-info" style="display:none"></div>
   <button class="btn btn-primary" onclick="goToSetup()">Continue →</button>
+  <hr class="section-divider">
+  <button class="btn btn-purple" onclick="goTo('screen-abandoned')">🚫 Mark No Result / Abandoned</button>
 </div>
 
 <!-- SCREEN 2: MATCH SETUP -->
 <div class="screen" id="screen-setup">
   <h2>⚙️ Match Setup</h2>
   <div class="info-box" id="setup-match-info"></div>
-  <label>Number of Overs</label>
+  <label>Number of Overs per Side</label>
   <input type="number" id="overs-count" value="8" min="1" max="20">
   <label>Toss Won By</label>
   <select id="toss-winner"></select>
@@ -106,7 +142,9 @@
     <div class="meta" id="live-meta">Over 0.0 | CRR: 0.00</div>
   </div>
   <div class="info-box" id="batting-info"></div>
+  <div class="batter-stats" id="batter-stats"></div>
   <div class="over-log" id="over-log"></div>
+
   <div class="ball-grid">
     <button class="ball-btn ball-run" onclick="recordBall(0)">0</button>
     <button class="ball-btn ball-run" onclick="recordBall(1)">1</button>
@@ -114,12 +152,14 @@
     <button class="ball-btn ball-run" onclick="recordBall(3)">3</button>
     <button class="ball-btn ball-four" onclick="recordBall(4)">4</button>
     <button class="ball-btn ball-six"  onclick="recordBall(6)">6</button>
-    <button class="ball-btn ball-wide"  onclick="recordExtra('wide')">Wide</button>
-    <button class="ball-btn ball-noball" onclick="recordExtra('no_ball')">No Ball</button>
+    <button class="ball-btn ball-wide"   onclick="openExtraModal('wide')">Wide</button>
+    <button class="ball-btn ball-noball" onclick="openExtraModal('no_ball')">No Ball</button>
+    <button class="ball-btn ball-bye"    onclick="openExtraModal('bye')">Bye</button>
+    <button class="ball-btn ball-legbye" onclick="openExtraModal('leg_bye')">Leg Bye</button>
     <button class="ball-btn ball-wicket" onclick="openWicketModal()" style="grid-column: span 2">🔴 Wicket</button>
     <button class="ball-btn ball-undo"   onclick="undoLastBall()" style="grid-column: span 2">↩ Undo</button>
   </div>
-  <button class="btn btn-warn" style="margin-top:16px" onclick="endInningsEarly()">End Innings</button>
+  <button class="btn btn-warn" style="margin-top:16px" onclick="endInningsEarly()">End Innings Early</button>
 </div>
 
 <!-- SCREEN 5: INNINGS END -->
@@ -127,8 +167,8 @@
   <h2 id="innings-end-title">Innings 1 Complete</h2>
   <div class="info-box" id="innings-end-summary"></div>
   <button class="btn btn-success" id="btn-next-innings" onclick="startNextInnings()">Start Innings 2 →</button>
-  <button class="btn btn-warn"    id="btn-super-over"   onclick="startSuperOver()" style="display:none">Super Over →</button>
-  <button class="btn btn-danger"  id="btn-end-match"    onclick="goTo('screen-match-end')" style="display:none">End Match →</button>
+  <button class="btn btn-warn"    id="btn-super-over"   onclick="startSuperOver()" style="display:none">⚡ Super Over →</button>
+  <button class="btn btn-danger"  id="btn-end-match"    onclick="goToMatchEnd()" style="display:none">🏆 End Match →</button>
 </div>
 
 <!-- SCREEN 6: MATCH END -->
@@ -139,7 +179,69 @@
   <select id="mom-select"></select>
   <label>Result Description</label>
   <input type="text" id="result-desc" placeholder="e.g. Team A won by 5 wickets">
-  <button class="btn btn-success" onclick="finaliseMatch()">✅ Finalise Match</button>
+  <div class="error-box" id="finalise-error"></div>
+  <button class="btn btn-success" id="btn-finalise" onclick="finaliseMatch()">✅ Finalise Match</button>
+</div>
+
+<!-- SCREEN 7: NO RESULT / ABANDONED -->
+<div class="screen" id="screen-abandoned">
+  <h2>🚫 No Result / Abandoned</h2>
+  <div class="info-box" id="abandoned-match-info"></div>
+  <label>Select Match</label>
+  <select id="abandoned-match-select"><option value="">Loading...</option></select>
+  <label>Reason</label>
+  <select id="abandoned-reason">
+    <option value="no_result">No Result</option>
+    <option value="abandoned">Abandoned</option>
+    <option value="rain">Rain (D/L or cancelled)</option>
+  </select>
+  <label>Description (optional)</label>
+  <input type="text" id="abandoned-desc" placeholder="e.g. Rain stopped play after 4 overs">
+  <p class="hint" style="margin-top:8px">Both teams get 1 point each. Points table will update.</p>
+  <div class="error-box" id="abandoned-error"></div>
+  <button class="btn btn-danger" onclick="confirmAbandoned()">Confirm No Result</button>
+  <button class="btn btn-gray" onclick="goTo('screen-match')">← Back</button>
+</div>
+
+</div><!-- end main-app -->
+
+<!-- EXTRA MODAL -->
+<div class="modal-overlay" id="extra-modal">
+  <div class="modal">
+    <h3 id="extra-modal-title">Extra</h3>
+    <p class="hint" id="extra-modal-hint"></p>
+    <div class="row2">
+      <div>
+        <label style="margin-top:0">Extra runs</label>
+        <select id="extra-runs">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0">Boundary</label>
+        <select id="extra-boundary">
+          <option value="none">None</option>
+          <option value="four">Four (4)</option>
+          <option value="six">Six (6)</option>
+        </select>
+      </div>
+    </div>
+    <div id="extra-strike-row">
+      <label>Strike change?</label>
+      <select id="extra-strike-change">
+        <option value="auto">Auto (calculate)</option>
+        <option value="yes">Yes — swap</option>
+        <option value="no">No — keep</option>
+      </select>
+    </div>
+    <button class="btn btn-warn" onclick="confirmExtra()" style="margin-top:12px">Confirm Extra</button>
+    <button class="btn btn-gray" onclick="closeModal('extra-modal')">Cancel</button>
+  </div>
 </div>
 
 <!-- WICKET MODAL -->
@@ -153,15 +255,13 @@
       <option value="bowled">Bowled</option>
       <option value="caught">Caught</option>
       <option value="stumped">Stumped</option>
-      <option value="run out">Run Out</option>
-      <option value="hit wicket">Hit Wicket</option>
-      <option value="retired hurt">Retired Hurt</option>
+      <option value="run_out">Run Out</option>
     </select>
-    <div id="fielder-row">
-      <label>Fielder (for catch/stump/run out)</label>
+    <div id="fielder-row" style="display:none">
+      <label>Fielder (catch / stump / run out)</label>
       <select id="wicket-fielder"></select>
     </div>
-    <label>New Batter</label>
+    <label>New Batter <span style="color:#64748b;font-size:0.75rem">(leave "All out" if 8 wickets)</span></label>
     <select id="new-batter"></select>
     <label>Runs off this ball</label>
     <input type="number" id="wicket-runs" value="0" min="0" max="6">
@@ -174,9 +274,12 @@
 <div class="modal-overlay" id="over-modal">
   <div class="modal">
     <h3>🔄 New Over</h3>
+    <div id="same-bowler-warning" class="error-box" style="display:none">
+      ⚠️ Same bowler cannot bowl consecutive overs!
+    </div>
     <label>New Bowler</label>
     <select id="new-bowler"></select>
-    <label>Strike (who faces first)</label>
+    <label>Who faces first this over?</label>
     <select id="over-strike"></select>
     <button class="btn btn-success" onclick="confirmNewOver()">Start Over →</button>
   </div>
@@ -185,9 +288,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
+const ADMIN_PIN = '2611'; // ← Change this PIN
 const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const MAX_WICKETS = 8;
+
+// ── PIN GATE ──────────────────────────────────────────────────
+function checkPin() {
+  const val = document.getElementById('pin-input').value;
+  if (val === ADMIN_PIN) {
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    loadMatches();
+  } else {
+    document.getElementById('pin-error').style.display = 'block';
+    document.getElementById('pin-input').value = '';
+  }
+}
+document.getElementById('pin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPin();
+});
 
 // ── STATE ─────────────────────────────────────────────────────
 let state = {
@@ -196,7 +318,10 @@ let state = {
   inningsId: null, battingTeamId: null, bowlingTeamId: null,
   striker: null, nonStriker: null, bowler: null,
   runs: 0, wickets: 0, balls: 0, currentOver: [],
-  allOvers: [], innings1Score: null
+  allOvers: [], innings1Score: null,
+  pendingExtraType: null,
+  dismissedBatters: [],       // tracks all dismissed player IDs this innings
+  batterStats: {}             // { playerId: { runs, balls, fours, sixes } }
 };
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -209,7 +334,16 @@ function showToast(msg, color='#16a34a') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.background = color;
   t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 2500);
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+function showError(id, msg) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  box.textContent = '❌ ' + msg; box.style.display = 'block';
+}
+function hideError(id) {
+  const box = document.getElementById(id);
+  if (box) box.style.display = 'none';
 }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 function openModal(id)  { document.getElementById(id).classList.add('active'); }
@@ -218,24 +352,29 @@ function playerName(id) {
   return p ? p.name : '?';
 }
 function teamName(id) { return state.teams[id] || '?'; }
-function formatOvers(balls) {
-  return Math.floor(balls/6) + '.' + (balls%6);
-}
+function formatOvers(balls) { return Math.floor(balls/6) + '.' + (balls%6); }
 function crr() {
   if (state.balls === 0) return '0.00';
   return ((state.runs / state.balls) * 6).toFixed(2);
+}
+function shouldSwapStrike(runs) { return runs % 2 === 1; }
+
+// Init batter stats tracking
+function initBatterStat(id) {
+  if (!state.batterStats[id]) {
+    state.batterStats[id] = { runs: 0, balls: 0, fours: 0, sixes: 0 };
+  }
 }
 
 // ── SCREEN 1: LOAD MATCHES ────────────────────────────────────
 async function loadMatches() {
   const { data: matches, error } = await sb.from('ppl_matches')
     .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
-    .in('status', ['upcoming','scheduled','in_progress'])
+    .in('status', ['upcoming', 'toss_done', 'in_progress', 'innings_break'])
     .order('match_number');
 
   if (error || !matches) { showToast('Failed to load matches','#dc2626'); return; }
 
-  // Pre-build teams lookup from all matches
   matches.forEach(m => {
     if (m.team_a) state.teams[m.team_a.id] = m.team_a.name;
     if (m.team_b) state.teams[m.team_b.id] = m.team_b.name;
@@ -260,6 +399,24 @@ async function loadMatches() {
     box.innerHTML = `<b>${ta}</b> vs <b>${tb}</b><br>
       Day ${m.day} | ${m.match_date} | Status: <span>${m.status}</span>`;
   };
+
+  // Also populate abandoned match select
+  await loadAllMatchesForAbandoned();
+}
+
+async function loadAllMatchesForAbandoned() {
+  const { data: matches } = await sb.from('ppl_matches')
+    .select('id, match_number, day, team_a_id, team_b_id, status')
+    .not('status', 'eq', 'completed')
+    .order('match_number');
+  if (!matches) return;
+  const sel = document.getElementById('abandoned-match-select');
+  sel.innerHTML = '<option value="">— Select match —</option>';
+  matches.forEach(m => {
+    const ta = teamName(m.team_a_id);
+    const tb = teamName(m.team_b_id);
+    sel.innerHTML += `<option value="${m.id}">M${m.match_number}: ${ta} vs ${tb} (Day ${m.day})</option>`;
+  });
 }
 
 async function goToSetup() {
@@ -270,8 +427,8 @@ async function goToSetup() {
   const tw = document.getElementById('toss-winner');
   tw.innerHTML = `<option value="${m.team_a_id}">${teamName(m.team_a_id)}</option>
                   <option value="${m.team_b_id}">${teamName(m.team_b_id)}</option>`;
+  document.getElementById('overs-count').value = m.overs_per_side || 8;
   if (m.toss_winner_id) {
-    document.getElementById('overs-count').value = m.overs_per_side || 8;
     tw.value = m.toss_winner_id;
     document.getElementById('toss-decision').value = m.toss_decision || 'bat';
   }
@@ -285,19 +442,27 @@ async function saveToss() {
   const decision = document.getElementById('toss-decision').value;
   if (!overs || overs < 1) { showToast('Enter valid overs','#dc2626'); return; }
 
-  await sb.from('ppl_matches').update({
+  const { error } = await sb.from('ppl_matches').update({
     toss_winner_id: tossWon,
     toss_decision: decision,
+    overs_per_side: overs,
     status: 'in_progress'
   }).eq('id', state.match.id);
 
+  if (error) { showToast('Failed to save toss: ' + error.message, '#dc2626'); return; }
+
+  state.match.toss_winner_id = tossWon;
+  state.match.toss_decision  = decision;
+  state.match.overs_per_side = overs;
+  state.match.status         = 'in_progress';
   state.totalOvers  = overs;
   state.inningsNum  = 1;
-  const battingId   = decision === 'bat' ? tossWon
+
+  const battingId = decision === 'bat' ? tossWon
     : (tossWon === state.match.team_a_id ? state.match.team_b_id : state.match.team_a_id);
-  const bowlingId   = battingId === state.match.team_a_id ? state.match.team_b_id : state.match.team_a_id;
-  state.battingTeamId  = battingId;
-  state.bowlingTeamId  = bowlingId;
+  const bowlingId = battingId === state.match.team_a_id ? state.match.team_b_id : state.match.team_a_id;
+  state.battingTeamId = battingId;
+  state.bowlingTeamId = bowlingId;
 
   await loadPlayersForInnings();
   goTo('screen-innings-setup');
@@ -307,18 +472,22 @@ async function saveToss() {
 async function loadPlayersForInnings() {
   const { data } = await sb.from('ppl_players')
     .select('id, name, team_id')
-    .in('team_id', [state.battingTeamId, state.bowlingTeamId]);
-  state.players = data;
+    .in('team_id', [state.battingTeamId, state.bowlingTeamId])
+    .eq('is_active', true);
+  state.players = data || [];
 
-  const batters = data.filter(p => p.team_id === state.battingTeamId);
-  const bowlers = data.filter(p => p.team_id === state.bowlingTeamId);
+  // Reset per-innings tracking
+  state.dismissedBatters = [];
+  state.batterStats = {};
 
-  document.getElementById('innings-setup-title').textContent =
-    `🏏 Innings ${state.inningsNum} Setup`;
+  const batters = state.players.filter(p => p.team_id === state.battingTeamId);
+  const bowlers = state.players.filter(p => p.team_id === state.bowlingTeamId);
+
+  document.getElementById('innings-setup-title').textContent = `🏏 Innings ${state.inningsNum} Setup`;
   document.getElementById('innings-setup-info').innerHTML =
     `Batting: <span>${teamName(state.battingTeamId)}</span><br>
      Bowling: <span>${teamName(state.bowlingTeamId)}</span><br>
-     Overs: <span>${state.totalOvers}</span>`;
+     Overs: <span>${state.totalOvers}</span> | Max wickets: <span>${MAX_WICKETS}</span>`;
 
   const fillSel = (id, list) => {
     document.getElementById(id).innerHTML =
@@ -337,7 +506,10 @@ async function startInnings() {
     showToast('Striker and non-striker must be different','#dc2626'); return;
   }
 
-  // Create innings record
+  // Init batting stats for openers
+  initBatterStat(state.striker);
+  initBatterStat(state.nonStriker);
+
   const { data: inn, error: innErr } = await sb.from('ppl_innings').insert({
     match_id: state.match.id,
     innings_number: state.inningsNum,
@@ -348,8 +520,7 @@ async function startInnings() {
   }).select().single();
 
   if (innErr || !inn) {
-    showToast('Failed to create innings: ' + (innErr?.message || 'unknown'), '#dc2626');
-    return;
+    showToast('Failed to create innings: ' + (innErr?.message || 'unknown'), '#dc2626'); return;
   }
 
   state.inningsId = inn.id;
@@ -362,87 +533,183 @@ async function startInnings() {
 
 // ── SCREEN 4: BALL BY BALL ────────────────────────────────────
 async function recordBall(runs) {
-  const isLegal = true;
-  await insertDelivery({ runs_off_bat: runs, extras: 0, extra_type: null,
-    is_wicket: false, is_four: runs===4, is_six: runs===6 });
+  await insertDelivery({
+    runs_off_bat: runs, extras: 0, extra_type: null,
+    is_wicket: false, is_four: runs===4, is_six: runs===6
+  });
   state.runs += runs;
   state.balls++;
-  state.currentOver.push(runs === 4 ? '4' : runs === 6 ? '6' : String(runs));
-  await afterBall(isLegal);
+  state.currentOver.push(runs===4 ? '4' : runs===6 ? '6' : String(runs));
+
+  // Update batter stats
+  const bs = state.batterStats[state.striker];
+  if (bs) {
+    bs.runs += runs; bs.balls++;
+    if (runs === 4) bs.fours++;
+    if (runs === 6) bs.sixes++;
+  }
+
+  if (shouldSwapStrike(runs)) {
+    [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
+  }
+  await afterBall();
 }
 
-async function recordExtra(type) {
-  const runs = 1; // 1 extra run for wide/no-ball
-  await insertDelivery({ runs_off_bat: 0, extras: runs, extra_type: type,
-    is_wicket: false, is_four: false, is_six: false });
-  state.runs += runs;
-  // extras don't count as legal balls
-  state.currentOver.push(type === 'wide' ? 'Wd' : 'Nb');
-  updateScoreDisplay();
-  await saveLiveInnings();
+// ── EXTRAS MODAL ──────────────────────────────────────────────
+function openExtraModal(type) {
+  state.pendingExtraType = type;
+  const titles = { wide:'Wide', no_ball:'No Ball', bye:'Bye', leg_bye:'Leg Bye' };
+  const hints = {
+    wide:    'Wide = 1 penalty run (not off bat, NOT a legal delivery). Add extra runs if batter ran or boundary.',
+    no_ball: 'No Ball = 1 penalty run (not off bat, NOT a legal delivery). Add runs scored off free hit.',
+    bye:     'Bye = missed bat & keeper. Legal delivery. Runs NOT credited to batter.',
+    leg_bye: 'Leg Bye = deflected off body. Legal delivery. Runs NOT credited to batter.'
+  };
+  document.getElementById('extra-modal-title').textContent = titles[type];
+  document.getElementById('extra-modal-hint').textContent = hints[type];
+  document.getElementById('extra-runs').value = '0';
+  document.getElementById('extra-boundary').value = 'none';
+  document.getElementById('extra-strike-change').value = 'auto';
+  openModal('extra-modal');
 }
 
+async function confirmExtra() {
+  const type       = state.pendingExtraType;
+  const extraRuns  = parseInt(document.getElementById('extra-runs').value) || 0;
+  const boundary   = document.getElementById('extra-boundary').value;
+  const strikeOpt  = document.getElementById('extra-strike-change').value;
+
+  const totalExtra = 1 + extraRuns; // 1 penalty + additional
+  const isBoundaryFour = boundary === 'four';
+  const isBoundarySix  = boundary === 'six';
+
+  await insertDelivery({
+    runs_off_bat: 0,
+    extras: totalExtra,
+    extra_type: type,
+    is_wicket: false,
+    is_four: isBoundaryFour,
+    is_six: isBoundarySix
+  });
+
+  state.runs += totalExtra;
+  const isLegal = (type === 'bye' || type === 'leg_bye');
+  if (isLegal) {
+    state.balls++;
+    // Balls count as a legal delivery for batter faced
+    const bs = state.batterStats[state.striker];
+    if (bs) bs.balls++;
+  }
+
+  let tag = type === 'wide' ? 'Wd' : type === 'no_ball' ? 'Nb' : type === 'bye' ? 'B' : 'Lb';
+  if (extraRuns > 0) tag += '+' + extraRuns;
+  state.currentOver.push(tag);
+
+  let swap = false;
+  if (strikeOpt === 'auto') {
+    swap = (type === 'wide' || type === 'no_ball')
+      ? shouldSwapStrike(extraRuns)
+      : shouldSwapStrike(totalExtra);
+  } else if (strikeOpt === 'yes') {
+    swap = true;
+  }
+  if (swap) [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
+
+  closeModal('extra-modal');
+  if (isLegal) {
+    await afterBall();
+  } else {
+    updateScoreDisplay();
+    await saveLiveInnings();
+  }
+}
+
+// ── WICKET MODAL ──────────────────────────────────────────────
 async function openWicketModal() {
-  const batters = state.players.filter(p =>
+  // Only show batters NOT already dismissed and NOT currently at crease
+  const availableNextBatters = state.players.filter(p =>
     p.team_id === state.battingTeamId &&
-    p.id !== state.striker && p.id !== state.nonStriker);
+    p.id !== state.striker &&
+    p.id !== state.nonStriker &&
+    !state.dismissedBatters.includes(p.id)
+  );
+
   const fielders = state.players.filter(p => p.team_id === state.bowlingTeamId);
 
   document.getElementById('wicket-batter').innerHTML =
     [state.striker, state.nonStriker]
     .map(id => `<option value="${id}">${playerName(id)}</option>`).join('');
+
   document.getElementById('wicket-fielder').innerHTML =
     fielders.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
   document.getElementById('new-batter').innerHTML =
-    `<option value="">— All out —</option>` +
-    batters.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    `<option value="">— All out (${MAX_WICKETS} wkts) —</option>` +
+    availableNextBatters.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
 
   document.getElementById('dismissal-type').onchange = function() {
-    const needs = ['caught','stumped','run out'].includes(this.value);
+    const needs = ['caught','stumped','run_out'].includes(this.value);
     document.getElementById('fielder-row').style.display = needs ? 'block' : 'none';
   };
   document.getElementById('fielder-row').style.display = 'none';
+  document.getElementById('wicket-runs').value = 0;
   openModal('wicket-modal');
 }
 
 async function confirmWicket() {
-  const dismissedId  = document.getElementById('wicket-batter').value;
+  const dismissedId   = document.getElementById('wicket-batter').value;
   const dismissalType = document.getElementById('dismissal-type').value;
-  const fielderId    = document.getElementById('wicket-fielder').value || null;
-  const newBatterId  = document.getElementById('new-batter').value || null;
-  const runs         = parseInt(document.getElementById('wicket-runs').value) || 0;
+  const fielderId     = document.getElementById('wicket-fielder').value || null;
+  const newBatterId   = document.getElementById('new-batter').value || null;
+  const runs          = parseInt(document.getElementById('wicket-runs').value) || 0;
 
   await insertDelivery({
     runs_off_bat: runs, extras: 0, extra_type: null,
     is_wicket: true, is_four: runs===4, is_six: runs===6,
     dismissal_type: dismissalType,
     dismissed_player_id: dismissedId,
-    fielder_id: ['caught','stumped','run out'].includes(dismissalType) ? fielderId : null
+    fielder_id: ['caught','stumped','run_out'].includes(dismissalType) ? fielderId : null
   });
 
   state.runs += runs;
   state.balls++;
   state.wickets++;
   state.currentOver.push('W');
+  state.dismissedBatters.push(dismissedId);
 
-  // Rotate strike
-  if (dismissedId === state.striker) state.striker = newBatterId;
-  else state.nonStriker = newBatterId;
+  // Update batter stats for the dismissal ball
+  const bs = state.batterStats[dismissedId];
+  if (bs) { bs.runs += runs; bs.balls++; }
+
+  if (dismissedId === state.striker) {
+    state.striker = newBatterId;
+    if (shouldSwapStrike(runs)) {
+      [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
+    }
+  } else {
+    state.nonStriker = newBatterId;
+    if (shouldSwapStrike(runs)) {
+      [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
+    }
+  }
+
+  // Init stats for new batter
+  if (newBatterId) initBatterStat(newBatterId);
 
   closeModal('wicket-modal');
 
-  // All out or last over done
-  const maxWickets = state.players.filter(p => p.team_id === state.battingTeamId).length - 1;
-  if (state.wickets >= maxWickets || !newBatterId) {
+  if (state.wickets >= MAX_WICKETS || !newBatterId) {
     await completeInnings(); return;
   }
-  await afterBall(true);
+  await afterBall();
 }
 
-async function afterBall(isLegal) {
+// ── AFTER EACH LEGAL BALL ─────────────────────────────────────
+async function afterBall() {
   updateScoreDisplay();
   await saveLiveInnings();
-  const legalBalls = state.balls;
+
+  const legalBalls    = state.balls;
   const oversComplete = legalBalls % 6 === 0 && legalBalls > 0;
 
   if (oversComplete) {
@@ -453,37 +720,59 @@ async function afterBall(isLegal) {
     if (overNum >= state.totalOvers) {
       await completeInnings(); return;
     }
-    // Prompt for new over
-    const bowlers = state.players.filter(p =>
-      p.team_id === state.bowlingTeamId && p.id !== state.bowler);
-    document.getElementById('new-bowler').innerHTML =
-      bowlers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-    // Auto-swap strike at end of over
+
+    // End of over: batters automatically swap ends
     [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
+
+    const prevBowler = state.bowler;
+    const bowlers = state.players.filter(p => p.team_id === state.bowlingTeamId);
+
+    // Warn if only 1 bowler available (rare edge case)
+    document.getElementById('new-bowler').innerHTML =
+      bowlers.map(p => {
+        const isSame = p.id === prevBowler;
+        return `<option value="${p.id}" ${isSame ? 'data-same="true"' : ''}>${p.name}${isSame ? ' ⚠️ (prev bowler)' : ''}</option>`;
+      }).join('');
+
+    // Default select to a different bowler
+    const otherBowler = bowlers.find(p => p.id !== prevBowler);
+    if (otherBowler) document.getElementById('new-bowler').value = otherBowler.id;
+
+    document.getElementById('new-bowler').onchange = function() {
+      const warn = document.getElementById('same-bowler-warning');
+      warn.style.display = this.value === prevBowler ? 'block' : 'none';
+    };
+    document.getElementById('same-bowler-warning').style.display = 'none';
+
     document.getElementById('over-strike').innerHTML =
       [state.striker, state.nonStriker]
       .map(id => `<option value="${id}">${playerName(id)}</option>`).join('');
+
     openModal('over-modal');
   }
 }
 
 function confirmNewOver() {
-  state.bowler  = document.getElementById('new-bowler').value;
-  state.striker = document.getElementById('over-strike').value;
-  state.nonStriker = state.players.find(p =>
-    p.team_id === state.battingTeamId &&
-    p.id !== state.striker && state.players.filter(x =>
-      x.team_id === state.battingTeamId).map(x=>x.id).includes(p.id)
-  )?.id || state.nonStriker;
+  const newBowlerVal = document.getElementById('new-bowler').value;
+  const prevBowler   = state.bowler;
+  if (newBowlerVal === prevBowler) {
+    if (!confirm('Same bowler bowling consecutive overs — are you sure?')) return;
+  }
+  state.bowler = newBowlerVal;
+  const chosen = document.getElementById('over-strike').value;
+  if (chosen !== state.striker) {
+    [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
+  }
   closeModal('over-modal');
   updateScoreDisplay();
 }
 
 async function endInningsEarly() {
-  if (!confirm('End innings now?')) return;
+  if (!confirm('End innings now? This cannot be undone.')) return;
   await completeInnings();
 }
 
+// ── INNINGS COMPLETE ──────────────────────────────────────────
 async function completeInnings() {
   await sb.from('ppl_innings').update({
     total_runs: state.runs, total_wickets: state.wickets,
@@ -492,34 +781,39 @@ async function completeInnings() {
   }).eq('id', state.inningsId);
 
   if (state.inningsNum === 1) {
-    state.innings1Score = { runs: state.runs, wickets: state.wickets, balls: state.balls,
-      team: state.battingTeamId };
+    state.innings1Score = {
+      runs: state.runs, wickets: state.wickets,
+      balls: state.balls, team: state.battingTeamId
+    };
     document.getElementById('innings-end-title').textContent = 'Innings 1 Complete';
     document.getElementById('innings-end-summary').innerHTML =
       `<b>${teamName(state.battingTeamId)}</b>: <span>${state.runs}/${state.wickets}</span>
-       in ${formatOvers(state.balls)} overs`;
+       in ${formatOvers(state.balls)} overs<br>
+       <br>Target: <span>${state.runs + 1}</span> runs`;
     document.getElementById('btn-next-innings').style.display = 'block';
     document.getElementById('btn-end-match').style.display = 'none';
     document.getElementById('btn-super-over').style.display = 'none';
     goTo('screen-innings-end');
   } else {
-    // Check result
-    const i1 = state.innings1Score;
+    const i1   = state.innings1Score;
     const tied = state.runs === i1.runs;
-    document.getElementById('innings-end-title').textContent = tied ? 'Match Tied!' : 'Innings 2 Complete';
+    document.getElementById('innings-end-title').textContent = tied ? '⚡ Match Tied!' : 'Innings 2 Complete';
     document.getElementById('innings-end-summary').innerHTML =
-      `Innings 1 — <b>${teamName(i1.team)}</b>: <span>${i1.runs}/${i1.wickets}</span><br>
-       Innings 2 — <b>${teamName(state.battingTeamId)}</b>: <span>${state.runs}/${state.wickets}</span>`;
+      `Innings 1 — <b>${teamName(i1.team)}</b>: <span>${i1.runs}/${i1.wickets}</span> (${formatOvers(i1.balls)})<br>
+       Innings 2 — <b>${teamName(state.battingTeamId)}</b>: <span>${state.runs}/${state.wickets}</span> (${formatOvers(state.balls)})`;
     document.getElementById('btn-next-innings').style.display = 'none';
     document.getElementById('btn-super-over').style.display = tied ? 'block' : 'none';
     document.getElementById('btn-end-match').style.display = tied ? 'none' : 'block';
     goTo('screen-innings-end');
-    if (!tied) prepareMatchEnd();
   }
 }
 
+function goToMatchEnd() {
+  prepareMatchEnd();
+  goTo('screen-match-end');
+}
+
 async function startNextInnings() {
-  // Swap teams
   [state.battingTeamId, state.bowlingTeamId] = [state.bowlingTeamId, state.battingTeamId];
   state.inningsNum = 2;
   await loadPlayersForInnings();
@@ -530,68 +824,179 @@ async function startSuperOver() {
   [state.battingTeamId, state.bowlingTeamId] = [state.bowlingTeamId, state.battingTeamId];
   state.inningsNum++;
   state.totalOvers = 1;
-  showToast('Super Over! 1 over each');
+  showToast('⚡ Super Over! 1 over each side');
   await loadPlayersForInnings();
   goTo('screen-innings-setup');
 }
 
 // ── SCREEN 6: MATCH END ───────────────────────────────────────
-async function prepareMatchEnd() {
-  const allPlayers = state.players;
+function prepareMatchEnd() {
+  // Populate MoM from all players in this match
   document.getElementById('mom-select').innerHTML =
-    allPlayers.map(p => `<option value="${p.id}">${p.name} (${teamName(p.team_id)})</option>`).join('');
+    state.players.map(p => `<option value="${p.id}">${p.name} (${teamName(p.team_id)})</option>`).join('');
 
-  const i1 = state.innings1Score;
+  const i1       = state.innings1Score;
+  if (!i1) return;
   const winnerId = state.runs > i1.runs ? state.battingTeamId
     : state.runs < i1.runs ? i1.team : null;
-  const margin = Math.abs(state.runs - i1.runs);
+  const margin      = Math.abs(state.runs - i1.runs);
+  const wicketsLeft = MAX_WICKETS - state.wickets;
   const desc = winnerId
     ? `${teamName(winnerId)} won by ${winnerId === state.battingTeamId
-        ? (10 - state.wickets) + ' wickets' : margin + ' runs'}`
+        ? wicketsLeft + ' wicket' + (wicketsLeft !== 1 ? 's' : '')
+        : margin + ' run' + (margin !== 1 ? 's' : '')}`
     : 'Match tied';
   document.getElementById('result-desc').value = desc;
   document.getElementById('match-end-summary').innerHTML =
-    `<span>${teamName(i1.team)}</span>: ${i1.runs}/${i1.wickets}<br>
-     <span>${teamName(state.battingTeamId)}</span>: ${state.runs}/${state.wickets}<br>
+    `<span>${teamName(i1.team)}</span>: ${i1.runs}/${i1.wickets} (${formatOvers(i1.balls)})<br>
+     <span>${teamName(state.battingTeamId)}</span>: ${state.runs}/${state.wickets} (${formatOvers(state.balls)})<br>
      <b>${desc}</b>`;
+  hideError('finalise-error');
 }
 
+// ── FINALISE MATCH ────────────────────────────────────────────
 async function finaliseMatch() {
-  const mom    = document.getElementById('mom-select').value;
-  const desc   = document.getElementById('result-desc').value;
-  const i1     = state.innings1Score;
+  hideError('finalise-error');
+  const btn = document.getElementById('btn-finalise');
+  btn.disabled = true; btn.textContent = '⏳ Finalising...';
+
+  const mom      = document.getElementById('mom-select').value;
+  const desc     = document.getElementById('result-desc').value;
+  const i1       = state.innings1Score;
   const winnerId = state.runs > i1.runs ? state.battingTeamId
     : state.runs < i1.runs ? i1.team : null;
 
-  await sb.from('ppl_matches').update({
-    status: 'completed', winner_id: winnerId,
-    mom_player_id: mom, result_description: desc
+  // STEP 1: Mark match completed
+  const { error: matchErr } = await sb.from('ppl_matches').update({
+    status: 'completed',
+    winner_id: winnerId,
+    mom_player_id: mom,
+    result_description: desc
   }).eq('id', state.match.id);
 
-  // Run all aggregators
-  await sb.rpc('calculate_ppl_fantasy_points', { p_match_id: state.match.id });
-  await sb.rpc('update_ppl_points_table');
-  await sb.rpc('update_ppl_player_stats');
+  if (matchErr) {
+    showError('finalise-error', 'Match update failed: ' + matchErr.message);
+    btn.disabled = false; btn.textContent = '✅ Finalise Match'; return;
+  }
 
-  showToast('✅ Match finalised! Points updated.');
-  setTimeout(() => { state = { match:null, teams:{}, players:[], totalOvers:8,
-    inningsNum:1, inningsId:null, battingTeamId:null, bowlingTeamId:null,
-    striker:null, nonStriker:null, bowler:null, runs:0, wickets:0, balls:0,
-    currentOver:[], allOvers:[], innings1Score:null };
-    loadMatches(); goTo('screen-match'); }, 2000);
+  // STEP 2: Calculate player match points
+  const { error: pointsErr } = await sb.rpc('ppl_calculate_match_points', { p_match_id: state.match.id });
+  if (pointsErr) {
+    showError('finalise-error', 'Points calc failed: ' + pointsErr.message);
+    btn.disabled = false; btn.textContent = '✅ Finalise Match'; return;
+  }
+
+  // STEP 3: Apply MoM bonus
+  if (mom) {
+    const { error: momErr } = await sb.rpc('ppl_apply_mom', { p_match_id: state.match.id, p_player_id: mom });
+    if (momErr) console.warn('[PPL] MoM bonus warning:', momErr.message);
+  }
+
+  // STEP 4: SR bonus
+  const { error: srErr } = await sb.rpc('ppl_apply_sr_bonus', { p_match_id: state.match.id });
+  if (srErr) console.warn('[PPL] SR bonus warning:', srErr.message);
+
+  // STEP 5: Update player career stats
+  const { error: statsErr } = await sb.rpc('ppl_update_player_stats', { p_match_id: state.match.id });
+  if (statsErr) console.warn('[PPL] Player stats warning:', statsErr.message);
+
+  // STEP 6: Calculate user fantasy points for this match's day
+  const matchDay = state.match.day;
+  if (matchDay) {
+    const { data: dayRows } = await sb.from('ppl_fantasy_days')
+      .select('id').eq('day_number', matchDay).limit(1);
+    const dayId = dayRows?.[0]?.id;
+    if (dayId) {
+      const { error: userPtsErr } = await sb.rpc('ppl_calculate_user_team_points', { p_day_id: dayId });
+      if (userPtsErr) console.warn('[PPL] User team points warning:', userPtsErr.message);
+    }
+  }
+
+  showToast('✅ Match finalised! All stats updated.');
+  setTimeout(() => {
+    btn.disabled = false; btn.textContent = '✅ Finalise Match';
+    // Reset state but keep teams cache
+    state = {
+      match: null, teams: {...state.teams}, players: [],
+      totalOvers: 8, inningsNum: 1, inningsId: null,
+      battingTeamId: null, bowlingTeamId: null,
+      striker: null, nonStriker: null, bowler: null,
+      runs: 0, wickets: 0, balls: 0, currentOver: [],
+      allOvers: [], innings1Score: null, pendingExtraType: null,
+      dismissedBatters: [], batterStats: {}
+    };
+    loadMatches();
+    goTo('screen-match');
+  }, 2500);
 }
 
-// ── SHARED HELPERS ────────────────────────────────────────────
+// ── SCREEN 7: ABANDONED / NO RESULT ──────────────────────────
+async function confirmAbandoned() {
+  hideError('abandoned-error');
+  const matchId = document.getElementById('abandoned-match-select').value;
+  const reason  = document.getElementById('abandoned-reason').value;
+  const desc    = document.getElementById('abandoned-desc').value || reason;
+  if (!matchId) { showError('abandoned-error', 'Select a match first'); return; }
+  if (!confirm('Mark this match as No Result? Both teams get 1 point each.')) return;
+
+  const { error } = await sb.from('ppl_matches').update({
+    status: 'no_result',
+    result_description: desc,
+    winner_id: null
+  }).eq('id', matchId);
+
+  if (error) { showError('abandoned-error', 'Failed: ' + error.message); return; }
+
+  // Manually update points table: both teams +1 point each
+  const { data: matchData } = await sb.from('ppl_matches')
+    .select('team_a_id, team_b_id, day').eq('id', matchId).single();
+
+  if (matchData) {
+    for (const teamId of [matchData.team_a_id, matchData.team_b_id]) {
+      await sb.from('ppl_points_table')
+        .upsert({
+          team_id: teamId,
+          // increment points by 1 — using update with raw increment
+        }, { onConflict: 'team_id' });
+
+      // Use direct update with increment
+      await sb.rpc ? null : null;
+      await sb.from('ppl_points_table')
+        .update({ points: sb.raw ? sb.raw('points + 1') : undefined })
+        .eq('team_id', teamId);
+    }
+
+    // Simpler approach: read then write
+    for (const teamId of [matchData.team_a_id, matchData.team_b_id]) {
+      const { data: pt } = await sb.from('ppl_points_table')
+        .select('points, played').eq('team_id', teamId).single();
+      if (pt) {
+        await sb.from('ppl_points_table').update({
+          points: (pt.points || 0) + 1,
+          played: (pt.played || 0) + 1
+        }).eq('team_id', teamId);
+      }
+    }
+  }
+
+  showToast('✅ Match marked as No Result. 1 point each.');
+  document.getElementById('abandoned-desc').value = '';
+  await loadMatches();
+  goTo('screen-match');
+}
+
+// ── DB HELPERS ────────────────────────────────────────────────
 async function insertDelivery(fields) {
-  await sb.from('ppl_deliveries').insert({
-    innings_id: state.inningsId,
-    match_id:   state.match.id,
+  const { error } = await sb.from('ppl_deliveries').insert({
+    innings_id:   state.inningsId,
+    match_id:     state.match.id,
     over_number:  Math.floor(state.balls / 6),
     ball_number:  state.balls % 6,
     batter_id:    state.striker,
     bowler_id:    state.bowler,
     ...fields
   });
+  if (error) console.error('[PPL] Delivery insert error:', error.message);
 }
 
 async function saveLiveInnings() {
@@ -602,45 +1007,85 @@ async function saveLiveInnings() {
 }
 
 async function undoLastBall() {
-  if (!confirm('Undo last ball?')) return;
-  // Delete last delivery for this innings
+  if (!confirm('Undo last ball? Strike position may need manual correction.')) return;
   const { data } = await sb.from('ppl_deliveries')
-    .select('id, runs_off_bat, extras, is_wicket, extra_type')
+    .select('id, runs_off_bat, extras, is_wicket, extra_type, dismissed_player_id, batter_id')
     .eq('innings_id', state.inningsId)
     .order('created_at', { ascending: false })
     .limit(1);
   if (!data || !data.length) { showToast('Nothing to undo','#d97706'); return; }
   const last = data[0];
   await sb.from('ppl_deliveries').delete().eq('id', last.id);
-  // Reverse state
+
   state.runs -= (last.runs_off_bat + last.extras);
-  const wasLegal = last.extra_type !== 'wide' && last.extra_type !== 'no_ball';
+  const isWide   = last.extra_type === 'wide';
+  const isNoBall = last.extra_type === 'no_ball';
+  const wasLegal = !isWide && !isNoBall;
   if (wasLegal) state.balls = Math.max(0, state.balls - 1);
-  if (last.is_wicket) state.wickets = Math.max(0, state.wickets - 1);
+  if (last.is_wicket) {
+    state.wickets = Math.max(0, state.wickets - 1);
+    // Restore dismissed batter to crease
+    if (last.dismissed_player_id) {
+      state.dismissedBatters = state.dismissedBatters.filter(id => id !== last.dismissed_player_id);
+      // Put dismissed batter back as striker (admin can reassign via over modal if needed)
+      state.striker = last.batter_id || last.dismissed_player_id;
+    }
+  }
   state.currentOver.pop();
+
+  // Undo batter stats
+  if (last.batter_id && state.batterStats[last.batter_id]) {
+    const bs = state.batterStats[last.batter_id];
+    bs.runs  = Math.max(0, bs.runs  - last.runs_off_bat);
+    bs.balls = Math.max(0, bs.balls - (wasLegal ? 1 : 0));
+    if (last.runs_off_bat === 4) bs.fours = Math.max(0, bs.fours - 1);
+    if (last.runs_off_bat === 6) bs.sixes = Math.max(0, bs.sixes - 1);
+  }
+
   updateScoreDisplay();
   await saveLiveInnings();
-  showToast('Last ball undone','#d97706');
+  showToast('Last ball undone ↩ — check strike if needed','#d97706');
 }
 
+// ── SCORE DISPLAY ─────────────────────────────────────────────
 function updateScoreDisplay() {
-  document.getElementById('live-score').textContent =
-    `${state.runs}/${state.wickets}`;
+  document.getElementById('live-score').textContent = `${state.runs}/${state.wickets}`;
+  const target = state.innings1Score ? `Target: ${state.innings1Score.runs + 1} | ` : '';
   document.getElementById('live-meta').textContent =
-    `Over ${formatOvers(state.balls)} | CRR: ${crr()} | Target: ${
-      state.innings1Score ? state.innings1Score.runs + 1 : '—'}`;
+    `Over ${formatOvers(state.balls)} | CRR: ${crr()} | ${target}Wkts left: ${MAX_WICKETS - state.wickets}`;
+
   document.getElementById('batting-info').innerHTML =
     `🏏 <span style="color:#38bdf8">${playerName(state.striker)}*</span>
      &nbsp;|&nbsp; ${playerName(state.nonStriker)}<br>
      🎳 ${playerName(state.bowler)}`;
+
+  // Batter stat cards
+  const statsBox = document.getElementById('batter-stats');
+  const renderCard = (id, onStrike) => {
+    const bs = state.batterStats[id] || { runs: 0, balls: 0, fours: 0, sixes: 0 };
+    const sr = bs.balls > 0 ? ((bs.runs / bs.balls) * 100).toFixed(1) : '—';
+    return `<div class="batter-card">
+      <div class="name">${playerName(id)}${onStrike ? ' *' : ''}</div>
+      <div class="stat">${bs.runs} (${bs.balls}b) | SR: ${sr}</div>
+      <div class="stat">4s: ${bs.fours} | 6s: ${bs.sixes}</div>
+    </div>`;
+  };
+  if (state.striker && state.nonStriker) {
+    statsBox.innerHTML = renderCard(state.striker, true) + renderCard(state.nonStriker, false);
+  }
+
   // Over log
   const log = document.getElementById('over-log');
   const allDisplay = [...state.allOvers, state.currentOver];
   log.innerHTML = allDisplay.map((over, i) =>
     `<b>Ov ${i+1}:</b> ` + over.map(b => {
       let cls = '';
-      if (b==='W') cls='W'; else if (b==='Wd') cls='Wd';
-      else if (b==='Nb') cls='Nb'; else if (b==='4') cls='four';
+      if (b==='W') cls='W';
+      else if (b.startsWith('Wd')) cls='Wd';
+      else if (b.startsWith('Nb')) cls='Nb';
+      else if (b.startsWith('B'))  cls='B';
+      else if (b.startsWith('Lb')) cls='Lb';
+      else if (b==='4') cls='four';
       else if (b==='6') cls='six';
       return `<span class="ball-tag ${cls}">${b}</span>`;
     }).join('') + `<br>`
@@ -649,7 +1094,8 @@ function updateScoreDisplay() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-loadMatches();
+// Focus PIN input on load
+document.getElementById('pin-input').focus();
 </script>
 </body>
 </html>
