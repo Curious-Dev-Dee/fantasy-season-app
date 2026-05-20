@@ -22,6 +22,7 @@
     .btn-warn    { background: #d97706; color: white; }
     .btn-gray    { background: #334155; color: #f1f5f9; }
     .btn-purple  { background: #7c3aed; color: white; }
+    .btn-teal    { background: #0d9488; color: white; }
     .ball-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
     .ball-btn { padding: 14px 0; border-radius: 8px; border: none; font-size: 1.1rem;
       font-weight: 700; cursor: pointer; }
@@ -68,7 +69,6 @@
     .batter-card { background: #0f172a; border-radius: 6px; padding: 8px; font-size: 0.8rem; }
     .batter-card .name { color: #38bdf8; font-weight: 700; }
     .batter-card .stat { color: #94a3b8; }
-    .dismissed-tag { color: #ef4444; font-size: 0.7rem; }
     #pin-screen { display: flex; flex-direction: column; align-items: center;
       justify-content: center; min-height: 100vh; padding: 24px; }
     #pin-screen h2 { margin-bottom: 24px; }
@@ -77,6 +77,14 @@
     .warning-tag { background: #78350f; color: #fde68a; border-radius: 4px;
       padding: 2px 8px; font-size: 0.75rem; font-weight: 700; margin-left: 6px; }
     .section-divider { border: none; border-top: 1px solid #334155; margin: 12px 0; }
+    /* Edit delivery list */
+    .delivery-list { margin-top: 8px; max-height: 60vh; overflow-y: auto; }
+    .delivery-item { background: #0f172a; border-radius: 6px; padding: 10px 12px;
+      margin-bottom: 6px; cursor: pointer; border: 1px solid #334155; font-size: 0.85rem; }
+    .delivery-item:hover { border-color: #38bdf8; }
+    .delivery-item .d-over { color: #38bdf8; font-weight: 700; margin-right: 8px; }
+    .delivery-item .d-detail { color: #94a3b8; }
+    .delivery-item .d-wicket { color: #f87171; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -90,7 +98,7 @@
   <div id="pin-error" style="color:#f87171;margin-top:8px;font-size:0.85rem;display:none">Wrong PIN. Try again.</div>
 </div>
 
-<!-- MAIN APP (hidden until PIN) -->
+<!-- MAIN APP -->
 <div id="main-app" style="display:none">
 
 <!-- SCREEN 1: MATCH SELECT -->
@@ -101,6 +109,7 @@
   <div class="info-box" id="match-info" style="display:none"></div>
   <button class="btn btn-primary" onclick="goToSetup()">Continue →</button>
   <hr class="section-divider">
+  <button class="btn btn-teal" onclick="goToResume()">🔄 Resume In-Progress Match</button>
   <button class="btn btn-purple" onclick="goTo('screen-abandoned')">🚫 Mark No Result / Abandoned</button>
 </div>
 
@@ -146,20 +155,21 @@
   <div class="over-log" id="over-log"></div>
 
   <div class="ball-grid">
-    <button class="ball-btn ball-run" onclick="recordBall(0)">0</button>
-    <button class="ball-btn ball-run" onclick="recordBall(1)">1</button>
-    <button class="ball-btn ball-run" onclick="recordBall(2)">2</button>
-    <button class="ball-btn ball-run" onclick="recordBall(3)">3</button>
-    <button class="ball-btn ball-four" onclick="recordBall(4)">4</button>
-    <button class="ball-btn ball-six"  onclick="recordBall(6)">6</button>
+    <button class="ball-btn ball-run"    onclick="recordBall(0)">0</button>
+    <button class="ball-btn ball-run"    onclick="recordBall(1)">1</button>
+    <button class="ball-btn ball-run"    onclick="recordBall(2)">2</button>
+    <button class="ball-btn ball-run"    onclick="recordBall(3)">3</button>
+    <button class="ball-btn ball-four"   onclick="recordBall(4)">4</button>
+    <button class="ball-btn ball-six"    onclick="recordBall(6)">6</button>
     <button class="ball-btn ball-wide"   onclick="openExtraModal('wide')">Wide</button>
     <button class="ball-btn ball-noball" onclick="openExtraModal('no_ball')">No Ball</button>
     <button class="ball-btn ball-bye"    onclick="openExtraModal('bye')">Bye</button>
     <button class="ball-btn ball-legbye" onclick="openExtraModal('leg_bye')">Leg Bye</button>
-    <button class="ball-btn ball-wicket" onclick="openWicketModal()" style="grid-column: span 2">🔴 Wicket</button>
-    <button class="ball-btn ball-undo"   onclick="undoLastBall()" style="grid-column: span 2">↩ Undo</button>
+    <button class="ball-btn ball-wicket" onclick="openWicketModal()" style="grid-column:span 2">🔴 Wicket</button>
+    <button class="ball-btn ball-undo"   onclick="undoLastBall()" style="grid-column:span 2">↩ Undo Last</button>
   </div>
-  <button class="btn btn-warn" style="margin-top:16px" onclick="endInningsEarly()">End Innings Early</button>
+  <button class="btn btn-teal"   style="margin-top:12px" onclick="openEditDeliveryScreen()">✏️ Edit a Past Delivery</button>
+  <button class="btn btn-warn"   style="margin-top:8px"  onclick="endInningsEarly()">End Innings Early</button>
 </div>
 
 <!-- SCREEN 5: INNINGS END -->
@@ -168,7 +178,7 @@
   <div class="info-box" id="innings-end-summary"></div>
   <button class="btn btn-success" id="btn-next-innings" onclick="startNextInnings()">Start Innings 2 →</button>
   <button class="btn btn-warn"    id="btn-super-over"   onclick="startSuperOver()" style="display:none">⚡ Super Over →</button>
-  <button class="btn btn-danger"  id="btn-end-match"    onclick="goToMatchEnd()" style="display:none">🏆 End Match →</button>
+  <button class="btn btn-danger"  id="btn-end-match"    onclick="goToMatchEnd()"   style="display:none">🏆 End Match →</button>
 </div>
 
 <!-- SCREEN 6: MATCH END -->
@@ -186,21 +196,39 @@
 <!-- SCREEN 7: NO RESULT / ABANDONED -->
 <div class="screen" id="screen-abandoned">
   <h2>🚫 No Result / Abandoned</h2>
-  <div class="info-box" id="abandoned-match-info"></div>
   <label>Select Match</label>
   <select id="abandoned-match-select"><option value="">Loading...</option></select>
   <label>Reason</label>
   <select id="abandoned-reason">
     <option value="no_result">No Result</option>
     <option value="abandoned">Abandoned</option>
-    <option value="rain">Rain (D/L or cancelled)</option>
+    <option value="rain">Rain (cancelled)</option>
   </select>
   <label>Description (optional)</label>
   <input type="text" id="abandoned-desc" placeholder="e.g. Rain stopped play after 4 overs">
   <p class="hint" style="margin-top:8px">Both teams get 1 point each. Points table will update.</p>
   <div class="error-box" id="abandoned-error"></div>
   <button class="btn btn-danger" onclick="confirmAbandoned()">Confirm No Result</button>
-  <button class="btn btn-gray" onclick="goTo('screen-match')">← Back</button>
+  <button class="btn btn-gray"   onclick="goTo('screen-match')">← Back</button>
+</div>
+
+<!-- SCREEN 8: EDIT DELIVERY -->
+<div class="screen" id="screen-edit-delivery">
+  <h2>✏️ Edit a Delivery</h2>
+  <p class="hint" style="margin-bottom:8px">Tap any ball to edit it. Changes update stats immediately.</p>
+  <div class="delivery-list" id="delivery-list"></div>
+  <button class="btn btn-gray" style="margin-top:12px" onclick="goTo('screen-scoring')">← Back to Scoring</button>
+</div>
+
+<!-- SCREEN 9: RESUME MATCH -->
+<div class="screen" id="screen-resume">
+  <h2>🔄 Resume Match</h2>
+  <label>Select In-Progress Match</label>
+  <select id="resume-match-select"><option value="">Loading...</option></select>
+  <div class="info-box" id="resume-info" style="display:none"></div>
+  <div class="error-box" id="resume-error"></div>
+  <button class="btn btn-success" onclick="doResume()">Resume →</button>
+  <button class="btn btn-gray"    onclick="goTo('screen-match')">← Back</button>
 </div>
 
 </div><!-- end main-app -->
@@ -214,12 +242,9 @@
       <div>
         <label style="margin-top:0">Extra runs</label>
         <select id="extra-runs">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="6">6</option>
+          <option value="0">0</option><option value="1">1</option>
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="6">6</option>
         </select>
       </div>
       <div>
@@ -239,8 +264,8 @@
         <option value="no">No — keep</option>
       </select>
     </div>
-    <button class="btn btn-warn" onclick="confirmExtra()" style="margin-top:12px">Confirm Extra</button>
-    <button class="btn btn-gray" onclick="closeModal('extra-modal')">Cancel</button>
+    <button class="btn btn-warn"  onclick="confirmExtra()" style="margin-top:12px">Confirm Extra</button>
+    <button class="btn btn-gray"  onclick="closeModal('extra-modal')">Cancel</button>
   </div>
 </div>
 
@@ -256,12 +281,14 @@
       <option value="caught">Caught</option>
       <option value="stumped">Stumped</option>
       <option value="run_out">Run Out</option>
+      <option value="hit_wicket">Hit Wicket</option>
+      <option value="retired_out">Retired Out</option>
     </select>
     <div id="fielder-row" style="display:none">
       <label>Fielder (catch / stump / run out)</label>
       <select id="wicket-fielder"></select>
     </div>
-    <label>New Batter <span style="color:#64748b;font-size:0.75rem">(leave "All out" if 8 wickets)</span></label>
+    <label>New Batter <span style="color:#64748b;font-size:0.75rem">(leave blank if 8 wickets / all out)</span></label>
     <select id="new-batter"></select>
     <label>Runs off this ball</label>
     <input type="number" id="wicket-runs" value="0" min="0" max="6">
@@ -285,14 +312,52 @@
   </div>
 </div>
 
+<!-- EDIT DELIVERY MODAL -->
+<div class="modal-overlay" id="edit-delivery-modal">
+  <div class="modal">
+    <h3 id="edit-modal-title">✏️ Edit Delivery</h3>
+    <p class="hint" id="edit-modal-over-info" style="margin-bottom:8px"></p>
+    <label>Runs off bat</label>
+    <input type="number" id="edit-runs-off-bat" value="0" min="0" max="6">
+    <label>Extra type</label>
+    <select id="edit-extra-type">
+      <option value="">None</option>
+      <option value="wide">Wide</option>
+      <option value="no_ball">No Ball</option>
+      <option value="bye">Bye</option>
+      <option value="leg_bye">Leg Bye</option>
+    </select>
+    <label>Extra runs (penalty + additional)</label>
+    <input type="number" id="edit-extras" value="0" min="0" max="7">
+    <label>Is Wicket?</label>
+    <select id="edit-is-wicket">
+      <option value="false">No</option>
+      <option value="true">Yes</option>
+    </select>
+    <div id="edit-wicket-fields" style="display:none">
+      <label>Dismissal Type</label>
+      <select id="edit-dismissal-type">
+        <option value="bowled">Bowled</option>
+        <option value="caught">Caught</option>
+        <option value="stumped">Stumped</option>
+        <option value="run_out">Run Out</option>
+        <option value="hit_wicket">Hit Wicket</option>
+        <option value="retired_out">Retired Out</option>
+      </select>
+    </div>
+    <div class="error-box" id="edit-error"></div>
+    <button class="btn btn-success" onclick="saveEditedDelivery()" style="margin-top:12px">Save Changes</button>
+    <button class="btn btn-gray"    onclick="closeModal('edit-delivery-modal')">Cancel</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const ADMIN_PIN = '2611'; // ← Change this PIN
+const ADMIN_PIN    = '2611';
 const SUPABASE_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const MAX_WICKETS = 8;
 
 // ── PIN GATE ──────────────────────────────────────────────────
@@ -320,17 +385,18 @@ let state = {
   runs: 0, wickets: 0, balls: 0, currentOver: [],
   allOvers: [], innings1Score: null,
   pendingExtraType: null,
-  dismissedBatters: [],       // tracks all dismissed player IDs this innings
-  batterStats: {}             // { playerId: { runs, balls, fours, sixes } }
+  dismissedBatters: [],
+  batterStats: {},
+  editingDeliveryId: null
 };
 
 // ── HELPERS ───────────────────────────────────────────────────
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
-function showToast(msg, color='#16a34a') {
+function showToast(msg, color = '#16a34a') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.background = color;
   t.style.display = 'block';
@@ -345,35 +411,25 @@ function hideError(id) {
   const box = document.getElementById(id);
   if (box) box.style.display = 'none';
 }
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-function openModal(id)  { document.getElementById(id).classList.add('active'); }
-function playerName(id) {
-  const p = state.players.find(x => x.id === id);
-  return p ? p.name : '?';
-}
-function teamName(id) { return state.teams[id] || '?'; }
-function formatOvers(balls) { return Math.floor(balls/6) + '.' + (balls%6); }
-function crr() {
-  if (state.balls === 0) return '0.00';
-  return ((state.runs / state.balls) * 6).toFixed(2);
-}
+function closeModal(id)  { document.getElementById(id).classList.remove('active'); }
+function openModal(id)   { document.getElementById(id).classList.add('active'); }
+function playerName(id)  { const p = state.players.find(x => x.id === id); return p ? p.name : '?'; }
+function teamName(id)    { return state.teams[id] || '?'; }
+function formatOvers(b)  { return Math.floor(b / 6) + '.' + (b % 6); }
+function crr()           { return state.balls === 0 ? '0.00' : ((state.runs / state.balls) * 6).toFixed(2); }
 function shouldSwapStrike(runs) { return runs % 2 === 1; }
-
-// Init batter stats tracking
 function initBatterStat(id) {
-  if (!state.batterStats[id]) {
-    state.batterStats[id] = { runs: 0, balls: 0, fours: 0, sixes: 0 };
-  }
+  if (!state.batterStats[id]) state.batterStats[id] = { runs: 0, balls: 0, fours: 0, sixes: 0 };
 }
 
 // ── SCREEN 1: LOAD MATCHES ────────────────────────────────────
 async function loadMatches() {
-  const { data: matches, error } = await sb.from('ppl_matches')
+  const { data: matches } = await sb.from('ppl_matches')
     .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
     .in('status', ['upcoming', 'toss_done', 'in_progress', 'innings_break'])
     .order('match_number');
 
-  if (error || !matches) { showToast('Failed to load matches','#dc2626'); return; }
+  if (!matches) { showToast('Failed to load matches', '#dc2626'); return; }
 
   matches.forEach(m => {
     if (m.team_a) state.teams[m.team_a.id] = m.team_a.name;
@@ -396,12 +452,11 @@ async function loadMatches() {
     box.style.display = 'block';
     const ta = m.team_a ? m.team_a.name : m.team_a_id;
     const tb = m.team_b ? m.team_b.name : m.team_b_id;
-    box.innerHTML = `<b>${ta}</b> vs <b>${tb}</b><br>
-      Day ${m.day} | ${m.match_date} | Status: <span>${m.status}</span>`;
+    box.innerHTML = `<b>${ta}</b> vs <b>${tb}</b><br>Day ${m.day} | Status: <span>${m.status}</span>`;
   };
 
-  // Also populate abandoned match select
   await loadAllMatchesForAbandoned();
+  await loadInProgressMatches();
 }
 
 async function loadAllMatchesForAbandoned() {
@@ -419,8 +474,32 @@ async function loadAllMatchesForAbandoned() {
   });
 }
 
+async function loadInProgressMatches() {
+  const { data: matches } = await sb.from('ppl_matches')
+    .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
+    .eq('status', 'in_progress')
+    .order('match_number');
+  if (!matches) return;
+  const sel = document.getElementById('resume-match-select');
+  sel.innerHTML = '<option value="">— Select match —</option>';
+  matches.forEach(m => {
+    const ta = m.team_a ? m.team_a.name : m.team_a_id;
+    const tb = m.team_b ? m.team_b.name : m.team_b_id;
+    sel.innerHTML += `<option value="${m.id}">M${m.match_number}: ${ta} vs ${tb} (Day ${m.day})</option>`;
+  });
+  sel.onchange = () => {
+    const m = matches.find(x => x.id === sel.value);
+    const box = document.getElementById('resume-info');
+    if (!m) { box.style.display = 'none'; return; }
+    const ta = m.team_a ? m.team_a.name : m.team_a_id;
+    const tb = m.team_b ? m.team_b.name : m.team_b_id;
+    box.style.display = 'block';
+    box.innerHTML = `<b>${ta}</b> vs <b>${tb}</b> — Day ${m.day}<br>Status: <span>${m.status}</span>`;
+  };
+}
+
 async function goToSetup() {
-  if (!state.match) { showToast('Select a match first','#dc2626'); return; }
+  if (!state.match) { showToast('Select a match first', '#dc2626'); return; }
   const m = state.match;
   document.getElementById('setup-match-info').innerHTML =
     `<span>${teamName(m.team_a_id)}</span> vs <span>${teamName(m.team_b_id)}</span> — Day ${m.day}`;
@@ -435,34 +514,159 @@ async function goToSetup() {
   goTo('screen-setup');
 }
 
+// ── SCREEN 9: RESUME MATCH ────────────────────────────────────
+function goToResume() { goTo('screen-resume'); }
+
+async function doResume() {
+  hideError('resume-error');
+  const matchId = document.getElementById('resume-match-select').value;
+  if (!matchId) { showError('resume-error', 'Select a match to resume'); return; }
+
+  // Load match
+  const { data: m } = await sb.from('ppl_matches')
+    .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
+    .eq('id', matchId).single();
+  if (!m) { showError('resume-error', 'Could not load match'); return; }
+
+  state.match = m;
+  if (m.team_a) state.teams[m.team_a.id] = m.team_a.name;
+  if (m.team_b) state.teams[m.team_b.id] = m.team_b.name;
+  state.totalOvers = m.overs_per_side || 8;
+
+  // Load latest incomplete innings
+  const { data: innings } = await sb.from('ppl_innings')
+    .select('*').eq('match_id', matchId)
+    .eq('is_complete', false).order('innings_number', { ascending: false }).limit(1);
+  if (!innings || !innings.length) { showError('resume-error', 'No active innings found'); return; }
+
+  const inn = innings[0];
+  state.inningsId      = inn.id;
+  state.inningsNum     = inn.innings_number;
+  state.battingTeamId  = inn.batting_team_id;
+  state.bowlingTeamId  = inn.bowling_team_id;
+  state.runs           = inn.total_runs || 0;
+  state.wickets        = inn.total_wickets || 0;
+  state.balls          = Math.round((inn.total_overs || 0) * 6);
+
+  // Load players
+  const { data: players } = await sb.from('ppl_players')
+    .select('id, name, team_id')
+    .in('team_id', [state.battingTeamId, state.bowlingTeamId])
+    .eq('is_active', true);
+  state.players = players || [];
+
+  // Load deliveries to rebuild over log and dismissed batters
+  const { data: deliveries } = await sb.from('ppl_deliveries')
+    .select('*').eq('innings_id', inn.id).order('created_at', { ascending: true });
+
+  state.allOvers = []; state.currentOver = [];
+  state.dismissedBatters = [];
+  state.batterStats = {};
+
+  let legalBallCount = 0;
+  if (deliveries) {
+    deliveries.forEach(d => {
+      const isWide   = d.extra_type === 'wide';
+      const isNoBall = d.extra_type === 'no_ball';
+      const isLegal  = !isWide && !isNoBall;
+      if (isLegal) legalBallCount++;
+
+      let tag = d.is_wicket ? 'W' : String(d.runs_off_bat || 0);
+      if (isWide)   tag = 'Wd' + (d.extras > 1 ? '+' + (d.extras - 1) : '');
+      if (isNoBall) tag = 'Nb' + (d.extras > 1 ? '+' + (d.extras - 1) : '');
+      if (d.extra_type === 'bye')     tag = 'B'  + (d.extras > 1 ? '+' + (d.extras - 1) : '');
+      if (d.extra_type === 'leg_bye') tag = 'Lb' + (d.extras > 1 ? '+' + (d.extras - 1) : '');
+      if (d.runs_off_bat === 4) tag = '4';
+      if (d.runs_off_bat === 6) tag = '6';
+
+      if (d.dismissed_player_id) state.dismissedBatters.push(d.dismissed_player_id);
+
+      // Rebuild batter stats
+      if (d.batter_id) {
+        initBatterStat(d.batter_id);
+        const bs = state.batterStats[d.batter_id];
+        bs.runs += (d.runs_off_bat || 0);
+        if (isLegal) bs.balls++;
+        if (d.runs_off_bat === 4) bs.fours++;
+        if (d.runs_off_bat === 6) bs.sixes++;
+      }
+
+      // Build over log (6 legal balls per over)
+      const completedOvers = Math.floor(legalBallCount / 6);
+      const ballInOver     = (legalBallCount - 1) % 6;
+      if (!state.allOvers[completedOvers]) state.allOvers[completedOvers] = [];
+      // simpler: just use delivery order
+    });
+
+    // Simple over log rebuild: group by over_number
+    const overMap = {};
+    deliveries.forEach(d => {
+      const ov = d.over_number ?? 0;
+      if (!overMap[ov]) overMap[ov] = [];
+      let tag = String(d.runs_off_bat || 0);
+      if (d.is_wicket)             tag = 'W';
+      if (d.runs_off_bat === 4)    tag = '4';
+      if (d.runs_off_bat === 6)    tag = '6';
+      if (d.extra_type === 'wide')    tag = 'Wd';
+      if (d.extra_type === 'no_ball') tag = 'Nb';
+      if (d.extra_type === 'bye')     tag = 'B';
+      if (d.extra_type === 'leg_bye') tag = 'Lb';
+      overMap[ov].push(tag);
+    });
+    const maxOv = Math.max(...Object.keys(overMap).map(Number));
+    state.allOvers = [];
+    for (let i = 0; i <= maxOv; i++) state.allOvers.push(overMap[i] || []);
+    const currentOverNum = Math.floor(state.balls / 6);
+    state.currentOver = state.allOvers[currentOverNum] || [];
+    state.allOvers = state.allOvers.slice(0, currentOverNum);
+  }
+
+  // Find last bowler
+  const lastDelivery = deliveries && deliveries.length ? deliveries[deliveries.length - 1] : null;
+  state.bowler = lastDelivery ? lastDelivery.bowler_id : null;
+
+  // For innings 1 score (if resuming innings 2)
+  if (state.inningsNum === 2) {
+    const { data: inn1 } = await sb.from('ppl_innings')
+      .select('*').eq('match_id', matchId).eq('innings_number', 1).single();
+    if (inn1) {
+      state.innings1Score = {
+        runs: inn1.total_runs, wickets: inn1.total_wickets,
+        balls: Math.round((inn1.total_overs || 0) * 6),
+        team: inn1.batting_team_id
+      };
+    }
+  }
+
+  showToast('✅ Match resumed from DB!');
+  updateScoreDisplay();
+  goTo('screen-scoring');
+}
+
 // ── SCREEN 2: SAVE TOSS ───────────────────────────────────────
 async function saveToss() {
   const overs    = parseInt(document.getElementById('overs-count').value);
   const tossWon  = document.getElementById('toss-winner').value;
   const decision = document.getElementById('toss-decision').value;
-  if (!overs || overs < 1) { showToast('Enter valid overs','#dc2626'); return; }
+  if (!overs || overs < 1) { showToast('Enter valid overs', '#dc2626'); return; }
 
   const { error } = await sb.from('ppl_matches').update({
-    toss_winner_id: tossWon,
-    toss_decision: decision,
-    overs_per_side: overs,
-    status: 'in_progress'
+    toss_winner_id: tossWon, toss_decision: decision,
+    overs_per_side: overs, status: 'in_progress'
   }).eq('id', state.match.id);
-
   if (error) { showToast('Failed to save toss: ' + error.message, '#dc2626'); return; }
 
   state.match.toss_winner_id = tossWon;
   state.match.toss_decision  = decision;
   state.match.overs_per_side = overs;
   state.match.status         = 'in_progress';
-  state.totalOvers  = overs;
-  state.inningsNum  = 1;
+  state.totalOvers           = overs;
+  state.inningsNum           = 1;
 
   const battingId = decision === 'bat' ? tossWon
     : (tossWon === state.match.team_a_id ? state.match.team_b_id : state.match.team_a_id);
-  const bowlingId = battingId === state.match.team_a_id ? state.match.team_b_id : state.match.team_a_id;
   state.battingTeamId = battingId;
-  state.bowlingTeamId = bowlingId;
+  state.bowlingTeamId = battingId === state.match.team_a_id ? state.match.team_b_id : state.match.team_a_id;
 
   await loadPlayersForInnings();
   goTo('screen-innings-setup');
@@ -475,8 +679,6 @@ async function loadPlayersForInnings() {
     .in('team_id', [state.battingTeamId, state.bowlingTeamId])
     .eq('is_active', true);
   state.players = data || [];
-
-  // Reset per-innings tracking
   state.dismissedBatters = [];
   state.batterStats = {};
 
@@ -503,18 +705,14 @@ async function startInnings() {
   state.nonStriker = document.getElementById('non-striker-select').value;
   state.bowler     = document.getElementById('bowler-select').value;
   if (state.striker === state.nonStriker) {
-    showToast('Striker and non-striker must be different','#dc2626'); return;
+    showToast('Striker and non-striker must be different', '#dc2626'); return;
   }
-
-  // Init batting stats for openers
   initBatterStat(state.striker);
   initBatterStat(state.nonStriker);
 
   const { data: inn, error: innErr } = await sb.from('ppl_innings').insert({
-    match_id: state.match.id,
-    innings_number: state.inningsNum,
-    batting_team_id: state.battingTeamId,
-    bowling_team_id: state.bowlingTeamId,
+    match_id: state.match.id, innings_number: state.inningsNum,
+    batting_team_id: state.battingTeamId, bowling_team_id: state.bowlingTeamId,
     total_runs: 0, total_wickets: 0, total_overs: 0,
     extras: 0, is_complete: false
   }).select().single();
@@ -522,11 +720,9 @@ async function startInnings() {
   if (innErr || !inn) {
     showToast('Failed to create innings: ' + (innErr?.message || 'unknown'), '#dc2626'); return;
   }
-
   state.inningsId = inn.id;
   state.runs = 0; state.wickets = 0; state.balls = 0;
   state.currentOver = []; state.allOvers = [];
-
   updateScoreDisplay();
   goTo('screen-scoring');
 }
@@ -535,68 +731,58 @@ async function startInnings() {
 async function recordBall(runs) {
   await insertDelivery({
     runs_off_bat: runs, extras: 0, extra_type: null,
-    is_wicket: false, is_four: runs===4, is_six: runs===6
+    is_wicket: false, is_four: runs === 4, is_six: runs === 6
   });
   state.runs += runs;
   state.balls++;
-  state.currentOver.push(runs===4 ? '4' : runs===6 ? '6' : String(runs));
+  state.currentOver.push(runs === 4 ? '4' : runs === 6 ? '6' : String(runs));
 
-  // Update batter stats
   const bs = state.batterStats[state.striker];
   if (bs) {
     bs.runs += runs; bs.balls++;
     if (runs === 4) bs.fours++;
     if (runs === 6) bs.sixes++;
   }
-
-  if (shouldSwapStrike(runs)) {
-    [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
-  }
+  if (shouldSwapStrike(runs)) [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
   await afterBall();
 }
 
 // ── EXTRAS MODAL ──────────────────────────────────────────────
 function openExtraModal(type) {
   state.pendingExtraType = type;
-  const titles = { wide:'Wide', no_ball:'No Ball', bye:'Bye', leg_bye:'Leg Bye' };
-  const hints = {
-    wide:    'Wide = 1 penalty run (not off bat, NOT a legal delivery). Add extra runs if batter ran or boundary.',
-    no_ball: 'No Ball = 1 penalty run (not off bat, NOT a legal delivery). Add runs scored off free hit.',
+  const titles = { wide: 'Wide', no_ball: 'No Ball', bye: 'Bye', leg_bye: 'Leg Bye' };
+  const hints  = {
+    wide:    'Wide = 1 penalty run. NOT a legal delivery. Add extra runs if batter ran or boundary.',
+    no_ball: 'No Ball = 1 penalty run. NOT a legal delivery. Add runs scored off free hit.',
     bye:     'Bye = missed bat & keeper. Legal delivery. Runs NOT credited to batter.',
     leg_bye: 'Leg Bye = deflected off body. Legal delivery. Runs NOT credited to batter.'
   };
   document.getElementById('extra-modal-title').textContent = titles[type];
-  document.getElementById('extra-modal-hint').textContent = hints[type];
-  document.getElementById('extra-runs').value = '0';
+  document.getElementById('extra-modal-hint').textContent  = hints[type];
+  document.getElementById('extra-runs').value     = '0';
   document.getElementById('extra-boundary').value = 'none';
   document.getElementById('extra-strike-change').value = 'auto';
   openModal('extra-modal');
 }
 
 async function confirmExtra() {
-  const type       = state.pendingExtraType;
-  const extraRuns  = parseInt(document.getElementById('extra-runs').value) || 0;
-  const boundary   = document.getElementById('extra-boundary').value;
-  const strikeOpt  = document.getElementById('extra-strike-change').value;
-
-  const totalExtra = 1 + extraRuns; // 1 penalty + additional
+  const type      = state.pendingExtraType;
+  const extraRuns = parseInt(document.getElementById('extra-runs').value) || 0;
+  const boundary  = document.getElementById('extra-boundary').value;
+  const strikeOpt = document.getElementById('extra-strike-change').value;
+  const totalExtra   = 1 + extraRuns;
   const isBoundaryFour = boundary === 'four';
   const isBoundarySix  = boundary === 'six';
 
   await insertDelivery({
-    runs_off_bat: 0,
-    extras: totalExtra,
-    extra_type: type,
-    is_wicket: false,
-    is_four: isBoundaryFour,
-    is_six: isBoundarySix
+    runs_off_bat: 0, extras: totalExtra, extra_type: type,
+    is_wicket: false, is_four: isBoundaryFour, is_six: isBoundarySix
   });
-
   state.runs += totalExtra;
+
   const isLegal = (type === 'bye' || type === 'leg_bye');
   if (isLegal) {
     state.balls++;
-    // Balls count as a legal delivery for batter faced
     const bs = state.batterStats[state.striker];
     if (bs) bs.balls++;
   }
@@ -608,37 +794,26 @@ async function confirmExtra() {
   let swap = false;
   if (strikeOpt === 'auto') {
     swap = (type === 'wide' || type === 'no_ball')
-      ? shouldSwapStrike(extraRuns)
-      : shouldSwapStrike(totalExtra);
-  } else if (strikeOpt === 'yes') {
-    swap = true;
-  }
+      ? shouldSwapStrike(extraRuns) : shouldSwapStrike(totalExtra);
+  } else if (strikeOpt === 'yes') { swap = true; }
   if (swap) [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
 
   closeModal('extra-modal');
-  if (isLegal) {
-    await afterBall();
-  } else {
-    updateScoreDisplay();
-    await saveLiveInnings();
-  }
+  if (isLegal) { await afterBall(); } else { updateScoreDisplay(); await saveLiveInnings(); }
 }
 
 // ── WICKET MODAL ──────────────────────────────────────────────
-async function openWicketModal() {
-  // Only show batters NOT already dismissed and NOT currently at crease
+function openWicketModal() {
   const availableNextBatters = state.players.filter(p =>
     p.team_id === state.battingTeamId &&
-    p.id !== state.striker &&
-    p.id !== state.nonStriker &&
+    p.id !== state.striker && p.id !== state.nonStriker &&
     !state.dismissedBatters.includes(p.id)
   );
-
   const fielders = state.players.filter(p => p.team_id === state.bowlingTeamId);
 
   document.getElementById('wicket-batter').innerHTML =
     [state.striker, state.nonStriker]
-    .map(id => `<option value="${id}">${playerName(id)}</option>`).join('');
+      .map(id => `<option value="${id}">${playerName(id)}</option>`).join('');
 
   document.getElementById('wicket-fielder').innerHTML =
     fielders.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
@@ -647,8 +822,8 @@ async function openWicketModal() {
     `<option value="">— All out (${MAX_WICKETS} wkts) —</option>` +
     availableNextBatters.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
 
-  document.getElementById('dismissal-type').onchange = function() {
-    const needs = ['caught','stumped','run_out'].includes(this.value);
+  document.getElementById('dismissal-type').onchange = function () {
+    const needs = ['caught', 'stumped', 'run_out'].includes(this.value);
     document.getElementById('fielder-row').style.display = needs ? 'block' : 'none';
   };
   document.getElementById('fielder-row').style.display = 'none';
@@ -665,42 +840,30 @@ async function confirmWicket() {
 
   await insertDelivery({
     runs_off_bat: runs, extras: 0, extra_type: null,
-    is_wicket: true, is_four: runs===4, is_six: runs===6,
+    is_wicket: true, is_four: runs === 4, is_six: runs === 6,
     dismissal_type: dismissalType,
     dismissed_player_id: dismissedId,
-    fielder_id: ['caught','stumped','run_out'].includes(dismissalType) ? fielderId : null
+    fielder_id: ['caught', 'stumped', 'run_out'].includes(dismissalType) ? fielderId : null
   });
 
-  state.runs += runs;
-  state.balls++;
-  state.wickets++;
+  state.runs += runs; state.balls++; state.wickets++;
   state.currentOver.push('W');
   state.dismissedBatters.push(dismissedId);
 
-  // Update batter stats for the dismissal ball
   const bs = state.batterStats[dismissedId];
   if (bs) { bs.runs += runs; bs.balls++; }
 
   if (dismissedId === state.striker) {
     state.striker = newBatterId;
-    if (shouldSwapStrike(runs)) {
-      [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
-    }
+    if (shouldSwapStrike(runs)) [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
   } else {
     state.nonStriker = newBatterId;
-    if (shouldSwapStrike(runs)) {
-      [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
-    }
+    if (shouldSwapStrike(runs)) [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
   }
-
-  // Init stats for new batter
   if (newBatterId) initBatterStat(newBatterId);
-
   closeModal('wicket-modal');
 
-  if (state.wickets >= MAX_WICKETS || !newBatterId) {
-    await completeInnings(); return;
-  }
+  if (state.wickets >= MAX_WICKETS || !newBatterId) { await completeInnings(); return; }
   await afterBall();
 }
 
@@ -717,52 +880,40 @@ async function afterBall() {
     state.allOvers.push([...state.currentOver]);
     state.currentOver = [];
 
-    if (overNum >= state.totalOvers) {
-      await completeInnings(); return;
-    }
+    if (overNum >= state.totalOvers) { await completeInnings(); return; }
 
-    // End of over: batters automatically swap ends
     [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
-
     const prevBowler = state.bowler;
-    const bowlers = state.players.filter(p => p.team_id === state.bowlingTeamId);
+    const bowlers    = state.players.filter(p => p.team_id === state.bowlingTeamId);
 
-    // Warn if only 1 bowler available (rare edge case)
     document.getElementById('new-bowler').innerHTML =
       bowlers.map(p => {
         const isSame = p.id === prevBowler;
-        return `<option value="${p.id}" ${isSame ? 'data-same="true"' : ''}>${p.name}${isSame ? ' ⚠️ (prev bowler)' : ''}</option>`;
+        return `<option value="${p.id}" ${isSame ? 'data-same="true"' : ''}>${p.name}${isSame ? ' ⚠️ (prev)' : ''}</option>`;
       }).join('');
-
-    // Default select to a different bowler
     const otherBowler = bowlers.find(p => p.id !== prevBowler);
     if (otherBowler) document.getElementById('new-bowler').value = otherBowler.id;
 
-    document.getElementById('new-bowler').onchange = function() {
-      const warn = document.getElementById('same-bowler-warning');
-      warn.style.display = this.value === prevBowler ? 'block' : 'none';
+    document.getElementById('new-bowler').onchange = function () {
+      document.getElementById('same-bowler-warning').style.display =
+        this.value === prevBowler ? 'block' : 'none';
     };
     document.getElementById('same-bowler-warning').style.display = 'none';
-
     document.getElementById('over-strike').innerHTML =
       [state.striker, state.nonStriker]
-      .map(id => `<option value="${id}">${playerName(id)}</option>`).join('');
-
+        .map(id => `<option value="${id}">${playerName(id)}</option>`).join('');
     openModal('over-modal');
   }
 }
 
 function confirmNewOver() {
   const newBowlerVal = document.getElementById('new-bowler').value;
-  const prevBowler   = state.bowler;
-  if (newBowlerVal === prevBowler) {
+  if (newBowlerVal === state.bowler) {
     if (!confirm('Same bowler bowling consecutive overs — are you sure?')) return;
   }
   state.bowler = newBowlerVal;
   const chosen = document.getElementById('over-strike').value;
-  if (chosen !== state.striker) {
-    [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
-  }
+  if (chosen !== state.striker) [state.striker, state.nonStriker] = [state.nonStriker, state.striker];
   closeModal('over-modal');
   updateScoreDisplay();
 }
@@ -776,8 +927,7 @@ async function endInningsEarly() {
 async function completeInnings() {
   await sb.from('ppl_innings').update({
     total_runs: state.runs, total_wickets: state.wickets,
-    total_overs: parseFloat(formatOvers(state.balls)),
-    is_complete: true
+    total_overs: parseFloat(formatOvers(state.balls)), is_complete: true
   }).eq('id', state.inningsId);
 
   if (state.inningsNum === 1) {
@@ -788,11 +938,10 @@ async function completeInnings() {
     document.getElementById('innings-end-title').textContent = 'Innings 1 Complete';
     document.getElementById('innings-end-summary').innerHTML =
       `<b>${teamName(state.battingTeamId)}</b>: <span>${state.runs}/${state.wickets}</span>
-       in ${formatOvers(state.balls)} overs<br>
-       <br>Target: <span>${state.runs + 1}</span> runs`;
+       in ${formatOvers(state.balls)} overs<br><br>Target: <span>${state.runs + 1}</span> runs`;
     document.getElementById('btn-next-innings').style.display = 'block';
-    document.getElementById('btn-end-match').style.display = 'none';
-    document.getElementById('btn-super-over').style.display = 'none';
+    document.getElementById('btn-end-match').style.display    = 'none';
+    document.getElementById('btn-super-over').style.display   = 'none';
     goTo('screen-innings-end');
   } else {
     const i1   = state.innings1Score;
@@ -802,16 +951,13 @@ async function completeInnings() {
       `Innings 1 — <b>${teamName(i1.team)}</b>: <span>${i1.runs}/${i1.wickets}</span> (${formatOvers(i1.balls)})<br>
        Innings 2 — <b>${teamName(state.battingTeamId)}</b>: <span>${state.runs}/${state.wickets}</span> (${formatOvers(state.balls)})`;
     document.getElementById('btn-next-innings').style.display = 'none';
-    document.getElementById('btn-super-over').style.display = tied ? 'block' : 'none';
-    document.getElementById('btn-end-match').style.display = tied ? 'none' : 'block';
+    document.getElementById('btn-super-over').style.display   = tied ? 'block' : 'none';
+    document.getElementById('btn-end-match').style.display    = tied ? 'none' : 'block';
     goTo('screen-innings-end');
   }
 }
 
-function goToMatchEnd() {
-  prepareMatchEnd();
-  goTo('screen-match-end');
-}
+function goToMatchEnd() { prepareMatchEnd(); goTo('screen-match-end'); }
 
 async function startNextInnings() {
   [state.battingTeamId, state.bowlingTeamId] = [state.bowlingTeamId, state.battingTeamId];
@@ -831,16 +977,14 @@ async function startSuperOver() {
 
 // ── SCREEN 6: MATCH END ───────────────────────────────────────
 function prepareMatchEnd() {
-  // Populate MoM from all players in this match
   document.getElementById('mom-select').innerHTML =
     state.players.map(p => `<option value="${p.id}">${p.name} (${teamName(p.team_id)})</option>`).join('');
-
-  const i1       = state.innings1Score;
+  const i1 = state.innings1Score;
   if (!i1) return;
-  const winnerId = state.runs > i1.runs ? state.battingTeamId
+  const winnerId  = state.runs > i1.runs ? state.battingTeamId
     : state.runs < i1.runs ? i1.team : null;
-  const margin      = Math.abs(state.runs - i1.runs);
-  const wicketsLeft = MAX_WICKETS - state.wickets;
+  const margin       = Math.abs(state.runs - i1.runs);
+  const wicketsLeft  = MAX_WICKETS - state.wickets;
   const desc = winnerId
     ? `${teamName(winnerId)} won by ${winnerId === state.battingTeamId
         ? wicketsLeft + ' wicket' + (wicketsLeft !== 1 ? 's' : '')
@@ -866,12 +1010,10 @@ async function finaliseMatch() {
   const winnerId = state.runs > i1.runs ? state.battingTeamId
     : state.runs < i1.runs ? i1.team : null;
 
-  // STEP 1: Mark match completed
+  // STEP 1: Mark match completed — DB triggers handle points table + qualification automatically
   const { error: matchErr } = await sb.from('ppl_matches').update({
-    status: 'completed',
-    winner_id: winnerId,
-    mom_player_id: mom,
-    result_description: desc
+    status: 'completed', winner_id: winnerId,
+    mom_player_id: mom, result_description: desc
   }).eq('id', state.match.id);
 
   if (matchErr) {
@@ -900,11 +1042,11 @@ async function finaliseMatch() {
   const { error: statsErr } = await sb.rpc('ppl_update_player_stats', { p_match_id: state.match.id });
   if (statsErr) console.warn('[PPL] Player stats warning:', statsErr.message);
 
-  // STEP 6: Calculate user fantasy points for this match's day
+  // STEP 6: Calculate user fantasy points — FIXED: column is 'day' not 'day_number'
   const matchDay = state.match.day;
   if (matchDay) {
     const { data: dayRows } = await sb.from('ppl_fantasy_days')
-      .select('id').eq('day_number', matchDay).limit(1);
+      .select('id').eq('day', matchDay).limit(1);
     const dayId = dayRows?.[0]?.id;
     if (dayId) {
       const { error: userPtsErr } = await sb.rpc('ppl_calculate_user_team_points', { p_day_id: dayId });
@@ -915,15 +1057,14 @@ async function finaliseMatch() {
   showToast('✅ Match finalised! All stats updated.');
   setTimeout(() => {
     btn.disabled = false; btn.textContent = '✅ Finalise Match';
-    // Reset state but keep teams cache
     state = {
-      match: null, teams: {...state.teams}, players: [],
+      match: null, teams: { ...state.teams }, players: [],
       totalOvers: 8, inningsNum: 1, inningsId: null,
       battingTeamId: null, bowlingTeamId: null,
       striker: null, nonStriker: null, bowler: null,
       runs: 0, wickets: 0, balls: 0, currentOver: [],
       allOvers: [], innings1Score: null, pendingExtraType: null,
-      dismissedBatters: [], batterStats: {}
+      dismissedBatters: [], batterStats: {}, editingDeliveryId: null
     };
     loadMatches();
     goTo('screen-match');
@@ -940,40 +1081,24 @@ async function confirmAbandoned() {
   if (!confirm('Mark this match as No Result? Both teams get 1 point each.')) return;
 
   const { error } = await sb.from('ppl_matches').update({
-    status: 'no_result',
-    result_description: desc,
-    winner_id: null
+    status: 'no_result', result_description: desc, winner_id: null
   }).eq('id', matchId);
-
   if (error) { showError('abandoned-error', 'Failed: ' + error.message); return; }
 
-  // Manually update points table: both teams +1 point each
+  // FIXED: single loop, no duplication — DB trigger handles points automatically
+  // But we also do a manual read-then-write as safety net in case trigger doesn't cover no_result
   const { data: matchData } = await sb.from('ppl_matches')
-    .select('team_a_id, team_b_id, day').eq('id', matchId).single();
+    .select('team_a_id, team_b_id').eq('id', matchId).single();
 
   if (matchData) {
     for (const teamId of [matchData.team_a_id, matchData.team_b_id]) {
-      await sb.from('ppl_points_table')
-        .upsert({
-          team_id: teamId,
-          // increment points by 1 — using update with raw increment
-        }, { onConflict: 'team_id' });
-
-      // Use direct update with increment
-      await sb.rpc ? null : null;
-      await sb.from('ppl_points_table')
-        .update({ points: sb.raw ? sb.raw('points + 1') : undefined })
-        .eq('team_id', teamId);
-    }
-
-    // Simpler approach: read then write
-    for (const teamId of [matchData.team_a_id, matchData.team_b_id]) {
       const { data: pt } = await sb.from('ppl_points_table')
-        .select('points, played').eq('team_id', teamId).single();
+        .select('points, played, no_result').eq('team_id', teamId).single();
       if (pt) {
         await sb.from('ppl_points_table').update({
-          points: (pt.points || 0) + 1,
-          played: (pt.played || 0) + 1
+          points:    (pt.points    || 0) + 1,
+          played:    (pt.played    || 0) + 1,
+          no_result: (pt.no_result || 0) + 1
         }).eq('team_id', teamId);
       }
     }
@@ -985,15 +1110,119 @@ async function confirmAbandoned() {
   goTo('screen-match');
 }
 
+// ── SCREEN 8: EDIT DELIVERY ───────────────────────────────────
+async function openEditDeliveryScreen() {
+  if (!state.inningsId) { showToast('No active innings', '#dc2626'); return; }
+
+  const { data: deliveries } = await sb.from('ppl_deliveries')
+    .select('*')
+    .eq('innings_id', state.inningsId)
+    .order('created_at', { ascending: true });
+
+  if (!deliveries || !deliveries.length) {
+    showToast('No deliveries to edit yet', '#d97706'); return;
+  }
+
+  const list = document.getElementById('delivery-list');
+  list.innerHTML = '';
+  deliveries.forEach((d, i) => {
+    const overLabel  = `Over ${(d.over_number ?? 0) + 1}, Ball ${(d.ball_number ?? 0) + 1}`;
+    const batter     = playerName(d.batter_id);
+    const bowler     = playerName(d.bowler_id);
+    let   runDesc    = `${d.runs_off_bat || 0} run(s)`;
+    if (d.extra_type) runDesc += ` + ${d.extra_type} (${d.extras})`;
+    if (d.is_wicket)  runDesc += ` 🔴 WICKET (${d.dismissal_type})`;
+
+    const div = document.createElement('div');
+    div.className = 'delivery-item';
+    div.innerHTML = `<span class="d-over">${overLabel}</span>
+      <span class="d-detail">${batter} vs ${bowler} — ${runDesc}</span>`;
+    div.onclick = () => openEditModal(d);
+    list.appendChild(div);
+  });
+
+  goTo('screen-edit-delivery');
+}
+
+function openEditModal(delivery) {
+  state.editingDeliveryId = delivery.id;
+  document.getElementById('edit-modal-title').textContent    = `✏️ Edit Delivery`;
+  document.getElementById('edit-modal-over-info').textContent =
+    `Over ${(delivery.over_number ?? 0) + 1}, Ball ${(delivery.ball_number ?? 0) + 1} — ${playerName(delivery.batter_id)} vs ${playerName(delivery.bowler_id)}`;
+
+  document.getElementById('edit-runs-off-bat').value  = delivery.runs_off_bat  || 0;
+  document.getElementById('edit-extra-type').value    = delivery.extra_type    || '';
+  document.getElementById('edit-extras').value        = delivery.extras        || 0;
+  document.getElementById('edit-is-wicket').value     = String(delivery.is_wicket || false);
+  document.getElementById('edit-dismissal-type').value = delivery.dismissal_type || 'bowled';
+
+  document.getElementById('edit-wicket-fields').style.display =
+    delivery.is_wicket ? 'block' : 'none';
+  document.getElementById('edit-is-wicket').onchange = function () {
+    document.getElementById('edit-wicket-fields').style.display =
+      this.value === 'true' ? 'block' : 'none';
+  };
+
+  hideError('edit-error');
+  openModal('edit-delivery-modal');
+}
+
+async function saveEditedDelivery() {
+  if (!state.editingDeliveryId) return;
+  hideError('edit-error');
+
+  const runsOffBat    = parseInt(document.getElementById('edit-runs-off-bat').value) || 0;
+  const extraType     = document.getElementById('edit-extra-type').value || null;
+  const extras        = parseInt(document.getElementById('edit-extras').value) || 0;
+  const isWicket      = document.getElementById('edit-is-wicket').value === 'true';
+  const dismissalType = isWicket ? document.getElementById('edit-dismissal-type').value : null;
+
+  const { error } = await sb.from('ppl_deliveries').update({
+    runs_off_bat:    runsOffBat,
+    extra_type:      extraType,
+    extras:          extras,
+    is_wicket:       isWicket,
+    dismissal_type:  dismissalType,
+    is_four:         runsOffBat === 4,
+    is_six:          runsOffBat === 6
+  }).eq('id', state.editingDeliveryId);
+
+  if (error) { showError('edit-error', 'Save failed: ' + error.message); return; }
+
+  // Recalculate innings totals from all deliveries
+  const { data: allDel } = await sb.from('ppl_deliveries')
+    .select('runs_off_bat, extras, is_wicket, extra_type')
+    .eq('innings_id', state.inningsId);
+
+  if (allDel) {
+    let totalRuns = 0, totalWickets = 0, legalBalls = 0;
+    allDel.forEach(d => {
+      totalRuns += (d.runs_off_bat || 0) + (d.extras || 0);
+      if (d.is_wicket) totalWickets++;
+      if (d.extra_type !== 'wide' && d.extra_type !== 'no_ball') legalBalls++;
+    });
+    // Update live state
+    state.runs    = totalRuns;
+    state.wickets = totalWickets;
+    state.balls   = legalBalls;
+    await saveLiveInnings();
+    updateScoreDisplay();
+  }
+
+  closeModal('edit-delivery-modal');
+  showToast('✅ Delivery updated!');
+  await openEditDeliveryScreen(); // refresh list
+}
+
 // ── DB HELPERS ────────────────────────────────────────────────
 async function insertDelivery(fields) {
   const { error } = await sb.from('ppl_deliveries').insert({
-    innings_id:   state.inningsId,
-    match_id:     state.match.id,
-    over_number:  Math.floor(state.balls / 6),
-    ball_number:  state.balls % 6,
-    batter_id:    state.striker,
-    bowler_id:    state.bowler,
+    innings_id:  state.inningsId,
+    match_id:    state.match.id,
+    over_number: Math.floor(state.balls / 6),
+    ball_number: state.balls % 6,
+    batter_id:   state.striker,
+    bowler_id:   state.bowler,
     ...fields
   });
   if (error) console.error('[PPL] Delivery insert error:', error.message);
@@ -1007,13 +1236,12 @@ async function saveLiveInnings() {
 }
 
 async function undoLastBall() {
-  if (!confirm('Undo last ball? Strike position may need manual correction.')) return;
+  if (!confirm('Undo last ball? Strike may need manual correction.')) return;
   const { data } = await sb.from('ppl_deliveries')
     .select('id, runs_off_bat, extras, is_wicket, extra_type, dismissed_player_id, batter_id')
     .eq('innings_id', state.inningsId)
-    .order('created_at', { ascending: false })
-    .limit(1);
-  if (!data || !data.length) { showToast('Nothing to undo','#d97706'); return; }
+    .order('created_at', { ascending: false }).limit(1);
+  if (!data || !data.length) { showToast('Nothing to undo', '#d97706'); return; }
   const last = data[0];
   await sb.from('ppl_deliveries').delete().eq('id', last.id);
 
@@ -1024,16 +1252,13 @@ async function undoLastBall() {
   if (wasLegal) state.balls = Math.max(0, state.balls - 1);
   if (last.is_wicket) {
     state.wickets = Math.max(0, state.wickets - 1);
-    // Restore dismissed batter to crease
     if (last.dismissed_player_id) {
       state.dismissedBatters = state.dismissedBatters.filter(id => id !== last.dismissed_player_id);
-      // Put dismissed batter back as striker (admin can reassign via over modal if needed)
       state.striker = last.batter_id || last.dismissed_player_id;
     }
   }
   state.currentOver.pop();
 
-  // Undo batter stats
   if (last.batter_id && state.batterStats[last.batter_id]) {
     const bs = state.batterStats[last.batter_id];
     bs.runs  = Math.max(0, bs.runs  - last.runs_off_bat);
@@ -1044,7 +1269,7 @@ async function undoLastBall() {
 
   updateScoreDisplay();
   await saveLiveInnings();
-  showToast('Last ball undone ↩ — check strike if needed','#d97706');
+  showToast('Last ball undone ↩ — check strike if needed', '#d97706');
 }
 
 // ── SCORE DISPLAY ─────────────────────────────────────────────
@@ -1059,7 +1284,6 @@ function updateScoreDisplay() {
      &nbsp;|&nbsp; ${playerName(state.nonStriker)}<br>
      🎳 ${playerName(state.bowler)}`;
 
-  // Batter stat cards
   const statsBox = document.getElementById('batter-stats');
   const renderCard = (id, onStrike) => {
     const bs = state.batterStats[id] || { runs: 0, balls: 0, fours: 0, sixes: 0 };
@@ -1074,19 +1298,18 @@ function updateScoreDisplay() {
     statsBox.innerHTML = renderCard(state.striker, true) + renderCard(state.nonStriker, false);
   }
 
-  // Over log
   const log = document.getElementById('over-log');
   const allDisplay = [...state.allOvers, state.currentOver];
   log.innerHTML = allDisplay.map((over, i) =>
-    `<b>Ov ${i+1}:</b> ` + over.map(b => {
+    `<b>Ov ${i + 1}:</b> ` + over.map(b => {
       let cls = '';
-      if (b==='W') cls='W';
-      else if (b.startsWith('Wd')) cls='Wd';
-      else if (b.startsWith('Nb')) cls='Nb';
-      else if (b.startsWith('B'))  cls='B';
-      else if (b.startsWith('Lb')) cls='Lb';
-      else if (b==='4') cls='four';
-      else if (b==='6') cls='six';
+      if (b === 'W') cls = 'W';
+      else if (b.startsWith('Wd')) cls = 'Wd';
+      else if (b.startsWith('Nb')) cls = 'Nb';
+      else if (b.startsWith('B'))  cls = 'B';
+      else if (b.startsWith('Lb')) cls = 'Lb';
+      else if (b === '4') cls = 'four';
+      else if (b === '6') cls = 'six';
       return `<span class="ball-tag ${cls}">${b}</span>`;
     }).join('') + `<br>`
   ).join('');
@@ -1094,7 +1317,6 @@ function updateScoreDisplay() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-// Focus PIN input on load
 document.getElementById('pin-input').focus();
 </script>
 </body>
