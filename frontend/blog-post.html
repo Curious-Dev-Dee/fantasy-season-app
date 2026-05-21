@@ -9,10 +9,10 @@
 <meta property="og:type" content="article">
 <meta property="og:title" id="ogTitle" content="Cricket Experts">
 <meta property="og:description" id="ogDesc" content="">
-<meta property="og:image" id="ogImg" content="https://fantasy-season-app.vercel.app/favicon.png">
-<meta property="og:url" id="ogUrl" content="https://fantasy-season-app.vercel.app/">
+<meta property="og:image" id="ogImg" content="https://cricexp.in/favicon.png">
+<meta property="og:url" id="ogUrl" content="https://cricexp.in/">
 
-<link rel="canonical" id="canonical" href="https://fantasy-season-app.vercel.app/">
+<link rel="canonical" id="canonical" href="https://cricexp.in/">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -134,7 +134,7 @@ async function loadArticle(slug) {
     if (error || !post) { showErr(); return; }
 
     // SEO
-    const articleUrl = `https://fantasy-season-app.vercel.app/blog-post.html?slug=${slug}`;
+    const articleUrl = `https://cricexp.in/blog-post.html?slug=${slug}`;
 
 document.getElementById("pageTitle").textContent = (post.title || "Article") + " · Cricket Experts";
 document.getElementById("pageDesc").content      = post.excerpt || "";
