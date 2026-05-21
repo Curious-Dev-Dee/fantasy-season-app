@@ -21,84 +21,58 @@ select,input[type=text],input[type=number],input[type=password]{
 select:focus,input:focus{border-color:#38bdf8}
 .btn{display:block;width:100%;padding:12px;margin-top:10px;border-radius:10px;
   border:none;font-size:0.95rem;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.3px}
-.btn:hover{opacity:.85}
-.btn:active{opacity:.7}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-primary {background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff}
-.btn-success {background:linear-gradient(135deg,#16a34a,#15803d);color:#fff}
-.btn-danger  {background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
-.btn-warn    {background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
-.btn-gray    {background:#1e293b;color:#94a3b8;border:1px solid #334155}
-.btn-purple  {background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff}
-.btn-teal    {background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff}
+.btn:hover{opacity:.85}.btn:active{opacity:.7}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff}
+.btn-success{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
+.btn-warn{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
+.btn-gray{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff}
+.btn-teal{background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff}
 .btn-sm{padding:8px 12px;font-size:0.8rem;margin-top:6px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.scorebar{background:linear-gradient(135deg,#0f1f38,#1e293b);border:1px solid #1e3a5f;
-  border-radius:12px;padding:14px;margin-bottom:12px}
+.scorebar{background:linear-gradient(135deg,#0f1f38,#1e293b);border:1px solid #1e3a5f;border-radius:12px;padding:14px;margin-bottom:12px}
 .scorebar .runs{font-size:2.2rem;font-weight:900;color:#38bdf8;line-height:1}
 .scorebar .meta{font-size:0.78rem;color:#94a3b8;margin-top:5px}
 .scorebar .target-bar{font-size:0.9rem;color:#fbbf24;font-weight:700;margin-top:4px}
-.info-box{background:#0f1f38;border:1px solid #1e3a5f;border-radius:10px;
-  padding:11px 13px;margin-top:8px;font-size:0.85rem;line-height:1.75}
+.info-box{background:#0f1f38;border:1px solid #1e3a5f;border-radius:10px;padding:11px 13px;margin-top:8px;font-size:0.85rem;line-height:1.75}
 .info-box span,.info-box b{color:#38bdf8}
 .batter-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .batter-card{background:#0f1f38;border:1px solid #1e3a5f;border-radius:8px;padding:9px 10px}
 .batter-card.on-strike{border-color:#38bdf8}
 .batter-card .bname{color:#38bdf8;font-weight:700;font-size:0.85rem}
 .batter-card .bstat{color:#94a3b8;font-size:0.75rem;margin-top:2px}
-.bowler-bar{background:#0f1f38;border:1px solid #1e3a5f;border-radius:8px;
-  padding:8px 12px;margin-top:8px;font-size:0.82rem;color:#c4b5fd;display:flex;
-  align-items:center;gap:10px;flex-wrap:wrap}
-.over-log{background:#060d1f;border:1px solid #1e293b;border-radius:8px;
-  padding:10px;margin-top:8px;max-height:130px;overflow-y:auto;font-size:0.8rem;line-height:1.8}
-.ball-tag{display:inline-flex;align-items:center;justify-content:center;
-  min-width:26px;height:22px;padding:0 5px;border-radius:5px;margin:1px 2px;
-  font-weight:800;font-size:0.75rem;background:#1e293b;color:#e2e8f0}
-.bt-W  {background:#7f1d1d;color:#fca5a5}
-.bt-4  {background:#14532d;color:#86efac}
-.bt-6  {background:#1e3a8a;color:#93c5fd}
-.bt-Wd {background:#78350f;color:#fde68a}
-.bt-Nb {background:#7c2d12;color:#fed7aa}
-.bt-B  {background:#1e3a5f;color:#bae6fd}
-.bt-Lb {background:#2e1065;color:#ddd6fe}
+.bowler-bar{background:#0f1f38;border:1px solid #1e3a5f;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:0.82rem;color:#c4b5fd;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.over-log{background:#060d1f;border:1px solid #1e293b;border-radius:8px;padding:10px;margin-top:8px;max-height:130px;overflow-y:auto;font-size:0.8rem;line-height:1.8}
+.ball-tag{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 5px;border-radius:5px;margin:1px 2px;font-weight:800;font-size:0.75rem;background:#1e293b;color:#e2e8f0}
+.bt-W{background:#7f1d1d;color:#fca5a5}.bt-4{background:#14532d;color:#86efac}
+.bt-6{background:#1e3a8a;color:#93c5fd}.bt-Wd{background:#78350f;color:#fde68a}
+.bt-Nb{background:#7c2d12;color:#fed7aa}.bt-B{background:#1e3a5f;color:#bae6fd}
+.bt-Lb{background:#2e1065;color:#ddd6fe}
 .ball-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
-.ball-btn{padding:16px 0;border-radius:10px;border:none;font-size:1.05rem;
-  font-weight:800;cursor:pointer;transition:transform .08s,opacity .1s;letter-spacing:.3px}
+.ball-btn{padding:16px 0;border-radius:10px;border:none;font-size:1.05rem;font-weight:800;cursor:pointer;transition:transform .08s,opacity .1s;letter-spacing:.3px}
 .ball-btn:active{transform:scale(.94)}
-.b-run  {background:#1e293b;color:#e2e8f0;border:1px solid #334155}
-.b-four {background:#14532d;color:#86efac}
-.b-six  {background:#1e3a8a;color:#93c5fd}
-.b-wide {background:#78350f;color:#fde68a}
-.b-nb   {background:#7c2d12;color:#fed7aa}
-.b-bye  {background:#1e3a5f;color:#bae6fd}
-.b-lb   {background:#2e1065;color:#ddd6fe}
-.b-wkt  {background:#7f1d1d;color:#fca5a5}
-.b-undo {background:#1e293b;color:#94a3b8;border:1px solid #334155}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
-  z-index:200;align-items:center;justify-content:center;padding:16px}
+.b-run{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
+.b-four{background:#14532d;color:#86efac}.b-six{background:#1e3a8a;color:#93c5fd}
+.b-wide{background:#78350f;color:#fde68a}.b-nb{background:#7c2d12;color:#fed7aa}
+.b-bye{background:#1e3a5f;color:#bae6fd}.b-lb{background:#2e1065;color:#ddd6fe}
+.b-wkt{background:#7f1d1d;color:#fca5a5}.b-undo{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.active{display:flex}
-.modal{background:#0f1f38;border:1px solid #1e3a5f;border-radius:14px;
-  padding:20px;width:100%;max-width:440px;max-height:92vh;overflow-y:auto}
+.modal{background:#0f1f38;border:1px solid #1e3a5f;border-radius:14px;padding:20px;width:100%;max-width:440px;max-height:92vh;overflow-y:auto}
 .modal h3{color:#38bdf8;margin-bottom:12px;font-size:1rem}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
-  background:#16a34a;color:#fff;padding:10px 22px;border-radius:10px;
-  font-weight:700;display:none;z-index:300;min-width:220px;text-align:center;
-  box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:.9rem}
-.err{background:#450a0a;border:1px solid #dc2626;border-radius:8px;
-  padding:9px 12px;margin-top:8px;font-size:0.8rem;color:#fca5a5;display:none}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:10px 22px;border-radius:10px;font-weight:700;display:none;z-index:300;min-width:220px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:.9rem}
+.err{background:#450a0a;border:1px solid #dc2626;border-radius:8px;padding:9px 12px;margin-top:8px;font-size:0.8rem;color:#fca5a5;display:none}
 hr{border:none;border-top:1px solid #1e293b;margin:14px 0}
 .delivery-list{max-height:58vh;overflow-y:auto;margin-top:8px}
-.d-item{background:#0f1f38;border:1px solid #1e3a5f;border-radius:8px;
-  padding:10px 12px;margin-bottom:5px;cursor:pointer;font-size:0.82rem;transition:border-color .15s}
+.d-item{background:#0f1f38;border:1px solid #1e3a5f;border-radius:8px;padding:10px 12px;margin-bottom:5px;cursor:pointer;font-size:0.82rem;transition:border-color .15s}
 .d-item:hover{border-color:#38bdf8}
 .d-over{color:#38bdf8;font-weight:700;margin-right:8px}
 .d-detail{color:#94a3b8}
-#pin-input{width:200px;text-align:center;font-size:1.6rem;letter-spacing:10px;
-  border-radius:12px;padding:12px}
+#pin-input{width:200px;text-align:center;font-size:1.6rem;letter-spacing:10px;border-radius:12px;padding:12px}
 .pin-logo{font-size:2.5rem;margin-bottom:8px}
-.super-over-badge{display:inline-block;background:#7c3aed;color:#fff;
-  font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.super-over-badge{display:inline-block;background:#7c3aed;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.strike-swap-notice{background:#1e3a5f;border:1px solid #38bdf8;border-radius:8px;padding:10px 13px;margin-top:8px;font-size:0.82rem;color:#bae6fd;display:none}
 </style>
 </head>
 <body>
@@ -172,6 +146,8 @@ hr{border:none;border-top:1px solid #1e293b;margin:14px 0}
   <div class="batter-cards" id="batter-cards"></div>
   <div class="bowler-bar" id="bowler-bar">🎳 —</div>
   <div class="over-log" id="over-log"></div>
+  <!-- Strike swap notice -->
+  <div class="strike-swap-notice" id="strike-notice">⚠️ Check strike — tap batter card to swap if needed</div>
   <div class="ball-grid">
     <button class="ball-btn b-run"  onclick="ball(0)">0</button>
     <button class="ball-btn b-run"  onclick="ball(1)">1</button>
@@ -190,6 +166,8 @@ hr{border:none;border-top:1px solid #1e293b;margin:14px 0}
     <button class="btn btn-teal btn-sm" onclick="openEditList()">✏️ Edit Past Delivery</button>
     <button class="btn btn-warn btn-sm" onclick="endEarly()">⏹ End Innings Early</button>
   </div>
+  <!-- Manual strike swap button -->
+  <button class="btn btn-gray btn-sm" style="margin-top:6px" onclick="manualStrikeSwap()">🔄 Swap Strike Manually</button>
 </div>
 
 <!-- S5: INNINGS END -->
@@ -298,7 +276,7 @@ hr{border:none;border-top:1px solid #1e293b;margin:14px 0}
       <label>Wicket on this delivery?</label>
       <select id="ex-wicket-yn">
         <option value="no">No</option>
-        <option value="yes">Yes — runout</option>
+        <option value="yes">Yes — run out</option>
       </select>
     </div>
     <button class="btn btn-warn" onclick="confirmExtra()" style="margin-top:12px">Confirm Extra</button>
@@ -346,7 +324,7 @@ hr{border:none;border-top:1px solid #1e293b;margin:14px 0}
     <label>New bowler</label>
     <select id="new-bowler" onchange="checkSameBowler()"></select>
     <div id="same-bowler-warn" class="err" style="display:none">⚠️ Same bowler as previous over!</div>
-    <label>Who faces first?</label>
+    <label>Who faces first? (auto-swapped, confirm or change)</label>
     <select id="new-striker"></select>
     <button class="btn btn-success" onclick="confirmNewOver()">Start Over →</button>
   </div>
@@ -400,7 +378,7 @@ hr{border:none;border-top:1px solid #1e293b;margin:14px 0}
     <input type="number" id="man-runs" min="0">
     <label>Wickets fallen</label>
     <input type="number" id="man-wickets" min="0" max="10">
-    <label>Overs completed (e.g. 7.3)</label>
+    <label>Overs completed (e.g. 7.3 = 7 overs 3 balls)</label>
     <input type="number" id="man-overs" min="0" step="0.1">
     <div class="err" id="man-err"></div>
     <button class="btn btn-warn" onclick="saveManualInnings()" style="margin-top:12px">Override Innings</button>
@@ -420,12 +398,13 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb     = supabase.createClient(SB_URL, SB_KEY);
 
 // ═══════════════════════════════════════════════════════
-//  STATE  — S.maxWkt is now dynamic (read from match/innings)
+//  STATE
 // ═══════════════════════════════════════════════════════
 let S = {
   match: null, teams: {}, players: [],
-  totalOvers: 8, maxWkt: 8,          // ← dynamic, not hardcoded
+  totalOvers: 8, maxWkt: 8,
   innNum: 1, isSuperOver: false,
+  superMatchId: null, superOverInnings: null, superOverWinner: null,
   innId: null, batId: null, bowlId: null,
   striker: null, nonStriker: null, bowler: null,
   runs: 0, wkts: 0, balls: 0,
@@ -472,6 +451,9 @@ const rrr   = () => {
 const initBS = id => { if (!S.bStats[id]) S.bStats[id] = { r: 0, b: 0, f: 0, s: 0 }; };
 const initBW = id => { if (!S.bowlerStats[id]) S.bowlerStats[id] = { legal: 0, runs: 0, wkts: 0 }; };
 
+// FIX: correct overs string to balls conversion (1.3 overs = 9 balls, not 7.8 rounded to 8)
+const oversToBalls = ov => Math.floor(ov) * 6 + Math.round((ov % 1) * 10);
+
 // ═══════════════════════════════════════════════════════
 //  PIN
 // ═══════════════════════════════════════════════════════
@@ -494,7 +476,6 @@ async function loadHome() {
   const { data: teams } = await sb.from('ppl_teams').select('id,name,short_name,group_name');
   if (teams) teams.forEach(t => S.teams[t.id] = t.name);
 
-  // Upcoming + in-progress matches (excluding super-over rows)
   const { data: matches } = await sb.from('ppl_matches')
     .select('*, team_a:team_a_id(id,name), team_b:team_b_id(id,name)')
     .eq('is_super_over', false)
@@ -525,7 +506,7 @@ async function loadHome() {
     box.innerHTML = `<b>${ta}</b> vs <b>${tb}</b><br>Day ${m.day} | Type: <span>${m.match_type}</span> | Status: <span>${m.status}</span>`;
   };
 
-  // Abandoned select — exclude matches with null teams
+  // Abandoned select
   const { data: allM } = await sb.from('ppl_matches')
     .select('id,match_number,day,team_a_id,team_b_id,match_type')
     .eq('is_super_over', false)
@@ -579,13 +560,10 @@ async function loadHome() {
 async function goSetup() {
   if (!S.match) { toast('Select a match first', '#dc2626'); return; }
   const m = S.match;
-
-  // GUARD: block setup if teams not confirmed yet (knockouts before group stage done)
   if (!m.team_a_id || !m.team_b_id) {
-    toast('⚠️ Teams not confirmed yet for this match. Complete group stage first.', '#dc2626');
+    toast('⚠️ Teams not confirmed yet — complete group stage first.', '#dc2626');
     return;
   }
-
   const ta = m.team_a?.name || tName(m.team_a_id);
   const tb = m.team_b?.name || tName(m.team_b_id);
   document.getElementById('setup-info').innerHTML = `<span>${ta}</span> vs <span>${tb}</span> — Day ${m.day} | ${m.match_type.toUpperCase()}`;
@@ -593,7 +571,7 @@ async function goSetup() {
   const tw = document.getElementById('sel-toss-winner');
   tw.innerHTML = `<option value="${m.team_a_id}">${ta}</option><option value="${m.team_b_id}">${tb}</option>`;
   document.getElementById('inp-overs').value = m.overs_per_side || 8;
-  document.getElementById('inp-maxwkt').value = 8; // default, admin can change
+  document.getElementById('inp-maxwkt').value = 8;
 
   if (m.toss_winner_id) {
     tw.value = m.toss_winner_id;
@@ -620,7 +598,7 @@ async function saveToss() {
   S.match.toss_winner_id = winner; S.match.toss_decision = dec;
   S.match.overs_per_side = overs;
   S.totalOvers = overs;
-  S.maxWkt = maxWkt;   // ← set dynamically from setup
+  S.maxWkt = maxWkt;
   S.innNum = 1;
   S.isSuperOver = false;
 
@@ -672,12 +650,11 @@ async function startInnings() {
 
   initBS(S.striker); initBS(S.nonStriker); initBW(S.bowler);
 
-  // For super over: use the super over match id if set, otherwise main match
   const matchIdToUse = S.superMatchId || S.match.id;
 
   const { data: inn, error } = await sb.from('ppl_innings').insert({
     match_id: matchIdToUse,
-    innings_number: S.isSuperOver ? 1 : S.innNum,  // super over innings always start at 1 within that match
+    innings_number: S.isSuperOver ? 1 : S.innNum,
     batting_team_id: S.batId, bowling_team_id: S.bowlId,
     total_runs: 0, total_wickets: 0, total_overs: 0,
     extras: 0, is_complete: false,
@@ -691,6 +668,7 @@ async function startInnings() {
 
   S.innId = inn.id; S.runs = 0; S.wkts = 0; S.balls = 0;
   S.curOver = []; S.allOvers = [];
+  hideStrikeNotice();
   renderScore(); go('s-score');
 }
 
@@ -715,15 +693,37 @@ async function ball(runs) {
   await afterLegalBall();
 }
 
+// MANUAL STRIKE SWAP
+function manualStrikeSwap() {
+  [S.striker, S.nonStriker] = [S.nonStriker, S.striker];
+  saveLive();
+  renderScore();
+  toast('Strike swapped ↔', '#0284c7');
+}
+
+// BATTER CARD CLICK → swap strike
+function handleBatterCardClick(id) {
+  if (id === S.nonStriker) {
+    manualStrikeSwap();
+  }
+}
+
+function hideStrikeNotice() {
+  document.getElementById('strike-notice').style.display = 'none';
+}
+function showStrikeNotice() {
+  document.getElementById('strike-notice').style.display = 'block';
+}
+
 // EXTRAS
 function openExtra(type) {
   S.extraType = type;
   const titles = { wide: 'Wide', no_ball: 'No Ball', bye: 'Bye', leg_bye: 'Leg Bye' };
   const hints = {
-    wide:    'Wide = +1 penalty. NOT legal. Add extra runs if batter ran / boundary.',
-    no_ball: 'No Ball = +1 penalty. NOT legal. Add runs scored off free hit.',
-    bye:     'Bye = missed bat & keeper. LEGAL delivery. Runs not to batter.',
-    leg_bye: 'Leg Bye = deflection off body. LEGAL delivery. Runs not to batter.'
+    wide:    'Wide = +1 penalty. NOT a legal ball. Add extra runs if batter ran or boundary.',
+    no_ball: 'No Ball = +1 penalty. NOT a legal ball. Add runs scored off the free hit.',
+    bye:     'Bye = missed bat & keeper. LEGAL ball. Runs not credited to batter.',
+    leg_bye: 'Leg Bye = off body. LEGAL ball. Runs not credited to batter.'
   };
   document.getElementById('extra-title').textContent = titles[type];
   document.getElementById('extra-hint').textContent  = hints[type];
@@ -783,7 +783,7 @@ function openWicket() {
   const fielders = S.players.filter(p => p.team_id === S.bowlId);
 
   document.getElementById('wkt-batter').innerHTML =
-    [S.striker, S.nonStriker].map(id => `<option value="${id}">${pName(id)}</option>`).join('');
+    [S.striker, S.nonStriker].filter(Boolean).map(id => `<option value="${id}">${pName(id)}</option>`).join('');
   document.getElementById('wkt-fielder').innerHTML =
     fielders.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('wkt-asst').innerHTML =
@@ -830,7 +830,7 @@ async function confirmWicket() {
   const bw = S.bowlerStats[S.bowler];
   if (bw) {
     bw.legal++; bw.runs += runs;
-    if (dType !== 'run_out') bw.wkts++;  // FIX: use dismissal_type not extra_type
+    if (dType !== 'run_out') bw.wkts++;
   }
 
   if (dismissed === S.striker) {
@@ -843,7 +843,6 @@ async function confirmWicket() {
   if (newBatter) initBS(newBatter);
   closeModal('m-wicket');
 
-  // Use dynamic S.maxWkt
   if (S.wkts >= S.maxWkt || !newBatter) { await completeInnings(); return; }
   await afterLegalBall();
 }
@@ -860,6 +859,7 @@ async function afterLegalBall() {
 
     if (overNum >= S.totalOvers) { await completeInnings(); return; }
 
+    // Auto swap ends
     [S.striker, S.nonStriker] = [S.nonStriker, S.striker];
 
     const bowlers = S.players.filter(p => p.team_id === S.bowlId);
@@ -898,6 +898,7 @@ function confirmNewOver() {
   const chosen = document.getElementById('new-striker').value;
   if (chosen !== S.striker) [S.striker, S.nonStriker] = [S.nonStriker, S.striker];
   closeModal('m-over');
+  hideStrikeNotice();
   renderScore();
 }
 
@@ -908,7 +909,7 @@ async function endEarly() {
 
 // UNDO
 async function undoLast() {
-  if (!confirm('Undo last ball? Check strike after if needed.')) return;
+  if (!confirm('Undo last ball? Verify strike position after.')) return;
   const { data } = await sb.from('ppl_deliveries')
     .select('id,runs_off_bat,extras,is_wicket,extra_type,dismissal_type,dismissed_player_id,batter_id,is_legal_delivery')
     .eq('innings_id', S.innId)
@@ -938,11 +939,11 @@ async function undoLast() {
     const bw = S.bowlerStats[S.bowler];
     if (wasLegal) bw.legal = Math.max(0, bw.legal - 1);
     bw.runs = Math.max(0, bw.runs - ((last.runs_off_bat || 0) + (last.extras || 0)));
-    // FIX: check dismissal_type not extra_type for run_out
     if (last.is_wicket && last.dismissal_type !== 'run_out') bw.wkts = Math.max(0, bw.wkts - 1);
   }
 
   renderScore(); await saveLive();
+  showStrikeNotice();
   toast('Last ball undone ↩ — verify strike if needed', '#d97706');
 }
 
@@ -955,13 +956,11 @@ async function completeInnings() {
     total_overs: parseFloat(fmtOv(S.balls)), is_complete: true
   }).eq('id', S.innId);
 
-  // Super over innings handling
+  // Super over
   if (S.isSuperOver) {
-    const soInn1Done = S.superOverInnings && S.superOverInnings.length === 0;
     if (!S.superOverInnings) S.superOverInnings = [];
 
     if (S.superOverInnings.length === 0) {
-      // First super over innings done — save score, start second
       S.superOverInnings.push({ runs: S.runs, wkts: S.wkts, balls: S.balls, team: S.batId });
       document.getElementById('inn-end-title').textContent = '⚡ Super Over — Innings 1 done';
       document.getElementById('inn-end-summary').innerHTML =
@@ -973,34 +972,25 @@ async function completeInnings() {
       document.getElementById('btn-endm').style.display = 'none';
       go('s-inn-end');
     } else {
-      // Both super over innings done — determine winner
       const so1 = S.superOverInnings[0];
       const superTied = S.runs === so1.runs;
       document.getElementById('inn-end-title').textContent = superTied ? '😱 Super Over Tied!' : '⚡ Super Over Done!';
       document.getElementById('inn-end-summary').innerHTML =
-        `SO Innings 1 — <b>${tName(so1.team)}</b>: <span>${so1.runs}/${so1.wkts}</span><br>
-         SO Innings 2 — <b>${tName(S.batId)}</b>: <span>${S.runs}/${S.wkts}</span>`;
-
-      if (superTied) {
-        // Boundary countback or re-super-over (for now just go to result with tied)
-        document.getElementById('btn-endm').style.display = 'block';
-        document.getElementById('btn-inn2').style.display = 'none';
-        document.getElementById('btn-super').style.display = 'none';
-      } else {
-        // Super over winner = winner of the whole match
-        const soWinner = S.runs > so1.runs ? S.batId : so1.team;
-        S.superOverWinner = soWinner;
-        prepResult(soWinner);
-        document.getElementById('btn-endm').style.display = 'block';
-        document.getElementById('btn-inn2').style.display = 'none';
-        document.getElementById('btn-super').style.display = 'none';
+        `SO Inn 1 — <b>${tName(so1.team)}</b>: <span>${so1.runs}/${so1.wkts}</span><br>
+         SO Inn 2 — <b>${tName(S.batId)}</b>: <span>${S.runs}/${S.wkts}</span>`;
+      if (!superTied) {
+        S.superOverWinner = S.runs > so1.runs ? S.batId : so1.team;
+        prepResult(S.superOverWinner);
       }
+      document.getElementById('btn-endm').style.display = 'block';
+      document.getElementById('btn-inn2').style.display = 'none';
+      document.getElementById('btn-super').style.display = 'none';
       go('s-inn-end');
     }
     return;
   }
 
-  // Normal innings flow
+  // Normal innings
   if (S.innNum === 1) {
     S.inn1Score = { runs: S.runs, wkts: S.wkts, balls: S.balls, team: S.batId };
     document.getElementById('inn-end-title').textContent = 'Innings 1 Complete';
@@ -1017,8 +1007,8 @@ async function completeInnings() {
     const tied = S.runs === i1.runs;
     document.getElementById('inn-end-title').textContent = tied ? '⚡ Match Tied!' : 'Innings 2 Complete';
     document.getElementById('inn-end-summary').innerHTML =
-      `Innings 1 — <b>${tName(i1.team)}</b>: <span>${i1.runs}/${i1.wkts}</span> (${fmtOv(i1.balls)})<br>
-       Innings 2 — <b>${tName(S.batId)}</b>: <span>${S.runs}/${S.wkts}</span> (${fmtOv(S.balls)})`;
+      `Inn 1 — <b>${tName(i1.team)}</b>: <span>${i1.runs}/${i1.wkts}</span> (${fmtOv(i1.balls)})<br>
+       Inn 2 — <b>${tName(S.batId)}</b>: <span>${S.runs}/${S.wkts}</span> (${fmtOv(S.balls)})`;
     document.getElementById('btn-inn2').style.display = 'none';
     document.getElementById('btn-super').style.display = tied ? 'block' : 'none';
     document.getElementById('btn-endm').style.display = tied ? 'none' : 'block';
@@ -1028,23 +1018,15 @@ async function completeInnings() {
 }
 
 async function startInn2() {
-  if (S.isSuperOver) {
-    // Super over second innings — swap teams, keep 1 over, same maxWkt
-    [S.batId, S.bowlId] = [S.bowlId, S.batId];
-    await loadPlayersForInnings();
-    go('s-inn-setup');
-    return;
-  }
   [S.batId, S.bowlId] = [S.bowlId, S.batId];
-  S.innNum = 2;
+  if (!S.isSuperOver) S.innNum = 2;
   await loadPlayersForInnings();
   go('s-inn-setup');
 }
 
 async function startSuper() {
-  // Create a new ppl_matches row for the super over
   const { data: soMatch, error } = await sb.from('ppl_matches').insert({
-    match_number: S.match.match_number,  // same match number
+    match_number: S.match.match_number,
     day: S.match.day,
     match_date: S.match.match_date || new Date().toISOString().split('T')[0],
     match_type: S.match.match_type,
@@ -1063,16 +1045,14 @@ async function startSuper() {
     return;
   }
 
-  // Store super over match reference
   S.superMatchId = soMatch.id;
   S.isSuperOver = true;
   S.superOverInnings = [];
   S.superOverWinner = null;
   S.totalOvers = 1;
-  // maxWkt stays same as main match for super over
-  [S.batId, S.bowlId] = [S.bowlId, S.batId]; // team that batted second bats first in super over
+  [S.batId, S.bowlId] = [S.bowlId, S.batId];
 
-  toast('⚡ Super Over! 1 over each side — new match row created');
+  toast('⚡ Super Over! 1 over per side');
   await loadPlayersForInnings();
   go('s-inn-setup');
 }
@@ -1120,7 +1100,6 @@ async function finalise() {
   const desc = document.getElementById('inp-result').value;
   const i1   = S.inn1Score;
 
-  // Determine winner
   let winnerId = null;
   if (S.isSuperOver && S.superOverWinner) {
     winnerId = S.superOverWinner;
@@ -1128,12 +1107,11 @@ async function finalise() {
     winnerId = S.runs > i1.runs ? S.batId : S.runs < i1.runs ? i1.team : null;
   }
 
-  // ── STEP 1: Update ppl_matches — status=completed, winner, mom, result
-  // This single update fires the DB trigger which handles points table + NRR automatically
+  // Single update — DB trigger handles points table, NRR, fantasy scores automatically
   const { error: mErr } = await sb.from('ppl_matches').update({
     status: 'completed',
     winner_id: winnerId,
-    mom_player_id: mom,
+    mom_player_id: mom || null,
     result_description: desc
   }).eq('id', S.match.id);
 
@@ -1143,26 +1121,14 @@ async function finalise() {
     return;
   }
 
-  // If super over — also mark the super over match row as completed with same winner
+  // Mark super over match as completed too
   if (S.isSuperOver && S.superMatchId) {
     await sb.from('ppl_matches').update({
       status: 'completed', winner_id: winnerId
     }).eq('id', S.superMatchId);
   }
 
-  // ── STEP 2: Apply MoM points (25 pts bonus)
-  if (mom) {
-    const { error: mE } = await sb.rpc('ppl_apply_mom', { p_match_id: S.match.id, p_player_id: mom });
-    if (mE) console.warn('[PPL] MoM:', mE.message);
-  }
-
-  // ── STEP 3: Recalculate fantasy user team points for the day
-  if (S.match.day_id) {
-    const { error: uE } = await sb.rpc('ppl_calculate_user_team_points', { p_day_id: S.match.day_id });
-    if (uE) console.warn('[PPL] user points:', uE.message);
-  }
-
-  // ── STEP 4: Qualification check + semi-final team assignment
+  // Qualification check + semi-final team assignment
   await recalcQualification();
 
   toast('✅ Match finalised! Points and stats updated.');
@@ -1189,13 +1155,12 @@ async function recalcQualification() {
 
   for (const grp of ['A', 'B']) {
     const teams = rows.filter(r => r.group_name === grp);
-    const remG = (remaining || []).filter(m =>
+    const remG  = (remaining || []).filter(m =>
       teams.find(t => t.team_id === m.team_a_id) ||
       teams.find(t => t.team_id === m.team_b_id)
     );
 
     if (remG.length === 0) {
-      // All group matches done — finalise positions
       const sorted = [...teams].sort((a, b) =>
         b.points - a.points || (b.nrr || 0) - (a.nrr || 0)
       );
@@ -1205,8 +1170,6 @@ async function recalcQualification() {
           qualification_status: qs, position: i + 1
         }).eq('team_id', sorted[i].team_id);
       }
-
-      // Auto-assign semi-final teams
       await assignSemiTeams();
     } else {
       for (const t of teams) {
@@ -1219,7 +1182,6 @@ async function recalcQualification() {
 }
 
 async function assignSemiTeams() {
-  // Check if BOTH groups are fully done before assigning
   const { data: remaining } = await sb.from('ppl_matches')
     .select('id')
     .eq('match_type', 'group')
@@ -1228,24 +1190,22 @@ async function assignSemiTeams() {
     .not('status', 'eq', 'no_result')
     .not('status', 'eq', 'abandoned');
 
-  if (remaining && remaining.length > 0) return; // group stage still ongoing
+  if (remaining && remaining.length > 0) return;
 
   const { data: pts } = await sb.from('ppl_points_table')
     .select('team_id, group_name, position')
     .in('position', [1, 2])
     .order('group_name').order('position');
 
-  if (!pts || pts.length < 4) return; // not all 4 qualifiers determined yet
+  if (!pts || pts.length < 4) return;
 
   const grpA = pts.filter(r => r.group_name === 'A').sort((a, b) => a.position - b.position);
   const grpB = pts.filter(r => r.group_name === 'B').sort((a, b) => a.position - b.position);
 
   const A1 = grpA[0]?.team_id, A2 = grpA[1]?.team_id;
   const B1 = grpB[0]?.team_id, B2 = grpB[1]?.team_id;
-
   if (!A1 || !A2 || !B1 || !B2) return;
 
-  // SF1 (M13): A1 vs B2 | SF2 (M14): A2 vs B1
   const { data: semis } = await sb.from('ppl_matches')
     .select('id, match_number')
     .eq('match_type', 'knockout')
@@ -1253,14 +1213,14 @@ async function assignSemiTeams() {
 
   if (!semis || semis.length < 2) return;
 
+  // SF1 (M13): A1 vs B2 | SF2 (M14): A2 vs B1
   await sb.from('ppl_matches').update({ team_a_id: A1, team_b_id: B2 }).eq('id', semis[0].id);
   await sb.from('ppl_matches').update({ team_a_id: A2, team_b_id: B1 }).eq('id', semis[1].id);
-
   toast('✅ Semi-final teams assigned automatically!');
 }
 
 // ═══════════════════════════════════════════════════════
-//  ABANDONED / NO RESULT
+//  ABANDONED — FIX: removed manual points loop (trigger handles it)
 // ═══════════════════════════════════════════════════════
 async function confirmAban() {
   hideErr('err-aban');
@@ -1270,35 +1230,24 @@ async function confirmAban() {
   if (!matchId) { showErr('err-aban', 'Select a match first'); return; }
   if (!confirm('Mark as No Result? Both teams get 1 point each.')) return;
 
-  // Get match details first
   const { data: m } = await sb.from('ppl_matches')
     .select('team_a_id,team_b_id')
     .eq('id', matchId).single();
 
-  // Guard: skip if teams are null
   if (!m || !m.team_a_id || !m.team_b_id) {
     showErr('err-aban', 'Match teams not yet confirmed — cannot abandon');
     return;
   }
 
-  // Update match — DB trigger handles no_result point logic
+  // Single update — DB trigger (trg_ppl_match_completion) fires ppl_update_points_table
+  // which gives 1 point each for no_result. DO NOT manually update points table here.
   const { error } = await sb.from('ppl_matches').update({
     status: 'no_result', result_description: desc,
     winner_id: null, is_no_result: true
   }).eq('id', matchId);
   if (error) { showErr('err-aban', 'Failed: ' + error.message); return; }
 
-  // Also manually update points as backup (trigger does this too but belt+suspenders)
-  for (const tid of [m.team_a_id, m.team_b_id]) {
-    const { data: pt } = await sb.from('ppl_points_table').select('*').eq('team_id', tid).single();
-    if (pt) await sb.from('ppl_points_table').update({
-      points: (pt.points || 0) + 1,
-      played: (pt.played || 0) + 1,
-      no_result: (pt.no_result || 0) + 1
-    }).eq('team_id', tid);
-  }
-
-  toast('✅ Match marked No Result. 1 point each.');
+  toast('✅ Match marked No Result. 1 point each applied.');
   document.getElementById('inp-aban-desc').value = '';
   await loadHome(); go('s-home');
 }
@@ -1315,13 +1264,13 @@ async function openEditList() {
   const list = document.getElementById('d-list');
   list.innerHTML = '';
   dels.forEach(d => {
-    const ov = `Over ${(d.over_number ?? 0) + 1}, Ball ${(d.ball_number ?? 0) + 1}`;
-    let run = `${d.runs_off_bat || 0} run`;
+    const ov = `Ov ${(d.over_number ?? 0) + 1}.${(d.ball_number ?? 0) + 1}`;
+    let run = `${d.runs_off_bat || 0}`;
     if (d.extra_type) run += ` + ${d.extra_type}(${d.extras})`;
     if (d.is_wicket) run += ` 🔴 ${d.dismissal_type}`;
     const div = document.createElement('div');
     div.className = 'd-item';
-    div.innerHTML = `<span class="d-over">${ov}</span><span class="d-detail">${pName(d.batter_id)} vs ${pName(d.bowler_id)} — ${run}</span>`;
+    div.innerHTML = `<span class="d-over">${ov}</span><span class="d-detail">${pName(d.batter_id)} — ${run} — 🎳 ${pName(d.bowler_id)}</span>`;
     div.onclick = () => openEditModal(d);
     list.appendChild(div);
   });
@@ -1384,7 +1333,7 @@ async function saveEdit() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  RESUME MATCH
+//  RESUME MATCH — FIX: correct overs-to-balls conversion
 // ═══════════════════════════════════════════════════════
 async function doResume() {
   hideErr('err-resume');
@@ -1404,7 +1353,6 @@ async function doResume() {
   S.superMatchId = null;
   S.superOverInnings = null;
 
-  // Load latest incomplete innings
   const { data: inns } = await sb.from('ppl_innings')
     .select('*').eq('match_id', matchId).eq('is_complete', false)
     .order('innings_number', { ascending: false }).limit(1);
@@ -1413,12 +1361,14 @@ async function doResume() {
 
   S.innId  = inn.id;
   S.innNum = inn.innings_number;
-  S.maxWkt = inn.max_wickets || 8;  // ← read from DB, not hardcoded
+  S.maxWkt = inn.max_wickets || 8;
   S.batId  = inn.batting_team_id;
   S.bowlId = inn.bowling_team_id;
   S.runs   = inn.total_runs || 0;
   S.wkts   = inn.total_wickets || 0;
-  S.balls  = Math.round((parseFloat(inn.total_overs) || 0) * 6);
+
+  // FIX: 1.3 overs = 1 over + 3 balls = 9 balls (not 1.3 * 6 = 7.8 → 8)
+  S.balls = oversToBalls(parseFloat(inn.total_overs) || 0);
 
   const { data: players } = await sb.from('ppl_players')
     .select('id,name,team_id,role')
@@ -1436,9 +1386,9 @@ async function doResume() {
       const ov = d.over_number ?? 0;
       if (!overMap[ov]) overMap[ov] = [];
       let tag = String(d.runs_off_bat || 0);
-      if (d.is_wicket)           tag = 'W';
-      if (d.runs_off_bat === 4)  tag = '4';
-      if (d.runs_off_bat === 6)  tag = '6';
+      if (d.is_wicket)               tag = 'W';
+      if (d.runs_off_bat === 4)      tag = '4';
+      if (d.runs_off_bat === 6)      tag = '6';
       if (d.extra_type === 'wide')     tag = 'Wd';
       if (d.extra_type === 'no_ball')  tag = 'Nb';
       if (d.extra_type === 'bye')      tag = 'B';
@@ -1481,12 +1431,14 @@ async function doResume() {
       .select('*').eq('match_id', matchId).eq('innings_number', 1).single();
     if (i1) S.inn1Score = {
       runs: i1.total_runs, wkts: i1.total_wickets,
-      balls: Math.round((parseFloat(i1.total_overs) || 0) * 6),
+      // FIX: same correct conversion here
+      balls: oversToBalls(parseFloat(i1.total_overs) || 0),
       team: i1.batting_team_id
     };
   }
 
   toast('✅ Match resumed!');
+  hideStrikeNotice();
   renderScore(); go('s-score');
 }
 
@@ -1542,7 +1494,9 @@ async function saveManualInnings() {
   if (error) { showErr('man-err', 'Failed: ' + error.message); return; }
 
   if (S.innId === S.manualInnId) {
-    S.runs = runs; S.wkts = wkts; S.balls = Math.round(overs * 6);
+    S.runs = runs; S.wkts = wkts;
+    // FIX: correct conversion here too
+    S.balls = oversToBalls(overs);
     renderScore();
   }
   closeModal('m-manual');
@@ -1606,14 +1560,15 @@ function renderScore() {
   document.getElementById('sc-meta').textContent =
     `Over ${fmtOv(S.balls)} | CRR: ${crr()} | Wkts left: ${S.maxWkt - S.wkts}${superLabel}`;
 
-  // Batter cards
+  // Batter cards — clickable to swap strike
   const bc = document.getElementById('batter-cards');
   const card = (id, strike) => {
     if (!id) return '<div class="batter-card"><div class="bname">—</div></div>';
     const bs = S.bStats[id] || { r: 0, b: 0, f: 0, s: 0 };
     const sr = bs.b > 0 ? ((bs.r / bs.b) * 100).toFixed(1) : '—';
-    return `<div class="batter-card${strike ? ' on-strike' : ''}">
-      <div class="bname">${pName(id)}${strike ? ' *' : ''}</div>
+    const clickHint = !strike ? ' style="cursor:pointer" title="Tap to give strike"' : '';
+    return `<div class="batter-card${strike ? ' on-strike' : ''}"${clickHint} onclick="handleBatterCardClick('${id}')">
+      <div class="bname">${pName(id)}${strike ? ' *' : ' (tap→strike)'}</div>
       <div class="bstat">${bs.r} (${bs.b}b) SR: ${sr}</div>
       <div class="bstat">4s: ${bs.f} | 6s: ${bs.s}</div>
     </div>`;
