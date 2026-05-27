@@ -429,10 +429,10 @@ const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// Fantasy rules
-const BUDGET     = 100;
-const MAX_STARS  = 4;   // max players with is_star = true (price >= 11)
-const TEAM_SIZE  = 11;
+// Fantasy rules — overridden from DB day object when tab loads
+let BUDGET    = 100;
+let MAX_STARS = 4;
+let TEAM_SIZE = 11;
 
 // ── STATE ─────────────────────────────────────────────────────────────
 let currentUser  = null;  // { id, name }
@@ -450,7 +450,7 @@ let roleFilter   = 'ALL';
 // ── BOOT ──────────────────────────────────────────────────────────────
 async function init() {
   const [{ data: daysData }, { data: pl }] = await Promise.all([
-    sb.from('ppl_fantasy_days').select('*').order('day_number'),
+    sb.from('ppl_fantasy_days').select('*').order('day'),
     sb.from('ppl_players').select('id, name, role, fantasy_price, is_star, team_id, ppl_teams(id, name, short_name, group_name)').eq('is_active', true)
   ]);
   days       = daysData || [];
@@ -499,9 +499,9 @@ function renderDayTabs() {
   days.forEach((d, i) => {
     const btn = document.createElement('button');
     btn.className = 'day-tab' + (i === 0 ? ' active' : '');
-    btn.textContent = `Day ${d.day_number}`;
+    btn.textContent = `Day ${d.day || d.day_number}`;
     btn.onclick = () => {
-      activeDay = d.day_number;
+      activeDay = d.day || d.day_number;
       document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
       clearSelectionSilent();
@@ -511,7 +511,7 @@ function renderDayTabs() {
   });
 }
 
-function getDayObj() { return days.find(d => d.day_number === activeDay); }
+function getDayObj() { return days.find(d => d.day_number === activeDay || d.day === activeDay); }
 
 // ── TAB SWITCH ────────────────────────────────────────────────────────
 function switchTab(btn, tab) {
@@ -534,6 +534,11 @@ async function loadTab() {
   const { data: matches } = await sb.from('ppl_matches')
     .select('team_a_id, team_b_id').eq('day', activeDay).neq('status', 'no_result');
   matchesForDay = matches || [];
+
+  // Pull rules from DB day object
+  BUDGET    = parseFloat(day.total_credits  || 100);
+  MAX_STARS = parseInt(day.max_star_players || 4);
+  TEAM_SIZE = parseInt(day.team_size        || 11);
 
   // Existing team for user + day
   const { data: ut } = await sb.from('ppl_user_teams')
