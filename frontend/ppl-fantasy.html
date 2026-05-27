@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,371 +12,197 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --accent:        #9AE000;
-      --accent-dim:    rgba(154,224,0,0.09);
-      --accent-glow:   rgba(154,224,0,0.28);
-      --accent-mid:    rgba(154,224,0,0.18);
-      --bg-page:       #020617;
-      --bg-card:       #0d1625;
-      --bg-card-alt:   #111e30;
-      --bg-elevated:   #0d1a2d;
-      --border-card:   rgba(255,255,255,0.10);
-      --border:        rgba(255,255,255,0.07);
-      --border-subtle: rgba(255,255,255,0.04);
-      --border-accent: rgba(154,224,0,0.20);
-      --text-primary:  #f0f4f8;
-      --text-dim:      #94a3b8;
-      --text-faint:    #64748b;
-      --red:           #ef4444;
-      --orange:        #fb923c;
-      --gold:          #f59e0b;
-      --rank-color:    #7cc4ff;
-      --star:          #fbbf24;
-      --font-display:  'Barlow Condensed', sans-serif;
-      --font-body:     'DM Sans', sans-serif;
-      --card-radius:   16px;
-      --btn-radius:    12px;
-      --nav-height:    65px;
+      --accent:#9AE000;--accent-dim:rgba(154,224,0,0.09);--accent-glow:rgba(154,224,0,0.28);
+      --accent-mid:rgba(154,224,0,0.18);--bg-page:#020617;--bg-card:#0d1625;--bg-card-alt:#111e30;
+      --border-card:rgba(255,255,255,0.10);--border:rgba(255,255,255,0.07);
+      --border-subtle:rgba(255,255,255,0.04);--border-accent:rgba(154,224,0,0.20);
+      --text-primary:#f0f4f8;--text-dim:#94a3b8;--text-faint:#64748b;
+      --red:#ef4444;--orange:#fb923c;--gold:#f59e0b;--rank-color:#7cc4ff;--star:#fbbf24;
+      --font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif;
+      --card-radius:16px;--btn-radius:12px;--nav-height:65px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--font-body);
-      background: var(--bg-page);
-      color: var(--text-primary);
-      min-height: 100vh;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font-body);background:var(--bg-page);color:var(--text-primary);min-height:100vh}
 
-    /* ── HEADER ── */
-    .app-header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px 12px;
-      background: rgba(2,6,23,0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .icon-back {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border-card);
-      color: var(--text-primary);
-      display: flex; align-items: center; justify-content: center;
-      text-decoration: none; font-size: 14px; flex-shrink: 0;
-    }
-    .page-title {
-      font-family: var(--font-display);
-      font-size: 20px; font-weight: 900;
-      text-transform: uppercase; flex: 1;
-    }
-    #user-label { font-size: 12px; color: var(--text-faint); }
+    /* HEADER */
+    .app-header{display:flex;align-items:center;gap:12px;padding:14px 16px 12px;
+      background:rgba(2,6,23,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:100}
+    .icon-back{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);
+      border:1px solid var(--border-card);color:var(--text-primary);display:flex;
+      align-items:center;justify-content:center;text-decoration:none;font-size:14px;flex-shrink:0}
+    .page-title{font-family:var(--font-display);font-size:20px;font-weight:900;text-transform:uppercase;flex:1}
+    .user-chip{font-size:11px;color:var(--text-faint);text-align:right;line-height:1.4;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-    /* ── SECTION ── */
-    .section { padding: 14px 16px; max-width: 480px; margin: 0 auto; padding-bottom: 160px; }
+    /* SECTION */
+    .section{padding:14px 16px;max-width:480px;margin:0 auto;padding-bottom:170px}
 
-    /* ── DAY TABS ── */
-    .day-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .day-tab {
-      flex: 1; padding: 9px;
-      border-radius: var(--btn-radius);
-      border: 1px solid var(--border-card);
-      background: var(--bg-card);
-      color: var(--text-faint);
-      font-family: var(--font-display);
-      font-size: 13px; font-weight: 800;
-      letter-spacing: 0.5px; text-transform: uppercase;
-      cursor: pointer; text-align: center;
-      transition: all 0.15s;
-    }
-    .day-tab.active {
-      background: var(--accent-dim);
-      border-color: var(--border-accent);
-      color: var(--accent);
-    }
+    /* NOT LOGGED IN */
+    .auth-wall{background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius);
+      padding:32px 20px;text-align:center;margin-top:24px}
+    .auth-wall h3{font-family:var(--font-display);font-size:24px;font-weight:900;margin-bottom:8px}
+    .auth-wall p{color:var(--text-faint);font-size:13px;margin-bottom:20px;line-height:1.6}
+    .btn-auth{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#0284c7,#0369a1);
+      color:#fff;border-radius:var(--btn-radius);font-weight:700;text-decoration:none;font-size:14px;
+      font-family:var(--font-display);letter-spacing:0.5px;text-transform:uppercase}
 
-    /* ── INNER TABS ── */
-    .tab-row { display: flex; gap: 8px; margin-bottom: 14px; }
-    .tab-btn {
-      flex: 1; padding: 8px;
-      border-radius: var(--btn-radius);
-      border: 1px solid var(--border-card);
-      background: var(--bg-card);
-      color: var(--text-faint);
-      font-family: var(--font-display);
-      font-size: 13px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      cursor: pointer; text-align: center;
-      transition: all 0.15s;
-    }
-    .tab-btn.active { background: rgba(124,196,255,0.1); border-color: rgba(124,196,255,0.3); color: var(--rank-color); }
+    /* DAY TABS */
+    .day-tabs{display:flex;gap:8px;margin-bottom:14px}
+    .day-tab{flex:1;padding:9px;border-radius:var(--btn-radius);border:1px solid var(--border-card);
+      background:var(--bg-card);color:var(--text-faint);font-family:var(--font-display);
+      font-size:13px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;
+      cursor:pointer;text-align:center;transition:all 0.15s}
+    .day-tab.active{background:var(--accent-dim);border-color:var(--border-accent);color:var(--accent)}
+    .day-tab.locked-tab{opacity:0.5}
 
-    /* ── LOGIN CARD ── */
-    .login-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius);
-      padding: 28px 20px; text-align: center; margin-bottom: 16px;
-    }
-    .login-card h3 { font-family: var(--font-display); font-size: 22px; font-weight: 900; margin-bottom: 6px; }
-    .login-card p { color: var(--text-faint); font-size: 13px; margin-bottom: 18px; line-height: 1.6; }
-    .login-card input {
-      width: 100%; padding: 12px 14px;
-      border-radius: var(--btn-radius);
-      border: 1px solid var(--border-card);
-      background: #060e1e; color: var(--text-primary);
-      font-size: 15px; margin-bottom: 10px; outline: none;
-      font-family: var(--font-body);
-      transition: border-color 0.15s;
-    }
-    .login-card input:focus { border-color: var(--accent); }
+    /* INNER TABS */
+    .tab-row{display:flex;gap:8px;margin-bottom:14px}
+    .tab-btn{flex:1;padding:8px;border-radius:var(--btn-radius);border:1px solid var(--border-card);
+      background:var(--bg-card);color:var(--text-faint);font-family:var(--font-display);
+      font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;
+      cursor:pointer;text-align:center;transition:all 0.15s}
+    .tab-btn.active{background:rgba(124,196,255,0.1);border-color:rgba(124,196,255,0.3);color:var(--rank-color)}
 
-    /* ── BUTTONS ── */
-    .btn {
-      width: 100%; padding: 12px;
-      border-radius: var(--btn-radius);
-      border: none; font-size: 14px;
-      font-weight: 700; cursor: pointer;
-      transition: opacity 0.15s;
-      font-family: var(--font-display);
-      letter-spacing: 0.5px; text-transform: uppercase;
-    }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-primary  { background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; }
-    .btn-green    { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; }
-    .btn-ghost    { background: var(--bg-card); color: var(--text-dim); border: 1px solid var(--border-card); }
+    /* BUDGET BAR */
+    .budget-bar{background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius);
+      padding:11px 14px;margin-bottom:12px;display:flex;gap:0;align-items:center}
+    .budget-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+    .budget-val{font-family:var(--font-display);font-size:20px;font-weight:900;line-height:1}
+    .budget-val.good{color:var(--accent)}.budget-val.warn{color:var(--orange)}.budget-val.over{color:var(--red)}
+    .budget-val.white{color:var(--text-primary)}.budget-val.gold{color:var(--star)}
+    .budget-lbl{font-size:9px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+    .budget-div{width:1px;height:32px;background:var(--border-card)}
 
-    /* ── BUDGET BAR ── */
-    .budget-bar {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius);
-      padding: 12px 14px;
-      margin-bottom: 12px;
-      display: flex; gap: 12px; align-items: center;
-      flex-wrap: wrap;
-    }
-    .budget-item { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
-    .budget-val {
-      font-family: var(--font-display);
-      font-size: 22px; font-weight: 900; line-height: 1;
-    }
-    .budget-val.good  { color: var(--accent); }
-    .budget-val.warn  { color: var(--orange); }
-    .budget-val.over  { color: var(--red); }
-    .budget-val.white { color: var(--text-primary); }
-    .budget-val.gold  { color: var(--star); }
-    .budget-lbl { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-    .budget-divider { width: 1px; height: 36px; background: var(--border-card); }
+    /* STATUS PILL */
+    .locked-notice{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);
+      border-radius:12px;padding:14px;font-size:13px;color:#fca5a5;margin-bottom:14px;text-align:center;line-height:1.6}
+    .open-notice{background:var(--accent-dim);border:1px solid var(--border-accent);
+      border-radius:12px;padding:10px 14px;font-size:12px;color:var(--accent);
+      margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
 
-    /* ── STATUS PILL ── */
-    .status-pill {
-      padding: 4px 12px; border-radius: 20px;
-      font-family: var(--font-display);
-      font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
-    }
-    .s-open   { background: rgba(154,224,0,0.1); color: var(--accent); border: 1px solid var(--border-accent); }
-    .s-locked { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+    /* RULES BOX */
+    .rules-box{background:rgba(154,224,0,0.04);border:1px solid var(--border-accent);
+      border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:11px;
+      color:var(--text-faint);line-height:1.8}
 
-    /* ── FILTER ROW ── */
-    .filter-row {
-      display: flex; gap: 6px; margin-bottom: 12px;
-      overflow-x: auto; padding-bottom: 2px;
-    }
-    .filter-btn {
-      padding: 5px 14px; border-radius: 20px;
-      border: 1px solid var(--border-card);
-      background: var(--bg-card); color: var(--text-faint);
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      cursor: pointer; white-space: nowrap;
-      font-family: var(--font-display);
-      transition: all 0.15s;
-    }
-    .filter-btn.active { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+    /* FILTER */
+    .filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+    .filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border-card);
+      background:var(--bg-card);color:var(--text-faint);font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;white-space:nowrap;
+      font-family:var(--font-display);transition:all 0.15s}
+    .filter-btn.active{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);color:var(--text-primary)}
 
-    /* ── TEAM SECTION HEADER ── */
-    .team-section-hdr {
-      font-family: var(--font-display);
-      font-size: 11px; font-weight: 900;
-      letter-spacing: 2px; text-transform: uppercase;
-      color: var(--text-faint);
-      margin: 14px 0 8px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .team-section-hdr::before {
-      content: ''; width: 3px; height: 12px;
-      border-radius: 2px; background: var(--accent);
-      flex-shrink: 0;
-    }
-    .team-section-hdr.grp-b::before { background: var(--rank-color); }
+    /* TEAM HEADER */
+    .team-hdr{font-family:var(--font-display);font-size:11px;font-weight:900;letter-spacing:2px;
+      text-transform:uppercase;color:var(--text-faint);margin:14px 0 6px;
+      display:flex;align-items:center;gap:8px}
+    .team-hdr::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--accent);flex-shrink:0}
+    .team-hdr.grp-b::before{background:var(--rank-color)}
+    .team-name-hdr{font-size:10px;color:var(--text-faint);font-weight:600;letter-spacing:1px;
+      text-transform:uppercase;margin:6px 0 5px;padding-left:2px}
 
-    /* ── PLAYER ROW ── */
-    .player-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--bg-card);
-      border-radius: 12px; padding: 10px 12px;
-      margin-bottom: 7px;
-      border: 1px solid var(--border-card);
-      cursor: pointer; transition: all 0.15s;
-      position: relative;
-    }
-    .player-row:active { transform: scale(0.98); }
-    .player-row.selected  { border-color: rgba(124,196,255,0.4); background: #0a1e35; }
-    .player-row.is-captain{ border-color: rgba(245,158,11,0.5) !important; background: #1a1200 !important; }
-    .player-row.is-vc     { border-color: rgba(148,163,184,0.4) !important; background: #12171d !important; }
-    .player-row.is-star-player { border-left: 3px solid var(--star); }
-    .player-row.disabled-row { opacity: 0.4; cursor: not-allowed; }
+    /* PLAYER ROW */
+    .player-row{display:flex;align-items:center;gap:10px;background:var(--bg-card);
+      border-radius:12px;padding:10px 12px;margin-bottom:7px;border:1px solid var(--border-card);
+      cursor:pointer;transition:all 0.15s;position:relative}
+    .player-row:active{transform:scale(0.98)}
+    .player-row.selected{border-color:rgba(124,196,255,0.4);background:#0a1e35}
+    .player-row.is-captain{border-color:rgba(245,158,11,0.5)!important;background:#1a1200!important}
+    .player-row.is-vc{border-color:rgba(148,163,184,0.4)!important;background:#12171d!important}
+    .player-row.star-player{border-left:3px solid var(--star)}
+    .player-row.faded{opacity:0.35;cursor:not-allowed}
 
-    .player-check {
-      width: 24px; height: 24px; border-radius: 50%;
-      border: 2px solid var(--border-card);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; flex-shrink: 0; color: var(--text-faint);
-      transition: all 0.15s;
-    }
-    .player-row.selected .player-check,
-    .player-row.is-captain .player-check,
-    .player-row.is-vc .player-check {
-      background: var(--rank-color); border-color: var(--rank-color); color: #000;
-    }
-    .player-row.is-captain .player-check { background: var(--star); border-color: var(--star); }
+    .p-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-card);
+      display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;
+      transition:all 0.15s}
+    .player-row.selected .p-check,.player-row.is-captain .p-check,.player-row.is-vc .p-check
+      {background:var(--rank-color);border-color:var(--rank-color);color:#000}
+    .player-row.is-captain .p-check{background:var(--star);border-color:var(--star)}
 
-    .player-info { flex: 1; min-width: 0; }
-    .player-name-row {
-      display: flex; align-items: center; gap: 5px;
-      font-weight: 600; font-size: 14px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .role-badge {
-      font-size: 9px; padding: 1px 5px; border-radius: 4px;
-      font-weight: 800; letter-spacing: 0.5px; flex-shrink: 0;
-      font-family: var(--font-display);
-    }
-    .role-AR  { background: rgba(245,158,11,0.15); color: var(--gold); }
-    .role-BAT { background: rgba(124,196,255,0.12); color: var(--rank-color); }
-    .role-BWL { background: rgba(154,224,0,0.1); color: var(--accent); }
-    .role-WK  { background: rgba(216,180,254,0.12); color: #d8b4fe; }
-    .star-badge {
-      font-size: 9px; color: var(--star);
-      font-weight: 800; letter-spacing: 0.5px; flex-shrink: 0;
-    }
-    .cap-badge { font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 800; background: rgba(245,158,11,0.2); color: var(--star); flex-shrink: 0; }
-    .vc-badge  { font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 800; background: rgba(148,163,184,0.15); color: var(--text-dim); flex-shrink: 0; }
-    .player-meta { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+    .p-info{flex:1;min-width:0}
+    .p-name{display:flex;align-items:center;gap:5px;font-weight:600;font-size:14px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .role-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:800;
+      letter-spacing:0.5px;flex-shrink:0;font-family:var(--font-display)}
+    .role-All-rounder{background:rgba(245,158,11,0.15);color:var(--gold)}
+    .role-Batter{background:rgba(124,196,255,0.12);color:var(--rank-color)}
+    .role-Bowler{background:rgba(154,224,0,0.1);color:var(--accent)}
+    .star-icon{font-size:9px;color:var(--star);flex-shrink:0}
+    .cap-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:800;
+      background:rgba(245,158,11,0.2);color:var(--star);flex-shrink:0}
+    .vc-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:800;
+      background:rgba(148,163,184,0.15);color:var(--text-dim);flex-shrink:0}
+    .p-meta{font-size:11px;color:var(--text-faint);margin-top:2px}
 
-    .player-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-    .player-price {
-      font-family: var(--font-display);
-      font-size: 16px; font-weight: 900;
-      color: var(--text-primary);
-    }
-    .player-price.is-star { color: var(--star); }
-    .cap-vc-btns { display: flex; gap: 4px; }
-    .cap-btn {
-      font-size: 10px; padding: 3px 7px; border-radius: 6px;
-      border: 1px solid var(--border-card);
-      background: var(--bg-page); color: var(--text-faint);
-      cursor: pointer; font-weight: 800;
-      font-family: var(--font-display);
-      transition: all 0.15s;
-    }
-    .cap-btn.gold   { border-color: var(--star);     color: var(--star); }
-    .cap-btn.silver { border-color: var(--text-dim); color: var(--text-dim); }
+    .p-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+    .p-price{font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--text-primary)}
+    .p-price.is-star{color:var(--star)}
+    .cv-btns{display:flex;gap:4px}
+    .cv-btn{font-size:10px;padding:3px 7px;border-radius:6px;border:1px solid var(--border-card);
+      background:var(--bg-page);color:var(--text-faint);cursor:pointer;font-weight:800;
+      font-family:var(--font-display);transition:all 0.15s}
+    .cv-btn.gold{border-color:var(--star);color:var(--star)}
+    .cv-btn.silver{border-color:var(--text-dim);color:var(--text-dim)}
 
-    /* ── LOCKED NOTICE ── */
-    .locked-notice {
-      background: rgba(239,68,68,0.08);
-      border: 1px solid rgba(239,68,68,0.25);
-      border-radius: 12px; padding: 16px 14px;
-      font-size: 14px; color: #fca5a5;
-      margin-bottom: 14px; text-align: center; line-height: 1.6;
-    }
+    /* MY TEAM */
+    .my-team-hdr{background:var(--bg-card);border:1px solid var(--border-accent);
+      border-radius:var(--card-radius);padding:18px;margin-bottom:14px;text-align:center}
+    .my-pts{font-family:var(--font-display);font-size:52px;font-weight:900;color:var(--accent);line-height:1}
+    .my-rank{font-size:13px;color:var(--text-faint);margin-top:4px}
+    .my-player-row{display:flex;align-items:center;gap:10px;background:var(--bg-card);
+      border:1px solid var(--border-card);border-radius:12px;padding:10px 12px;margin-bottom:7px}
+    .my-pts-cell{font-family:var(--font-display);font-size:18px;font-weight:900;
+      color:var(--rank-color);min-width:50px;text-align:right}
+    .mult{font-size:10px;color:var(--star);font-weight:700}
 
-    /* ── MSG ── */
-    .msg {
-      padding: 10px 14px; border-radius: 10px;
-      font-size: 13px; margin-bottom: 12px;
-      font-family: var(--font-body);
-    }
-    .msg-success { background: rgba(22,163,74,0.1); color: #4ade80; border: 1px solid rgba(22,163,74,0.25); }
-    .msg-error   { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    /* LEADERBOARD */
+    .lb-tabs{display:flex;gap:8px;margin-bottom:12px}
+    .lb-tab{flex:1;padding:8px;border-radius:var(--btn-radius);border:1px solid var(--border-card);
+      background:var(--bg-card);color:var(--text-faint);font-family:var(--font-display);
+      font-size:12px;font-weight:800;text-transform:uppercase;cursor:pointer;text-align:center}
+    .lb-tab.active{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:var(--star)}
+    .lb-card{background:var(--bg-card);border:1px solid var(--border-card);border-radius:12px;
+      padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:12px}
+    .lb-card.me{border-color:rgba(154,224,0,0.35);background:#051209}
+    .lb-rank{font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--text-faint);
+      min-width:32px;text-align:center}
+    .lb-rank.gold{color:var(--star)}.lb-rank.silver{color:var(--text-dim)}.lb-rank.bronze{color:#b45309}
+    .lb-info{flex:1}
+    .lb-name{font-weight:700;font-size:14px}
+    .lb-sub{font-size:11px;color:var(--text-faint);margin-top:2px}
+    .lb-pts{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--rank-color)}
+    .you-tag{font-size:10px;color:var(--accent);font-weight:700;margin-left:5px}
 
-    /* ── MY TEAM ── */
-    .my-team-header {
-      background: var(--bg-card);
-      border: 1px solid var(--border-accent);
-      border-radius: var(--card-radius);
-      padding: 18px; margin-bottom: 14px; text-align: center;
-    }
-    .my-team-pts { font-family: var(--font-display); font-size: 48px; font-weight: 900; color: var(--accent); line-height: 1; }
-    .my-team-rank { font-size: 13px; color: var(--text-faint); margin-top: 4px; }
+    /* BOTTOM BAR */
+    .bottom-bar{position:fixed;bottom:var(--nav-height);left:50%;transform:translateX(-50%);
+      width:100%;max-width:480px;background:rgba(13,22,37,0.98);backdrop-filter:blur(20px);
+      border-top:1px solid var(--border-card);padding:10px 16px;z-index:50}
+    .bar-inner{display:flex;gap:8px;align-items:center}
+    .btn{flex:1;padding:11px;border-radius:var(--btn-radius);border:none;font-size:13px;
+      font-weight:700;cursor:pointer;font-family:var(--font-display);
+      letter-spacing:0.5px;text-transform:uppercase;transition:opacity 0.15s}
+    .btn:disabled{opacity:0.4;cursor:not-allowed}
+    .btn-ghost{background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border-card)}
+    .btn-green{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff}
 
-    .my-player-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: 12px; padding: 10px 12px; margin-bottom: 7px;
-    }
-    .my-player-pts {
-      font-family: var(--font-display);
-      font-size: 18px; font-weight: 900;
-      color: var(--rank-color); min-width: 50px; text-align: right;
-    }
-    .multiplier { font-size: 10px; color: var(--star); font-weight: 700; }
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:480px;background:rgba(13,22,37,0.97);backdrop-filter:blur(20px);
+      border-top:1px solid var(--border-card);display:flex;align-items:center;
+      height:var(--nav-height);z-index:200;padding:0 8px}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;
+      text-decoration:none;color:var(--text-faint);font-family:var(--font-display);
+      font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+    .nav-item i{font-size:18px}
+    .nav-item.active{color:var(--accent)}
+    .nav-item.active i{filter:drop-shadow(0 0 6px var(--accent-glow))}
 
-    /* ── LEADERBOARD ── */
-    .lb-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: 12px; padding: 12px 14px;
-      margin-bottom: 7px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .lb-rank { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--text-faint); min-width: 32px; text-align: center; }
-    .lb-rank.gold   { color: var(--star); }
-    .lb-rank.silver { color: var(--text-dim); }
-    .lb-rank.bronze { color: #b45309; }
-    .lb-info { flex: 1; }
-    .lb-name { font-weight: 700; font-size: 15px; }
-    .lb-pts  { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--rank-color); }
-    .you-tag { font-size: 10px; color: var(--accent); font-weight: 700; margin-left: 6px; }
-
-    /* ── STICKY BOTTOM BAR ── */
-    .bottom-bar {
-      position: fixed; bottom: var(--nav-height);
-      left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 480px;
-      background: rgba(13,22,37,0.98);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-card);
-      padding: 10px 16px; z-index: 50;
-    }
-    .bar-inner { display: flex; gap: 8px; align-items: center; }
-    .bar-inner .btn { flex: 1; padding: 11px; font-size: 13px; }
-
-    /* ── BOTTOM NAV ── */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%; max-width: 480px;
-      background: rgba(13,22,37,0.97);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-card);
-      display: flex; align-items: center;
-      height: var(--nav-height); z-index: 200; padding: 0 8px;
-    }
-    .nav-item {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; gap: 4px; padding: 10px 6px;
-      text-decoration: none; color: var(--text-faint);
-      font-family: var(--font-display);
-      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    .nav-item i { font-size: 18px; }
-    .nav-item.active { color: var(--accent); }
-
-    .loading { text-align: center; color: var(--text-faint); padding: 40px 0; font-size: 13px; }
-    .empty { text-align: center; color: var(--text-faint); padding: 32px 16px; font-size: 13px; line-height: 1.7; }
+    .msg{padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px}
+    .msg-ok{background:rgba(22,163,74,0.1);color:#4ade80;border:1px solid rgba(22,163,74,0.25)}
+    .msg-err{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25)}
+    .loading{text-align:center;color:var(--text-faint);padding:40px 0;font-size:13px}
+    .empty{text-align:center;color:var(--text-faint);padding:32px 16px;font-size:13px;line-height:1.7}
   </style>
 </head>
 <body>
@@ -383,38 +210,30 @@
 <header class="app-header">
   <a class="icon-back" href="ppl-home.html"><i class="fas fa-arrow-left"></i></a>
   <h1 class="page-title">⚡ PPL Fantasy</h1>
-  <span id="user-label"></span>
+  <div class="user-chip" id="user-chip">Loading…</div>
 </header>
 
 <div class="section">
-
-  <!-- Day Tabs -->
-  <div class="day-tabs" id="day-tabs"></div>
-
-  <!-- Auth -->
-  <div id="auth-section"></div>
-
-  <!-- Main (shown after login) -->
-  <div id="main-content" style="display:none">
+  <div id="auth-wall"></div>
+  <div id="app" style="display:none">
+    <div class="day-tabs" id="day-tabs"></div>
     <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab(this,'pick')"><i class="fas fa-users"></i> Pick Team</button>
+      <button class="tab-btn active" onclick="switchTab(this,'pick')"><i class="fas fa-users"></i> Pick XI</button>
       <button class="tab-btn" onclick="switchTab(this,'myteam')"><i class="fas fa-user"></i> My Team</button>
       <button class="tab-btn" onclick="switchTab(this,'leaderboard')"><i class="fas fa-trophy"></i> Standings</button>
     </div>
     <div id="tab-content"></div>
   </div>
-
 </div>
 
-<!-- Sticky bottom bar (pick tab only) -->
+<!-- sticky bottom bar for pick tab -->
 <div class="bottom-bar" id="sel-bar" style="display:none">
   <div class="bar-inner">
-    <button class="btn btn-ghost" onclick="clearSelection()">Clear</button>
+    <button class="btn btn-ghost" onclick="clearSel()">Clear</button>
     <button class="btn btn-green" id="submit-btn" onclick="submitTeam()">💾 Save Team</button>
   </div>
 </div>
 
-<!-- Bottom Nav -->
 <nav class="bottom-nav">
   <a class="nav-item" href="ppl-home.html"><i class="fas fa-house"></i><span>Home</span></a>
   <a class="nav-item" href="ppl-fixtures.html"><i class="fas fa-calendar-days"></i><span>Fixtures</span></a>
@@ -424,96 +243,84 @@
 </nav>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────────────
+// ─── CONFIG ───────────────────────────────────────────────────────────────
 const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// Fantasy rules — overridden from DB day object when tab loads
-let BUDGET    = 100;
-let MAX_STARS = 4;
-let TEAM_SIZE = 11;
-
-// ── STATE ─────────────────────────────────────────────────────────────
-let currentUser  = null;  // { id, name }
-let activeDay    = 1;
-let activeTab    = 'pick';
-let days         = [];
-let allPlayers   = [];    // ppl_players with team join + fantasy_price + is_star
-let matchesForDay = [];
-let selected     = new Set();
-let captainId    = null;
-let vcId         = null;
+// ─── STATE ────────────────────────────────────────────────────────────────
+let ME = null;           // { id, full_name, team_name } from user_profiles
+let days = [];           // ppl_fantasy_days rows
+let allPlayers = [];     // ppl_players with team join
+let activeDay = 1;
+let activeTab = 'pick';
+let activeLbTab = 'overall';
+let selected = new Set();
+let captainId = null;
+let vcId = null;
 let existingTeam = null;
-let roleFilter   = 'ALL';
+let roleFilter = 'ALL';
+// rules from DB day object
+let BUDGET = 100, MAX_STARS = 4, TEAM_SIZE = 11, MIN_BAT = 3, MIN_BOWL = 3, MIN_AR = 1;
 
-// ── BOOT ──────────────────────────────────────────────────────────────
-async function init() {
-  const [{ data: daysData }, { data: pl }] = await Promise.all([
-    sb.from('ppl_fantasy_days').select('*').order('day'),
-    sb.from('ppl_players').select('id, name, role, fantasy_price, is_star, team_id, ppl_teams(id, name, short_name, group_name)').eq('is_active', true)
-  ]);
-  days       = daysData || [];
-  allPlayers = pl || [];
+// ─── BOOT ─────────────────────────────────────────────────────────────────
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
 
-  renderDayTabs();
-  renderAuth();
-}
-
-// ── AUTH ──────────────────────────────────────────────────────────────
-function renderAuth() {
-  const el = document.getElementById('auth-section');
-  if (currentUser) {
-    document.getElementById('user-label').textContent = currentUser.name;
-    el.innerHTML = '';
-    document.getElementById('main-content').style.display = 'block';
-    loadTab();
+  if (!session) {
+    document.getElementById('auth-wall').innerHTML = `
+      <div class="auth-wall">
+        <h3>⚡ PPL Fantasy</h3>
+        <p>Sign in to your Cricket Experts account to play PPL Fantasy 2026.<br>
+           Pick 11 players each day, win prizes!</p>
+        <a class="btn-auth" href="index.html">Sign In to Cricket Experts →</a>
+      </div>`;
+    document.getElementById('user-chip').textContent = 'Not signed in';
     return;
   }
-  document.getElementById('main-content').style.display = 'none';
-  el.innerHTML = `
-    <div class="login-card">
-      <h3>⚡ PPL Fantasy</h3>
-      <p>Enter your name to join.<br>Pick 11 players within 100 pts budget.</p>
-      <input type="text" id="name-input" placeholder="Your name" maxlength="30"
-        onkeydown="if(event.key==='Enter') loginUser()">
-      <button class="btn btn-primary" onclick="loginUser()">Join →</button>
-    </div>`;
-  setTimeout(() => document.getElementById('name-input')?.focus(), 100);
+
+  // Get profile
+  const { data: profile } = await sb.from('user_profiles').select('user_id,full_name,team_name').eq('user_id', session.user.id).single();
+  ME = { id: session.user.id, full_name: profile?.full_name || session.user.email, team_name: profile?.team_name || '' };
+  document.getElementById('user-chip').textContent = ME.team_name || ME.full_name;
+
+  // Load data
+  const [{ data: daysData }, { data: pl }] = await Promise.all([
+    sb.from('ppl_fantasy_days').select('*').order('day'),
+    sb.from('ppl_players')
+      .select('id,name,role,fantasy_price,is_star,team_id,ppl_teams(id,name,short_name,group_name)')
+      .eq('is_active', true)
+  ]);
+  days = daysData || [];
+  allPlayers = pl || [];
+
+  document.getElementById('app').style.display = 'block';
+  renderDayTabs();
+  await loadTab();
 }
 
-function loginUser() {
-  const name = document.getElementById('name-input')?.value.trim();
-  if (!name) return;
-  const userId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  currentUser = { id: userId, name };
-  document.getElementById('user-label').textContent = name;
-  document.getElementById('auth-section').innerHTML = '';
-  document.getElementById('main-content').style.display = 'block';
-  loadTab();
-}
-
-// ── DAY TABS ──────────────────────────────────────────────────────────
+// ─── DAY TABS ─────────────────────────────────────────────────────────────
 function renderDayTabs() {
   const el = document.getElementById('day-tabs');
+  el.innerHTML = '';
   days.forEach((d, i) => {
     const btn = document.createElement('button');
-    btn.className = 'day-tab' + (i === 0 ? ' active' : '');
-    btn.textContent = `Day ${d.day || d.day_number}`;
+    btn.className = 'day-tab' + (i === 0 ? ' active' : '') + (d.is_locked ? ' locked-tab' : '');
+    btn.innerHTML = `Day ${d.day}${d.is_locked ? ' 🔒' : ''}`;
     btn.onclick = () => {
-      activeDay = d.day || d.day_number;
+      activeDay = d.day;
       document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
-      clearSelectionSilent();
+      clearSelSilent();
       loadTab();
     };
     el.appendChild(btn);
   });
 }
 
-function getDayObj() { return days.find(d => d.day_number === activeDay || d.day === activeDay); }
+function getDayObj() { return days.find(d => d.day === activeDay); }
 
-// ── TAB SWITCH ────────────────────────────────────────────────────────
+// ─── TAB SWITCH ───────────────────────────────────────────────────────────
 function switchTab(btn, tab) {
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -523,434 +330,391 @@ function switchTab(btn, tab) {
 }
 
 async function loadTab() {
-  if (!currentUser) return;
+  if (!ME) return;
   const day = getDayObj();
-  if (!day) {
-    document.getElementById('tab-content').innerHTML = '<div class="empty">No fantasy days configured yet.</div>';
-    return;
-  }
+  if (!day) { document.getElementById('tab-content').innerHTML = '<div class="empty">No fantasy days configured.</div>'; return; }
 
-  // Matches for this day
-  const { data: matches } = await sb.from('ppl_matches')
-    .select('team_a_id, team_b_id').eq('day', activeDay).neq('status', 'no_result');
-  matchesForDay = matches || [];
+  // Pull rules from day object
+  BUDGET    = parseFloat(day.total_credits   || 100);
+  MAX_STARS = parseInt(day.max_star_players  || 4);
+  TEAM_SIZE = parseInt(day.team_size         || 11);
+  MIN_BAT   = parseInt(day.min_batters       || 3);
+  MIN_BOWL  = parseInt(day.min_bowlers       || 3);
+  MIN_AR    = parseInt(day.min_allrounders   || 1);
 
-  // Pull rules from DB day object
-  BUDGET    = parseFloat(day.total_credits  || 100);
-  MAX_STARS = parseInt(day.max_star_players || 4);
-  TEAM_SIZE = parseInt(day.team_size        || 11);
-
-  // Existing team for user + day
+  // Fetch existing team for this user+day
   const { data: ut } = await sb.from('ppl_user_teams')
-    .select('*, ppl_user_team_players(player_id, is_captain, is_vice_captain)')
-    .eq('user_id', currentUser.id).eq('day_id', day.id).maybeSingle();
+    .select('*,ppl_user_team_players(player_id,is_captain,is_vice_captain,fantasy_points)')
+    .eq('user_id', ME.id).eq('day_id', day.id).maybeSingle();
   existingTeam = ut;
 
   if (existingTeam) {
     selected  = new Set(existingTeam.ppl_user_team_players.map(p => p.player_id));
-    captainId = existingTeam.ppl_user_team_players.find(p => p.is_captain)?.player_id || null;
-    vcId      = existingTeam.ppl_user_team_players.find(p => p.is_vice_captain)?.player_id || null;
+    captainId = existingTeam.captain_player_id;
+    vcId      = existingTeam.vice_captain_player_id;
   }
 
-  if (activeTab === 'pick')        renderPickTab(day);
+  document.getElementById('sel-bar').style.display = (activeTab === 'pick' && !day.is_locked) ? 'block' : 'none';
+
+  if (activeTab === 'pick')        renderPick(day);
   else if (activeTab === 'myteam') renderMyTeam(day);
   else                             renderLeaderboard(day);
 }
 
-// ── BUDGET HELPERS ────────────────────────────────────────────────────
-function getSpent() {
+// ─── BUDGET HELPERS ───────────────────────────────────────────────────────
+function spent() {
   let s = 0;
-  selected.forEach(id => {
-    const p = allPlayers.find(x => x.id === id);
-    if (p) s += parseFloat(p.fantasy_price || 0);
-  });
+  selected.forEach(id => { const p = allPlayers.find(x => x.id === id); if (p) s += parseFloat(p.fantasy_price || 0); });
   return Math.round(s * 10) / 10;
 }
-
-function getStarCount() {
+function remaining() { return Math.round((BUDGET - spent()) * 10) / 10; }
+function starCount() {
   let c = 0;
-  selected.forEach(id => {
-    const p = allPlayers.find(x => x.id === id);
-    if (p?.is_star) c++;
-  });
+  selected.forEach(id => { const p = allPlayers.find(x => x.id === id); if (p?.is_star) c++; });
+  return c;
+}
+function roleCount(role) {
+  let c = 0;
+  selected.forEach(id => { const p = allPlayers.find(x => x.id === id); if (p?.role === role) c++; });
   return c;
 }
 
-function getRemaining() { return Math.round((BUDGET - getSpent()) * 10) / 10; }
-
-// ── PICK TAB ──────────────────────────────────────────────────────────
-function renderPickTab(day) {
-  const el       = document.getElementById('tab-content');
-  const isLocked = day.is_locked;
-  const teamIds  = new Set(matchesForDay.flatMap(m => [m.team_a_id, m.team_b_id].filter(Boolean)));
-  const eligible = allPlayers.filter(p => teamIds.size === 0 || teamIds.has(p.team_id));
-
-  document.getElementById('sel-bar').style.display = isLocked ? 'none' : 'block';
-
-  if (isLocked && !existingTeam) {
-    el.innerHTML = `<div class="locked-notice">🔒 Team selection is locked for Day ${activeDay}.<br>You didn't submit a team this day.</div>`;
-    return;
+// ─── PICK TAB ─────────────────────────────────────────────────────────────
+function renderPick(day) {
+  const el = document.getElementById('tab-content');
+  if (day.is_locked && !existingTeam) {
+    el.innerHTML = `<div class="locked-notice">🔒 Team selection is locked for Day ${day.day}.<br>You didn't submit a team this day.</div>`; return;
   }
-  if (isLocked) {
-    el.innerHTML = `<div class="locked-notice">🔒 Team locked. View your picks in <strong>My Team</strong>.</div>`;
-    return;
+  if (day.is_locked) {
+    el.innerHTML = `<div class="locked-notice">🔒 Locked. View your picks in <strong>My Team</strong>.</div>`; return;
   }
 
-  const spent    = getSpent();
-  const remain   = getRemaining();
-  const stars    = getStarCount();
-  const remCls   = remain < 0 ? 'over' : remain < 10 ? 'warn' : 'good';
+  const rem = remaining(); const stars = starCount();
+  const remCls = rem < 0 ? 'over' : rem < 10 ? 'warn' : 'good';
   const starsCls = stars >= MAX_STARS ? 'gold' : 'white';
+  const capName = captainId ? (allPlayers.find(p => p.id === captainId)?.name.split(' ')[0] || '—') : '—';
+  const vcName  = vcId      ? (allPlayers.find(p => p.id === vcId)?.name.split(' ')[0] || '—') : '—';
 
   let html = '';
 
+  // Status bar
+  html += `<div class="open-notice"><span>🟢 Day ${day.day} — Open</span>
+    <span style="font-size:11px;color:var(--text-dim)">Lock: ${new Date(day.lock_time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
+
   // Budget bar
-  html += `
-    <div class="budget-bar">
-      <div class="budget-item">
-        <div class="budget-val white">${selected.size}<span style="font-size:14px;color:var(--text-faint)">/${TEAM_SIZE}</span></div>
-        <div class="budget-lbl">Players</div>
+  html += `<div class="budget-bar">
+    <div class="budget-item"><div class="budget-val white">${selected.size}<span style="font-size:13px;color:var(--text-faint)">/${TEAM_SIZE}</span></div><div class="budget-lbl">Players</div></div>
+    <div class="budget-div"></div>
+    <div class="budget-item"><div class="budget-val ${remCls}">${rem}</div><div class="budget-lbl">Budget</div></div>
+    <div class="budget-div"></div>
+    <div class="budget-item"><div class="budget-val ${starsCls}">${stars}<span style="font-size:12px;color:var(--text-faint)">/${MAX_STARS}</span></div><div class="budget-lbl">⭐ Stars</div></div>
+    <div class="budget-div"></div>
+    <div class="budget-item">
+      <div style="font-size:11px;text-align:center;line-height:1.5">
+        <div style="color:var(--star);font-weight:700">C: ${capName}</div>
+        <div style="color:var(--text-dim);font-weight:700">VC: ${vcName}</div>
       </div>
-      <div class="budget-divider"></div>
-      <div class="budget-item">
-        <div class="budget-val ${remCls}">${remain}</div>
-        <div class="budget-lbl">Budget Left</div>
-      </div>
-      <div class="budget-divider"></div>
-      <div class="budget-item">
-        <div class="budget-val ${starsCls}">${stars}<span style="font-size:14px;color:var(--text-faint)">/${MAX_STARS}</span></div>
-        <div class="budget-lbl">⭐ Stars</div>
-      </div>
-      <div class="budget-divider"></div>
-      <div class="budget-item">
-        <div style="display:flex;flex-direction:column;gap:1px;align-items:center">
-          ${captainId ? `<div style="font-size:11px;color:var(--star);font-weight:700">C: ${playerShortName(captainId)}</div>` : `<div style="font-size:11px;color:var(--text-faint)">C: —</div>`}
-          ${vcId      ? `<div style="font-size:11px;color:var(--text-dim);font-weight:700">VC: ${playerShortName(vcId)}</div>` : `<div style="font-size:11px;color:var(--text-faint)">VC: —</div>`}
-        </div>
-        <div class="budget-lbl">Captain</div>
-      </div>
-    </div>`;
+      <div class="budget-lbl">C / VC</div>
+    </div>
+  </div>`;
 
-  if (existingTeam) html += `<div class="msg msg-success">✅ Team saved — you can update it below</div>`;
+  if (existingTeam) html += `<div class="msg msg-ok">✅ Team saved — update below if needed</div>`;
 
-  // Rules reminder
-  html += `
-    <div style="background:rgba(154,224,0,0.05);border:1px solid var(--border-accent);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--text-faint);line-height:1.7">
-      💡 <strong style="color:var(--text-dim)">Rules:</strong> Pick exactly 11 players · Budget: 100 pts · Max 4 ⭐ Star players · Must set Captain (2×) & Vice Captain (1.5×)
-    </div>`;
+  // Rules
+  html += `<div class="rules-box">
+    💡 <strong style="color:var(--text-dim)">Rules:</strong> 
+    Pick ${TEAM_SIZE} players · Budget ${BUDGET} pts · Max ${MAX_STARS} ⭐ Stars · 
+    Min ${MIN_BAT} Batters · Min ${MIN_AR} All-rounder · Min ${MIN_BOWL} Bowlers · No WK · Set C (2×) & VC (1.5×)
+  </div>`;
 
-  // Role filters
+  // Role filter
   html += `<div class="filter-row">
-    ${['ALL','AR','BAT','BWL','WK'].map(r =>
-      `<button class="filter-btn${roleFilter === r ? ' active' : ''}" onclick="setRoleFilter('${r}')">${r === 'ALL' ? 'All' : r}</button>`
+    ${['ALL','Batter','All-rounder','Bowler'].map(r =>
+      `<button class="filter-btn${roleFilter === r ? ' active' : ''}" onclick="setFilter('${r}')">${r === 'All-rounder' ? 'AR' : r === 'ALL' ? 'All' : r}</button>`
     ).join('')}
   </div>`;
 
-  // Group players by team, grouped by group A then B
+  // Players grouped by group then team
   const teamMap = {};
-  eligible.forEach(p => {
-    const key = p.team_id;
-    if (!teamMap[key]) teamMap[key] = { name: p.ppl_teams?.name || '?', group: p.ppl_teams?.group_name || 'A', players: [] };
-    teamMap[key].players.push(p);
+  allPlayers.forEach(p => {
+    if (!teamMap[p.team_id]) teamMap[p.team_id] = { name: p.ppl_teams?.name || '?', short: p.ppl_teams?.short_name || '?', group: p.ppl_teams?.group_name || 'A', players: [] };
+    teamMap[p.team_id].players.push(p);
   });
-
-  // Sort teams: Group A first, then B
-  const sortedTeams = Object.entries(teamMap).sort(([, a], [, b]) => {
-    if (a.group !== b.group) return a.group < b.group ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
+  const sorted = Object.entries(teamMap).sort(([,a],[,b]) => a.group !== b.group ? a.group.localeCompare(b.group) : a.name.localeCompare(b.name));
 
   let lastGroup = null;
-  sortedTeams.forEach(([tid, team]) => {
+  sorted.forEach(([, team]) => {
     const filtered = roleFilter === 'ALL' ? team.players : team.players.filter(p => p.role === roleFilter);
     if (!filtered.length) return;
-
     if (team.group !== lastGroup) {
-      html += `<div class="team-section-hdr${team.group === 'B' ? ' grp-b' : ''}">Group ${team.group}</div>`;
+      html += `<div class="team-hdr${team.group === 'B' ? ' grp-b' : ''}">Group ${team.group}</div>`;
       lastGroup = team.group;
     }
-    html += `<div style="font-size:10px;color:var(--text-faint);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:8px 0 5px;padding-left:2px">${team.name}</div>`;
-    filtered.sort((a, b) => b.fantasy_price - a.fantasy_price)
-      .forEach(p => { html += playerCard(p); });
+    html += `<div class="team-name-hdr">${team.name}</div>`;
+    filtered.sort((a,b) => b.fantasy_price - a.fantasy_price).forEach(p => { html += playerCard(p); });
   });
 
   el.innerHTML = html;
 }
 
 function playerCard(p) {
-  const isSel = selected.has(p.id);
-  const isCap = captainId === p.id;
-  const isVC  = vcId === p.id;
-  const isStar = p.is_star;
-
-  // Can this player be added?
-  const remaining = getRemaining();
-  const wouldExceedBudget = !isSel && (remaining - parseFloat(p.fantasy_price || 0)) < 0;
-  const wouldExceedStars  = !isSel && isStar && getStarCount() >= MAX_STARS;
-  const wouldExceedTeam   = !isSel && selected.size >= TEAM_SIZE;
-  const isDisabled = wouldExceedBudget || wouldExceedStars || wouldExceedTeam;
+  const isSel = selected.has(p.id), isCap = captainId === p.id, isVC = vcId === p.id;
+  const rem = remaining();
+  const cantBudget = !isSel && rem < parseFloat(p.fantasy_price || 0);
+  const cantStars  = !isSel && p.is_star && starCount() >= MAX_STARS;
+  const cantSize   = !isSel && selected.size >= TEAM_SIZE;
+  const faded = (cantBudget || cantStars || cantSize) ? ' faded' : '';
 
   let cls = 'player-row';
   if (isCap) cls += ' is-captain';
   else if (isVC) cls += ' is-vc';
   else if (isSel) cls += ' selected';
-  if (isStar) cls += ' is-star-player';
-  if (isDisabled && !isSel) cls += ' disabled-row';
+  if (p.is_star) cls += ' star-player';
+  cls += faded;
 
-  const capBadge  = isCap  ? '<span class="cap-badge">C</span>'  : '';
-  const vcBadge   = isVC   ? '<span class="vc-badge">VC</span>' : '';
-  const starBadge = isStar ? '<span class="star-badge">⭐</span>' : '';
-
-  const capVcBtns = (isSel || isCap || isVC) ? `
-    <div class="cap-vc-btns" onclick="event.stopPropagation()">
-      <button class="cap-btn${isCap ? ' gold' : ''}" onclick="setCaptain('${p.id}')">C</button>
-      <button class="cap-btn${isVC  ? ' silver' : ''}" onclick="setVC('${p.id}')">VC</button>
+  const click = faded && !isSel ? '' : `onclick="togglePlayer('${p.id}')"`;
+  const checkTxt = isCap ? 'C' : isVC ? 'V' : isSel ? '✓' : '+';
+  const cvBtns = (isSel || isCap || isVC) ? `
+    <div class="cv-btns" onclick="event.stopPropagation()">
+      <button class="cv-btn${isCap ? ' gold' : ''}" onclick="setCap('${p.id}')">C</button>
+      <button class="cv-btn${isVC  ? ' silver' : ''}" onclick="setVC2('${p.id}')">VC</button>
     </div>` : '';
 
-  const checkContent = isCap ? 'C' : isVC ? 'V' : (isSel ? '✓' : '+');
-  const clickHandler = isDisabled && !isSel ? '' : `onclick="togglePlayer('${p.id}')"`;
-
-  return `
-    <div class="${cls}" ${clickHandler} id="prow-${p.id}">
-      <div class="player-check">${checkContent}</div>
-      <div class="player-info">
-        <div class="player-name-row">
-          ${p.name}${capBadge}${vcBadge}${starBadge}
-          <span class="role-badge role-${p.role || 'BAT'}">${p.role || 'BAT'}</span>
-        </div>
-        <div class="player-meta">${p.ppl_teams?.short_name || ''}</div>
+  return `<div class="${cls}" ${click} id="pr-${p.id}">
+    <div class="p-check">${checkTxt}</div>
+    <div class="p-info">
+      <div class="p-name">${p.name}
+        ${isCap ? '<span class="cap-badge">C</span>' : isVC ? '<span class="vc-badge">VC</span>' : ''}
+        ${p.is_star ? '<span class="star-icon">⭐</span>' : ''}
+        <span class="role-badge role-${p.role}">${p.role === 'All-rounder' ? 'AR' : p.role}</span>
       </div>
-      <div class="player-right">
-        <div class="player-price${isStar ? ' is-star' : ''}">${p.fantasy_price}</div>
-        ${capVcBtns}
-      </div>
-    </div>`;
+      <div class="p-meta">${p.ppl_teams?.short_name || ''}</div>
+    </div>
+    <div class="p-right">
+      <div class="p-price${p.is_star ? ' is-star' : ''}">${p.fantasy_price}</div>
+      ${cvBtns}
+    </div>
+  </div>`;
 }
 
-function playerShortName(id) {
-  const p = allPlayers.find(x => x.id === id);
-  if (!p) return '?';
-  return p.name.split(' ')[0];
-}
-
-function setRoleFilter(r) {
-  roleFilter = r;
-  renderPickTab(getDayObj());
-}
+function setFilter(r) { roleFilter = r; renderPick(getDayObj()); }
 
 function togglePlayer(id) {
   const p = allPlayers.find(x => x.id === id);
   if (!p) return;
-
   if (selected.has(id)) {
     selected.delete(id);
     if (captainId === id) captainId = null;
     if (vcId === id) vcId = null;
   } else {
-    // Validate
-    if (selected.size >= TEAM_SIZE) { showMsg(`You can only pick ${TEAM_SIZE} players`, 'error'); return; }
-    if (getRemaining() < parseFloat(p.fantasy_price || 0)) {
-      showMsg(`Not enough budget! Need ${p.fantasy_price} pts, have ${getRemaining()}`, 'error'); return;
-    }
-    if (p.is_star && getStarCount() >= MAX_STARS) {
-      showMsg(`Max ${MAX_STARS} star players (⭐) allowed!`, 'error'); return;
-    }
+    if (selected.size >= TEAM_SIZE) { showMsg(`Max ${TEAM_SIZE} players`,'err'); return; }
+    if (remaining() < parseFloat(p.fantasy_price || 0)) { showMsg(`Not enough budget (need ${p.fantasy_price}, have ${remaining()})`,'err'); return; }
+    if (p.is_star && starCount() >= MAX_STARS) { showMsg(`Max ${MAX_STARS} star players ⭐ allowed`,'err'); return; }
     selected.add(id);
   }
-  renderPickTab(getDayObj());
+  renderPick(getDayObj());
 }
 
-function setCaptain(id) {
-  if (vcId === id) vcId = null;
-  captainId = id;
-  renderPickTab(getDayObj());
-}
-
-function setVC(id) {
-  if (captainId === id) captainId = null;
-  vcId = id;
-  renderPickTab(getDayObj());
-}
-
-function clearSelection() {
-  clearSelectionSilent();
-  renderPickTab(getDayObj());
-}
-
-function clearSelectionSilent() {
-  selected.clear(); captainId = null; vcId = null; existingTeam = null;
-}
+function setCap(id) { if (vcId === id) vcId = null; captainId = id; renderPick(getDayObj()); }
+function setVC2(id) { if (captainId === id) captainId = null; vcId = id; renderPick(getDayObj()); }
+function clearSel() { clearSelSilent(); renderPick(getDayObj()); }
+function clearSelSilent() { selected.clear(); captainId = null; vcId = null; existingTeam = null; }
 
 async function submitTeam() {
-  // Validate
-  if (selected.size < TEAM_SIZE) { showMsg(`Select exactly ${TEAM_SIZE} players (have ${selected.size})`, 'error'); return; }
-  if (!captainId)  { showMsg('Set your Captain (C)', 'error'); return; }
-  if (!vcId)       { showMsg('Set your Vice Captain (VC)', 'error'); return; }
-  if (captainId === vcId) { showMsg('Captain and VC must be different players', 'error'); return; }
-
-  const spent = getSpent();
-  if (spent > BUDGET) { showMsg(`Over budget! Spent ${spent}/${BUDGET} pts`, 'error'); return; }
-
-  const stars = getStarCount();
-  if (stars > MAX_STARS) { showMsg(`Too many star players: ${stars}/${MAX_STARS} allowed`, 'error'); return; }
+  // Client-side validation
+  if (selected.size !== TEAM_SIZE) { showMsg(`Pick exactly ${TEAM_SIZE} players (have ${selected.size})`,'err'); return; }
+  if (!captainId)  { showMsg('Set your Captain (C)','err'); return; }
+  if (!vcId)       { showMsg('Set your Vice Captain (VC)','err'); return; }
+  if (captainId === vcId) { showMsg('C and VC must be different','err'); return; }
+  if (spent() > BUDGET) { showMsg(`Over budget! ${spent()}/${BUDGET}`,'err'); return; }
+  if (starCount() > MAX_STARS) { showMsg(`Too many ⭐ stars (${starCount()}/${MAX_STARS})`,'err'); return; }
+  if (roleCount('Batter') < MIN_BAT) { showMsg(`Need at least ${MIN_BAT} Batters (have ${roleCount('Batter')})`,'err'); return; }
+  if (roleCount('Bowler') < MIN_BOWL) { showMsg(`Need at least ${MIN_BOWL} Bowlers (have ${roleCount('Bowler')})`,'err'); return; }
+  if (roleCount('All-rounder') < MIN_AR) { showMsg(`Need at least ${MIN_AR} All-rounder`,'err'); return; }
 
   const day = getDayObj();
   const btn = document.getElementById('submit-btn');
   btn.textContent = 'Saving…'; btn.disabled = true;
 
   try {
-    const teamPayload = {
-      user_id: currentUser.id,
-      day_id: day.id,
-      user_name: currentUser.name,
-      total_budget_used: spent
-    };
     let teamId;
+    const teamPayload = {
+      user_id: ME.id, day_id: day.id, user_name: ME.team_name || ME.full_name,
+      captain_player_id: captainId, vice_captain_player_id: vcId,
+      total_credits_used: spent(), total_budget_used: spent(), is_locked: false
+    };
 
     if (existingTeam) {
       await sb.from('ppl_user_teams').update(teamPayload).eq('id', existingTeam.id);
       teamId = existingTeam.id;
       await sb.from('ppl_user_team_players').delete().eq('user_team_id', teamId);
     } else {
-      const { data: newTeam } = await sb.from('ppl_user_teams').insert(teamPayload).select().single();
-      teamId = newTeam.id;
+      const { data: nt, error: te } = await sb.from('ppl_user_teams').insert(teamPayload).select().single();
+      if (te) throw te;
+      teamId = nt.id;
     }
 
     const picks = [...selected].map(pid => ({
-      user_team_id:    teamId,
-      player_id:       pid,
-      user_id:         currentUser.id,
-      is_captain:      pid === captainId,
-      is_vice_captain: pid === vcId
+      user_team_id: teamId, player_id: pid, user_id: ME.id,
+      is_captain: pid === captainId, is_vice_captain: pid === vcId
     }));
-    await sb.from('ppl_user_team_players').insert(picks);
+    const { error: pe } = await sb.from('ppl_user_team_players').insert(picks);
+    if (pe) throw pe;
 
-    showMsg('✅ Team saved!', 'success');
+    showMsg('✅ Team saved!','ok');
     await loadTab();
-  } catch (e) {
-    showMsg('Error: ' + e.message, 'error');
+  } catch(e) {
+    showMsg('Error: ' + (e.message || JSON.stringify(e)),'err');
   } finally {
     btn.textContent = '💾 Save Team'; btn.disabled = false;
   }
 }
 
-// ── MY TEAM TAB ───────────────────────────────────────────────────────
+// ─── MY TEAM TAB ──────────────────────────────────────────────────────────
 async function renderMyTeam(day) {
   const el = document.getElementById('tab-content');
-
   if (!existingTeam) {
-    el.innerHTML = `<div class="empty">You haven't submitted a team for Day ${activeDay}.<br><br>Switch to <strong>Pick Team</strong> to create one.</div>`;
-    return;
-  }
-
-  const { data: score } = await sb.from('ppl_fantasy_scores')
-    .select('total_points, rank')
-    .eq('user_id', currentUser.id).eq('day_id', day.id).maybeSingle();
-
-  // Player points for this day
-  const { data: mids } = await sb.from('ppl_matches').select('id').eq('day', activeDay);
-  const matchIds = (mids || []).map(m => m.id);
-  let pmpMap = {};
-  if (matchIds.length) {
-    const { data: pmp } = await sb.from('ppl_player_match_points')
-      .select('player_id, fantasy_points').in('match_id', matchIds);
-    (pmp || []).forEach(r => { pmpMap[r.player_id] = (pmpMap[r.player_id] || 0) + r.fantasy_points; });
+    el.innerHTML = `<div class="empty">No team submitted for Day ${day.day}.<br><br>Go to <strong>Pick XI</strong> to create one.</div>`; return;
   }
 
   const picks = existingTeam.ppl_user_team_players || [];
-  const spent = picks.reduce((s, pick) => {
+  const totalPts = existingTeam.total_points || 0;
+
+  // Get day rank
+  const { data: sc } = await sb.from('ppl_fantasy_scores')
+    .select('day_points,rank_for_day').eq('user_id', ME.id).eq('day_id', day.id).maybeSingle();
+
+  const budgetUsed = picks.reduce((s, pick) => {
     const p = allPlayers.find(pl => pl.id === pick.player_id);
     return s + parseFloat(p?.fantasy_price || 0);
   }, 0);
 
-  let html = `
-    <div class="my-team-header">
-      <div style="font-size:12px;color:var(--text-faint);margin-bottom:4px">Day ${activeDay} — ${currentUser.name}</div>
-      <div class="my-team-pts">${score ? score.total_points.toFixed(1) : '—'}</div>
-      <div class="my-team-rank">${score ? `Rank #${score.rank}` : 'Points calculated after matches'}</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-top:6px">Budget used: <strong style="color:var(--text-dim)">${Math.round(spent * 10) / 10}/${BUDGET}</strong></div>
-    </div>`;
+  let html = `<div class="my-team-hdr">
+    <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">Day ${day.day} · ${ME.team_name || ME.full_name}</div>
+    <div class="my-pts">${sc ? sc.day_points.toFixed(1) : totalPts.toFixed(1)}</div>
+    <div class="my-rank">${sc ? `Day Rank #${sc.rank_for_day}` : 'Points update after matches'}</div>
+    <div style="font-size:11px;color:var(--text-faint);margin-top:6px">Budget used: <strong style="color:var(--text-dim)">${Math.round(budgetUsed*10)/10}/${BUDGET}</strong></div>
+  </div>`;
 
-  const sorted = [...picks].sort((a, b) => {
-    if (a.is_captain) return -1; if (b.is_captain) return 1;
-    if (a.is_vice_captain) return -1; if (b.is_vice_captain) return 1;
+  const sorted = [...picks].sort((a,b) => {
+    if (a.player_id === existingTeam.captain_player_id) return -1;
+    if (b.player_id === existingTeam.captain_player_id) return 1;
+    if (a.player_id === existingTeam.vice_captain_player_id) return -1;
+    if (b.player_id === existingTeam.vice_captain_player_id) return 1;
     const pa = allPlayers.find(pl => pl.id === a.player_id);
     const pb = allPlayers.find(pl => pl.id === b.player_id);
-    return (pb?.fantasy_price || 0) - (pa?.fantasy_price || 0);
+    return (pb?.fantasy_price||0) - (pa?.fantasy_price||0);
   });
 
   html += sorted.map(pick => {
     const p    = allPlayers.find(pl => pl.id === pick.player_id);
-    const pts  = pmpMap[pick.player_id] || 0;
-    const mult = pick.is_captain ? 2 : pick.is_vice_captain ? 1.5 : 1;
-    const fin  = pts * mult;
-    const badge = pick.is_captain
-      ? '<span class="cap-badge">C</span>'
-      : pick.is_vice_captain ? '<span class="vc-badge">VC</span>' : '';
-    const starB = p?.is_star ? '<span class="star-badge">⭐</span>' : '';
-    return `
-      <div class="my-player-row">
-        <div class="player-info">
-          <div class="player-name-row">${p?.name || '?'}${badge}${starB}
-            <span class="role-badge role-${p?.role || 'BAT'}">${p?.role || 'BAT'}</span>
-          </div>
-          <div class="player-meta">${p?.ppl_teams?.short_name || ''} · ${p?.fantasy_price || 0} pts</div>
+    const isCap = pick.player_id === existingTeam.captain_player_id;
+    const isVC  = pick.player_id === existingTeam.vice_captain_player_id;
+    const mult  = isCap ? 2 : isVC ? 1.5 : 1;
+    const raw   = parseFloat(pick.fantasy_points || 0);
+    const fin   = raw * mult;
+    const badge = isCap ? '<span class="cap-badge">C</span>' : isVC ? '<span class="vc-badge">VC</span>' : '';
+    const starB = p?.is_star ? '<span class="star-icon">⭐</span>' : '';
+    return `<div class="my-player-row">
+      <div class="p-info">
+        <div class="p-name">${p?.name || '?'}${badge}${starB}
+          <span class="role-badge role-${p?.role||'Batter'}">${p?.role === 'All-rounder' ? 'AR' : p?.role || 'BAT'}</span>
         </div>
-        <div class="my-player-pts">
-          ${fin > 0 ? fin.toFixed(1) : '—'}
-          ${mult > 1 ? `<div class="multiplier">×${mult}</div>` : ''}
-        </div>
-      </div>`;
+        <div class="p-meta">${p?.ppl_teams?.short_name || ''} · ${p?.fantasy_price || 0} cr</div>
+      </div>
+      <div class="my-pts-cell">
+        ${raw > 0 ? fin.toFixed(1) : '—'}
+        ${mult > 1 ? `<div class="mult">×${mult}</div>` : ''}
+      </div>
+    </div>`;
   }).join('');
 
   el.innerHTML = html;
 }
 
-// ── LEADERBOARD ───────────────────────────────────────────────────────
+// ─── LEADERBOARD TAB ──────────────────────────────────────────────────────
 async function renderLeaderboard(day) {
   const el = document.getElementById('tab-content');
-  el.innerHTML = '<div class="loading">Loading…</div>';
+  el.innerHTML = `
+    <div class="lb-tabs">
+      <button class="lb-tab${activeLbTab==='overall'?' active':''}" onclick="switchLbTab('overall',this)">🏆 Overall</button>
+      <button class="lb-tab${activeLbTab==='day'?' active':''}" onclick="switchLbTab('day',this)">Day ${day.day}</button>
+    </div>
+    <div id="lb-body"><div class="loading">Loading…</div></div>`;
 
-  const { data: scores } = await sb.from('ppl_fantasy_scores')
-    .select('*, ppl_user_teams(user_name)')
-    .eq('day_id', day.id).order('rank');
+  loadLbBody(day);
+}
 
-  if (!scores || !scores.length) {
-    el.innerHTML = `<div class="empty">Leaderboard appears after Day ${activeDay} matches are complete.</div>`;
-    return;
-  }
+function switchLbTab(tab, btn) {
+  activeLbTab = tab;
+  document.querySelectorAll('.lb-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadLbBody(getDayObj());
+}
 
-  el.innerHTML = scores.map((s, i) => {
-    const rankCls  = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${s.rank}`;
-    const isMe     = s.ppl_user_teams?.user_name === currentUser.name;
-    return `
-      <div class="lb-card" style="${isMe ? 'border-color:rgba(154,224,0,0.35);background:#051209' : ''}">
-        <div class="lb-rank ${rankCls}">${rankIcon}</div>
+async function loadLbBody(day) {
+  const el = document.getElementById('lb-body');
+  if (!el) return;
+
+  if (activeLbTab === 'overall') {
+    const { data: rows } = await sb.from('ppl_overall_leaderboard').select('*').order('overall_rank');
+    if (!rows || !rows.length) {
+      el.innerHTML = `<div class="empty">Overall leaderboard appears after Day 1 matches complete.</div>`; return;
+    }
+    el.innerHTML = rows.map((r, i) => {
+      const isMe = r.user_id === ME.id;
+      const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const icon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${r.overall_rank}`;
+      return `<div class="lb-card${isMe?' me':''}">
+        <div class="lb-rank ${rankCls}">${icon}</div>
         <div class="lb-info">
-          <div class="lb-name">${s.ppl_user_teams?.user_name || 'Player'}
-            ${isMe ? '<span class="you-tag">← You</span>' : ''}
+          <div class="lb-name">${r.team_name || r.full_name || 'Player'}${isMe?'<span class="you-tag">← You</span>':''}</div>
+          <div class="lb-sub">
+            ${r.day1_points != null ? `D1: <strong>${r.day1_points.toFixed(1)}</strong>` : 'D1: —'} &nbsp;
+            ${r.day2_points != null ? `D2: <strong>${r.day2_points.toFixed(1)}</strong>` : 'D2: —'} &nbsp;
+            ${r.day3_points != null ? `D3: <strong>${r.day3_points.toFixed(1)}</strong>` : 'D3: —'}
           </div>
-          <div style="font-size:11px;color:var(--text-faint)">Day ${activeDay}</div>
         </div>
-        <div class="lb-pts">${s.total_points.toFixed(1)}</div>
+        <div class="lb-pts">${parseFloat(r.total_points).toFixed(1)}</div>
       </div>`;
-  }).join('');
+    }).join('');
+  } else {
+    const { data: rows } = await sb.from('ppl_fantasy_scores')
+      .select('*, ppl_user_teams(user_name)')
+      .eq('day_id', day.id).order('rank_for_day');
+    if (!rows || !rows.length) {
+      el.innerHTML = `<div class="empty">Day ${day.day} leaderboard appears after matches complete.</div>`; return;
+    }
+    el.innerHTML = rows.map((r, i) => {
+      // get user profile name from user_teams join
+      const name = r.ppl_user_teams?.user_name || 'Player';
+      const isMe = r.user_id === ME.id;
+      const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const icon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${r.rank_for_day}`;
+      return `<div class="lb-card${isMe?' me':''}">
+        <div class="lb-rank ${rankCls}">${icon}</div>
+        <div class="lb-info">
+          <div class="lb-name">${name}${isMe?'<span class="you-tag">← You</span>':''}</div>
+          <div class="lb-sub">Day ${day.day}</div>
+        </div>
+        <div class="lb-pts">${parseFloat(r.day_points).toFixed(1)}</div>
+      </div>`;
+    }).join('');
+  }
 }
 
-// ── MSG ───────────────────────────────────────────────────────────────
+// ─── MSG ──────────────────────────────────────────────────────────────────
 function showMsg(msg, type) {
-  const el  = document.getElementById('tab-content');
-  const old = el.querySelector('.msg');
-  if (old) old.remove();
+  const el = document.getElementById('tab-content');
+  const old = el?.querySelector('.msg'); if (old) old.remove();
   const div = document.createElement('div');
-  div.className = `msg msg-${type}`;
+  div.className = `msg msg-${type === 'err' ? 'err' : 'ok'}`;
   div.textContent = msg;
-  el.prepend(div);
-  setTimeout(() => div.remove(), 3500);
+  el?.prepend(div);
+  setTimeout(() => div.remove(), 4000);
 }
 
-init();
+boot();
 </script>
 </body>
 </html>
