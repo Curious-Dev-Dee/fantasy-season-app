@@ -636,10 +636,9 @@ function render() {
   // Deliveries for current innings
   const currDels = currentInn ? allDeliveries.filter(d => d.innings_id === currentInn.id) : [];
 
-  // Current over balls (last over not fully done yet — or last over if complete)
+  // Current over balls
   const lastOverNum = currDels.length > 0 ? currDels[currDels.length - 1].over_number : 0;
   const currentOverBalls = currDels.filter(d => d.over_number === lastOverNum);
-  const legalInOver = currentOverBalls.filter(d => !d.extra_type || d.extra_type === 'no_ball').length;
   const overRunsThisOver = currentOverBalls.reduce((s,d) => s + (d.runs_off_bat||0) + (d.extras||0), 0);
   const currentOverNum = currentInn ? Math.floor(parseFloat(currentInn.total_overs || 0)) : 0;
 
@@ -653,28 +652,34 @@ function render() {
     const dels = currDels.filter(d => d.batter_id === batterId);
     return {
       runs: dels.reduce((s,d) => s + (d.runs_off_bat||0), 0),
-      balls: dels.filter(d => !d.extra_type || d.extra_type === 'no_ball').length,
+      balls: dels.filter(d => !d.extra_type || d.extra_type === 'no_ball').length, // No-balls count for batters
       fours: dels.filter(d => d.is_four).length,
       sixes: dels.filter(d => d.is_six).length,
     };
   }
+  
+  // Bowler stats from deliveries
   function getBowlerStats(bowlerId) {
     const bowlDels = currDels.filter(d => d.bowler_id === bowlerId);
-    const legalBalls = bowlDels.filter(d => !d.extra_type || d.extra_type === 'no_ball').length;
+    // Wides and No Balls do NOT count as legal deliveries for a bowler
+    const legalBalls = bowlDels.filter(d => !d.extra_type || (d.extra_type !== 'wide' && d.extra_type !== 'no_ball')).length;
     return {
       overs: `${Math.floor(legalBalls/6)}.${legalBalls%6}`,
       runs: bowlDels.reduce((s,d) => s + (d.runs_off_bat||0) + (d.extras||0), 0),
-      wickets: bowlDels.filter(d => d.is_wicket && !['run out','retired hurt'].includes(d.dismissal_type)).length,
+      // Fixed the database spelling of run_out
+      wickets: bowlDels.filter(d => d.is_wicket && !['run_out','retired_out'].includes(d.dismissal_type)).length,
     };
   }
 
   function pName(id) { return allPlayers.find(p => p.id === id)?.name || '—'; }
 
-  // CRR
+  // CRR (Fixed Base-6 Math)
   const overs = parseFloat(currentInn?.total_overs || 0);
   const runs = currentInn?.total_runs || 0;
   const wickets = currentInn?.total_wickets || 0;
-  const crr = overs > 0 ? (runs / overs).toFixed(2) : '0.00';
+  
+  const totalBallsBowled = Math.floor(overs) * 6 + Math.round((overs % 1) * 10);
+  const crr = totalBallsBowled > 0 ? (runs / (totalBallsBowled / 6)).toFixed(2) : '0.00';
   const maxOvers = m.overs_per_side || 8;
 
   // Target / RRR (2nd innings)
@@ -682,7 +687,7 @@ function render() {
   if (isSecondInnings && firstInn) {
     const target = (firstInn.total_runs || 0) + 1;
     const needed = target - runs;
-    const ballsLeft = (maxOvers * 6) - (Math.floor(overs) * 6 + (overs % 1) * 10);
+    const ballsLeft = (maxOvers * 6) - totalBallsBowled;
     const oversLeft = ballsLeft / 6;
     const rrr = oversLeft > 0 ? (needed / oversLeft).toFixed(2) : '∞';
     const rrrClass = parseFloat(rrr) > parseFloat(crr) + 2 ? 'hot' : 'cool';
@@ -722,7 +727,7 @@ function render() {
   }).join('');
   const emptyChips = Array(emptySlots).fill('<div class="ball-chip b-empty"></div>').join('');
 
-  // Score block — show both innings if 2nd is in progress
+  // Score block
   let scoreBlock = '';
   if (isSecondInnings && firstInn && secondInn) {
     const firstTeam = firstInn.batting_team_id === m.team_a_id ? m.team_a : m.team_b;
@@ -867,7 +872,6 @@ function render() {
     ${isLive ? '<div class="refresh-note"><i class="fas fa-circle-notch fa-spin" id="spinIcon" style="display:none"></i> Updates in real-time</div>' : ''}
   `;
 }
-
 // ── NO MATCH STATE ─────────────────────────────────────────────
 function renderNoMatch(showAll) {
   document.getElementById('headerDot').classList.add('idle');

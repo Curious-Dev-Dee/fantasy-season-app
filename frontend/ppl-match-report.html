@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Match Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --accent:        #9AE000;
+      --accent-dim:    rgba(154,224,0,0.09);
+      --accent-glow:   rgba(154,224,0,0.28);
+      --bg-page:       #020617;
+      --bg-card:       #0d1625;
+      --bg-card-alt:   #111e30;
+      --border-card:   rgba(255,255,255,0.10);
+      --border:        rgba(255,255,255,0.07);
+      --border-subtle: rgba(255,255,255,0.04);
+      --border-accent: rgba(154,224,0,0.20);
+      --text-primary:  #f0f4f8;
+      --text-dim:      #94a3b8;
+      --text-faint:    #64748b;
+      --red:           #ef4444;
+      --gold:          #f59e0b;
+      --star:          #fbbf24;
+      --rank-color:    #7cc4ff;
+      --font-display:  'Barlow Condensed', sans-serif;
+      --font-body:     'DM Sans', sans-serif;
+      --card-radius:   16px;
+      --btn-radius:    12px;
+      --nav-height:    65px;
+      --transition:    all 250ms cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-body); background: var(--bg-page); color: var(--text-primary); min-height: 100vh; display: flex; justify-content: center; }
+    .app-wrap { width: 100%; max-width: 480px; padding: 0 0 calc(var(--nav-height) + 24px); }
+
+    /* ── HEADER ── */
+    .app-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; background: rgba(2,6,23,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .icon-back { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-card); color: var(--text-primary); display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; flex-shrink: 0; }
+    .page-title { font-family: var(--font-display); font-size: 20px; font-weight: 900; text-transform: uppercase; flex: 1; margin-left: 12px; }
+
+    /* ── CONTENT ── */
+    .section { padding: 16px; }
+    .section-label { font-family: var(--font-display); font-size: 11px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+    .section-label::before { content: ''; width: 3px; height: 12px; background: var(--accent); border-radius: 2px; }
+
+    /* ── MATCH HERO SUMMARY ── */
+    .hero-card { background: linear-gradient(145deg, var(--bg-card-alt), var(--bg-card)); border: 1px solid var(--border-accent); border-radius: var(--card-radius); padding: 20px; text-align: center; position: relative; overflow: hidden; margin-bottom: 16px; }
+    .hero-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), transparent); }
+    .hero-meta { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+    .hero-teams { font-family: var(--font-display); font-size: 26px; font-weight: 900; margin-bottom: 12px; line-height: 1.1; }
+    .hero-result { display: inline-block; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-accent); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; margin-bottom: 12px; }
+    .hero-toss { font-size: 12px; color: var(--text-faint); background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; border: 1px solid var(--border-subtle); display: inline-block; width: 100%; }
+
+    /* ── INNINGS SCORES ── */
+    .score-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; margin-bottom: 8px; }
+    .score-team { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--text-dim); }
+    .score-runs { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--text-primary); }
+    .score-overs { font-size: 11px; color: var(--text-faint); margin-left: 6px; }
+    .winner-row { border-color: rgba(154,224,0,0.3); background: rgba(154,224,0,0.03); }
+    .winner-row .score-team, .winner-row .score-runs { color: var(--accent); }
+
+    /* ── AWARD CARDS ── */
+    .award-card { display: flex; align-items: center; gap: 14px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+    .award-card.gold { border-color: rgba(251,191,36,0.3); background: linear-gradient(145deg, rgba(251,191,36,0.05), var(--bg-card)); }
+    .award-card.blue { border-color: rgba(124,196,255,0.3); background: linear-gradient(145deg, rgba(124,196,255,0.05), var(--bg-card)); }
+    .award-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .gold .award-icon { background: rgba(251,191,36,0.15); color: var(--star); border: 1px solid rgba(251,191,36,0.3); }
+    .blue .award-icon { background: rgba(124,196,255,0.15); color: var(--rank-color); border: 1px solid rgba(124,196,255,0.3); }
+    .award-info { flex: 1; min-width: 0; }
+    .award-title { font-family: var(--font-display); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-faint); margin-bottom: 2px; }
+    .award-name { font-size: 16px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .award-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; text-align: right; }
+    .gold .award-val { color: var(--star); }
+    .blue .award-val { color: var(--rank-color); }
+    .award-val-sub { font-size: 10px; color: var(--text-faint); display: block; margin-top: -2px; font-family: var(--font-body); font-weight: 500; }
+
+    /* ── PERF GRID ── */
+    .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .perf-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 12px; text-align: center; }
+    .perf-lbl { font-family: var(--font-display); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-faint); margin-bottom: 6px; }
+    .perf-name { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .perf-stat { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--accent); }
+    .perf-sub { font-size: 10px; color: var(--text-faint); }
+
+    /* ── BTN ── */
+    .btn-full { display: block; width: 100%; padding: 14px; text-align: center; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--btn-radius); font-family: var(--font-display); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); text-decoration: none; transition: var(--transition); }
+    .btn-full:active { transform: scale(0.98); }
+    .btn-full:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+
+    /* ── LOADING/EMPTY ── */
+    .loading { text-align: center; color: var(--text-faint); padding: 50px 0; font-size: 13px; }
+    .empty { text-align: center; color: var(--text-faint); padding: 40px 20px; font-size: 13px; line-height: 1.6; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-card); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(13,22,37,0.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border-card); display: flex; align-items: center; height: var(--nav-height); z-index: 200; padding: 0 8px; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; text-decoration: none; color: var(--text-faint); font-family: var(--font-display); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; transition: var(--transition); }
+    .nav-item i { font-size: 18px; }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active i { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+  </style>
+</head>
+<body>
+
+<div class="app-wrap">
+  <!-- HEADER -->
+  <header class="app-header">
+    <a class="icon-back" href="javascript:history.back()"><i class="fas fa-arrow-left"></i></a>
+    <h1 class="page-title">Match Report</h1>
+    <div style="width:36px"></div> <!-- spacer to center title -->
+  </header>
+
+  <!-- CONTENT -->
+  <div class="section" id="content">
+    <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Analyzing Match Data…</div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="ppl-home.html"><i class="fas fa-house"></i><span>Home</span></a>
+  <a class="nav-item" href="ppl-fixtures.html"><i class="fas fa-calendar-days"></i><span>Fixtures</span></a>
+  <a class="nav-item" href="ppl-scorecard.html"><i class="fas fa-cricket-bat-ball"></i><span>Scores</span></a>
+  <a class="nav-item" href="ppl-stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+  <a class="nav-item" href="ppl-fantasy.html"><i class="fas fa-bolt"></i><span>Fantasy</span></a>
+</nav>
+
+<script>
+const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const matchId = new URLSearchParams(location.search).get('match');
+
+async function init() {
+  if (!matchId) {
+    document.getElementById('content').innerHTML = '<div class="empty">No match selected.<br><a href="ppl-fixtures.html" style="color:var(--accent);text-decoration:none;font-weight:bold;margin-top:10px;display:inline-block">View Fixtures</a></div>';
+    return;
+  }
+
+  try {
+    // 1. Fetch match & innings
+    const { data: m } = await sb.from('ppl_matches')
+      .select(`*, team_a:team_a_id(id,name,short_name), team_b:team_b_id(id,name,short_name),
+               winner:winner_id(id,name), mom:mom_player_id(id,name), toss:toss_winner_id(name),
+               innings:ppl_innings(*)`)
+      .eq('id', matchId).single();
+
+    if (!m) throw new Error("Match not found");
+
+    if (m.status !== 'completed' && m.status !== 'no_result') {
+      document.getElementById('content').innerHTML = `
+        <div class="empty">
+          <i class="fas fa-clock" style="font-size:24px;margin-bottom:10px;opacity:0.5"></i><br>
+          Match Report will be generated once the match is completed.<br>
+          <a href="ppl-scorecard.html?match=${m.id}" style="color:var(--accent);text-decoration:none;font-weight:bold;margin-top:10px;display:inline-block">View Live Scorecard →</a>
+        </div>`;
+      return;
+    }
+
+    // 2. Fetch deliveries to calculate Top Batter & Bowler
+    const { data: dels } = await sb.from('ppl_deliveries').select('*').eq('match_id', matchId);
+    
+    // 3. Fetch fantasy points to calculate Fantasy MVP
+    const { data: pts } = await sb.from('ppl_player_match_points').select('player_id, points').eq('match_id', matchId);
+    
+    // 4. Fetch all players (for names)
+    const { data: players } = await sb.from('ppl_players').select('id,name');
+    const pName = (id) => players?.find(p => p.id === id)?.name || 'Unknown';
+
+    // Calculate Top Batter
+    const batters = {};
+    const bowlers = {};
+    (dels || []).forEach(d => {
+      // Batting
+      if (d.batter_id) {
+        if (!batters[d.batter_id]) batters[d.batter_id] = { runs: 0, balls: 0 };
+        batters[d.batter_id].runs += (d.runs_off_bat || 0);
+        if (!d.extra_type || d.extra_type === 'no_ball') batters[d.batter_id].balls++;
+      }
+      // Bowling
+      if (d.bowler_id) {
+        if (!bowlers[d.bowler_id]) bowlers[d.bowler_id] = { runs: 0, wkts: 0 };
+        bowlers[d.bowler_id].runs += (d.runs_off_bat || 0) + (d.extras || 0);
+        if (d.is_wicket && !['run_out','retired_out'].includes(d.dismissal_type)) {
+          bowlers[d.bowler_id].wkts++;
+        }
+      }
+    });
+
+    let topBatter = { id: null, runs: 0, balls: 0 };
+    Object.entries(batters).forEach(([id, stats]) => {
+      if (stats.runs > topBatter.runs || (stats.runs === topBatter.runs && stats.balls < topBatter.balls)) {
+        topBatter = { id, ...stats };
+      }
+    });
+
+    let topBowler = { id: null, wkts: 0, runs: 999 };
+    Object.entries(bowlers).forEach(([id, stats]) => {
+      if (stats.wkts > topBowler.wkts || (stats.wkts === topBowler.wkts && stats.runs < topBowler.runs)) {
+        topBowler = { id, ...stats };
+      }
+    });
+
+    // Calculate Fantasy MVP
+    const fMap = {};
+    (pts || []).forEach(row => {
+      if (!fMap[row.player_id]) fMap[row.player_id] = 0;
+      fMap[row.player_id] += parseFloat(row.points || 0);
+    });
+    let mvp = { id: null, pts: -999 };
+    Object.entries(fMap).forEach(([id, p]) => {
+      if (p > mvp.pts) mvp = { id, pts: p };
+    });
+
+    // Render HTML
+    const inns = (m.innings || []).sort((a,b) => a.innings_number - b.innings_number);
+    const tossStr = m.toss ? `${m.toss.name} won the toss and elected to ${m.toss_decision === 'bat' ? 'bat' : 'bowl'} first.` : 'Toss data unavailable';
+    
+    let scoreHtml = inns.map(inn => {
+      const isWinner = m.winner?.id === inn.batting_team_id;
+      const team = inn.batting_team_id === m.team_a?.id ? m.team_a : m.team_b;
+      return `
+        <div class="score-row ${isWinner ? 'winner-row' : ''}">
+          <div class="score-team">${team?.short_name}</div>
+          <div>
+            <span class="score-runs">${inn.total_runs}/${inn.total_wickets}</span>
+            <span class="score-overs">(${inn.total_overs} ov)</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    if (inns.length === 0) scoreHtml = '<div class="empty" style="padding:20px">No innings data</div>';
+
+    document.getElementById('content').innerHTML = `
+      <!-- HERO SUMMARY -->
+      <div class="hero-card">
+        <div class="hero-meta">Day ${m.day} · Match ${m.match_number}</div>
+        <div class="hero-teams">${m.team_a?.short_name} vs ${m.team_b?.short_name}</div>
+        <div class="hero-result">${m.result_description || 'Match Completed'}</div>
+        <div class="hero-toss">${tossStr}</div>
+      </div>
+
+      <!-- SCORES -->
+      <div class="section-label">Innings Summary</div>
+      ${scoreHtml}
+
+      <!-- AWARDS -->
+      <div class="section-label">Match Awards</div>
+      ${m.mom ? `
+      <div class="award-card gold">
+        <div class="award-icon"><i class="fas fa-star"></i></div>
+        <div class="award-info">
+          <div class="award-title">Player of the Match</div>
+          <div class="award-name">${m.mom.name}</div>
+        </div>
+      </div>` : '<div class="empty" style="padding:15px;margin-bottom:10px">MOM not awarded yet</div>'}
+
+      ${mvp.id ? `
+      <div class="award-card blue">
+        <div class="award-icon"><i class="fas fa-bolt"></i></div>
+        <div class="award-info">
+          <div class="award-title">Fantasy MVP</div>
+          <div class="award-name">${pName(mvp.id)}</div>
+        </div>
+        <div class="award-val">${mvp.pts}<span class="award-val-sub">pts</span></div>
+      </div>` : ''}
+
+      <!-- TOP PERFORMERS -->
+      <div class="section-label">Top Performers</div>
+      <div class="perf-grid">
+        <div class="perf-card">
+          <div class="perf-lbl">Best Batter</div>
+          <div class="perf-name">${topBatter.id ? pName(topBatter.id) : '—'}</div>
+          <div class="perf-stat">${topBatter.id ? topBatter.runs : '-'}</div>
+          <div class="perf-sub">${topBatter.id ? `(${topBatter.balls} balls)` : ''}</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-lbl">Best Bowler</div>
+          <div class="perf-name">${topBowler.id ? pName(topBowler.id) : '—'}</div>
+          <div class="perf-stat">${topBowler.id ? topBowler.wkts : '-'} <span style="font-size:12px;color:var(--text-faint)">/ ${topBowler.id ? topBowler.runs : '-'}</span></div>
+          <div class="perf-sub">Wickets / Runs</div>
+        </div>
+      </div>
+
+      <a href="ppl-scorecard.html?match=${m.id}" class="btn-full">
+        View Full Scorecard <i class="fas fa-arrow-right" style="margin-left:6px;font-size:12px"></i>
+      </a>
+    `;
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('content').innerHTML = `<div class="empty">Error loading match report.</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

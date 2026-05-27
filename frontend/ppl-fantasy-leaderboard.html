@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PPL 2026 — Fantasy Leaderboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --accent:       #9AE000;
+      --accent-dim:   rgba(154,224,0,0.09);
+      --accent-glow:  rgba(154,224,0,0.28);
+      --bg-page:      #020617;
+      --bg-card:      #0d1625;
+      --border-card:  rgba(255,255,255,0.10);
+      --border:       rgba(255,255,255,0.07);
+      --text-primary: #f0f4f8;
+      --text-dim:     #94a3b8;
+      --text-faint:   #64748b;
+      
+      /* Podium Colors */
+      --gold:         #fbbf24;
+      --gold-dim:     rgba(251,191,36,0.15);
+      --silver:       #cbd5e1;
+      --silver-dim:   rgba(203,213,225,0.15);
+      --bronze:       #d97706;
+      --bronze-dim:   rgba(217,119,6,0.15);
+
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --nav-height:   65px;
+      --transition:   all 250ms cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .app-wrap {
+      width: 100%;
+      max-width: 480px;
+      padding: 0 0 calc(var(--nav-height) + 24px);
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 12px;
+      background: rgba(2,6,23,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .icon-back {
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-card);
+      color: var(--text-primary);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none;
+      font-size: 15px;
+      transition: var(--transition);
+    }
+    .icon-back:hover { background: var(--accent-dim); color: var(--accent); }
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0; flex: 1;
+    }
+
+    /* ── PODIUM SECTION ── */
+    .podium-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 12px;
+      padding: 30px 16px 40px;
+      min-height: 220px;
+    }
+    .podium-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 30%;
+      position: relative;
+    }
+    .podium-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--border-card);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--text-primary);
+      margin-bottom: -10px; /* Overlaps the box */
+      z-index: 2;
+    }
+    .podium-box {
+      width: 100%;
+      border-radius: 12px 12px 6px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 4px 10px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+    }
+    .podium-rank {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 2px;
+      line-height: 1;
+    }
+    .podium-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+    .podium-pts {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* 1st Place */
+    .rank-1 .podium-box { height: 130px; background: linear-gradient(180deg, var(--gold-dim), var(--bg-card)); border: 1.5px solid var(--gold); }
+    .rank-1 .podium-avatar { border-color: var(--gold); box-shadow: 0 0 15px var(--gold-dim); width: 60px; height: 60px; font-size: 22px; }
+    .rank-1 .podium-rank { color: var(--gold); font-size: 32px; }
+    .rank-1 .podium-pts { color: var(--gold); }
+    
+    /* 2nd Place */
+    .rank-2 .podium-box { height: 100px; background: linear-gradient(180deg, var(--silver-dim), var(--bg-card)); border: 1.5px solid var(--silver); }
+    .rank-2 .podium-avatar { border-color: var(--silver); }
+    .rank-2 .podium-rank { color: var(--silver); }
+    .rank-2 .podium-pts { color: var(--silver); }
+    
+    /* 3rd Place */
+    .rank-3 .podium-box { height: 80px; background: linear-gradient(180deg, var(--bronze-dim), var(--bg-card)); border: 1.5px solid var(--bronze); }
+    .rank-3 .podium-avatar { border-color: var(--bronze); }
+    .rank-3 .podium-rank { color: var(--bronze); }
+    .rank-3 .podium-pts { color: var(--bronze); }
+
+    /* ── LEADERBOARD LIST ── */
+    .list-container {
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lb-row {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 12px 16px;
+      gap: 14px;
+    }
+    .lb-row-rank {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-faint);
+      width: 24px;
+      text-align: center;
+    }
+    .lb-row-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .lb-row-info { flex: 1; min-width: 0; }
+    .lb-row-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lb-row-pts {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    /* ── MISC ── */
+    .loading-state { text-align: center; color: var(--text-faint); padding: 50px 20px; }
+    .loading-spinner {
+      display: inline-block; width: 24px; height: 24px;
+      border: 3px solid var(--border-card); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      background: rgba(13,22,37,0.97);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-card);
+      display: flex; align-items: center;
+      height: var(--nav-height);
+      z-index: 200; padding: 0 8px;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 6px; text-decoration: none; color: var(--text-faint);
+      font-family: var(--font-display); font-size: 9px; font-weight: 700;
+      letter-spacing: 0.5px; text-transform: uppercase; transition: var(--transition);
+    }
+    .nav-item i { font-size: 18px; }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active i { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+  </style>
+</head>
+<body>
+
+<div class="app-wrap">
+  <header class="app-header">
+    <a class="icon-back" href="ppl-fantasy.html"><i class="fas fa-arrow-left"></i></a>
+    <h1 class="page-title">Global Rankings</h1>
+  </header>
+
+  <div id="main-content">
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <div>Calculating Leaderboard...</div>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-item" href="ppl-home.html"><i class="fas fa-house"></i><span>Home</span></a>
+  <a class="nav-item" href="ppl-fixtures.html"><i class="fas fa-calendar-days"></i><span>Fixtures</span></a>
+  <a class="nav-item" href="ppl-scorecard.html"><i class="fas fa-cricket-bat-ball"></i><span>Scores</span></a>
+  <a class="nav-item" href="ppl-stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+  <a class="nav-item active" href="ppl-fantasy.html"><i class="fas fa-bolt"></i><span>Fantasy</span></a>
+</nav>
+
+<script>
+const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// Utility: Get initials for Avatar
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+async function initLeaderboard() {
+  const contentEl = document.getElementById('main-content');
+
+  try {
+    // 1. Fetch all fantasy scores across all days
+    // Note: Assuming your user table is called `ppl_users`. If it's something else like `profiles`, 
+    // you'll need to change the join syntax below!
+    const { data: scores, error } = await sb.from('ppl_fantasy_scores')
+      .select(`
+        user_id,
+        day_points,
+        ppl_users ( name )
+      `);
+
+    if (error) throw error;
+
+    if (!scores || scores.length === 0) {
+      contentEl.innerHTML = `<div class="loading-state">No fantasy points recorded yet.</div>`;
+      return;
+    }
+
+    // 2. Aggregate points by user
+    const userTotalsMap = {};
+    scores.forEach(s => {
+      if (!userTotalsMap[s.user_id]) {
+        userTotalsMap[s.user_id] = {
+          id: s.user_id,
+          name: s.ppl_users?.name || 'Unknown Manager',
+          totalPoints: 0
+        };
+      }
+      userTotalsMap[s.user_id].totalPoints += (s.day_points || 0);
+    });
+
+    // 3. Sort array by points descending
+    const leaderboard = Object.values(userTotalsMap).sort((a, b) => b.totalPoints - a.totalPoints);
+
+    // 4. Split into Podium (Top 3) and List (Rest)
+    const top3 = leaderboard.slice(0, 3);
+    const rest = leaderboard.slice(3);
+
+    // Build Podium HTML
+    // We re-order the array so it visually displays as: Rank 2 (Left), Rank 1 (Center), Rank 3 (Right)
+    let podiumHtml = '';
+    if (top3.length > 0) {
+      const p1 = top3[0];
+      const p2 = top3[1];
+      const p3 = top3[2];
+
+      podiumHtml = `<div class="podium-container">`;
+      
+      // Rank 2 (Left)
+      if (p2) {
+        podiumHtml += `
+          <div class="podium-item rank-2">
+            <div class="podium-avatar">${getInitials(p2.name)}</div>
+            <div class="podium-box">
+              <span class="podium-rank">2</span>
+              <span class="podium-name">${p2.name}</span>
+              <span class="podium-pts">${p2.totalPoints} pts</span>
+            </div>
+          </div>`;
+      } else {
+        podiumHtml += `<div class="podium-item"></div>`; // Empty spacer
+      }
+
+      // Rank 1 (Center)
+      podiumHtml += `
+        <div class="podium-item rank-1">
+          <div class="podium-avatar">${getInitials(p1.name)}</div>
+          <div class="podium-box">
+            <span class="podium-rank">1</span>
+            <span class="podium-name">${p1.name}</span>
+            <span class="podium-pts">${p1.totalPoints} pts</span>
+          </div>
+        </div>`;
+
+      // Rank 3 (Right)
+      if (p3) {
+        podiumHtml += `
+          <div class="podium-item rank-3">
+            <div class="podium-avatar">${getInitials(p3.name)}</div>
+            <div class="podium-box">
+              <span class="podium-rank">3</span>
+              <span class="podium-name">${p3.name}</span>
+              <span class="podium-pts">${p3.totalPoints} pts</span>
+            </div>
+          </div>`;
+      } else {
+        podiumHtml += `<div class="podium-item"></div>`; // Empty spacer
+      }
+
+      podiumHtml += `</div>`;
+    }
+
+    // Build List HTML
+    let listHtml = `<div class="list-container">`;
+    rest.forEach((user, index) => {
+      const actualRank = index + 4; // Because top 3 are in the podium
+      listHtml += `
+        <div class="lb-row">
+          <div class="lb-row-rank">${actualRank}</div>
+          <div class="lb-row-avatar">${getInitials(user.name)}</div>
+          <div class="lb-row-info">
+            <div class="lb-row-name">${user.name}</div>
+          </div>
+          <div class="lb-row-pts">${user.totalPoints}</div>
+        </div>
+      `;
+    });
+    listHtml += `</div>`;
+
+    // Render to DOM
+    contentEl.innerHTML = podiumHtml + listHtml;
+
+  } catch (err) {
+    console.error(err);
+    contentEl.innerHTML = `<div class="loading-state" style="color:var(--red)">Failed to load leaderboard.</div>`;
+  }
+}
+
+initLeaderboard();
+</script>
+</body>
+</html>

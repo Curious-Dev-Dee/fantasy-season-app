@@ -483,8 +483,8 @@
         <span class="nav-sub">Pick your XI</span>
       </div>
     </a>
-    <a class="nav-card c-red full" href="ppl-live.html">
-      <div class="nav-icon c-red"><i class="fas fa-clipboard-list"></i></div>
+<a class="nav-card c-red full" href="ppl-live.html">
+      <div class="nav-icon"><i class="fas fa-clipboard-list"></i></div>
       <div class="nav-card-body">
         <span class="nav-label">Scorecards</span>
         <span class="nav-sub">Full ball-by-ball scorecards for every match</span>
@@ -556,6 +556,13 @@ async function init() {
     if (matches.some(m => m.day === d && m.status === 'in_progress')) { activeDay = d; break; }
     if (matches.some(m => m.day === d && m.status === 'upcoming')) { activeDay = d; break; }
   }
+
+  // --- ADD THIS UX FIX ---
+  // If every single match is done, default the home page to show Day 3's final results
+  if (matches.every(m => m.status === 'completed' || m.status === 'no_result')) {
+    activeDay = 3;
+  }
+  // -----------------------
 
   document.getElementById('todayLabel').textContent = `Day ${activeDay} Matches`;
 

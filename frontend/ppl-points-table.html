@@ -529,10 +529,10 @@ function teamRow(t, i) {
 }
 
 function statusLabel(s) {
-  return s === 'completed' ? 'Done' : s === 'in_progress' ? '🔴 Live' : 'Soon';
+  return s === 'completed' ? 'Done' : s === 'in_progress' ? '🔴 Live' : s === 'no_result' ? 'No Result' : 'Soon';
 }
 function statusColor(s) {
-  return s === 'completed' ? 'var(--accent)' : s === 'in_progress' ? 'var(--red)' : 'var(--text-faint)';
+  return (s === 'completed' || s === 'no_result') ? 'var(--accent)' : s === 'in_progress' ? 'var(--red)' : 'var(--text-faint)';
 }
 
 init();

@@ -173,17 +173,16 @@ function renderInnings(inn) {
     }
   });
 
-  // Bowling stats per bowler
+// Bowling stats per bowler
   const bowlers = {};
   delvs.forEach(d => {
     if (!d.bowler_id) return;
-    if (!bowlers[d.bowler_id]) bowlers[d.bowler_id] = { overs:0, balls:0, runs:0, wickets:0, maidens:0 };
+    if (!bowlers[d.bowler_id]) bowlers[d.bowler_id] = { balls:0, runs:0, wickets:0, maidens:0 };
     const b = bowlers[d.bowler_id];
     b.runs += (d.runs_off_bat||0) + (d.extras||0);
-    if (!d.extra_type || d.extra_type === 'no_ball') b.balls++;
+    if (!d.extra_type || (d.extra_type !== 'wide' && d.extra_type !== 'no_ball')) b.balls++;
     if (d.is_wicket && !['run out'].includes(d.dismissal_type)) b.wickets++;
   });
-  Object.values(bowlers).forEach(b => { b.overs = Math.floor(b.balls/6) + (b.balls%6)/10; });
 
   // Over-by-over log
   const overMap = {};
@@ -232,15 +231,16 @@ function renderInnings(inn) {
       </tbody>
     </table>
 
-    <div class="table-title" style="margin-top:20px">Bowling — ${bowlingTeam?.name}</div>
+<div class="table-title" style="margin-top:20px">Bowling — ${bowlingTeam?.name}</div>
     <table>
       <thead><tr><th>Bowler</th><th>O</th><th>R</th><th>W</th><th>Econ</th></tr></thead>
       <tbody>
         ${Object.entries(bowlers).map(([id, b]) => {
-          const econ = b.overs > 0 ? (b.runs / b.overs).toFixed(1) : '-';
+          const overStr = `${Math.floor(b.balls / 6)}.${b.balls % 6}`;
+          const econ = b.balls > 0 ? (b.runs / (b.balls / 6)).toFixed(1) : '-';
           return `<tr>
             <td class="player-name">${playerName(id)}</td>
-            <td>${b.overs.toFixed(1)}</td>
+            <td>${overStr}</td>
             <td>${b.runs}</td>
             <td class="highlight-w">${b.wickets}</td>
             <td>${econ}</td>

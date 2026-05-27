@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPL 2026 — Player Profile</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --accent:        #9AE000;
+      --accent-dim:    rgba(154,224,0,0.09);
+      --accent-glow:   rgba(154,224,0,0.28);
+      --bg-page:       #020617;
+      --bg-card:       #0d1625;
+      --bg-card-alt:   #111e30;
+      --border-card:   rgba(255,255,255,0.10);
+      --border:        rgba(255,255,255,0.07);
+      --border-subtle: rgba(255,255,255,0.04);
+      --border-accent: rgba(154,224,0,0.20);
+      --text-primary:  #f0f4f8;
+      --text-dim:      #94a3b8;
+      --text-faint:    #64748b;
+      --red:           #ef4444;
+      --gold:          #f59e0b;
+      --star:          #fbbf24;
+      --rank-color:    #7cc4ff;
+      --font-display:  'Barlow Condensed', sans-serif;
+      --font-body:     'DM Sans', sans-serif;
+      --card-radius:   16px;
+      --btn-radius:    12px;
+      --nav-height:    65px;
+      --transition:    all 250ms cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-body); background: var(--bg-page); color: var(--text-primary); min-height: 100vh; display: flex; justify-content: center; }
+    .app-wrap { width: 100%; max-width: 480px; padding: 0 0 calc(var(--nav-height) + 24px); }
+
+    /* ── HEADER ── */
+    .app-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; background: rgba(2,6,23,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .icon-back { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-card); color: var(--text-primary); display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; flex-shrink: 0; transition: var(--transition); }
+    .icon-back:active { transform: scale(0.95); }
+    .page-title { font-family: var(--font-display); font-size: 20px; font-weight: 900; text-transform: uppercase; flex: 1; margin-left: 12px; }
+
+    /* ── CONTENT ── */
+    .section { padding: 16px; }
+    .section-label { font-family: var(--font-display); font-size: 11px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); margin: 24px 0 10px; display: flex; align-items: center; gap: 8px; }
+    .section-label::before { content: ''; width: 3px; height: 12px; background: var(--accent); border-radius: 2px; }
+
+    /* ── PLAYER HERO ── */
+    .player-hero { background: linear-gradient(145deg, var(--bg-card-alt), var(--bg-card)); border: 1px solid var(--border-accent); border-radius: var(--card-radius); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .player-hero::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--rank-color)); }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--bg-page); border: 2px solid var(--border-card); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 32px; font-weight: 900; color: var(--text-primary); margin-bottom: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .avatar.is-star { border-color: var(--star); box-shadow: 0 0 20px rgba(251,191,36,0.2); color: var(--star); }
+    .player-name { font-family: var(--font-display); font-size: 28px; font-weight: 900; line-height: 1.1; margin-bottom: 4px; text-align: center; }
+    .player-team { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; font-weight: 500; }
+    .tags-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .role-badge { font-family: var(--font-display); font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+    .role-BAT { background: rgba(124,196,255,0.15); color: var(--rank-color); border: 1px solid rgba(124,196,255,0.3); }
+    .role-BOWL { background: rgba(154,224,0,0.15); color: var(--accent); border: 1px solid rgba(154,224,0,0.3); }
+    .role-AR { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+    .price-badge { background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--border-card); font-family: var(--font-display); font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 4px 10px; border-radius: 6px; }
+
+    /* ── STATS GRID ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 12px 8px; text-align: center; }
+    .stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
+    .stat-val.highlight { color: var(--accent); }
+    .stat-lbl { font-family: var(--font-body); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-faint); }
+
+    /* ── DETAILED STATS (Bat/Bowl) ── */
+    .detail-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .detail-hdr { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .d-item { text-align: center; }
+    .d-val { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--text-primary); }
+    .d-lbl { font-size: 9px; color: var(--text-faint); text-transform: uppercase; margin-top: 2px; }
+
+    /* ── FANTASY MATCH LOG ── */
+    .match-log { display: flex; flex-direction: column; gap: 8px; }
+    .log-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 10px; padding: 12px 14px; }
+    .log-match { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-primary); }
+    .log-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+    .log-pts { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--rank-color); }
+
+    /* ── EMPTY / LOADING ── */
+    .loading { text-align: center; color: var(--text-faint); padding: 50px 0; font-size: 13px; }
+    .empty { text-align: center; color: var(--text-faint); padding: 40px 20px; font-size: 13px; line-height: 1.6; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-card); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(13,22,37,0.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border-card); display: flex; align-items: center; height: var(--nav-height); z-index: 200; padding: 0 8px; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; text-decoration: none; color: var(--text-faint); font-family: var(--font-display); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; transition: var(--transition); }
+    .nav-item i { font-size: 18px; }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active i { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+  </style>
+</head>
+<body>
+
+<div class="app-wrap">
+  <!-- HEADER -->
+  <header class="app-header">
+    <a class="icon-back" href="javascript:history.back()"><i class="fas fa-arrow-left"></i></a>
+    <h1 class="page-title">Player Profile</h1>
+    <div style="width:36px"></div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="section" id="content">
+    <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Loading Profile…</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="ppl-home.html"><i class="fas fa-house"></i><span>Home</span></a>
+  <a class="nav-item" href="ppl-fixtures.html"><i class="fas fa-calendar-days"></i><span>Fixtures</span></a>
+  <a class="nav-item" href="ppl-scorecard.html"><i class="fas fa-cricket-bat-ball"></i><span>Scores</span></a>
+  <a class="nav-item active" href="ppl-stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+  <a class="nav-item" href="ppl-fantasy.html"><i class="fas fa-bolt"></i><span>Fantasy</span></a>
+</nav>
+
+<script>
+const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const playerId = new URLSearchParams(location.search).get('player');
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+async function init() {
+  if (!playerId) {
+    document.getElementById('content').innerHTML = '<div class="empty">No player selected.<br><a href="ppl-stats.html" style="color:var(--accent);text-decoration:none;font-weight:bold;margin-top:10px;display:inline-block">View Stats</a></div>';
+    return;
+  }
+
+  try {
+    // 1. Fetch Player Details
+    const { data: p } = await sb.from('ppl_players')
+      .select('*, ppl_teams(name, short_name)')
+      .eq('id', playerId).single();
+
+    if (!p) throw new Error("Player not found");
+
+    // 2. Fetch Aggregated Stats
+    const { data: stats } = await sb.from('ppl_player_stats')
+      .select('*')
+      .eq('player_id', playerId).single();
+
+    // 3. Fetch Match-by-Match Fantasy Points
+    // Grouping manually since a player can earn pts in multiple categories per match
+    const { data: matchPts } = await sb.from('ppl_player_match_points')
+      .select('match_id, points, ppl_matches(match_number, day, team_a_id, team_b_id)')
+      .eq('player_id', playerId);
+
+    // Aggregate points per match
+    const logMap = {};
+    (matchPts || []).forEach(row => {
+      const mid = row.match_id;
+      if (!logMap[mid]) {
+        logMap[mid] = {
+          match_num: row.ppl_matches?.match_number || '?',
+          day: row.ppl_matches?.day || '?',
+          total_pts: 0
+        };
+      }
+      logMap[mid].total_pts += parseFloat(row.points || 0);
+    });
+
+    const matchLogArray = Object.values(logMap).sort((a,b) => b.match_num - a.match_num);
+    const s = stats || {}; // Fallback to empty if no stats yet
+
+    // HTML Construction
+    const isStar = p.is_star;
+    const roleCls = `role-${p.role || 'BAT'}`;
+    const avatarCls = isStar ? 'avatar is-star' : 'avatar';
+
+    let html = `
+      <!-- HERO -->
+      <div class="player-hero">
+        <div class="${avatarCls}">${getInitials(p.name)}</div>
+        <div class="player-name">${p.name} ${isStar ? '<span style="color:var(--star);font-size:20px;vertical-align:top">⭐</span>' : ''}</div>
+        <div class="player-team">${p.ppl_teams?.name || 'Unknown Team'}</div>
+        <div class="tags-row">
+          <div class="role-badge ${roleCls}">${p.role || 'Player'}</div>
+          <div class="price-badge">${p.fantasy_price || 0} Credits</div>
+        </div>
+      </div>
+
+      <!-- MAIN STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val highlight">${s.fantasy_points_total || 0}</div>
+          <div class="stat-lbl">Fantasy Pts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">${s.matches || 0}</div>
+          <div class="stat-lbl">Matches</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">${s.mom_count || 0}</div>
+          <div class="stat-lbl">MOM Awards</div>
+        </div>
+      </div>
+    `;
+
+    // BATTING DETAILED
+    if (p.role === 'BAT' || p.role === 'AR' || (s.total_runs > 0)) {
+      html += `
+        <div class="detail-card">
+          <div class="detail-hdr">Batting</div>
+          <div class="detail-grid">
+            <div class="d-item"><div class="d-val">${s.total_runs || 0}</div><div class="d-lbl">Runs</div></div>
+            <div class="d-item"><div class="d-val">${s.highest_score || 0}</div><div class="d-lbl">High</div></div>
+            <div class="d-item"><div class="d-val">${s.strike_rate || '-'}</div><div class="d-lbl">SR</div></div>
+            <div class="d-item"><div class="d-val">${(s.fours||0) + (s.sixes||0)}</div><div class="d-lbl">Boundaries</div></div>
+          </div>
+        </div>`;
+    }
+
+    // BOWLING DETAILED
+    if (p.role === 'BOWL' || p.role === 'AR' || (s.wickets > 0)) {
+      const econ = s.economy ? s.economy.toFixed(1) : '-';
+      html += `
+        <div class="detail-card">
+          <div class="detail-hdr">Bowling</div>
+          <div class="detail-grid">
+            <div class="d-item"><div class="d-val">${s.wickets || 0}</div><div class="d-lbl">Wickets</div></div>
+            <div class="d-item"><div class="d-val" style="font-size:15px;padding-top:3px">${s.best_bowling || '-'}</div><div class="d-lbl">Best</div></div>
+            <div class="d-item"><div class="d-val">${econ}</div><div class="d-lbl">Econ</div></div>
+            <div class="d-item"><div class="d-val">${(s.overs_bowled||0).toFixed(1)}</div><div class="d-lbl">Overs</div></div>
+          </div>
+        </div>`;
+    }
+
+    // FIELDING DETAILED
+    if ((s.catches || 0) + (s.stumpings || 0) + (s.run_outs || 0) > 0) {
+      html += `
+        <div class="detail-card">
+          <div class="detail-hdr">Fielding</div>
+          <div class="detail-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="d-item"><div class="d-val">${s.catches || 0}</div><div class="d-lbl">Catches</div></div>
+            <div class="d-item"><div class="d-val">${s.stumpings || 0}</div><div class="d-lbl">Stumpings</div></div>
+            <div class="d-item"><div class="d-val">${s.run_outs || 0}</div><div class="d-lbl">Run Outs</div></div>
+          </div>
+        </div>`;
+    }
+
+    // FANTASY MATCH LOG
+    html += `<div class="section-label">Match Log (Fantasy)</div>`;
+    if (matchLogArray.length === 0) {
+      html += `<div class="empty" style="padding:20px;border:none;background:var(--bg-card)">No match data available yet.</div>`;
+    } else {
+      html += `<div class="match-log">`;
+      matchLogArray.forEach(log => {
+        html += `
+          <div class="log-row">
+            <div>
+              <div class="log-match">Match ${log.match_num}</div>
+              <div class="log-sub">Day ${log.day}</div>
+            </div>
+            <div class="log-pts">${log.total_pts} <span style="font-size:12px;color:var(--text-dim)">pts</span></div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    document.getElementById('content').innerHTML = html;
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('content').innerHTML = `<div class="empty">Error loading player profile.</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

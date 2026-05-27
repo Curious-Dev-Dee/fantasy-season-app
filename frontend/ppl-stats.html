@@ -94,30 +94,32 @@ function render() {
   });
 
   if (activeTab === 'batting') {
-    data = data.filter(s => (s.balls_faced||0) > 0).sort((a,b)=>b.runs-a.runs);
+    // FIX 1: Changed s.runs to s.total_runs
+    data = data.filter(s => (s.balls_faced||0) > 0).sort((a,b)=>(b.total_runs||0)-(a.total_runs||0));
     el.innerHTML = `<table>
       <thead><tr><th>#&nbsp;Batter</th><th>M</th><th>R</th><th>HS</th><th>SR</th><th>4s</th><th>6s</th></tr></thead>
       <tbody>${data.map((s,i)=>{
         const p = playersMap[s.player_id];
-        const sr = s.balls_faced > 0 ? ((s.runs/s.balls_faced)*100).toFixed(1) : '-';
+        const sr = s.balls_faced > 0 ? ((s.total_runs/s.balls_faced)*100).toFixed(1) : '-';
         const rowCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
         return `<tr class="${rowCls}">
           <td><span class="rank-badge">${i+1}</span><div class="player-cell">
             <span class="name">${p?.name||'?'}</span>
             <span class="team">${p?.ppl_teams?.short_name||''}</span>
           </div></td>
-          <td>${s.matches||0}</td><td class="highlight">${s.runs||0}</td>
+          <td>${s.matches||0}</td><td class="highlight">${s.total_runs||0}</td>
           <td>${s.highest_score||0}</td><td>${sr}</td>
           <td>${s.fours||0}</td><td>${s.sixes||0}</td>
         </tr>`;
       }).join('')}</tbody></table>`;
   } else if (activeTab === 'bowling') {
-    data = data.filter(s => (s.overs_bowled||0) > 0).sort((a,b)=>b.wickets-a.wickets);
+    data = data.filter(s => (s.overs_bowled||0) > 0).sort((a,b)=>(b.wickets||0)-(a.wickets||0));
     el.innerHTML = `<table>
       <thead><tr><th>#&nbsp;Bowler</th><th>M</th><th>W</th><th>Best</th><th>Econ</th><th>Ov</th></tr></thead>
       <tbody>${data.map((s,i)=>{
         const p = playersMap[s.player_id];
-        const econ = s.overs_bowled > 0 ? (s.runs_conceded/s.overs_bowled).toFixed(1) : '-';
+        // FIX 2: Pulling economy directly from database to avoid math bugs
+        const econ = s.economy ? s.economy.toFixed(1) : '-';
         const rowCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
         return `<tr class="${rowCls}">
           <td><span class="rank-badge">${i+1}</span><div class="player-cell">
@@ -148,7 +150,7 @@ function render() {
       }).join('')}</tbody></table>`;
   } else if (activeTab === 'fantasy') {
     data = data.filter(s => (s.fantasy_points_total||0) > 0)
-      .sort((a,b)=>b.fantasy_points_total-a.fantasy_points_total);
+      .sort((a,b)=>(b.fantasy_points_total||0)-(a.fantasy_points_total||0));
     el.innerHTML = `<table>
       <thead><tr><th>#&nbsp;Player</th><th>M</th><th>Pts</th><th>Avg</th></tr></thead>
       <tbody>${data.map((s,i)=>{

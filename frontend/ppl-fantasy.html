@@ -523,29 +523,31 @@ function renderPick() {
     ${phase.lock_deadline ? `<span style="font-size:11px;opacity:0.8">Locks: ${new Date(phase.lock_deadline).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>` : ''}
   </div>`;
 
-  // Budget bar
-  html += `<div class="budget-bar">
-    <div class="budget-item">
-      <div class="budget-val white">${selSize}<span style="font-size:12px;color:var(--text-faint)">/${TEAM_SIZE}</span></div>
-      <div class="budget-lbl">Players</div>
-    </div>
-    <div class="budget-div"></div>
+  // Budget bar (Now Sticky and tracking all role requirements)
+  html += `<div class="budget-bar" style="position: sticky; top: 63px; z-index: 90; margin: 0 -16px 12px; padding: 12px 16px; border-radius: 0; border-left: none; border-right: none; background: rgba(2,6,23,0.95); backdrop-filter: blur(15px); box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
     <div class="budget-item">
       <div class="budget-val ${remCls}">${rem}</div>
       <div class="budget-lbl">Credits</div>
     </div>
     <div class="budget-div"></div>
     <div class="budget-item">
-      <div class="budget-val ${starsCls}">${stars}<span style="font-size:11px;color:var(--text-faint)">/${MAX_STARS}</span></div>
-      <div class="budget-lbl">⭐ Stars</div>
+      <div class="budget-val ${roleCount('BAT') < MIN_BAT ? 'warn' : 'good'}">${roleCount('BAT')}</div>
+      <div class="budget-lbl">BAT (${MIN_BAT}+)</div>
     </div>
     <div class="budget-div"></div>
     <div class="budget-item">
-      <div style="font-size:11px;text-align:center;line-height:1.6">
-        <div style="color:var(--star);font-weight:700">C: ${capName}</div>
-        <div style="color:var(--text-dim);font-weight:700">VC: ${vcName}</div>
-      </div>
-      <div class="budget-lbl">C / VC</div>
+      <div class="budget-val ${roleCount('AR') < MIN_AR ? 'warn' : 'good'}">${roleCount('AR')}</div>
+      <div class="budget-lbl">AR (${MIN_AR}+)</div>
+    </div>
+    <div class="budget-div"></div>
+    <div class="budget-item">
+      <div class="budget-val ${roleCount('BOWL') < MIN_BOWL ? 'warn' : 'good'}">${roleCount('BOWL')}</div>
+      <div class="budget-lbl">BWL (${MIN_BOWL}+)</div>
+    </div>
+    <div class="budget-div"></div>
+    <div class="budget-item">
+      <div class="budget-val ${starsCls}">${stars}<span style="font-size:11px;color:var(--text-faint)">/${MAX_STARS}</span></div>
+      <div class="budget-lbl">⭐ Star</div>
     </div>
   </div>`;
 
@@ -558,7 +560,7 @@ function renderPick() {
     Min ${MIN_BAT} BAT · Min ${MIN_AR} AR · Min ${MIN_BOWL} BOWL · Set C (2×) & VC (1.5×)
   </div>`;
 
-  // Role filter
+  // Filter
   html += `<div class="filter-row">
     ${['ALL','BAT','AR','BOWL'].map(r =>
       `<button class="filter-btn${roleFilter===r?' active':''}" onclick="setFilter('${r}')">${r === 'ALL' ? 'All Roles' : r}</button>`
