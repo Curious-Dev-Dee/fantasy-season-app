@@ -390,6 +390,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 let allMatches = [];
 let activeDay = 1;
 let activeFilter = 'all';
+let isFirstLoad = true; // <-- ADD THIS
 
 async function init() {
   // Auto-detect best day to show first
@@ -408,16 +409,20 @@ async function init() {
 
   allMatches = data || [];
 
-  // Pick the most active day automatically
-  for (const d of [1,2,3]) {
-    if (allMatches.some(m => m.day === d && m.status === 'in_progress')) { activeDay = d; break; }
-    if (allMatches.some(m => m.day === d && m.status === 'upcoming'))    { activeDay = d; break; }
+// Pick the most active day automatically ONLY on first load
+  if (isFirstLoad) {
+    for (const d of [1,2,3]) {
+      if (allMatches.some(m => m.day === d && m.status === 'in_progress')) { activeDay = d; break; }
+      if (allMatches.some(m => m.day === d && m.status === 'upcoming'))    { activeDay = d; break; }
+    }
+    // If all matches are done, default to day 3
+    if (!allMatches.some(m => m.status !== 'completed' && m.status !== 'no_result')) {
+      activeDay = 3;
+    }
+    
+    isFirstLoad = false; // <-- ADD THIS: Turns off auto-switching for future background refreshes
   }
-  // If all done, show day 3
-  if (!allMatches.some(m => m.status !== 'completed' && m.status !== 'no_result')) {
-    activeDay = 3;
-  }
-
+  
   // Highlight correct day tab
   document.querySelectorAll('.day-tab').forEach(t => {
     t.classList.toggle('active', parseInt(t.dataset.day) === activeDay);
