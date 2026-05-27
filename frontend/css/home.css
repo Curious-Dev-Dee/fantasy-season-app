@@ -2255,3 +2255,34 @@ body.loaded #skeletonScreen {
 .guru-badge-row   { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 .pred-next        { color: #facc15; }   /* yellow for upcoming */
 .pred-pending     { color: rgba(255,255,255,0.25); }  /* dim if not predicted yet */
+
+/* ── TOURNAMENT TOGGLE SWITCH ── */
+.tourney-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+  margin-left: 8px;
+}
+.tt-btn {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  color: var(--text-faint);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.tt-btn.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.tt-btn:not(.active):hover {
+  color: var(--text-dim);
+}
