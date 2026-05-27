@@ -1,45 +1,53 @@
-Skip to content
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rankings · Cricket Experts</title>
 
-Find…
-F
-Other
-Overview
-Deployments
-Logs
-Analytics
-Speed Insights
-Observability
-Firewall
-CDN
-Environment Variables
-Domains
-Integrations
-Storage
-Flags
-Agent
-AI Gateway
-Sandboxes
-Workflows
-Usage
-Support
-Settings
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/leaderboard.css">
 
-Avatar for curious-dev-dee
-Satyaranjan Sahoo
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+  <!-- BUG FIX #1: auth-guard handles session — no more direct getSession() -->
+  <script type="module" src="auth-guard.js"></script>
+  <!-- Vercel Analytics -->
+  <script defer src="/_vercel/insights/script.js"></script>
 
-Deployments
-AXLAAbgTX
-Source
-Deployment
-Logs
-Resources
-Source
-Open Graph
-Source
-Output
-frontend/leaderboard.html
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMYSEG9XNL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BMYSEG9XNL');
+  </script>
+</head>
 
+<body>
+
+<!-- SKELETON SCREEN -->
+<div id="skeletonScreen">
+  <div class="sk-header">
+    <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
+    <div class="sk-block" style="width:120px;height:20px;border-radius:6px"></div>
+    <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+    <div class="sk-block" style="width:80px;height:110px;border-radius:12px;align-self:flex-end"></div>
+    <div class="sk-block" style="width:80px;height:140px;border-radius:12px"></div>
+    <div class="sk-block" style="width:80px;height:90px;border-radius:12px;align-self:flex-end"></div>
+  </div>
+  <div class="sk-block" style="height:60px;border-radius:12px;margin-bottom:10px"></div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="sk-block" style="height:52px;border-radius:10px"></div>
+    <div class="sk-block" style="height:52px;border-radius:10px"></div>
     <div class="sk-block" style="height:52px;border-radius:10px"></div>
     <div class="sk-block" style="height:52px;border-radius:10px"></div>
     <div class="sk-block" style="height:52px;border-radius:10px"></div>
