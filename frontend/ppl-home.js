@@ -192,20 +192,22 @@ async function fetchHomeData(userId) {
         nextCard.classList.add("hidden");
     }
 
-    // Handle Fantasy Action Logic
+    // Handle Fantasy Action Logic (Edit Team Enable/Disable)
     const activePhase = (phases || []).find(p => !p.is_locked);
-    const badge = document.getElementById("fantasyStatusBadge");
-    const text  = document.getElementById("fantasyStatusText");
+    const editBtn = document.getElementById("homeEditTeamBtn");
 
-    if (activePhase) {
-        let pName = activePhase.phase === 'group_a' ? 'Group A' : activePhase.phase === 'group_b' ? 'Group B' : 'Knockout';
-        badge.textContent = `🟢 ${pName} Open`;
-        badge.className = "fantasy-status-badge fs-open";
-        text.textContent = `You can currently pick/edit your XI for the ${pName} phase.`;
-    } else {
-        badge.textContent = `🔒 Fantasy Locked`;
-        badge.className = "fantasy-status-badge fs-locked";
-        text.textContent = `Matches are currently ongoing. Wait for the next phase to open.`;
+    if (editBtn) {
+        if (activePhase) {
+            editBtn.disabled = false;
+            editBtn.innerHTML = `<i class="fas fa-pencil-alt" style="margin-right: 6px;"></i> Edit Team`;
+            editBtn.style.opacity = "1";
+            editBtn.style.pointerEvents = "auto";
+        } else {
+            editBtn.disabled = true;
+            editBtn.innerHTML = `<i class="fas fa-lock" style="margin-right: 6px;"></i> Locked`;
+            editBtn.style.opacity = "0.5";
+            editBtn.style.pointerEvents = "none";
+        }
     }
 }
 
@@ -281,7 +283,6 @@ async function loadMostPicked() {
     const wrapper = document.getElementById("mostPickedWrapper");
     if (!wrapper) return;
 
-    // Fetch all current picks
     const [{ data: picks }, { data: players }] = await Promise.all([
         supabase.from('ppl_user_team_players').select('player_id, is_captain, is_vice_captain'),
         supabase.from('ppl_players').select('id, name, photo_url')
