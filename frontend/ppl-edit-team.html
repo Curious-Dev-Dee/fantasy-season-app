@@ -15,6 +15,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <script type="module" src="auth-guard.js"></script>
+
+  <style>
+    .phase-toggle-row { display: flex; gap: 8px; padding: 12px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .phase-tab { flex: 1; padding: 10px; border-radius: var(--btn-radius); border: 1px solid var(--border-card); background: rgba(0,0,0,0.2); color: var(--text-faint); font-family: var(--font-display); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; text-align: center; transition: var(--transition); }
+    .phase-tab.active { background: var(--accent-dim); border-color: var(--border-accent); color: var(--accent); }
+    .phase-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+  </style>
 </head>
 
 <body class="loading-state">
@@ -29,15 +36,13 @@
     <!-- HEADER -->
     <header class="edit-header">
       <div class="header-left">
-        <a href="ppl-home.html" class="icon-back" aria-label="Back to home">
-          <i class="fas fa-arrow-left"></i>
-        </a>
+        <a href="ppl-home.html" class="icon-back" aria-label="Back to home"><i class="fas fa-arrow-left"></i></a>
         <div class="header-info">
-          <h1 class="header-title" id="phaseTitle">Edit Phase XI</h1>
+          <h1 class="header-title">Edit Team</h1>
         </div>
       </div>
       <div class="header-right">
-        <div id="upcomingMatchName" class="match-name">Loading Phase...</div>
+        <div id="upcomingMatchName" class="match-name">Tournament Deadline</div>
         <div id="headerCountdown" class="match-timer">--</div>
       </div>
     </header>
@@ -45,26 +50,26 @@
     <!-- STICKY DASHBOARD -->
     <div class="sticky-controls">
 
+      <!-- PHASE TOGGLE -->
+      <div class="phase-toggle-row" id="phaseToggleRow">
+        <!-- Buttons injected via JS based on open phases -->
+      </div>
+
       <!-- PROGRESS + STATS -->
-      <div class="premium-progress">
+      <div class="premium-progress" style="padding-top: 10px;">
         <div id="teamDotsRow" class="team-dots-row"></div>
-        <div class="progress-labels">
+        <div class="progress-labels" style="justify-content: center; gap: 20px;">
           <div class="dashboard-item">
-            <i class="di-icon fas fa-user"></i>
+            <i class="di-icon fas fa-users"></i>
             <span id="playerCountLabel">0</span><span class="di-max">/11</span>
           </div>
           <div class="dashboard-item">
-            <i class="di-icon fas fa-plane"></i>
-            <span id="overseasCountLabel">0/4</span>
+            <i class="di-icon fas fa-star" style="color: #fbbf24;"></i>
+            <span id="starCountLabel">0</span><span class="di-max">/4</span>
           </div>
           <div class="dashboard-item">
-            <i class="di-icon fas fa-coins"></i>
+            <i class="di-icon fas fa-coins" style="color: var(--accent);"></i>
             <span id="creditCount">100</span><span class="di-max"> left</span>
-          </div>
-          <!-- PPL may not use boosters/subs per phase, but keeping UI intact for theme parity -->
-          <div class="dashboard-item" style="opacity: 0.5;">
-            <i class="di-icon fas fa-bolt"></i>
-            <span id="boosterUsedLabel">--</span>
           </div>
         </div>
       </div>
@@ -87,12 +92,9 @@
                     <div class="role-slider-bg"></div>
                 </div>
             </div>
-            <button class="search-icon-btn" id="searchIconBtn" aria-label="Search players">
-                <i class="fas fa-search"></i>
-            </button>
+            <button class="search-icon-btn" id="searchIconBtn"><i class="fas fa-search"></i></button>
         </div>
 
-        <!-- Search overlay -->
         <div class="search-overlay-row hidden" id="searchOverlayRow">
             <input type="text" id="playerSearch" placeholder="Search any player…" autocomplete="off" spellcheck="false">
             <button class="search-close-btn" id="searchCloseBtn">✕</button>
@@ -101,15 +103,17 @@
         <div class="dropdown-filters">
             <button id="teamToggle"   class="pill-filter">Teams</button>
             <button id="creditToggle" class="pill-filter">Credits</button>
-            <button id="typeToggle"   class="pill-filter">Type</button>
         </div>
       </div>
 
-    </div><!-- end .sticky-controls -->
+    </div>
 
     <!-- MAIN CONTENT -->
     <main class="content-area">
       <div id="myxi-view" class="view-mode">
+        <div class="rules-box" style="margin: 10px 16px; background: rgba(154,224,0,0.04); border: 1px solid var(--border-accent); border-radius: 10px; padding: 10px; font-size: 11px; color: var(--text-faint); text-align: center;">
+          💡 <strong>PPL Rules:</strong> 11 Players · 100 Credits · Max 4 ⭐ Stars<br>Min 3 BAT · Min 1 AR · Min 3 BOWL
+        </div>
         <div id="myXIList" class="player-list"></div>
       </div>
       <div id="playerPool-view" class="view-mode active">
@@ -117,14 +121,14 @@
       </div>
     </main>
 
-  </div><!-- end .app-container -->
+  </div>
 
   <!-- SAVE BAR -->
   <div class="save-bar">
     <div class="save-hint" id="saveHint"></div>
     <div class="save-bar-buttons">
         <button id="previewTeamBtn" class="preview-btn">👁 Preview</button>
-        <button id="saveTeamBtn" class="save-btn" disabled>NEXT →</button>
+        <button id="saveTeamBtn" class="save-btn" disabled>SAVE TEAM</button>
     </div>
   </div>
 
@@ -132,7 +136,7 @@
   <div id="previewOverlay" class="preview-overlay hidden">
       <div class="preview-popup" id="previewPopup">
           <div class="preview-popup-header">
-              <span class="preview-popup-title">Phase XI Preview</span>
+              <span class="preview-popup-title" id="previewTitle">Phase XI Preview</span>
               <button class="preview-popup-close" id="previewCloseBtn">✕</button>
           </div>
           <div class="preview-field" id="previewField">
@@ -141,40 +145,13 @@
       </div>
   </div>
 
-  <!-- TRANSFER SUMMARY SHEET -->
-  <div id="transferBackdrop" class="filter-backdrop hidden"></div>
-  <div id="transferSheet" class="dropdown-menu bottom-sheet transfer-sheet hidden">
-      <div id="transferSheetBody"></div>
-  </div>
-
   <!-- FILTER BACKDROP & MENUS -->
   <div id="filterBackdrop" class="filter-backdrop hidden"></div>
   <div id="teamMenu"   class="dropdown-menu bottom-sheet"></div>
   <div id="creditMenu" class="dropdown-menu bottom-sheet"></div>
-  <div id="typeMenu"   class="dropdown-menu bottom-sheet"></div>
 
-  <!-- TOAST & CONFIRM -->
+  <!-- TOAST -->
   <div id="toastContainer" class="toast-container"></div>
-  <div id="customConfirmOverlay" class="confirm-overlay hidden">
-    <div class="confirm-card">
-      <h3 id="confirmTitle"  class="confirm-title"></h3>
-      <p  id="confirmText"   class="confirm-text"></p>
-      <div class="confirm-actions">
-        <button id="confirmCancelBtn" class="btn-cancel-confirm">Cancel</button>
-        <button id="confirmApplyBtn"  class="btn-apply-confirm">Apply</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PLAYER PROFILE POPUP -->
-  <div id="playerProfileOverlay" class="profile-overlay hidden" onclick="closePlayerProfile(event)">
-      <div class="profile-card" id="playerProfileCard">
-          <button class="profile-close" onclick="closePlayerProfile()">✕</button>
-          <div id="profileContent" class="profile-content">
-              <div class="profile-loading"><div class="tb-spinner"></div></div>
-          </div>
-      </div>
-  </div>
 
   <script type="module" src="ppl-edit-team.js"></script>
 </body>

@@ -1,33 +1,22 @@
 import { supabase } from "./supabase.js";
 import { authReady } from "./auth-state.js";
 
-// ─── CONSTANTS & CONFIG ──────────────────────────────────────────────────────
 const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
+const MIN_REQ = { WK: 0, BAT: 3, AR: 1, BOWL: 3 }; // No WK minimum required for PPL
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
 let state = {
     userId: null,
-    activePhase: null, // Full object from ppl_fantasy_days
+    openPhases: [],
+    activePhaseIndex: 0,
     allPlayers: [],
-    selectedPlayers: [],
-    captainId: null,
-    viceCaptainId: null,
-    existingTeamId: null,
     realTeamsMap: {},
-    filters: {
-        search: "",
-        role: "WK",
-        teams: [],
-        credits: [],
-        type: [],
-    },
+    phaseStates: {}, // Stores individual { selectedPlayers, captainId, viceCaptainId, teamId } per phase
+    filters: { search: "", role: "WK", teams: [], credits: [] },
     saving: false,
 };
 
 let countdownInterval = null;
-let audioCtx = null;
 
-// ─── INIT ────────────────────────────────────────────────────────────────────
 async function boot() {
     try {
         const user = await authReady;
@@ -40,73 +29,53 @@ async function boot() {
 boot();
 
 async function init() {
-    document.body.classList.add("loading-state");
-
     try {
-        // 1. Fetch Active Phase
-        const { data: phases } = await supabase.from("ppl_fantasy_days")
-            .select("*").order("created_at");
-            
-        state.activePhase = phases.find(p => !p.is_locked);
-        if (!state.activePhase) {
-            showEmptyState("Phase locked. You cannot edit your team right now.");
+        // 1. Fetch Open Phases
+        const { data: phases } = await supabase.from("ppl_fantasy_days").select("*").eq("is_locked", false).order("created_at");
+        if (!phases || phases.length === 0) {
+            showEmptyState("Fantasy is currently locked for all phases.");
             return;
         }
+        state.openPhases = phases;
 
-        // Setup Header Data
-        const pName = state.activePhase.phase === 'group_a' ? 'Group A' : 
-                      state.activePhase.phase === 'group_b' ? 'Group B' : 'Knockout';
-        document.getElementById("phaseTitle").textContent = `${pName} Phase`;
-        document.getElementById("upcomingMatchName").textContent = `Deadline: ${new Date(state.activePhase.lock_deadline).toLocaleDateString('en-GB')}`;
-        startCountdown(state.activePhase.lock_deadline);
-
-        // 2. Fetch Teams & Players
-        const [{ data: teams }, { data: players }, { data: userTeam }] = await Promise.all([
+        // 2. Fetch Teams & Active Players
+        const [{ data: teams }, { data: players }] = await Promise.all([
             supabase.from("ppl_teams").select("*"),
-            supabase.from("ppl_players").select("*, ppl_teams(short_name, group_name)").eq("is_active", true),
-            supabase.from("ppl_user_teams")
-                .select("*, ppl_user_team_players(player_id)")
-                .eq("user_id", state.userId)
-                .eq("phase_id", state.activePhase.id)
-                .maybeSingle()
+            supabase.from("ppl_players").select("*, ppl_teams(short_name, group_name)").eq("is_active", true)
         ]);
 
         state.realTeamsMap = Object.fromEntries((teams || []).map(t => [t.id, t]));
+        state.allPlayers = players || [];
 
-        // Filter players strictly by the active phase group (unless knockout, then all)
-        if (state.activePhase.phase === "group_a") {
-            state.allPlayers = players.filter(p => p.fantasy_group === 'A' || p.ppl_teams?.group_name === 'A');
-        } else if (state.activePhase.phase === "group_b") {
-            state.allPlayers = players.filter(p => p.fantasy_group === 'B' || p.ppl_teams?.group_name === 'B');
-        } else {
-            state.allPlayers = players || [];
-        }
+        // 3. Fetch User's Existing Teams for Open Phases
+        const phaseIds = state.openPhases.map(p => p.id);
+        const { data: existingTeams } = await supabase.from("ppl_user_teams")
+            .select("*, ppl_user_team_players(player_id)")
+            .eq("user_id", state.userId)
+            .in("phase_id", phaseIds);
 
-        if (state.allPlayers.length === 0) {
-            showEmptyState("No players assigned to this phase yet.");
-            return;
-        }
+        // Initialize Phase Memory States
+        state.openPhases.forEach(p => {
+            const t = (existingTeams || []).find(x => x.phase_id === p.id);
+            state.phaseStates[p.id] = {
+                teamId: t ? t.id : null,
+                captainId: t ? t.captain_player_id : null,
+                viceCaptainId: t ? t.vice_captain_player_id : null,
+                selectedPlayers: t ? state.allPlayers.filter(pl => t.ppl_user_team_players.some(x => x.player_id === pl.id)) : []
+            };
+        });
 
-        // 3. Load Existing Team State
-        if (userTeam) {
-            state.existingTeamId = userTeam.id;
-            state.captainId = userTeam.captain_player_id;
-            state.viceCaptainId = userTeam.vice_captain_player_id;
-            const savedIds = userTeam.ppl_user_team_players.map(r => r.player_id);
-            state.selectedPlayers = state.allPlayers.filter(p => savedIds.includes(p.id));
-        }
-
+        renderPhaseTabs();
+        switchPhase(0); // Load first open phase
         initFilters();
         setupListeners();
-        render();
 
     } catch (err) {
-        console.error("Init failed:", err);
-        showEmptyState("Failed to load. Please try again.");
+        console.error(err);
+        showEmptyState("Failed to load data.");
     } finally {
         document.body.classList.remove("loading-state");
-        const overlay = document.getElementById("loadingOverlay");
-        if (overlay) overlay.style.display = "none";
+        document.getElementById("loadingOverlay").style.display = "none";
     }
 }
 
@@ -114,8 +83,40 @@ function showEmptyState(msg) {
     document.body.classList.remove("loading-state");
     const main = document.querySelector(".content-area");
     if (main) main.innerHTML = `<p class="empty-pool-msg" style="text-align:center;padding:40px 20px">${msg}</p>`;
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.style.display = "none";
+    document.getElementById("loadingOverlay").style.display = "none";
+}
+
+// ─── PHASE SWITCHING ──────────────────────────────────────────────────────────
+function renderPhaseTabs() {
+    const row = document.getElementById("phaseToggleRow");
+    if (!row) return;
+
+    row.innerHTML = state.openPhases.map((p, idx) => {
+        const name = p.phase === 'group_a' ? 'Group A' : p.phase === 'group_b' ? 'Group B' : 'Knockout';
+        return `<button class="phase-tab ${idx === state.activePhaseIndex ? 'active' : ''}" onclick="window.switchPhase(${idx})">${name}</button>`;
+    }).join('');
+}
+
+window.switchPhase = (index) => {
+    state.activePhaseIndex = index;
+    const phase = state.openPhases[index];
+
+    // Update UI Toggles
+    document.querySelectorAll(".phase-tab").forEach((btn, idx) => btn.classList.toggle("active", idx === index));
+    
+    // Set Header Timer
+    startCountdown(phase.lock_deadline);
+
+    // Clear filters on switch
+    state.filters.search = "";
+    document.getElementById("playerSearch").value = "";
+    
+    render();
+};
+
+function getActivePhaseState() {
+    const phase = state.openPhases[state.activePhaseIndex];
+    return state.phaseStates[phase.id];
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
@@ -125,37 +126,35 @@ function render() {
     renderMyXI(stats);
     renderPlayerPool(stats);
     updateSaveButton(stats);
-    updateFilterButtonStates();
 }
 
 function calcStats() {
-    const selected = state.selectedPlayers;
+    const pState = getActivePhaseState();
+    const selected = pState.selectedPlayers;
     const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-    let overseas = 0, credits = 0;
+    let stars = 0, credits = 0;
 
     for (const p of selected) {
         roles[p.role] = (roles[p.role] || 0) + 1;
-        if (p.category === "overseas") overseas++;
+        if (p.is_star) stars++;
         credits += Number(p.fantasy_price || 0);
     }
-    return { count: selected.length, overseas, credits, roles };
+    return { count: selected.length, stars, credits, roles };
 }
 
 function updateDashboard(stats) {
-    // Render Dots
+    const pState = getActivePhaseState();
     const container = document.getElementById("teamDotsRow");
     if (container) {
         const frag = document.createDocumentFragment();
-        const bucket = supabase.storage.from("player-photos"); // Or team-logos depending on PPL
+        const bucket = supabase.storage.from("player-photos"); 
         for (let i = 0; i < 11; i++) {
-            const player = state.selectedPlayers[i];
+            const player = pState.selectedPlayers[i];
             const dot = document.createElement("div");
             dot.className = "team-dot";
             if (player) {
-                // If you use player faces for dots
                 if (player.photo_url) {
-                    const url = bucket.getPublicUrl(player.photo_url).data.publicUrl;
-                    dot.style.backgroundImage = `url('${url}')`;
+                    dot.style.backgroundImage = `url('${bucket.getPublicUrl(player.photo_url).data.publicUrl}')`;
                     dot.classList.add("filled");
                 } else {
                     dot.classList.add("filled", "no-logo");
@@ -172,26 +171,25 @@ function updateDashboard(stats) {
 
     const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setTxt("playerCountLabel", stats.count);
-    setTxt("overseasCountLabel", `${stats.overseas}/4`);
+    setTxt("starCountLabel", stats.stars);
     setTxt("creditCount", (100 - stats.credits).toFixed(1));
 
     const creditEl = document.getElementById("creditCount");
     if (creditEl) creditEl.closest(".dashboard-item")?.classList.toggle("negative", (100 - stats.credits) < 0);
 
-    // Role Requirements Badges
-    const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
     document.querySelectorAll(".role-tab[data-role]").forEach(tab => {
         const role = tab.dataset.role;
         const count = stats.roles[role] || 0;
         const badge = tab.querySelector("span");
         if (badge) badge.textContent = count;
         tab.classList.remove("req-met", "req-unmet");
-        tab.classList.add(count >= minReq[role] ? "req-met" : "req-unmet");
+        tab.classList.add(count >= MIN_REQ[role] ? "req-met" : "req-unmet");
     });
 }
 
 function renderMyXI(stats) {
-    const sorted = [...state.selectedPlayers].sort((a, b) => {
+    const pState = getActivePhaseState();
+    const sorted = [...pState.selectedPlayers].sort((a, b) => {
         if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
         return Number(b.fantasy_price) - Number(a.fantasy_price);
     });
@@ -200,17 +198,19 @@ function renderMyXI(stats) {
 
 function renderPlayerPool(stats) {
     const s = state.filters.search.toLowerCase();
+    const activePhaseObj = state.openPhases[state.activePhaseIndex];
+
     const filtered = state.allPlayers.filter(p => {
-        const cat = (p.category || "").toLowerCase();
+        // Enforce Group Isolation
+        if (activePhaseObj.phase === "group_a" && p.fantasy_group !== 'A' && p.ppl_teams?.group_name !== 'A') return false;
+        if (activePhaseObj.phase === "group_b" && p.fantasy_group !== 'B' && p.ppl_teams?.group_name !== 'B') return false;
+
         if (s && !p.name.toLowerCase().includes(s) && !(p.ppl_teams?.short_name || "").toLowerCase().includes(s)) return false;
         if (!state.filters.search && p.role !== state.filters.role) return false;
         if (state.filters.teams.length && !state.filters.teams.includes(p.team_id)) return false;
         if (state.filters.credits.length && !state.filters.credits.includes(p.fantasy_price)) return false;
-        if (state.filters.type.length && !state.filters.type.includes(cat)) return false;
         return true;
-    }).sort((a, b) => {
-        return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.fantasy_price - a.fantasy_price;
-    });
+    }).sort((a, b) => ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.fantasy_price - a.fantasy_price);
 
     renderList("playerPoolList", filtered, false, stats);
 }
@@ -219,8 +219,8 @@ function renderList(containerId, list, isMyXi, stats) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const minReq = { WK: 1, BAT: 3, AR: 1, BOWL: 3 };
-    const neededSlots = Object.keys(minReq).reduce((acc, r) => acc + Math.max(0, minReq[r] - stats.roles[r]), 0);
+    const pState = getActivePhaseState();
+    const neededSlots = Object.keys(MIN_REQ).reduce((acc, r) => acc + Math.max(0, MIN_REQ[r] - stats.roles[r]), 0);
     const bucket = supabase.storage.from("player-photos");
     const frag = document.createDocumentFragment();
 
@@ -234,22 +234,21 @@ function renderList(containerId, list, isMyXi, stats) {
     }
 
     for (const p of list) {
-        const isSelected = state.selectedPlayers.some(sp => sp.id === p.id);
+        const isSelected = pState.selectedPlayers.some(sp => sp.id === p.id);
         const tooExpensive = p.fantasy_price > (100 - stats.credits + (isSelected ? p.fantasy_price : 0));
-        const overseasLimit = stats.overseas >= 4 && p.category === "overseas" && !isSelected;
-        const roleLocked = !isSelected && (11 - stats.count) <= neededSlots && (minReq[p.role] - stats.roles[p.role]) <= 0;
-        const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || overseasLimit || roleLocked);
+        const starLimit = stats.stars >= 4 && p.is_star && !isSelected;
+        const roleLocked = !isSelected && (11 - stats.count) <= neededSlots && (MIN_REQ[p.role] - stats.roles[p.role]) <= 0;
+        const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || starLimit || roleLocked);
 
         const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
-        const cat = (p.category || "").toLowerCase();
-        const catBadge = cat === "overseas" ? '<span class="cat-badge overseas">✈</span>' : cat === "uncapped" ? '<span class="cat-badge uncapped">U</span>' : "";
+        const starBadge = p.is_star ? '<span class="star-icon">⭐</span>' : "";
 
         const card = document.createElement("div");
         card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
         
-        const checkTxt = state.captainId === p.id ? "C" : state.viceCaptainId === p.id ? "VC" : isSelected ? "✓" : "+";
-        const isC = state.captainId === p.id;
-        const isVC = state.viceCaptainId === p.id;
+        const isC = pState.captainId === p.id;
+        const isVC = pState.viceCaptainId === p.id;
+        const checkTxt = isC ? "C" : isVC ? "VC" : isSelected ? "✓" : "+";
 
         const cvBtns = (isSelected || isC || isVC) ? `
             <div class="cv-btns" onclick="event.stopPropagation()">
@@ -258,15 +257,14 @@ function renderList(containerId, list, isMyXi, stats) {
             </div>` : "";
 
         card.innerHTML = `
-        <div class="avatar-col" onclick="openPlayerProfile('${p.id}')">
+        <div class="avatar-col">
             <div class="avatar-wrap">
                 <img src="${photoUrl}" class="player-avatar" loading="lazy">
-                ${catBadge}
             </div>
             <span class="p-team-badge">${p.ppl_teams?.short_name || 'TBA'}</span>
         </div>
         <div class="player-info">
-            <strong class="p-name">${p.name} ${p.is_star ? '<span style="color:#fbbf24;font-size:10px">⭐</span>' : ''}</strong>
+            <strong class="p-name">${p.name} ${starBadge}</strong>
             <span class="p-meta">${p.fantasy_price} Cr · ${p.role}</span>
         </div>
         <div class="controls">
@@ -283,9 +281,8 @@ function renderList(containerId, list, isMyXi, stats) {
     container.replaceChildren(frag);
 }
 
-// ─── ACTIONS & LISTENERS ──────────────────────────────────────────────────────
+// ─── PLAYER INTERACTIONS ──────────────────────────────────────────────────────
 function setupListeners() {
-    // Delegated clicks for XI and Pool
     document.getElementById("playerPoolList")?.addEventListener("click", e => {
         const btn = e.target.closest("button[data-action]");
         if (btn && !btn.disabled && btn.dataset.action === "toggle") togglePlayer(btn.dataset.id);
@@ -300,7 +297,6 @@ function setupListeners() {
         else if (btn.dataset.action === "VC") setRole(id, "VC");
     });
 
-    // View Tabs
     document.querySelectorAll(".toggle-btn").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
@@ -312,7 +308,6 @@ function setupListeners() {
         };
     });
 
-    // Role Tabs
     document.querySelectorAll(".role-tab").forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
@@ -322,16 +317,12 @@ function setupListeners() {
         };
     });
 
-    // Save Button
-    document.getElementById("saveTeamBtn")?.addEventListener("click", showTransferSheet);
-    
-    // Preview
+    document.getElementById("saveTeamBtn")?.addEventListener("click", savePhaseTeam);
     document.getElementById("previewTeamBtn")?.addEventListener("click", openPreviewPopup);
-    document.getElementById("previewCloseBtn")?.addEventListener("click", closePreviewPopup);
+    document.getElementById("previewCloseBtn")?.addEventListener("click", () => document.getElementById("previewOverlay").classList.add("hidden"));
 
-    // Filters
     const backdrop = document.getElementById("filterBackdrop");
-    for (const type of ["team", "credit", "type"]) {
+    for (const type of ["team", "credit"]) {
         const btn = document.getElementById(`${type}Toggle`);
         const menu = document.getElementById(`${type}Menu`);
         if (btn && menu) {
@@ -344,58 +335,59 @@ function setupListeners() {
         }
     }
     if (backdrop) backdrop.onclick = window.closeFilters;
-    document.getElementById("transferBackdrop")?.addEventListener("click", window.closeTransferSheet);
 }
 
 function togglePlayer(id) {
-    triggerHaptic();
-    const idx = state.selectedPlayers.findIndex(p => p.id === id);
+    if (navigator.vibrate) navigator.vibrate(40);
+    const pState = getActivePhaseState();
+    const idx = pState.selectedPlayers.findIndex(p => p.id === id);
+    
     if (idx > -1) {
-        state.selectedPlayers.splice(idx, 1);
-        if (state.captainId === id) state.captainId = null;
-        if (state.viceCaptainId === id) state.viceCaptainId = null;
-    } else if (state.selectedPlayers.length < 11) {
+        pState.selectedPlayers.splice(idx, 1);
+        if (pState.captainId === id) pState.captainId = null;
+        if (pState.viceCaptainId === id) pState.viceCaptainId = null;
+    } else if (pState.selectedPlayers.length < 11) {
         const p = state.allPlayers.find(p => p.id === id);
-        if (p) state.selectedPlayers.push(p);
+        if (p) pState.selectedPlayers.push(p);
     }
     render();
 
-    // Auto-switch to My XI when full
     const stats = calcStats();
-    const allRolesMet = stats.roles.WK >= 1 && stats.roles.BAT >= 3 && stats.roles.AR >= 1 && stats.roles.BOWL >= 3;
-    if (stats.count === 11 && allRolesMet && (!state.captainId || !state.viceCaptainId)) {
+    const allRolesMet = stats.roles.BAT >= 3 && stats.roles.AR >= 1 && stats.roles.BOWL >= 3;
+    if (stats.count === 11 && allRolesMet && (!pState.captainId || !pState.viceCaptainId)) {
         document.querySelector(".toggle-btn[data-mode='myxi']")?.click();
         showToast("11 players added! Now set your C & VC 👑", "success");
     }
 }
 
 function setRole(id, type) {
-    triggerHaptic();
+    if (navigator.vibrate) navigator.vibrate(40);
+    const pState = getActivePhaseState();
     if (type === "C") {
-        state.captainId = state.captainId === id ? null : id;
-        if (state.captainId === state.viceCaptainId) state.viceCaptainId = null;
+        pState.captainId = pState.captainId === id ? null : id;
+        if (pState.captainId === pState.viceCaptainId) pState.viceCaptainId = null;
     } else {
-        state.viceCaptainId = state.viceCaptainId === id ? null : id;
-        if (state.viceCaptainId === state.captainId) state.captainId = null;
+        pState.viceCaptainId = pState.viceCaptainId === id ? null : id;
+        if (pState.viceCaptainId === pState.captainId) pState.captainId = null;
     }
     render();
 }
 
 function updateSaveButton(stats) {
+    const pState = getActivePhaseState();
     const btn = document.getElementById("saveTeamBtn");
     const hint = document.getElementById("saveHint");
     if (!btn) return;
 
     const checks = [
         [state.saving, "SAVING...", ""],
-        [stats.count < 11, "NEXT →", `Add ${11 - stats.count} more player${11 - stats.count > 1 ? "s" : ""}`],
-        [!state.captainId || !state.viceCaptainId, "NEXT →", "Select your Captain & Vice-Captain"],
-        [stats.roles.WK < 1, "NEXT →", "Need at least 1 Wicket-Keeper"],
-        [stats.roles.BAT < 3, "NEXT →", "Need at least 3 Batters"],
-        [stats.roles.AR < 1, "NEXT →", "Need at least 1 All-Rounder"],
-        [stats.roles.BOWL < 3, "NEXT →", "Need at least 3 Bowlers"],
-        [stats.overseas > 4, "NEXT →", "Max 4 overseas players allowed"],
-        [stats.credits > 100.05, "NEXT →", "Credits exceeded — remove a player"],
+        [stats.count < 11, "SAVE TEAM", `Add ${11 - stats.count} more player${11 - stats.count > 1 ? "s" : ""}`],
+        [!pState.captainId || !pState.viceCaptainId, "SAVE TEAM", "Select your Captain & Vice-Captain"],
+        [stats.roles.BAT < 3, "SAVE TEAM", "Need at least 3 Batters"],
+        [stats.roles.AR < 1, "SAVE TEAM", "Need at least 1 All-Rounder"],
+        [stats.roles.BOWL < 3, "SAVE TEAM", "Need at least 3 Bowlers"],
+        [stats.stars > 4, "SAVE TEAM", "Max 4 Star Players allowed"],
+        [stats.credits > 100.05, "SAVE TEAM", "Credits exceeded — remove a player"],
     ];
 
     for (const [condition, label, hintText] of checks) {
@@ -407,110 +399,67 @@ function updateSaveButton(stats) {
         }
     }
     btn.disabled = false;
-    btn.textContent = "NEXT →";
-    if (hint) hint.textContent = "Tap to review your changes";
+    btn.textContent = "SAVE TEAM";
+    if (hint) hint.textContent = "Ready to save";
 }
 
-// ─── SAVING (TRANSFER SHEET) ──────────────────────────────────────────────────
-function showTransferSheet() {
-    const sheet = document.getElementById("transferSheet");
-    const body = document.getElementById("transferSheetBody");
-    const backdrop = document.getElementById("transferBackdrop");
-    
-    const captain = state.allPlayers.find(p => p.id === state.captainId);
-    const vc = state.allPlayers.find(p => p.id === state.viceCaptainId);
-
-    body.innerHTML = `
-        <div class="ts-inner">
-            <div class="ts-header">
-                <span class="ts-title">Confirm Phase XI</span>
-                <button class="ts-close" onclick="closeTransferSheet()">✕</button>
-            </div>
-            <div class="ts-cvc-grid" style="margin-top:10px">
-                <div class="ts-cvc-block">
-                    <span class="ts-cvc-block-label">👑 Captain</span>
-                    <span class="ts-cvc-name captain">${captain?.name || "—"}</span>
-                </div>
-                <div class="ts-cvc-block">
-                    <span class="ts-cvc-block-label">VC Vice-Captain</span>
-                    <span class="ts-cvc-name vc">${vc?.name || "—"}</span>
-                </div>
-            </div>
-            <p class="ts-note">Your team will lock at the phase deadline.</p>
-            <button class="ts-confirm-btn" onclick="confirmAndSave()">Confirm & Save</button>
-        </div>`;
-
-    backdrop?.classList.remove("hidden");
-    sheet.classList.remove("hidden");
-    setTimeout(() => sheet.classList.add("show"), 10);
-}
-
-window.closeTransferSheet = () => {
-    const sheet = document.getElementById("transferSheet");
-    const backdrop = document.getElementById("transferBackdrop");
-    sheet?.classList.remove("show");
-    backdrop?.classList.add("hidden");
-    setTimeout(() => sheet?.classList.add("hidden"), 400);
-};
-
-window.confirmAndSave = async () => {
-    window.closeTransferSheet();
+// ─── SAVE PHASE TEAM ──────────────────────────────────────────────────────────
+async function savePhaseTeam() {
+    const phase = state.openPhases[state.activePhaseIndex];
+    const pState = getActivePhaseState();
     state.saving = true;
     render();
 
     try {
         const payload = {
             user_id: state.userId,
-            phase_id: state.activePhase.id,
-            phase: state.activePhase.phase,
-            captain_player_id: state.captainId,
-            vice_captain_player_id: state.viceCaptainId,
+            phase_id: phase.id,
+            phase: phase.phase,
+            captain_player_id: pState.captainId,
+            vice_captain_player_id: pState.viceCaptainId,
             total_credits_used: calcStats().credits,
         };
 
-        let teamId = state.existingTeamId;
+        let teamId = pState.teamId;
 
-        // Upsert Team
         if (teamId) {
             await supabase.from("ppl_user_teams").update(payload).eq("id", teamId);
             await supabase.from("ppl_user_team_players").delete().eq("user_team_id", teamId);
         } else {
-            // Need user profile name for insert
             const { data: p } = await supabase.from("user_profiles").select("team_name, full_name").eq("user_id", state.userId).single();
             payload.user_name = p.team_name || p.full_name;
             const { data: newTeam, error } = await supabase.from("ppl_user_teams").insert(payload).select("id").single();
             if (error) throw error;
             teamId = newTeam.id;
+            pState.teamId = teamId; // Cache it
         }
 
-        // Insert Players
-        const playersData = state.selectedPlayers.map(p => ({
+        const playersData = pState.selectedPlayers.map(p => ({
             user_team_id: teamId,
             user_id: state.userId,
             player_id: p.id,
-            is_captain: p.id === state.captainId,
-            is_vice_captain: p.id === state.viceCaptainId
+            is_captain: p.id === pState.captainId,
+            is_vice_captain: p.id === pState.viceCaptainId
         }));
 
         const { error: pErr } = await supabase.from("ppl_user_team_players").insert(playersData);
         if (pErr) throw pErr;
 
-        triggerHaptic("success");
-        showToast("Phase XI Saved!", "success");
-        setTimeout(() => window.location.href = "ppl-home.html", 1500);
+        if (navigator.vibrate) navigator.vibrate([50, 80, 50]);
+        showToast("Team Saved!", "success");
 
     } catch (err) {
         showToast(err.message, "error");
+    } finally {
         state.saving = false;
         render();
     }
-};
+}
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function startCountdown(deadlineStr) {
     const el = document.getElementById("headerCountdown");
     if (!el || !deadlineStr) return;
-    
     if (countdownInterval) clearInterval(countdownInterval);
     const target = new Date(deadlineStr).getTime();
 
@@ -538,31 +487,28 @@ function showToast(msg, type = "success") {
     setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 400); }, 3000);
 }
 
-function triggerHaptic(style = "light") {
-    if (navigator.vibrate) navigator.vibrate(style === "success" ? [50, 80, 50] : [40]);
-}
-
-// Preview Popup Logic
 function openPreviewPopup() {
     const overlay = document.getElementById("previewOverlay");
     const field = document.getElementById("previewField");
+    const pState = getActivePhaseState();
     
     const roles = ["WK", "BAT", "AR", "BOWL"];
     let html = "";
     
     roles.forEach(r => {
-        const players = state.selectedPlayers.filter(p => p.role === r);
+        const players = pState.selectedPlayers.filter(p => p.role === r);
         if (!players.length) return;
         
         const tiles = players.map(p => {
-            const isC = p.id === state.captainId;
-            const isVC = p.id === state.viceCaptainId;
+            const isC = p.id === pState.captainId;
+            const isVC = p.id === pState.viceCaptainId;
             const badge = isC ? '<span class="preview-cvc-badge c">C</span>' : isVC ? '<span class="preview-cvc-badge vc">VC</span>' : '';
             const ring = isC ? 'captain-ring' : isVC ? 'vc-ring' : '';
+            const url = p.photo_url ? supabase.storage.from("player-photos").getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
             return `
             <div class="preview-player-tile">
                 <div class="preview-avatar-wrap">
-                    <img src="${getPhotoUrl(p.photo_url)}" class="preview-avatar ${ring}">
+                    <img src="${url}" class="preview-avatar ${ring}">
                     ${badge}
                 </div>
                 <span class="preview-player-name">${p.name.split(" ").pop()}</span>
@@ -576,19 +522,9 @@ function openPreviewPopup() {
     overlay.classList.remove("hidden");
 }
 
-function closePreviewPopup() {
-    document.getElementById("previewOverlay")?.classList.add("hidden");
-}
-
-function getPhotoUrl(path) {
-    return path ? supabase.storage.from("player-photos").getPublicUrl(path).data.publicUrl : "images/default-avatar.png";
-}
-
-// Filters logic
 function initFilters() {
     renderCheckboxDropdown("teamMenu", Object.values(state.realTeamsMap), "teams", t => t.short_name);
     renderCheckboxDropdown("creditMenu", [...new Set(state.allPlayers.map(p => p.fantasy_price))].sort((a,b)=>a-b), "credits", c => `${c} Cr`);
-    renderCheckboxDropdown("typeMenu", [{id:"uncapped", label:"Uncapped 🧢"}, {id:"overseas", label:"Overseas ✈️"}], "type", t => t.label);
 }
 
 function renderCheckboxDropdown(id, items, key, lblFn) {
@@ -609,6 +545,6 @@ window.toggleFilter = (k, v, el) => {
 window.clearFilters = k => { state.filters[k] = []; renderPlayerPool(calcStats()); updateFilterButtonStates(); initFilters(); };
 window.closeFilters = () => { document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show")); document.getElementById("filterBackdrop")?.classList.add("hidden"); };
 function updateFilterButtonStates() {
-    const map = { teamToggle: state.filters.teams, creditToggle: state.filters.credits, typeToggle: state.filters.type };
-    for (const [id, arr] of Object.entries(map)) document.getElementById(id)?.classList.toggle("active-filter", arr.length > 0);
+    document.getElementById("teamToggle")?.classList.toggle("active-filter", state.filters.teams.length > 0);
+    document.getElementById("creditToggle")?.classList.toggle("active-filter", state.filters.credits.length > 0);
 }
