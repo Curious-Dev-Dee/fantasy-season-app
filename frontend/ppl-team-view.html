@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PPL 2026 | View Team</title>
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/team-view.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script type="module" src="auth-guard.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+
+<body class="loading-state">
+
+<div id="skeletonScreen">
+  <div class="sk-header">
+    <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
+    <div class="sk-block" style="width:100px;height:18px;border-radius:6px"></div>
+    <div class="sk-block" style="width:32px;height:32px;border-radius:8px"></div>
+  </div>
+  <div class="sk-block" style="height:44px;border-radius:10px;margin-bottom:12px"></div>
+  <div class="sk-block" style="height:420px;border-radius:16px;margin-bottom:12px"></div>
+</div>
+
+<div class="team-view-app">
+
+  <header class="premium-header">
+    <a href="javascript:history.back()" class="icon-back" aria-label="Go Back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="header-center">
+      <h1 class="main-title" id="viewTitle">View Team</h1>
+      <div id="boosterIndicator" class="booster-indicator-view hidden"></div>
+      <button id="viewHistoryBtn" class="history-trigger">
+        <i class="fas fa-history"></i> Match History
+      </button>
+    </div>
+
+    <div class="header-spacer" aria-hidden="true"></div>
+  </header>
+
+  <div class="xi-toggle">
+    <button class="xi-tab active" id="tabUpcoming" data-tab="current">
+      <i class="fas fa-pencil-alt"></i>
+      <span>Phase XI</span>
+    </button>
+    <button class="xi-tab" id="tabLocked" data-tab="locked">
+      <i class="fas fa-lock"></i>
+      <span>Last Match</span>
+    </button>
+  </div>
+
+  <main class="team-field" id="teamContainer"></main>
+  <div id="teamStatus" class="team-status"></div>
+
+  <div id="historyOverlay" class="overlay hidden">
+    <div class="overlay-content">
+      <div class="overlay-header">
+        <h3 class="overlay-title">Team History</h3>
+        <button class="close-btn" id="closeHistory" aria-label="Close history">&times;</button>
+      </div>
+      <div id="historyList" class="scroll-area"></div>
+    </div>
+  </div>
+
+  <div id="breakdownOverlay" class="overlay hidden">
+    <div class="overlay-content breakdown-view">
+      <div class="overlay-header">
+        <button class="back-arrow" id="backToHistory" aria-label="Back to history">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h3 class="overlay-title" id="breakdownTitle">Match Details</h3>
+      </div>
+      <div id="breakdownBooster" class="booster-indicator-view breakdown-booster-badge hidden"></div>
+      <div class="breakdown-body">
+        <div id="breakdownTeamContainer" class="team-field smaller-field"></div>
+      </div>
+      <footer class="breakdown-footer" id="breakdownFooter"></footer>
+    </div>
+  </div>
+
+  <div id="playerPointLogOverlay" class="overlay overlay-top hidden">
+    <div class="overlay-content player-breakdown-popup">
+      <div class="overlay-header">
+        <h3 class="overlay-title" id="pplPlayerName">Player Points</h3>
+        <button class="close-btn" id="closePPL" aria-label="Close">&times;</button>
+      </div>
+      <div id="pplContent" class="scroll-area"></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="ppl-team-view.js"></script>
+<script src="transitions.js"></script>
+
+</body>
+</html>
