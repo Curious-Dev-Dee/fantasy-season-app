@@ -1,17 +1,19 @@
 import { supabase } from "./supabase.js";
 import { authReady } from "./auth-state.js";
 
-const ROLE_PRIORITY = { WK: 1, BAT: 2, AR: 3, BOWL: 4 };
-const MIN_REQ = { WK: 0, BAT: 3, AR: 1, BOWL: 3 }; // No WK minimum required for PPL
+// No WK priority needed
+const ROLE_PRIORITY = { BAT: 1, AR: 2, BOWL: 3 };
+const MIN_REQ = { BAT: 3, AR: 1, BOWL: 3 }; 
 
 let state = {
     userId: null,
     openPhases: [],
     activePhaseIndex: 0,
-    allPlayers: [],
+    masterPlayers: [], // Stores everyone
+    allPlayers: [],    // Stores only players for the active phase
     realTeamsMap: {},
-    phaseStates: {}, // Stores individual { selectedPlayers, captainId, viceCaptainId, teamId } per phase
-    filters: { search: "", role: "WK", teams: [], credits: [] },
+    phaseStates: {},
+    filters: { search: "", role: "BAT", teams: [], credits: [] },
     saving: false,
 };
 
@@ -45,7 +47,7 @@ async function init() {
         ]);
 
         state.realTeamsMap = Object.fromEntries((teams || []).map(t => [t.id, t]));
-        state.allPlayers = players || [];
+        state.masterPlayers = players || [];
 
         // 3. Fetch User's Existing Teams for Open Phases
         const phaseIds = state.openPhases.map(p => p.id);
@@ -61,14 +63,16 @@ async function init() {
                 teamId: t ? t.id : null,
                 captainId: t ? t.captain_player_id : null,
                 viceCaptainId: t ? t.vice_captain_player_id : null,
-                selectedPlayers: t ? state.allPlayers.filter(pl => t.ppl_user_team_players.some(x => x.player_id === pl.id)) : []
+                selectedPlayers: t ? state.masterPlayers.filter(pl => t.ppl_user_team_players.some(x => x.player_id === pl.id)) : []
             };
         });
 
         renderPhaseTabs();
-        switchPhase(0); // Load first open phase
-        initFilters();
+        initStaticFilters();
         setupListeners();
+        
+        // This handles isolating players & teams based on the group
+        window.switchPhase(0); 
 
     } catch (err) {
         console.error(err);
@@ -86,7 +90,7 @@ function showEmptyState(msg) {
     document.getElementById("loadingOverlay").style.display = "none";
 }
 
-// ─── PHASE SWITCHING ──────────────────────────────────────────────────────────
+// ─── PHASE SWITCHING & GROUP ISOLATION ────────────────────────────────────────
 function renderPhaseTabs() {
     const row = document.getElementById("phaseToggleRow");
     if (!row) return;
@@ -104,12 +108,31 @@ window.switchPhase = (index) => {
     // Update UI Toggles
     document.querySelectorAll(".phase-tab").forEach((btn, idx) => btn.classList.toggle("active", idx === index));
     
-    // Set Header Timer
+    // Set Header Info
+    const pName = phase.phase === 'group_a' ? 'Group A' : phase.phase === 'group_b' ? 'Group B' : 'Knockout';
+    document.getElementById("phaseTitle").textContent = `${pName} Phase`;
+    document.getElementById("upcomingMatchName").textContent = `Deadline: ${new Date(phase.lock_deadline).toLocaleDateString('en-GB')}`;
     startCountdown(phase.lock_deadline);
 
-    // Clear filters on switch
+    // Filter Players strictly by the active phase group
+    if (phase.phase === "group_a") {
+        state.allPlayers = state.masterPlayers.filter(p => p.fantasy_group === 'A' || p.ppl_teams?.group_name === 'A');
+    } else if (phase.phase === "group_b") {
+        state.allPlayers = state.masterPlayers.filter(p => p.fantasy_group === 'B' || p.ppl_teams?.group_name === 'B');
+    } else {
+        state.allPlayers = [...state.masterPlayers]; // Knockout has all active teams
+    }
+
+    // Reset UI & Filters for the new tab
     state.filters.search = "";
+    state.filters.teams = [];
+    state.filters.role = "BAT";
     document.getElementById("playerSearch").value = "";
+    
+    document.querySelectorAll(".role-tab").forEach(t => t.classList.toggle("active", t.dataset.role === "BAT"));
+    
+    // Rebuild the team dropdown so it only shows teams in THIS group
+    updateTeamFilterDropdown();
     
     render();
 };
@@ -126,16 +149,19 @@ function render() {
     renderMyXI(stats);
     renderPlayerPool(stats);
     updateSaveButton(stats);
+    updateFilterButtonStates();
 }
 
 function calcStats() {
     const pState = getActivePhaseState();
     const selected = pState.selectedPlayers;
-    const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
+    const roles = { BAT: 0, AR: 0, BOWL: 0 };
     let stars = 0, credits = 0;
 
     for (const p of selected) {
-        roles[p.role] = (roles[p.role] || 0) + 1;
+        // Fallback: Treat any WK in DB as a BAT
+        const r = p.role === 'WK' ? 'BAT' : p.role;
+        roles[r] = (roles[r] || 0) + 1;
         if (p.is_star) stars++;
         credits += Number(p.fantasy_price || 0);
     }
@@ -190,7 +216,9 @@ function updateDashboard(stats) {
 function renderMyXI(stats) {
     const pState = getActivePhaseState();
     const sorted = [...pState.selectedPlayers].sort((a, b) => {
-        if (ROLE_PRIORITY[a.role] !== ROLE_PRIORITY[b.role]) return ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role];
+        const rA = a.role === 'WK' ? 'BAT' : a.role;
+        const rB = b.role === 'WK' ? 'BAT' : b.role;
+        if (ROLE_PRIORITY[rA] !== ROLE_PRIORITY[rB]) return ROLE_PRIORITY[rA] - ROLE_PRIORITY[rB];
         return Number(b.fantasy_price) - Number(a.fantasy_price);
     });
     renderList("myXIList", sorted, true, stats);
@@ -198,19 +226,19 @@ function renderMyXI(stats) {
 
 function renderPlayerPool(stats) {
     const s = state.filters.search.toLowerCase();
-    const activePhaseObj = state.openPhases[state.activePhaseIndex];
 
     const filtered = state.allPlayers.filter(p => {
-        // Enforce Group Isolation
-        if (activePhaseObj.phase === "group_a" && p.fantasy_group !== 'A' && p.ppl_teams?.group_name !== 'A') return false;
-        if (activePhaseObj.phase === "group_b" && p.fantasy_group !== 'B' && p.ppl_teams?.group_name !== 'B') return false;
-
+        const r = p.role === 'WK' ? 'BAT' : p.role;
         if (s && !p.name.toLowerCase().includes(s) && !(p.ppl_teams?.short_name || "").toLowerCase().includes(s)) return false;
-        if (!state.filters.search && p.role !== state.filters.role) return false;
+        if (!state.filters.search && r !== state.filters.role) return false;
         if (state.filters.teams.length && !state.filters.teams.includes(p.team_id)) return false;
         if (state.filters.credits.length && !state.filters.credits.includes(p.fantasy_price)) return false;
         return true;
-    }).sort((a, b) => ROLE_PRIORITY[a.role] - ROLE_PRIORITY[b.role] || b.fantasy_price - a.fantasy_price);
+    }).sort((a, b) => {
+        const rA = a.role === 'WK' ? 'BAT' : a.role;
+        const rB = b.role === 'WK' ? 'BAT' : b.role;
+        return ROLE_PRIORITY[rA] - ROLE_PRIORITY[rB] || b.fantasy_price - a.fantasy_price;
+    });
 
     renderList("playerPoolList", filtered, false, stats);
 }
@@ -234,10 +262,11 @@ function renderList(containerId, list, isMyXi, stats) {
     }
 
     for (const p of list) {
+        const r = p.role === 'WK' ? 'BAT' : p.role;
         const isSelected = pState.selectedPlayers.some(sp => sp.id === p.id);
         const tooExpensive = p.fantasy_price > (100 - stats.credits + (isSelected ? p.fantasy_price : 0));
         const starLimit = stats.stars >= 4 && p.is_star && !isSelected;
-        const roleLocked = !isSelected && (11 - stats.count) <= neededSlots && (MIN_REQ[p.role] - stats.roles[p.role]) <= 0;
+        const roleLocked = !isSelected && (11 - stats.count) <= neededSlots && (MIN_REQ[r] - stats.roles[r]) <= 0;
         const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || starLimit || roleLocked);
 
         const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
@@ -265,7 +294,7 @@ function renderList(containerId, list, isMyXi, stats) {
         </div>
         <div class="player-info">
             <strong class="p-name">${p.name} ${starBadge}</strong>
-            <span class="p-meta">${p.fantasy_price} Cr · ${p.role}</span>
+            <span class="p-meta">${p.fantasy_price} Cr · ${r}</span>
         </div>
         <div class="controls">
             ${isMyXi ? `
@@ -492,11 +521,14 @@ function openPreviewPopup() {
     const field = document.getElementById("previewField");
     const pState = getActivePhaseState();
     
-    const roles = ["WK", "BAT", "AR", "BOWL"];
+    const roles = ["BAT", "AR", "BOWL"];
     let html = "";
     
     roles.forEach(r => {
-        const players = pState.selectedPlayers.filter(p => p.role === r);
+        const players = pState.selectedPlayers.filter(p => {
+            const pr = p.role === 'WK' ? 'BAT' : p.role;
+            return pr === r;
+        });
         if (!players.length) return;
         
         const tiles = players.map(p => {
@@ -522,9 +554,22 @@ function openPreviewPopup() {
     overlay.classList.remove("hidden");
 }
 
-function initFilters() {
-    renderCheckboxDropdown("teamMenu", Object.values(state.realTeamsMap), "teams", t => t.short_name);
-    renderCheckboxDropdown("creditMenu", [...new Set(state.allPlayers.map(p => p.fantasy_price))].sort((a,b)=>a-b), "credits", c => `${c} Cr`);
+function closePreviewPopup() {
+    document.getElementById("previewOverlay")?.classList.add("hidden");
+}
+
+function initStaticFilters() {
+    // Unique credits across masterPlayers
+    const uniqueCredits = [...new Set(state.masterPlayers.map(p => p.fantasy_price))].sort((a,b)=>a-b);
+    renderCheckboxDropdown("creditMenu", uniqueCredits, "credits", c => `${c} Cr`);
+}
+
+function updateTeamFilterDropdown() {
+    // Determine the unique teams present in state.allPlayers
+    const teamIdsInPhase = [...new Set(state.allPlayers.map(p => p.team_id))];
+    const teams = teamIdsInPhase.map(id => state.realTeamsMap[id]).filter(Boolean);
+    
+    renderCheckboxDropdown("teamMenu", teams, "teams", t => t.short_name);
 }
 
 function renderCheckboxDropdown(id, items, key, lblFn) {
@@ -542,7 +587,7 @@ window.toggleFilter = (k, v, el) => {
     if (el.checked) state.filters[k].push(val); else state.filters[k] = state.filters[k].filter(i => i !== val);
     renderPlayerPool(calcStats()); updateFilterButtonStates();
 };
-window.clearFilters = k => { state.filters[k] = []; renderPlayerPool(calcStats()); updateFilterButtonStates(); initFilters(); };
+window.clearFilters = k => { state.filters[k] = []; renderPlayerPool(calcStats()); updateFilterButtonStates(); };
 window.closeFilters = () => { document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show")); document.getElementById("filterBackdrop")?.classList.add("hidden"); };
 function updateFilterButtonStates() {
     document.getElementById("teamToggle")?.classList.toggle("active-filter", state.filters.teams.length > 0);
