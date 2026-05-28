@@ -597,6 +597,12 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- Add inside edit-match-panel, after MOM section -->
+<div class="section-head">Fantasy Points</div>
+<button class="btn btn-teal btn-sm" onclick="recalcMatchFantasy()">
+  🔄 Recalculate Fantasy Points for This Match
+</button>
+
 <!-- Manual score override modal -->
 <div class="modal-overlay" id="m-manual">
   <div class="modal">
@@ -796,12 +802,15 @@ async function loadHome() {
   document.getElementById('home-day-label').textContent = `Day ${getCurrentDay()}`;
 }
 
+// Replace getCurrentDay() with:
 function getCurrentDay() {
-  const now = new Date();
-  const d = now.getDate();
-  if (d === 29) return 1;
-  if (d === 30) return 2;
-  if (d === 31) return 3;
+  // Fetch from match data instead of hardcoded dates
+  const inProgress = S.allMatches.filter(m => 
+    ['inprogress','live','inningsbreak'].includes(m.status)
+  );
+  if (inProgress.length) return inProgress[0].day;
+  const upcoming = S.allMatches.filter(m => m.status === 'upcoming');
+  if (upcoming.length) return upcoming[0].day;
   return '?';
 }
 
@@ -903,18 +912,48 @@ function openMomEdit() {
 async function saveMom() {
   if (!S.editMatchData) return;
   const mom = document.getElementById('sel-mom-edit').value || null;
-  const { error } = await sb.from('ppl_matches').update({ mom_player_id: mom }).eq('id', S.editMatchData.id);
-  if (error) { toast('Failed: '+error.message,'error'); return; }
+  
+  const { error } = await sb.from('ppl_matches')
+    .update({ mom_player_id: mom })
+    .eq('id', S.editMatchData.id);
+  
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  
   S.editMatchData.mom_player_id = mom;
-  const momEl = document.getElementById('current-mom');
-  if (mom) {
-    const p = S.editMatchPlayers.find(x=>x.id===mom);
-    momEl.textContent = p ? p.name : '(set)';
-  } else { momEl.textContent = 'Not set'; }
+  // Update display...
   closeModal('m-mom');
-  toast('✅ MOM saved!');
+  toast('MOM saved!');
+
+  // ADD THIS: recalc fantasy points since MOM bonus changed
+  if (mom && S.editMatchData.status === 'completed') {
+    toast('Updating fantasy points for MOM...', 'info');
+    try {
+      await sb.functions.invoke('recalc-fantasy-points', {
+        body: { match_id: S.editMatchData.id }
+      });
+      toast('Fantasy points updated!', 'success');
+    } catch(e) {
+      toast('MOM saved. Run "Recalculate Stats" to update fantasy points.', 'warn');
+    }
+  }
 }
 
+async function recalcMatchFantasy() {
+  if (!S.editMatchData) return;
+  if (S.editMatchData.status !== 'completed') {
+    toast('Match not completed yet', 'warn'); return;
+  }
+  toast('Recalculating...', 'info');
+  try {
+    const { error } = await sb.functions.invoke('recalc-fantasy-points', {
+      body: { match_id: S.editMatchData.id }
+    });
+    if (error) throw error;
+    toast('Fantasy points updated!', 'success');
+  } catch(e) {
+    toast('Failed: ' + e.message, 'error');
+  }
+}
 async function saveResultDesc() {
   if (!S.editMatchData) return;
   const desc = document.getElementById('edit-result-desc').value;
@@ -1642,10 +1681,21 @@ async function saveEdit() {
 
   // Recalc from all deliveries
   await recalcFromDeliveries();
+
+   // ADD THIS: also recalc player stats if match is completed
+  if (S.match?.status === 'completed') {
+    try {
+      await sb.functions.invoke('recalc-fantasy-points', {
+        body: { match_id: S.match.id }
+      });
+    } catch(e) { /* silent - stats will need manual recalc */ }
+  }
+
   closeModal('m-edit');
   toast('✅ Delivery updated!');
   await openEditList();
 }
+
 
 async function deleteDelivery() {
   if(!S.editDelvId) return;
@@ -1852,10 +1902,17 @@ async function confirmAban() {
 }
 
 async function recalcAllStats() {
-  if(!confirm('Recalculate all player stats from ball-by-ball data? This may take a moment.')) return;
-  toast('Recalculating… (check DB for updates)','info');
-  // Stats are trigger-driven in DB — this just notifies admin
-  // If you have a manual recalc edge function, call it here
+  if (!confirm('Recalculate all player stats from ball-by-ball data? This may take a moment.')) return;
+  toast('Recalculating...', 'info');
+  try {
+    const { error } = await sb.functions.invoke('recalc-fantasy-points', {
+      body: { recalc_all: true }
+    });
+    if (error) throw error;
+    toast('Stats recalculated successfully!', 'success');
+  } catch (e) {
+    toast('Failed: ' + (e.message || 'Edge function not deployed'), 'error');
+  }
 }
 
 // ═══════════════════════════════════════════════
