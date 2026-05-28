@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import { authReady } from "./auth-state.js";
-import { getEffectiveRank, applyRankFlair } from "./animations.js";
+import { applyRankFlair } from "./animations.js";
 
 let currentUserId          = null;
 let existingProfile        = null;
@@ -24,20 +24,8 @@ const welcomeText          = document.getElementById("welcomeText");
 const teamNameElement      = document.getElementById("userTeamName");
 const scoreElement         = document.getElementById("userScore");
 const rankElement          = document.getElementById("userRank");
-const activePhaseLbl       = document.getElementById("activePhaseLbl");
 
-const matchTeamsElement    = document.getElementById("matchTeams");
-const matchTimeElement     = document.getElementById("matchTime");
-const matchVenueElement    = document.getElementById("matchVenue");
-const matchBadgeStatus     = document.getElementById("matchBadgeStatus");
-const teamALogo            = document.getElementById("teamALogo");
-const teamBLogo            = document.getElementById("teamBLogo");
-
-const leaderboardContainer = document.getElementById("leaderboardContainer");
-const overallMemberCount   = document.getElementById("overallMemberCount");
-const overallUserRank      = document.getElementById("overallUserRank");
-
-// Profile Modal Elements
+// Modals
 const profileModal         = document.getElementById("profileModal");
 const saveProfileBtn       = document.getElementById("saveProfileBtn");
 const modalTeamName        = document.getElementById("modalTeamName");
@@ -45,12 +33,7 @@ const avatarInput          = document.getElementById("avatarInput");
 const modalPreview         = document.getElementById("modalAvatarPreview");
 const closeProfileModal    = document.getElementById("closeProfileModal");
 
-// Nav Elements
-const navMatchesBtn = document.getElementById("navMatchesBtn");
-const navMatchLabel = document.getElementById("navMatchLabel");
-const navLiveDot    = document.getElementById("navLiveDot");
-
-// Chat Elements
+// Chat
 const chatFab      = document.getElementById("chatFab");
 const chatBackdrop = document.getElementById("chatBackdrop");
 const chatPanel    = document.getElementById("chatPanel");
@@ -58,7 +41,6 @@ const closeChatBtn = document.getElementById("closeChatBtn");
 const chatMessages = document.getElementById("chatMessages");
 const chatForm     = document.getElementById("chatForm");
 const chatInput    = document.getElementById("chatInput");
-const unreadBadge  = document.getElementById("unreadBadge");
 
 
 /* ══════════════════════════════════════════════════════
@@ -99,7 +81,6 @@ function revealApp(hasError = false) {
 async function startDashboard(userId) {
     initLiveNav();
 
-    // Realtime: Match lock/live detector
     matchChannel = supabase.channel('ppl-match-detector')
         .on('postgres_changes', { event: 'UPDATE', table: 'ppl_matches' }, () => {
             fetchHomeData(userId);
@@ -107,15 +88,14 @@ async function startDashboard(userId) {
         .subscribe();
 
     try {
-        const [homeResult, lbResult] = await Promise.allSettled([
+        const [homeResult, lbResult, statsResult, groupsResult, pickedResult] = await Promise.allSettled([
             fetchHomeData(userId),
             loadLeaderboardPreview(),
+            loadTournamentStats(),
+            loadGroupsPreview(),
+            loadMostPicked(),
             initChat(userId)
         ]);
-
-        if ([homeResult, lbResult].some(r => r.status === "rejected")) {
-            console.warn("Dashboard fetches failed:", homeResult.reason, lbResult.reason);
-        }
 
         revealApp(homeResult.status === "rejected");
 
@@ -143,8 +123,7 @@ async function fetchHomeData(userId) {
         }
     }
 
-    const firstName = profile?.full_name ? profile.full_name.split(" ")[0] : "Expert";
-    if (welcomeText)     welcomeText.textContent     = `Welcome back, ${firstName}`;
+    if (welcomeText) welcomeText.textContent = profile?.full_name ? `Welcome back, ${profile.full_name.split(" ")[0]}` : "Welcome back";
     if (teamNameElement) teamNameElement.textContent = profile?.team_name || "Set your team name";
 
     if (profile?.team_photo_url) {
@@ -152,19 +131,7 @@ async function fetchHomeData(userId) {
         if (avatarElement) avatarElement.style.backgroundImage = `url(${imgData.publicUrl})`;
     }
 
-    // 2. Fetch Active Phase
-    const { data: activeDay } = await supabase.from("ppl_fantasy_days")
-        .select("phase").eq("is_locked", false).order("created_at").limit(1).maybeSingle();
-    
-    if (activePhaseLbl) {
-        let phaseTxt = "Groups";
-        if (activeDay?.phase === "group_a") phaseTxt = "Group A";
-        else if (activeDay?.phase === "group_b") phaseTxt = "Group B";
-        else if (activeDay?.phase === "knockout") phaseTxt = "Knockout";
-        activePhaseLbl.textContent = phaseTxt;
-    }
-
-    // 3. Fetch User Score/Rank
+    // 2. Fetch User Score/Rank
     const { data: myStats } = await supabase
         .from("ppl_overall_leaderboard")
         .select("total_points, overall_rank")
@@ -178,6 +145,7 @@ async function fetchHomeData(userId) {
         rankElement.textContent = displayRank;
         rankElement.classList.toggle("pre-season", !(myStats?.total_points > 0));
     }
+    const overallUserRank = document.getElementById("overallUserRank");
     if (overallUserRank) {
         overallUserRank.textContent = displayRank;
         overallUserRank.classList.toggle("pre-season", !(myStats?.total_points > 0));
@@ -186,70 +154,195 @@ async function fetchHomeData(userId) {
     currentUserOverallRank = myStats?.overall_rank || Infinity;
     applyOwnFlair();
 
-    // 4. Fetch Next/Live Match
-    const { data: matches } = await supabase.from("ppl_matches")
-        .select("*, team_a:team_a_id(short_name), team_b:team_b_id(short_name)")
-        .eq("is_super_over", false)
-        .order("match_number");
+    // 3. Fetch Matches & Fantasy Phases
+    const [{ data: matches }, { data: phases }] = await Promise.all([
+        supabase.from("ppl_matches").select("*, team_a:team_a_id(short_name, photo_name), team_b:team_b_id(short_name, photo_name)").eq("is_super_over", false).order("match_number"),
+        supabase.from("ppl_fantasy_days").select("*").order("created_at")
+    ]);
 
+    // Handle Match Cards
     const liveMatch = (matches || []).find(m => m.status === 'in_progress');
     const nextMatch = (matches || []).find(m => m.status === 'upcoming');
-    const targetMatch = liveMatch || nextMatch || (matches || [])[(matches?.length || 1) - 1];
+    const bucket = supabase.storage.from("team-logos");
 
-    if (targetMatch) {
-        if (matchTeamsElement) matchTeamsElement.textContent = `${targetMatch.team_a?.short_name || 'TBA'} vs ${targetMatch.team_b?.short_name || 'TBA'}`;
-        if (matchVenueElement) matchVenueElement.textContent = `🏟️ PPL Ground · Match ${targetMatch.match_number}`;
-        
-        if (liveMatch) {
-            if (matchBadgeStatus) {
-                matchBadgeStatus.textContent = "● LIVE NOW";
-                matchBadgeStatus.classList.add("badge-live");
-                matchBadgeStatus.classList.remove("badge-upcoming");
-            }
-            if (matchTimeElement) matchTimeElement.textContent = "Action in progress!";
-            if (countdownInterval) clearInterval(countdownInterval);
-        } else if (nextMatch) {
-            startCountdown(targetMatch.actual_start_time || targetMatch.scheduled_time);
-        } else {
-            if (matchTimeElement) matchTimeElement.textContent = "Match Completed";
-            if (matchBadgeStatus) matchBadgeStatus.textContent = "RESULT";
-        }
+    const liveCard = document.getElementById("liveMatchCard");
+    if (liveMatch && liveCard) {
+        liveCard.classList.remove("hidden");
+        document.getElementById("liveMatchTeams").textContent = `${liveMatch.team_a?.short_name || 'TBA'} vs ${liveMatch.team_b?.short_name || 'TBA'}`;
+        document.getElementById("liveMatchVenue").textContent = `🏟️ PPL Ground · Match ${liveMatch.match_number}`;
+        const logoA = liveMatch.team_a?.photo_name ? bucket.getPublicUrl(liveMatch.team_a.photo_name).data.publicUrl : "images/default-team.png";
+        const logoB = liveMatch.team_b?.photo_name ? bucket.getPublicUrl(liveMatch.team_b.photo_name).data.publicUrl : "images/default-team.png";
+        document.getElementById("liveTeamALogo").style.backgroundImage = `url('${logoA}')`;
+        document.getElementById("liveTeamBLogo").style.backgroundImage = `url('${logoB}')`;
+    } else if (liveCard) {
+        liveCard.classList.add("hidden");
+    }
+
+    const nextCard = document.getElementById("nextMatchCard");
+    if (nextMatch && nextCard) {
+        nextCard.classList.remove("hidden");
+        document.getElementById("nextMatchTeams").textContent = `${nextMatch.team_a?.short_name || 'TBA'} vs ${nextMatch.team_b?.short_name || 'TBA'}`;
+        document.getElementById("nextMatchVenue").textContent = `🏟️ PPL Ground · Match ${nextMatch.match_number}`;
+        const logoA = nextMatch.team_a?.photo_name ? bucket.getPublicUrl(nextMatch.team_a.photo_name).data.publicUrl : "images/default-team.png";
+        const logoB = nextMatch.team_b?.photo_name ? bucket.getPublicUrl(nextMatch.team_b.photo_name).data.publicUrl : "images/default-team.png";
+        document.getElementById("nextTeamALogo").style.backgroundImage = `url('${logoA}')`;
+        document.getElementById("nextTeamBLogo").style.backgroundImage = `url('${logoB}')`;
+        startCountdown(nextMatch.actual_start_time || nextMatch.scheduled_time);
+    } else if (nextCard) {
+        nextCard.classList.add("hidden");
+    }
+
+    // Handle Fantasy Action Logic
+    const activePhase = (phases || []).find(p => !p.is_locked);
+    const badge = document.getElementById("fantasyStatusBadge");
+    const text  = document.getElementById("fantasyStatusText");
+
+    if (activePhase) {
+        let pName = activePhase.phase === 'group_a' ? 'Group A' : activePhase.phase === 'group_b' ? 'Group B' : 'Knockout';
+        badge.textContent = `🟢 ${pName} Open`;
+        badge.className = "fantasy-status-badge fs-open";
+        text.textContent = `You can currently pick/edit your XI for the ${pName} phase.`;
+    } else {
+        badge.textContent = `🔒 Fantasy Locked`;
+        badge.className = "fantasy-status-badge fs-locked";
+        text.textContent = `Matches are currently ongoing. Wait for the next phase to open.`;
     }
 }
 
 /* ══════════════════════════════════════════════════════
-   DYNAMIC NAV LIVE SCORE
+   TOURNAMENT STATS & GROUPS
 ══════════════════════════════════════════════════════ */
-async function initLiveNav() {
-    if (!navMatchesBtn) return;
+async function loadTournamentStats() {
+    const grid = document.getElementById("topPerformersGrid");
+    if (!grid) return;
 
-    const updateNavUI = async () => {
-        const { data: match } = await supabase.from("ppl_matches")
-            .select("id")
-            .eq("status", "in_progress")
-            .limit(1).maybeSingle();
+    const { data } = await supabase.from('ppl_player_stats')
+        .select('player_id, fantasy_points_total, ppl_players(name, role)')
+        .order('fantasy_points_total', { ascending: false })
+        .limit(4);
 
-        if (match) {
-            navMatchesBtn.classList.add("is-live");
-            navMatchLabel.textContent = "LIVE";
-            navLiveDot.classList.remove("hidden");
-        } else {
-            navMatchLabel.textContent = "Scores";
-            navLiveDot.classList.add("hidden");
-            navMatchesBtn.classList.remove("is-live");
-        }
+    if (!data || data.length === 0) {
+        grid.innerHTML = '<p class="loading-inline" style="grid-column: span 2;">Stats appear after matches</p>';
+        return;
+    }
+
+    const roleIcons = { 'BAT': '🏏', 'BOWL': '🎳', 'AR': '⚡', 'WK': '🧤' };
+    
+    grid.innerHTML = data.map((s, i) => {
+        const p = s.ppl_players;
+        const isMvp = i === 0;
+        return `
+        <div class="stat-mini-card ${isMvp ? 'mvp' : ''}">
+            <div class="sm-icon">${roleIcons[p.role] || '⭐'}</div>
+            <div class="sm-role">${isMvp ? 'MVP' : p.role}</div>
+            <div class="sm-name">${p.name.split(" ").pop()}</div>
+            <div class="sm-val">${s.fantasy_points_total}</div>
+        </div>`;
+    }).join('');
+}
+
+async function loadGroupsPreview() {
+    const grid = document.getElementById("groupsPreviewGrid");
+    if (!grid) return;
+
+    const { data } = await supabase.from('ppl_points_table')
+        .select('*, team:team_id(short_name, group_name)')
+        .order('points', { ascending: false })
+        .order('nrr', { ascending: false });
+
+    if (!data || data.length === 0) {
+        grid.innerHTML = '<p class="loading-inline" style="grid-column: span 2;">Standings appear after matches</p>';
+        return;
+    }
+
+    const grpA = data.filter(r => r.team?.group_name === 'A' || r.group_name === 'A').slice(0, 2);
+    const grpB = data.filter(r => r.team?.group_name === 'B' || r.group_name === 'B').slice(0, 2);
+
+    const renderCol = (title, rows) => {
+        return `
+        <div class="grp-col">
+            <div class="grp-title">${title}</div>
+            ${rows.map((r, i) => `
+                <div class="grp-row rank-${i+1}">
+                    <span>${i+1}. ${r.team?.short_name || 'TBA'}</span>
+                    <span>${r.points}</span>
+                </div>
+            `).join('')}
+        </div>`;
     };
 
-    updateNavUI();
-    navChannel = supabase.channel('ppl-nav-updates')
-        .on('postgres_changes', { event: 'UPDATE', table: 'ppl_matches' }, updateNavUI)
-        .subscribe();
+    grid.innerHTML = renderCol("Group A", grpA) + renderCol("Group B", grpB);
+}
+
+/* ══════════════════════════════════════════════════════
+   MOST PICKED TRENDS
+══════════════════════════════════════════════════════ */
+async function loadMostPicked() {
+    const wrapper = document.getElementById("mostPickedWrapper");
+    if (!wrapper) return;
+
+    // Fetch all current picks
+    const [{ data: picks }, { data: players }] = await Promise.all([
+        supabase.from('ppl_user_team_players').select('player_id, is_captain, is_vice_captain'),
+        supabase.from('ppl_players').select('id, name, photo_url')
+    ]);
+
+    if (!picks || picks.length === 0) {
+        wrapper.innerHTML = '<p class="loading-inline">Not enough data yet.</p>';
+        return;
+    }
+
+    const counts = { total: {}, cap: {}, vc: {} };
+    picks.forEach(p => {
+        counts.total[p.player_id] = (counts.total[p.player_id] || 0) + 1;
+        if (p.is_captain) counts.cap[p.player_id] = (counts.cap[p.player_id] || 0) + 1;
+        if (p.is_vice_captain) counts.vc[p.player_id] = (counts.vc[p.player_id] || 0) + 1;
+    });
+
+    const getTop3 = (mapObj) => Object.entries(mapObj)
+        .sort((a,b) => b[1] - a[1]).slice(0, 3)
+        .map(([id, count]) => {
+            const p = players?.find(pl => pl.id === id);
+            return { p, count };
+        }).filter(item => item.p);
+
+    const topPicks = getTop3(counts.total);
+    const topCap   = getTop3(counts.cap);
+    const topVC    = getTop3(counts.vc);
+
+    const bucket = supabase.storage.from("player-photos");
+    const renderBlock = (title, icon, dataList, suffix) => {
+        if (!dataList.length) return '';
+        return `
+        <div class="mp-category">
+            <div class="mp-title">${icon} ${title}</div>
+            ${dataList.map(item => {
+                const photoUrl = item.p.photo_url ? bucket.getPublicUrl(item.p.photo_url).data.publicUrl : "images/default-avatar.png";
+                return `
+                <div class="mp-row">
+                    <div class="mp-player">
+                        <div class="mp-avatar" style="background-image:url('${photoUrl}')"></div>
+                        <span>${item.p.name.split(" ").pop()}</span>
+                    </div>
+                    <div class="mp-stat">${item.count} <span style="font-size:9px;color:var(--text-faint)">${suffix}</span></div>
+                </div>`;
+            }).join('')}
+        </div>`;
+    };
+
+    wrapper.innerHTML = 
+        renderBlock("Most Selected", "👥", topPicks, "teams") +
+        renderBlock("Top Captains", "👑", topCap, "teams") +
+        renderBlock("Top Vice-Captains", "🎯", topVC, "teams");
 }
 
 /* ══════════════════════════════════════════════════════
    GLOBAL LEADERBOARD PREVIEW
 ══════════════════════════════════════════════════════ */
 async function loadLeaderboardPreview() {
+    const container = document.getElementById("leaderboardContainer");
+    const countEl = document.getElementById("overallMemberCount");
+    
     const [{ data: lb, error }, { count: userCount }] = await Promise.all([
         supabase.from("ppl_overall_leaderboard")
             .select("team_name, full_name, total_points, overall_rank, user_id")
@@ -260,19 +353,16 @@ async function loadLeaderboardPreview() {
             .eq("profile_completed", true),
     ]);
 
-    if (overallMemberCount && userCount != null) {
-        overallMemberCount.textContent = `${userCount.toLocaleString()} managers`;
-    }
-
-    if (!leaderboardContainer) return;
+    if (countEl && userCount != null) countEl.textContent = `${userCount.toLocaleString()} managers`;
+    if (!container) return;
 
     if (error || !lb) {
-        leaderboardContainer.innerHTML = `<p class="empty-state-text">Could not load rankings.</p>`;
+        container.innerHTML = `<p class="empty-state-text">Could not load rankings.</p>`;
         return;
     }
 
     if (lb.length > 0) {
-        leaderboardContainer.innerHTML = "";
+        container.innerHTML = "";
         lb.forEach(row => {
             const rowDiv = document.createElement("div");
             rowDiv.className = "leader-row";
@@ -290,40 +380,85 @@ async function loadLeaderboardPreview() {
             ptsPill.textContent = hasPoints ? `${parseFloat(row.total_points).toFixed(1)} pts` : "Pre-season";
 
             rowDiv.append(rankSpan, ptsPill);
-            leaderboardContainer.appendChild(rowDiv);
-            
-            // Store top 3 for chat flairs
+            container.appendChild(rowDiv);
             top3UserIds.set(row.user_id, row.overall_rank);
         });
     } else {
-        leaderboardContainer.innerHTML = `<p class="empty-state-text">Rankings appear after Match 1!</p>`;
+        container.innerHTML = `<p class="empty-state-text">Rankings appear after Match 1!</p>`;
     }
 }
 
 /* ══════════════════════════════════════════════════════
-   PROFILE MODAL (GLOBAL)
+   DYNAMIC NAV & TIMER
+══════════════════════════════════════════════════════ */
+async function initLiveNav() {
+    const navLiveDot = document.getElementById("navLiveDot");
+    const navMatchLabel = document.getElementById("navMatchLabel");
+    if (!navLiveDot) return;
+
+    const updateNavUI = async () => {
+        const { data: match } = await supabase.from("ppl_matches").select("id").eq("status", "in_progress").limit(1).maybeSingle();
+        if (match) {
+            navMatchLabel.textContent = "LIVE";
+            navLiveDot.classList.remove("hidden");
+        } else {
+            navMatchLabel.textContent = "Scores";
+            navLiveDot.classList.add("hidden");
+        }
+    };
+    updateNavUI();
+    navChannel = supabase.channel('ppl-nav-updates').on('postgres_changes', { event: 'UPDATE', table: 'ppl_matches' }, updateNavUI).subscribe();
+}
+
+function startCountdown(startTime) {
+    if (!startTime || countdownInterval) clearInterval(countdownInterval);
+    const matchTime = new Date(startTime).getTime();
+    const timeEl = document.getElementById("nextMatchTime");
+
+    const update = () => {
+        const dist = matchTime - Date.now();
+        if (dist <= 0) {
+            clearInterval(countdownInterval);
+            if (timeEl) timeEl.textContent = "Match Started";
+            return;
+        }
+
+        const days    = Math.floor(dist / 86400000);
+        const hours   = Math.floor((dist % 86400000) / 3600000);
+        const minutes = Math.floor((dist % 3600000)  / 60000);
+        const seconds = Math.floor((dist % 60000)    / 1000);
+
+        if (timeEl) {
+            timeEl.innerHTML = days > 0
+                ? `<i class="far fa-clock"></i> Starts in ${days}d ${hours}h`
+                : `<i class="far fa-clock"></i> Starts in ${hours}h ${minutes}m ${seconds}s`;
+        }
+    };
+    update();
+    countdownInterval = setInterval(update, 1000);
+}
+
+function applyOwnFlair() {
+    applyRankFlair(avatarElement, null, currentUserOverallRank);
+}
+
+/* ══════════════════════════════════════════════════════
+   PROFILE MODAL & CHAT (GLOBAL BANTER)
 ══════════════════════════════════════════════════════ */
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
-        if (!modalTeamName || !profileModal) return;
-
         const teamName = modalTeamName.value.trim();
         const file     = avatarInput?.files[0];
         const isFirstTime = !existingProfile || !existingProfile.profile_completed;
 
-        if (isFirstTime && (!teamName)) {
-            window.showToast("Please enter your team name to continue.", "error");
-            return;
-        }
+        if (isFirstTime && (!teamName)) { alert("Please enter your team name."); return; }
 
         saveProfileBtn.disabled = true;
         saveProfileBtn.textContent = "SAVING...";
 
         try {
             let photoPath = existingProfile?.team_photo_url;
-
             if (file) {
-                if (file.size > 2 * 1024 * 1024) throw new Error("Photo must be under 2MB.");
                 const fileExt  = file.name.split(".").pop();
                 const fileName = `${currentUserId}/avatar.${fileExt}`;
                 const { error: uploadError } = await supabase.storage.from("team-avatars").upload(fileName, file, { cacheControl: "3600", upsert: true });
@@ -332,24 +467,16 @@ if (saveProfileBtn) {
             }
 
             const updatePayload = { team_photo_url: photoPath };
-            if (isFirstTime) {
-                updatePayload.team_name = teamName;
-                updatePayload.profile_completed = true;
-            } else if (teamName) {
-                updatePayload.team_name = teamName;
-            }
+            if (isFirstTime || teamName) updatePayload.team_name = teamName;
+            if (isFirstTime) updatePayload.profile_completed = true;
 
-            const { error: updateError } = await supabase.from("user_profiles")
-                .upsert({ user_id: currentUserId, ...updatePayload }, { onConflict: "user_id" });
-            
+            const { error: updateError } = await supabase.from("user_profiles").upsert({ user_id: currentUserId, ...updatePayload }, { onConflict: "user_id" });
             if (updateError) throw updateError;
 
-            window.showToast("Profile saved!", "success");
             profileModal.classList.add("hidden");
             window.location.reload();
-
         } catch (err) {
-            window.showToast("Failed to save: " + err.message, "error");
+            alert("Failed to save: " + err.message);
         } finally {
             saveProfileBtn.disabled = false;
             saveProfileBtn.textContent = "Save & Start";
@@ -375,13 +502,11 @@ if (avatarInput) {
 if (avatarElement) {
     avatarElement.onclick = () => {
         if (!existingProfile?.profile_completed) profileModal?.classList.remove("hidden");
-        else window.location.href = "profile.html"; // Redirect to global profile
+        else window.location.href = "profile.html"; 
     };
 }
 
-/* ══════════════════════════════════════════════════════
-   GLOBAL BANTER CHAT (PPL CONTEXT)
-══════════════════════════════════════════════════════ */
+// Global Chat
 async function initChat(userId) {
     if (!chatFab) return;
 
@@ -389,18 +514,12 @@ async function initChat(userId) {
         chatPanel.classList.add("show");
         chatBackdrop.classList.remove("hidden");
         unreadCount = 0; 
-        if (unreadBadge) {
-            unreadBadge.textContent = "";
-            unreadBadge.classList.add("hidden");
-            unreadBadge.style.display = "none";
-        }
+        const unreadBadge = document.getElementById("unreadBadge");
+        if (unreadBadge) { unreadBadge.textContent = ""; unreadBadge.classList.add("hidden"); unreadBadge.style.display = "none"; }
         setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
     };
 
-    const closeChat = () => {
-        chatPanel.classList.remove("show");
-        chatBackdrop.classList.add("hidden");
-    };
+    const closeChat = () => { chatPanel.classList.remove("show"); chatBackdrop.classList.add("hidden"); };
     if (closeChatBtn) closeChatBtn.onclick = closeChat;
     if (chatBackdrop) chatBackdrop.onclick = closeChat;
 
@@ -410,66 +529,50 @@ async function initChat(userId) {
             const msg = chatInput?.value.trim();
             if (!msg) return;
             chatInput.value = "";
-
             renderMessage({ user_id: userId, message: msg, _senderName: "You" }, userId);
-
-            // Using the global game_chat but ensuring it's not tied to a private league
-            await supabase.from("game_chat").insert([{
-                user_id: userId,
-                message: msg,
-                league_id: null,
-                context: "ppl" // Optional tag if you want to filter IPL vs PPL chatter later
-            }]);
+            await supabase.from("game_chat").insert([{ user_id: userId, message: msg, league_id: null, context: "ppl" }]);
         };
     }
 
-    await loadChatHistory(userId);
-    subscribeToChat(userId);
-}
-
-async function loadChatHistory(userId) {
-    if (!chatMessages) return;
-
-    const { data } = await supabase.from("game_chat")
-        .select("user_id, message, created_at, user_profiles(team_name)")
-        .is("league_id", null)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
+    const { data } = await supabase.from("game_chat").select("user_id, message, created_at, user_profiles(team_name)").is("league_id", null).order("created_at", { ascending: false }).limit(50);
     chatMessages.replaceChildren();
 
     if (!data?.length) {
         chatIsEmpty = true;
-        const placeholder = document.createElement("p");
-        placeholder.className = "chat-placeholder";
-        placeholder.textContent = "Be the first to talk trash in PPL!";
-        chatMessages.appendChild(placeholder);
-        return;
+        chatMessages.innerHTML = '<p class="chat-placeholder">Be the first to talk trash in PPL!</p>';
+    } else {
+        chatIsEmpty = false;
+        data.forEach(msg => {
+            if (msg.user_profiles?.team_name && !senderNameCache.has(msg.user_id)) senderNameCache.set(msg.user_id, msg.user_profiles.team_name);
+        });
+        data.reverse().forEach(msg => renderMessage(msg, userId));
     }
 
-    chatIsEmpty = false;
-    data.forEach(msg => {
-        const name = msg.user_profiles?.team_name;
-        if (name && !senderNameCache.has(msg.user_id)) senderNameCache.set(msg.user_id, name);
-    });
-
-    data.reverse().forEach(msg => renderMessage(msg, userId));
+    chatSubscription = supabase.channel("public:game_chat_ppl")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_chat", filter: "league_id=is.null" }, async payload => {
+            const newMsg = payload.new;
+            if (newMsg.user_id === userId) return;
+            if (!senderNameCache.has(newMsg.user_id)) {
+                const { data: p } = await supabase.from("user_profiles").select("team_name").eq("user_id", newMsg.user_id).maybeSingle();
+                if (p?.team_name) senderNameCache.set(newMsg.user_id, p.team_name);
+            }
+            newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Manager";
+            renderMessage(newMsg, userId);
+            if (!chatPanel?.classList.contains("show")) {
+                unreadCount++;
+                const b = document.getElementById("unreadBadge");
+                if (b) { b.textContent = unreadCount; b.classList.remove("hidden"); b.style.display = "flex"; }
+            }
+        }).subscribe();
 }
 
 function renderMessage(msgData, currentUserId) {
     if (!chatMessages) return;
+    if (chatIsEmpty) { chatMessages.replaceChildren(); chatIsEmpty = false; }
+
     const isMe = msgData.user_id === currentUserId;
-
-    if (chatIsEmpty) {
-        chatMessages.replaceChildren();
-        chatIsEmpty = false;
-    }
-
-    const senderName = isMe ? "You" : msgData._senderName || senderNameCache.get(msgData.user_id) || msgData.user_profiles?.team_name || "Manager";
-    if (!isMe && senderName !== "Manager" && !senderNameCache.has(msgData.user_id)) {
-        senderNameCache.set(msgData.user_id, senderName);
-    }
-
+    const senderName = isMe ? "You" : msgData._senderName || senderNameCache.get(msgData.user_id) || "Manager";
+    
     const msgDiv = document.createElement("div");
     msgDiv.className = `chat-msg ${isMe ? "me" : "them"}`;
 
@@ -477,14 +580,12 @@ function renderMessage(msgData, currentUserId) {
         const nameEl = document.createElement("div");
         nameEl.className = "msg-sender";
         nameEl.textContent = senderName;
-
         const rank = top3UserIds.get(msgData.user_id);
         if (rank) applyRankFlair(null, nameEl, rank);
-
+        
         const bubble = document.createElement("div");
         bubble.className = "msg-bubble";
         bubble.textContent = msgData.message;
-
         msgDiv.append(nameEl, bubble);
     } else {
         const bubble = document.createElement("div");
@@ -496,78 +597,6 @@ function renderMessage(msgData, currentUserId) {
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
-function subscribeToChat(userId) {
-    chatSubscription = supabase.channel("public:game_chat_ppl")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_chat", filter: "league_id=is.null" }, async payload => {
-            const newMsg = payload.new;
-            if (newMsg.user_id === userId) return;
-
-            if (!senderNameCache.has(newMsg.user_id)) {
-                const { data: profile } = await supabase.from("user_profiles").select("team_name").eq("user_id", newMsg.user_id).maybeSingle();
-                if (profile?.team_name) senderNameCache.set(newMsg.user_id, profile.team_name);
-            }
-
-            newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Manager";
-            renderMessage(newMsg, userId);
-
-            if (!chatPanel?.classList.contains("show")) {
-                unreadCount++;
-                if (unreadBadge) {
-                    unreadBadge.textContent = unreadCount;
-                    unreadBadge.classList.remove("hidden");
-                    unreadBadge.style.display = "flex";
-                }
-            }
-        }).subscribe();
-}
-
-/* ══════════════════════════════════════════════════════
-   HELPERS & CLEANUP
-══════════════════════════════════════════════════════ */
-function startCountdown(startTime) {
-    if (!startTime || countdownInterval) clearInterval(countdownInterval);
-    const matchTime = new Date(startTime).getTime();
-
-    const update = () => {
-        const dist = matchTime - Date.now();
-        if (dist <= 0) {
-            clearInterval(countdownInterval);
-            if (matchTimeElement) matchTimeElement.textContent = "Match Started";
-            return;
-        }
-
-        const days    = Math.floor(dist / 86400000);
-        const hours   = Math.floor((dist % 86400000) / 3600000);
-        const minutes = Math.floor((dist % 3600000)  / 60000);
-        const seconds = Math.floor((dist % 60000)    / 1000);
-
-        if (matchTimeElement) {
-            matchTimeElement.innerHTML = days > 0
-                ? `<i class="far fa-clock"></i> Starts in ${days}d ${hours}h`
-                : `<i class="far fa-clock"></i> Starts in ${hours}h ${minutes}m ${seconds}s`;
-        }
-    };
-    update();
-    countdownInterval = setInterval(update, 1000);
-}
-
-function applyOwnFlair() {
-    applyRankFlair(avatarElement, null, currentUserOverallRank);
-}
-
-window.showToast = (message, type = "success") => {
-    const container = document.getElementById("toastContainer");
-    if (!container) return;
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.add("fade-out");
-        toast.addEventListener("transitionend", () => toast.remove(), { once: true });
-    }, 3000);
-};
 
 window.addEventListener("pagehide", () => {
     if (countdownInterval) clearInterval(countdownInterval);

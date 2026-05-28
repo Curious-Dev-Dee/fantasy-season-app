@@ -19,33 +19,42 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#9AE000">
 
-  <script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>
   <script type="module" src="auth-guard.js"></script>
   
-  <script defer src="/_vercel/insights/script.js"></script>
-
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMYSEG9XNL"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-BMYSEG9XNL');
-  </script>
-
   <style>
+    /* Stats Grid */
     .stats-grid-ppl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .stat-mini-card { background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px; text-align: center; }
     .sm-icon { font-size: 16px; color: var(--text-dim); margin-bottom: 6px; }
     .sm-role { font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: 1px; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
     .sm-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
     .sm-val { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--rank-color); }
-    .stat-mini-card.mvp { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
-    .stat-mini-card.mvp .sm-val, .stat-mini-card.mvp .sm-icon { color: #fbbf24; }
+
+    /* Fantasy Action Card */
+    .fantasy-action-card { text-align: center; padding: 20px; border-color: var(--border-accent); background: linear-gradient(145deg, var(--bg-card-alt), var(--bg-card)); }
+    .fantasy-status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-family: var(--font-display); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .fs-open { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-accent); }
+    .fs-locked { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+    /* Groups Preview */
+    .group-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .grp-col { background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px; }
+    .grp-title { font-family: var(--font-display); font-size: 12px; font-weight: 900; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; text-align: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 4px; }
+    .grp-row { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; padding: 4px 0; }
+    .grp-row.rank-1 { color: var(--accent); }
+    .grp-row.rank-2 { color: var(--rank-color); }
+
+    /* Most Picked Section */
+    .most-picked-wrapper { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+    .mp-category { background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px; }
+    .mp-title { font-family: var(--font-display); font-size: 11px; font-weight: 900; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .mp-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .mp-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .mp-player { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+    .mp-avatar { width: 24px; height: 24px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid var(--border-card); }
+    .mp-stat { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-primary); }
   </style>
 </head>
 
@@ -56,127 +65,98 @@
     <div class="sk-block" style="width:120px;height:18px;border-radius:6px"></div>
     <div class="sk-block" style="width:34px;height:34px;border-radius:10px"></div>
   </div>
-  <div class="sk-card">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-      <div class="sk-block sk-circle" style="width:46px;height:46px"></div>
-      <div style="flex:1">
-        <div class="sk-block" style="width:80px;height:10px;border-radius:4px;margin-bottom:6px"></div>
-        <div class="sk-block" style="width:140px;height:16px;border-radius:4px"></div>
-      </div>
-    </div>
-    <div class="sk-block" style="height:56px;border-radius:10px"></div>
-  </div>
-  <div class="sk-card">
-    <div class="sk-block" style="width:90px;height:10px;border-radius:4px;margin-bottom:14px"></div>
-    <div class="sk-block" style="height:80px;border-radius:10px;margin-bottom:12px"></div>
-    <div class="sk-block" style="height:44px;border-radius:10px"></div>
-  </div>
+  <div class="sk-card"><div class="sk-block" style="height:80px;border-radius:10px"></div></div>
+  <div class="sk-card"><div class="sk-block" style="height:120px;border-radius:10px"></div></div>
 </div>
 
 <div class="app-container page-with-nav">
 
+  <!-- HEADER -->
   <header class="app-header">
     <div class="header-left">
-      <a href="more.html" class="header-more-btn" aria-label="More options">
-        <i class="fas fa-bars"></i>
-      </a>
-      
+      <a href="more.html" class="header-more-btn" aria-label="More options"><i class="fas fa-bars"></i></a>
       <div class="tourney-toggle">
         <a href="home.html" class="tt-btn">IPL 2026</a>
         <a href="ppl-home.html" class="tt-btn active">PPL 2026</a>
       </div>
     </div>
-    
     <div class="header-right-group">
       <div class="notif-trigger" id="notifTrigger">
         <i class="fas fa-bell"></i>
-        <span id="notifBadge" class="notif-badge hidden">0</span>
-        <div id="notifPanel" class="notif-panel hidden">
-          <div class="notif-header">
-            <h3>Alerts</h3>
-            <button class="btn-mark-read" id="markAllRead">Mark all read</button>
-          </div>
-          <div id="notifList" class="notif-list">
-            <div class="empty-notif">Checking for updates...</div>
-          </div>
-        </div>
       </div>
     </div>
   </header>
 
+  <!-- 1. USER STATS (Points & Rank Only) -->
   <section class="card user-card">
     <div class="user-card-top">
       <div class="team-avatar" id="teamAvatar"></div>
       <div class="user-meta">
-        <p class="welcome-text" id="welcomeText">Welcome back, Expert</p>
+        <p class="welcome-text" id="welcomeText">Welcome back</p>
         <p class="team-subtitle" id="userTeamName">Set your team name</p>
       </div>
     </div>
-
-    <div class="stats-row">
+    <div class="stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
       <div class="stat-cell">
         <span class="stat-val" id="userScore">0</span>
-        <span class="stat-lbl">Points</span>
+        <span class="stat-lbl">Total Points</span>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell rank-hero">
+      <div class="stat-cell rank-hero" style="border-left: 1px solid var(--border-subtle); border-radius: 0;">
         <span class="stat-val accent" id="userRank">--</span>
         <span class="stat-lbl">Global Rank</span>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-val" id="activePhaseLbl">--</span>
-        <span class="stat-lbl">Active Phase</span>
-      </div>
     </div>
   </section>
 
-  <section class="card match-card">
+  <!-- 2. LIVE MATCH CARD (Hidden if no live match) -->
+  <section class="card match-card hidden" id="liveMatchCard" style="border-color: rgba(239,68,68,0.4); background: linear-gradient(145deg, #1a0a0a, var(--bg-card));">
     <div class="match-card-header">
-      <span class="match-badge" id="matchBadgeStatus">NEXT MATCH</span>
-      <p id="matchVenue" class="match-venue">PPL Ground</p>
+      <span class="match-badge" style="background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.3);">● LIVE NOW</span>
+      <p id="liveMatchVenue" class="match-venue">PPL Ground</p>
     </div>
-
     <div class="match-vs-row">
-      <div id="teamALogo" class="team-logo"></div>
+      <div id="liveTeamALogo" class="team-logo"></div>
       <div class="match-center">
-        <h2 class="match-teams" id="matchTeams">-- vs --</h2>
-        <p class="match-time neon-green" id="matchTime">
+        <h2 class="match-teams" id="liveMatchTeams">-- vs --</h2>
+        <p class="match-time" style="color:var(--red); font-weight:800; font-size:14px; animation: livePulse 1.5s infinite;">
+          Action in progress
+        </p>
+      </div>
+      <div id="liveTeamBLogo" class="team-logo"></div>
+    </div>
+    <div class="match-actions">
+      <button class="btn-primary full-width" onclick="location.href='ppl-live.html'" style="background:var(--red);color:#fff">View Live Match Center</button>
+    </div>
+  </section>
+
+  <!-- 3. NEXT MATCH CARD -->
+  <section class="card match-card hidden" id="nextMatchCard">
+    <div class="match-card-header">
+      <span class="match-badge">NEXT MATCH</span>
+      <p id="nextMatchVenue" class="match-venue">PPL Ground</p>
+    </div>
+    <div class="match-vs-row">
+      <div id="nextTeamALogo" class="team-logo"></div>
+      <div class="match-center">
+        <h2 class="match-teams" id="nextMatchTeams">-- vs --</h2>
+        <p class="match-time neon-green" id="nextMatchTime">
           <i class="far fa-clock"></i> Loading...
         </p>
       </div>
-      <div id="teamBLogo" class="team-logo"></div>
-    </div>
-
-    <div class="match-actions">
-      <button class="btn-primary full-width" id="editXiBtn" onclick="location.href='ppl-fantasy.html'">Pick / Edit Phase XI</button>
-      <button class="btn-text-link" id="viewXiBtn" onclick="location.href='ppl-live.html'">View Match Center</button>
+      <div id="nextTeamBLogo" class="team-logo"></div>
     </div>
   </section>
 
-  <div class="quick-access-strip">
-    <p class="quick-access-label">PPL Hub</p>
-    <div class="quick-access-row">
-      <a href="ppl-fixtures.html" class="qa-pill qa-dugout">
-        <div class="qa-icon"><i class="fas fa-calendar-days"></i></div>
-        <span class="qa-title">Fixtures</span>
-      </a>
-      <a href="ppl-live.html" class="qa-pill qa-fun">
-        <div class="qa-badge">LIVE</div>
-        <div class="qa-icon"><i class="fas fa-cricket-bat-ball"></i></div>
-        <span class="qa-title">Scores</span>
-      </a>
-      <a href="ppl-points-table.html" class="qa-pill qa-stats">
-        <div class="qa-icon"><i class="fas fa-table"></i></div>
-        <span class="qa-title">Standings</span>
-      </a>
-      <a href="ppl-stats.html" class="qa-pill qa-ranks">
-        <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
-        <span class="qa-title">Stats</span>
-      </a>
-    </div>
-  </div>
+  <!-- 4. PLAY FANTASY BUTTON -->
+  <section class="card fantasy-action-card">
+    <div class="fantasy-status-badge" id="fantasyStatusBadge">Loading...</div>
+    <p style="font-size: 12px; color: var(--text-faint); margin-bottom: 14px;" id="fantasyStatusText">Check phase deadlines to edit your XI.</p>
+    <button class="btn-primary full-width" onclick="location.href='ppl-fantasy.html'" style="font-size: 16px; padding: 14px;">
+      <i class="fas fa-bolt" style="margin-right: 6px;"></i> Play Fantasy
+    </button>
+  </section>
 
+  <!-- 5. TOURNAMENT STATS (Top Performers) -->
   <section class="card leaderboard-card">
     <div class="lb-header">
       <div class="lb-header-left">
@@ -184,16 +164,44 @@
         <h3 class="lb-title">Top Performers</h3>
       </div>
     </div>
-    
     <div class="stats-grid-ppl" id="topPerformersGrid">
       <p class="loading-inline" style="grid-column: span 2;">Fetching player data...</p>
     </div>
-    
     <button class="btn-view-all" onclick="location.href='ppl-stats.html'">
       Full Stats Board <i class="fas fa-chevron-right"></i>
     </button>
   </section>
 
+  <!-- 6. TOP 2 GROUPS -->
+  <section class="card leaderboard-card">
+    <div class="lb-header">
+      <div class="lb-header-left">
+        <span class="card-eyebrow">Points Table</span>
+        <h3 class="lb-title">Top 2 Qualifiers</h3>
+      </div>
+    </div>
+    <div class="group-preview-grid" id="groupsPreviewGrid">
+      <p class="loading-inline" style="grid-column: span 2;">Fetching standings...</p>
+    </div>
+    <button class="btn-view-all" onclick="location.href='ppl-points-table.html'">
+      View Full Point Table <i class="fas fa-chevron-right"></i>
+    </button>
+  </section>
+
+  <!-- 7. MOST PICKED FANTASY PLAYERS -->
+  <section class="card leaderboard-card">
+    <div class="lb-header">
+      <div class="lb-header-left">
+        <span class="card-eyebrow">Fantasy Trends</span>
+        <h3 class="lb-title">Most Picked</h3>
+      </div>
+    </div>
+    <div class="most-picked-wrapper" id="mostPickedWrapper">
+      <p class="loading-inline">Analyzing fantasy teams...</p>
+    </div>
+  </section>
+
+  <!-- 8. GLOBAL LEADERBOARD -->
   <section class="card leaderboard-card" id="pplLeaderboardCard">
     <div class="lb-header">
       <div class="lb-header-left">
@@ -206,127 +214,69 @@
         <span id="overallUserRank" class="lb-user-rank">#--</span>
       </div>
     </div>
-    
     <div id="leaderboardContainer">
       <p class="loading-inline">Updating rankings...</p>
     </div>
-    
-    <button class="btn-view-all" id="viewFullLeaderboard" onclick="location.href='ppl-fantasy-leaderboard.html'">
+    <button class="btn-view-all" onclick="location.href='ppl-fantasy-leaderboard.html'">
       Full Leaderboard <i class="fas fa-chevron-right"></i>
     </button>
   </section>
 
-  <section class="sponsors-section">
-    <div class="sponsors-mini">
-      <div class="sponsors-mini-header">
-        <div class="sponsors-mini-line"></div>
-        <span class="sponsors-mini-label">Sponsors</span>
-        <div class="sponsors-mini-line"></div>
-      </div>
-      <div class="sponsors-mini-row">
-        <div class="sponsor-mini-chip sponsor-title">
-          <span class="sponsor-mini-name">AJAK</span>
-          <span class="sponsor-mini-sub">Title Sponsor</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">ATT</span>
-          <span class="sponsor-mini-sub">T-Shirt</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">FFS</span>
-          <span class="sponsor-mini-sub">Cap</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">RZ</span>
-          <span class="sponsor-mini-sub">Trophy</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">DD</span>
-          <span class="sponsor-mini-sub">Biryani</span>
-        </div>
-      </div>
-    </div>
-  </section>
+</div><!-- end .app-container -->
 
-</div><div id="profileModal" class="modal hidden">
+<!-- GLOBAL PROFILE MODAL -->
+<div id="profileModal" class="modal hidden">
   <div class="modal-content">
     <h2 class="modal-title">Complete Profile</h2>
     <button class="close-modal" id="closeProfileModal">&times;</button>
-
     <div class="avatar-upload-wrap">
       <div id="modalAvatarPreview" class="avatar-preview"></div>
-      <label for="avatarInput" class="avatar-edit-btn" aria-label="Change photo">
-        <i class="fas fa-camera"></i>
-      </label>
+      <label for="avatarInput" class="avatar-edit-btn" aria-label="Change photo"><i class="fas fa-camera"></i></label>
       <input type="file" id="avatarInput" accept="image/*" class="hidden" />
     </div>
-
     <div class="input-group">
-      <label for="modalTeamName">Team Name <span id="teamNameHint" style="font-size:10px;color:var(--text-faint);font-weight:400;">(editable until Match 1)</span></label>
+      <label for="modalTeamName">Team Name</label>
       <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" autocomplete="off" />
     </div>
-
     <button id="saveProfileBtn" class="btn-primary full-width">Save & Start</button>
   </div>
 </div>
 
-<div id="customPromptOverlay" class="modal hidden" style="z-index:9999;">
-  <div class="modal-content prompt-modal">
-    <h3 id="promptTitle" class="prompt-title">Enter Value</h3>
-    <input type="text" id="promptInput" class="prompt-input" placeholder="...">
-    <div class="prompt-actions">
-      <button id="promptCancel" class="btn-secondary">Cancel</button>
-      <button id="promptConfirm" class="btn-primary">Confirm</button>
-    </div>
-  </div>
-</div>
-
 <div id="toastContainer" class="toast-container"></div>
-<div id="notificationPrompt" class="hidden"></div>
 
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a href="ppl-home.html" class="active"><i class="fas fa-house"></i><span>Home</span></a>
   <a href="ppl-fixtures.html"><i class="fas fa-calendar-days"></i><span>Fixtures</span></a>
-  
   <a href="ppl-live.html" class="nav-match-center" id="navMatchesBtn">
     <div class="nav-icon-stack">
       <i class="fas fa-cricket-bat-ball" id="navMatchIcon"></i>
       <span class="nav-live-dot hidden" id="navLiveDot"></span>
     </div>
-    <span class="nav-label" id="navMatchLabel">Live</span>
-    <span class="nav-score-sub hidden" id="navLiveScore">0/0</span>
+    <span class="nav-label" id="navMatchLabel">Scores</span>
   </a>
-
   <a href="ppl-stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
   <a href="ppl-fantasy.html"><i class="fas fa-bolt"></i><span>Fantasy</span></a>
 </nav>
 
-<script type="module" src="ppl-home.js"></script>
-<script src="transitions.js"></script>
-
+<!-- CHAT (GLOBAL BANTER) -->
 <button id="chatFab" class="chat-fab" aria-label="Open chat">
   <i class="fas fa-comment-dots"></i>
-  <span id="unreadBadge" class="unread-badge hidden" aria-label="Unread messages"></span>
 </button>
-
 <div id="chatBackdrop" class="chat-backdrop hidden"></div>
-
 <div id="chatPanel" class="chat-panel" role="dialog" aria-label="Chat">
   <div class="chat-header">
     <h3 id="chatTitle" class="chat-title">Global Banter</h3>
-    <button id="closeChatBtn" class="close-chat" aria-label="Close chat">
-      <i class="fas fa-times"></i>
-    </button>
+    <button id="closeChatBtn" class="close-chat"><i class="fas fa-times"></i></button>
   </div>
-  <div class="chat-push-banner" id="chatPushBanner"></div>
   <div id="chatMessages" class="chat-messages"></div>
   <form id="chatForm" class="chat-input-area">
     <input type="text" id="chatInput" placeholder="Say something…" autocomplete="off" maxlength="150" required>
-    <button type="submit" id="sendChatBtn" aria-label="Send">
-      <i class="fas fa-paper-plane"></i>
-    </button>
+    <button type="submit" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
   </form>
 </div>
 
+<script type="module" src="ppl-home.js"></script>
+<script src="transitions.js"></script>
 </body>
 </html>
