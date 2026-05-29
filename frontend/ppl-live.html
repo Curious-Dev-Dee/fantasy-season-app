@@ -592,7 +592,7 @@ async function loadData() {
   } else {
     const { data: all } = await matchQ.order('match_number');
     if (!all) return renderNoMatch();
-    matchData = all.find(m => m.status === 'in_progress') || all.filter(m => m.status === 'completed').pop();
+matchData = all.find(m => ['in_progress', 'innings_break'].includes(m.status)) || all.filter(m => m.status === 'completed').pop();
   }
 
   if (!matchData) return renderNoMatch(urlMatchId ? null : true);
@@ -620,7 +620,7 @@ async function loadData() {
 // ── RENDER ────────────────────────────────────────────────────
 function render() {
   const m = matchData;
-  const isLive = m.status === 'in_progress';
+const isLive = ['in_progress', 'innings_break'].includes(m.status);
   const inns = (m.innings || []).sort((a,b) => a.innings_number - b.innings_number);
 
   const dot = document.getElementById('headerDot');
@@ -923,7 +923,7 @@ function renderNoMatch(showAll) {
 
 // ── SUPABASE REALTIME ──────────────────────────────────────────
 function setupRealtime() {
-  if (!matchData || matchData.status !== 'in_progress') return;
+if (!matchData || !['in_progress', 'innings_break'].includes(matchData.status)) return;
 
   realtimeChannel = sb.channel('ppl-live-' + matchData.id)
     .on('postgres_changes', {
