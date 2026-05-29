@@ -249,11 +249,11 @@ async function loadTournamentStats() {
     const topFielder = [...data].sort((a, b) => b.fielding - a.fielding)[0];
 
     const cardsToRender = [
-        { label: "Man of Series", icon: "⭐", p: mvp, isMvp: true },
-        { label: "Top Batter", icon: "🏏", p: topBatter },
-        { label: "Top Bowler", icon: "🎳", p: topBowler },
-        { label: "Top Fielder", icon: "🧤", p: topFielder }
-    ];
+        { label: "Man of Series", icon: "<i class='fas fa-award'></i>", p: mvp, isMvp: true },
+        { label: "Top Batter", icon: "<i class='fas fa-cricket-bat-ball'></i>", p: topBatter },
+        { label: "Top Bowler", icon: "<i class='fas fa-baseball'></i>", p: topBowler },
+        { label: "Top Fielder", icon: "<i class='fas fa-hands'></i>", p: topFielder }
+    ];
 
     grid.innerHTML = cardsToRender.map(item => `
         <div class="stat-mini-card ${item.isMvp ? 'mvp' : ''}">
@@ -357,9 +357,10 @@ async function loadMostPicked() {
     };
 
     wrapper.innerHTML = 
-        renderBlock("Most Selected", "👥", topPicks, "teams") +
-        renderBlock("Top Captains", "👑", topCap, "teams") +
-        renderBlock("Top Vice-Captains", "🎯", topVC, "teams");
+wrapper.innerHTML = 
+        renderBlock("Most Selected", "<i class='fas fa-users'></i>", topPicks, "teams") +
+        renderBlock("Top Captains", "<i class='fas fa-crown'></i>", topCap, "teams") +
+        renderBlock("Top Vice-Captains", "<i class='fas fa-shield-halved'></i>", topVC, "teams");
 }
 
 /* ══════════════════════════════════════════════════════
