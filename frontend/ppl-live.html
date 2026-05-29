@@ -4,11 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PPL 2026 — Live</title>
+  
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Canvas Confetti for Fireworks -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
     :root {
       --accent:        #9AE000;
@@ -244,7 +250,7 @@
     .ball-chip {
       min-width: 34px; height: 34px;
       padding: 0 6px;
-      border-radius: 8px; /* Safe rectangles to hold mixed string labels without distortion */
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -256,24 +262,72 @@
     }
     .ball-chip.b-dot   { background: rgba(255,255,255,0.04); color: var(--text-faint); border-color: var(--border); }
     .ball-chip.b-runs  { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: var(--border-card); }
-    .ball-chip.b-four  { background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.3); animation: popScale 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .ball-chip.b-six   { background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.3); animation: popScale 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .ball-chip.b-wkt   { background: rgba(239,68,68,0.25); color: var(--red); border-color: rgba(239,68,68,0.45); animation: shakeFlash 0.4s ease-in-out; }
+    .ball-chip.b-four  { background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.3); }
+    .ball-chip.b-six   { background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.3); }
+    .ball-chip.b-wkt   { background: rgba(239,68,68,0.25); color: var(--red); border-color: rgba(239,68,68,0.45); }
     .ball-chip.b-wide  { background: rgba(251,146,60,0.12); color: var(--orange); border-color: rgba(251,146,60,0.25); font-size: 11px; }
     .ball-chip.b-nb    { background: rgba(245,158,11,0.12); color: var(--gold); border-color: rgba(245,158,11,0.25); font-size: 11px; }
     .ball-chip.b-m2    { background: rgba(168,85,247,0.15); color: #a78bfa; border-color: rgba(168,85,247,0.3); font-size: 12px; }
     .ball-chip.b-empty { background: rgba(255,255,255,0.02); border-color: var(--border-subtle); }
 
-    /* ── CORE ANIMATIONS FOR PREMIUM UX ── */
-    @keyframes popScale {
-      0% { transform: scale(0.4); opacity: 0; }
-      70% { transform: scale(1.15); }
+    /* ── WICKET OVERLAY ANIMATION ── */
+    #wicketOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(220, 38, 38, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #wicketOverlay.active {
+      opacity: 1;
+      animation: bgFlash 0.5s infinite alternate;
+    }
+    .wkt-title {
+      font-family: var(--font-display);
+      font-size: 70px;
+      font-weight: 900;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    #wicketOverlay.active .wkt-title {
+      animation: stampIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, shakeText 0.4s 0.4s infinite;
+    }
+    .wkt-sub {
+      font-family: var(--font-body);
+      font-size: 18px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      margin-top: -10px;
+      opacity: 0;
+    }
+    #wicketOverlay.active .wkt-sub {
+      animation: fadeIn 0.4s 0.3s forwards;
+    }
+    
+    @keyframes stampIn {
       100% { transform: scale(1); opacity: 1; }
     }
-    @keyframes shakeFlash {
-      0%, 100% { transform: translateX(0); background: rgba(239,68,68,0.25); }
-      20%, 60% { transform: translateX(-4px); background: rgba(239,68,68,0.6); }
-      40%, 80% { transform: translateX(4px); background: rgba(239,68,68,0.6); }
+    @keyframes bgFlash {
+      100% { background: rgba(185, 28, 28, 0.95); }
+    }
+    @keyframes shakeText {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    @keyframes fadeIn {
+      100% { opacity: 1; }
     }
 
     /* ── AT THE CREASE ── */
@@ -333,7 +387,7 @@
       margin-top: 1px;
     }
 
-    /* ── TARGET BANNER (2nd innings) ── */
+    /* ── TARGET BANNER ── */
     .target-banner {
       margin: 0 16px 0;
       background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(251,146,60,0.08));
@@ -396,77 +450,28 @@
     }
 
     /* ── NO LIVE STATE ── */
-    .no-live {
-      margin: 40px 16px;
-      text-align: center;
-    }
-    .no-live-icon {
-      font-size: 40px;
-      margin-bottom: 14px;
-      opacity: 0.4;
-    }
-    .no-live-title {
-      font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-    .no-live-sub {
-      font-family: var(--font-body);
-      font-size: 13px;
-      color: var(--text-faint);
-      margin-bottom: 20px;
-    }
+    .no-live { margin: 40px 16px; text-align: center; }
+    .no-live-icon { font-size: 40px; margin-bottom: 14px; opacity: 0.4; }
+    .no-live-title { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--text-primary); margin-bottom: 6px; }
+    .no-live-sub { font-family: var(--font-body); font-size: 13px; color: var(--text-faint); margin-bottom: 20px; }
     .ghost-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--accent-dim);
-      border: 1px solid var(--border-accent);
-      color: var(--accent);
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 10px 20px;
-      border-radius: var(--btn-radius);
-      text-decoration: none;
-      transition: var(--transition);
+      display: inline-flex; align-items: center; gap: 8px; background: var(--accent-dim);
+      border: 1px solid var(--border-accent); color: var(--accent); font-family: var(--font-display);
+      font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+      padding: 10px 20px; border-radius: var(--btn-radius); text-decoration: none; transition: var(--transition);
     }
 
     /* ── BOTTOM NAV ── */
     .bottom-nav {
-      position: fixed;
-      bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: rgba(13,22,37,0.97);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-card);
-      display: flex;
-      align-items: center;
-      height: var(--nav-height);
-      z-index: 200;
-      padding: 0 8px;
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; background: rgba(13,22,37,0.97);
+      backdrop-filter: blur(20px); border-top: 1px solid var(--border-card);
+      display: flex; align-items: center; height: var(--nav-height); z-index: 200; padding: 0 8px;
     }
     .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 10px 6px;
-      text-decoration: none;
-      color: var(--text-faint);
-      font-family: var(--font-display);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      transition: var(--transition);
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 6px; text-decoration: none; color: var(--text-faint); font-family: var(--font-display);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; transition: var(--transition);
     }
     .nav-item i { font-size: 18px; }
     .nav-item.active { color: var(--red); }
@@ -478,8 +483,14 @@
   </style>
 </head>
 <body>
-<div class="app-wrap">
 
+<!-- WICKET OVERLAY -->
+<div id="wicketOverlay">
+  <div class="wkt-title">Wicket!</div>
+  <div class="wkt-sub">He's gone</div>
+</div>
+
+<div class="app-wrap">
   <!-- HEADER -->
   <header class="app-header">
     <div class="header-left">
@@ -493,7 +504,6 @@
   <div id="mainContent">
     <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Loading…</div>
   </div>
-
 </div>
 
 <!-- BOTTOM NAV -->
@@ -514,11 +524,55 @@ const urlMatchId = new URLSearchParams(location.search).get('match');
 let matchData = null, allDeliveries = [], allPlayers = [];
 let realtimeChannel = null;
 
+// State flags for animation logic
+let isFirstLoad = true;
+let lastProcessedDeliveryId = null;
+
 // ── INIT ──────────────────────────────────────────────────────
 async function init() {
   await loadData();
   setupRealtime();
 }
+
+// ── ANIMATION TRIGGERS ────────────────────────────────────────
+function triggerSix() {
+  const duration = 2.5 * 1000;
+  const animationEnd = Date.now() + duration;
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+  function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+  const interval = setInterval(function() {
+    const timeLeft = animationEnd - Date.now();
+    if (timeLeft <= 0) return clearInterval(interval);
+    const particleCount = 40 * (timeLeft / duration);
+    // Shoot fireworks from random points
+    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 } }));
+  }, 250);
+}
+
+function triggerFour() {
+  const end = Date.now() + (1.5 * 1000);
+  const colors = ['#22c55e', '#ffffff', '#4ade80']; // Green theme for 4s
+  
+  (function frame() {
+    // Fire from left bottom corner
+    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0, y: 1 }, colors: colors, zIndex: 9999 });
+    // Fire from right bottom corner
+    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1, y: 1 }, colors: colors, zIndex: 9999 });
+    
+    if (Date.now() < end) requestAnimationFrame(frame);
+  }());
+}
+
+function triggerWicket() {
+  const overlay = document.getElementById('wicketOverlay');
+  overlay.classList.add('active');
+  setTimeout(() => {
+    overlay.classList.remove('active');
+  }, 2500); // Overlay disappears after 2.5 seconds
+}
+
 
 // ── LOAD DATA ─────────────────────────────────────────────────
 async function loadData() {
@@ -586,6 +640,25 @@ function render() {
   const isSecondInnings = inns.length >= 2 && currentInn?.innings_number === 2;
 
   const currDels = currentInn ? allDeliveries.filter(d => d.innings_id === currentInn.id) : [];
+
+  // --- ANIMATION CHECK LOGIC ---
+  if (currDels.length > 0) {
+    const latestDelivery = currDels[currDels.length - 1];
+    
+    // Only animate if this isn't the first load AND the delivery ID is genuinely new
+    if (!isFirstLoad && lastProcessedDeliveryId !== latestDelivery.id) {
+      if (latestDelivery.is_wicket) {
+        triggerWicket();
+      } else if (latestDelivery.is_six) {
+        triggerSix();
+      } else if (latestDelivery.is_four) {
+        triggerFour();
+      }
+    }
+    lastProcessedDeliveryId = latestDelivery.id; // Remember this delivery so we don't animate it again
+  }
+  isFirstLoad = false; // Turn off the safety flag after the very first render
+
 
   const lastOverNum = currDels.length > 0 ? currDels[currDels.length - 1].over_number : 0;
   const currentOverBalls = currDels.filter(d => d.over_number === lastOverNum);
@@ -655,7 +728,6 @@ function render() {
     }
   }
 
-  // ── COMPATIBLE BALL-BY-BALL CHIP COMPILER ──
   const emptySlots = Math.max(0, 6 - currentOverBalls.length);
   const ballChips = currentOverBalls.map(d => {
     let label = '';
@@ -780,7 +852,6 @@ function render() {
   }
 
   document.getElementById('mainContent').innerHTML = `
-    <!-- MATCH HERO -->
     <div class="live-hero ${isLive ? '' : 'idle'}">
       <div class="live-eyebrow">
         ${isLive ? '<div class="live-dot"></div> Live Now' : 'Most Recent Match'}
@@ -812,7 +883,6 @@ function render() {
     ${completedInfo}
 
     ${isLive ? `
-    <!-- CURRENT OVER -->
     <div class="section-label">Over ${currentOverNum + 1} — This Over: ${overRunsThisOver} runs</div>
     <div class="current-over-wrap">
       <div class="balls-row">
