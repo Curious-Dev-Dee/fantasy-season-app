@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PPL 2026 — Fantasy Trends</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --accent:        #9AE000;
+      --bg-page:       #020617;
+      --bg-card:       #0d1625;
+      --bg-card-alt:   #111e30;
+      --border:        rgba(255,255,255,0.07);
+      --border-subtle: rgba(255,255,255,0.04);
+      --text-primary:  #f0f4f8;
+      --text-dim:      #94a3b8;
+      --text-faint:    #64748b;
+      --gold:          #f59e0b;
+      --font-display:  'Barlow Condensed', sans-serif;
+      --font-body:     'DM Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+    .app-wrap {
+      width: 100%;
+      max-width: 540px;
+      padding-bottom: 80px; /* Space for bottom nav if included */
+    }
+
+    /* ── STICKY TOPBAR ── */
+    .sticky-navbar {
+      position: sticky;
+      top: 0;
+      background: rgba(2,6,23,0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+    }
+    .back-btn {
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: var(--accent);
+      text-decoration: none;
+      margin-right: 14px;
+    }
+    .topbar h2 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── SUB-TAB SWITCHER ── */
+    .inn-switcher {
+      display: flex;
+      gap: 8px;
+      background: rgba(0,0,0,0.25);
+      padding: 4px;
+      border-radius: 10px;
+      margin: 16px;
+      border: 1px solid var(--border);
+    }
+    .inn-sub-tab {
+      flex: 1; text-align: center; font-family: var(--font-display); font-size: 13px; font-weight: 700;
+      color: var(--text-dim); padding: 10px 4px; border-radius: 7px; cursor: pointer; text-transform: uppercase;
+      display: flex; flex-direction: column; gap: 4px; align-items: center; letter-spacing: 0.5px;
+    }
+    .inn-sub-tab i { font-size: 14px; }
+    .inn-sub-tab.active {
+      background: var(--bg-card-alt); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1);
+    }
+    .inn-sub-tab.active i { color: var(--accent); }
+
+    /* ── LIST CONTAINER ── */
+    .trends-container { padding: 0 16px; }
+    .trends-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .th-title { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.5px;}
+    .th-count { font-size: 11px; color: var(--text-dim); font-weight: 600;}
+
+    /* ── PLAYER ROW (PREMIUM) ── */
+    .player-row {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 12px; margin-bottom: 10px;
+      position: relative; overflow: hidden;
+    }
+    .rank-col {
+      width: 24px; font-family: var(--font-display); font-size: 16px; font-weight: 900; 
+      color: var(--text-faint); text-align: center;
+    }
+    .rank-1 { color: var(--gold); font-size: 20px; }
+    .rank-2 { color: #cbd5e1; }
+    .rank-3 { color: #b45309; }
+
+    .avatar-col {
+      width: 44px; height: 44px; border-radius: 50%;
+      background-color: var(--bg-card-alt); background-size: cover; background-position: top center;
+      border: 1px solid var(--border); flex-shrink: 0;
+    }
+    .info-col { flex: 1; min-width: 0; }
+    .p-name { font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+    .p-meta { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
+    
+    .stat-col {
+      text-align: right; min-width: 60px;
+    }
+    .stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--text-primary); line-height: 1; }
+    .stat-pct { font-size: 10px; color: var(--accent); font-weight: 700; margin-top: 2px; }
+
+    /* Visual Background Progress Bar */
+    .bg-progress {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      background: linear-gradient(90deg, rgba(154,224,0,0.08) 0%, rgba(154,224,0,0.02) 100%);
+      z-index: 0; pointer-events: none; border-radius: 12px;
+    }
+    .player-row > * { position: relative; z-index: 1; } /* Keep text above progress bar */
+
+    .loading { text-align: center; color: var(--text-faint); padding: 50px 0; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="app-wrap">
+  <div class="sticky-navbar">
+    <div class="topbar">
+      <a class="back-btn" href="ppl-home.html"><i class="fas fa-chevron-left"></i></a>
+      <h2>Fantasy Trends</h2>
+    </div>
+  </div>
+
+  <div class="inn-switcher">
+    <div class="inn-sub-tab active" id="tab-picked" onclick="switchTab('picked')">
+      <i class="fas fa-users"></i> Most Picked
+    </div>
+    <div class="inn-sub-tab" id="tab-cap" onclick="switchTab('cap')">
+      <i class="fas fa-crown"></i> Top Captains
+    </div>
+    <div class="inn-sub-tab" id="tab-vc" onclick="switchTab('vc')">
+      <i class="fas fa-shield-halved"></i> Top VC
+    </div>
+  </div>
+
+  <div class="trends-container">
+    <div class="trends-header">
+      <div class="th-title" id="listTitle">Global Selection Stats</div>
+      <div class="th-count" id="totalTeamsLabel">Analyzing...</div>
+    </div>
+    <div id="trendsList">
+      <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Crunching Fantasy Data...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+let rawData = [];
+let totalUserTeams = 0;
+let currentMode = 'picked'; // 'picked', 'cap', 'vc'
+
+async function init() {
+  // 1. Fetch total number of user teams created (for percentage calculation)
+  const { count } = await sb.from('user_profiles').select('*', { count: 'exact', head: true }).eq('profile_completed', true);
+  totalUserTeams = count || 1; // Fallback to 1 to prevent division by zero
+
+  document.getElementById('totalTeamsLabel').textContent = `Based on ${totalUserTeams} Teams`;
+
+  // 2. Fetch all picks and all player details
+  const [picksRes, playersRes] = await Promise.all([
+    sb.from('ppl_user_team_players').select('player_id, is_captain, is_vice_captain'),
+    sb.from('ppl_players').select('id, name, role, photo_url, team:team_id(short_name)')
+  ]);
+
+  if (picksRes.error || playersRes.error) {
+    document.getElementById('trendsList').innerHTML = '<div class="loading">Failed to load data.</div>';
+    return;
+  }
+
+  // 3. Aggregate Data
+  const statsMap = {};
+  playersRes.data.forEach(p => {
+    statsMap[p.id] = { ...p, picked: 0, cap: 0, vc: 0 };
+  });
+
+  picksRes.data.forEach(pick => {
+    if (statsMap[pick.player_id]) {
+      statsMap[pick.player_id].picked++;
+      if (pick.is_captain) statsMap[pick.player_id].cap++;
+      if (pick.is_vice_captain) statsMap[pick.player_id].vc++;
+    }
+  });
+
+  // Convert to array and remove players with 0 picks entirely to clean up the list
+  rawData = Object.values(statsMap).filter(p => p.picked > 0);
+
+  renderList();
+}
+
+function switchTab(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.inn-sub-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + mode).classList.add('active');
+  
+  const titles = {
+    'picked': 'Most Selected Players',
+    'cap': 'Most Trusted Captains',
+    'vc': 'Popular Vice-Captains'
+  };
+  document.getElementById('listTitle').textContent = titles[mode];
+  
+  renderList();
+}
+
+function renderList() {
+  const container = document.getElementById('trendsList');
+  
+  // Sort data based on active tab
+  let sortedData = [...rawData].sort((a, b) => b[currentMode] - a[currentMode]);
+
+  // Filter out zero counts for specific tabs (e.g., don't show players with 0 captain picks in the Captain tab)
+  sortedData = sortedData.filter(p => p[currentMode] > 0);
+
+  if (sortedData.length === 0) {
+    container.innerHTML = '<div class="loading">Not enough data to display yet.</div>';
+    return;
+  }
+
+  const bucket = sb.storage.from("player-photos");
+  let html = '';
+
+  sortedData.forEach((p, index) => {
+    const rank = index + 1;
+    const rankClass = rank <= 3 ? `rank-${rank}` : '';
+    const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
+    const teamShort = p.team?.short_name || 'TBA';
+    
+    // Value and Percentage
+    const val = p[currentMode];
+    const pct = ((val / totalUserTeams) * 100).toFixed(1);
+    
+    // The subtle background bar width
+    const bgWidth = Math.min(100, Math.max(2, pct)); 
+
+    html += `
+      <div class="player-row">
+        <div class="bg-progress" style="width: ${bgWidth}%;"></div>
+        <div class="rank-col ${rankClass}">${rank}</div>
+        <div class="avatar-col" style="background-image: url('${photoUrl}')"></div>
+        <div class="info-col">
+          <div class="p-name">${p.name}</div>
+          <div class="p-meta">${teamShort} • ${p.role}</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-val">${val}</div>
+          <div class="stat-pct">${pct}% Teams</div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>
