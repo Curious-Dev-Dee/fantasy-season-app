@@ -71,7 +71,6 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 .btn-sm{padding:9px 12px;font-size:.78rem;margin-top:6px}
 .btn-xs{padding:6px 10px;font-size:.72rem;margin-top:4px;display:inline-block;width:auto}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
 
 /* ── CARDS / BOXES ── */
 .card{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:13px;margin-bottom:10px}
@@ -197,7 +196,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
 </head>
 <body>
 
-<!-- ═══════════════════════ PIN ═══════════════════════ -->
 <div id="pin-screen">
   <div class="pin-logo">🏏</div>
   <div class="pin-title">PPL 2026</div>
@@ -207,10 +205,8 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <div id="pin-err" style="color:var(--red);font-size:.8rem;display:none">Wrong PIN — try again</div>
 </div>
 
-<!-- ═══════════════════════ APP ═══════════════════════ -->
 <div id="app" style="display:none">
 
-<!-- ─────────── S1: HOME ─────────── -->
 <div class="screen active" id="s-home">
   <div class="topbar">
     <div class="topbar-title">🏏 PPL 2026 Admin</div>
@@ -224,7 +220,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     <div class="nav-tab" onclick="switchTab('admin')">⚙️ Admin</div>
   </div>
 
-  <!-- TAB: SCORE (select + start match) -->
   <div id="tab-score">
     <div class="section-head">Select Match to Score</div>
     <div id="match-list">
@@ -233,7 +228,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     <button class="btn btn-primary" id="btn-continue" onclick="goSetup()" style="display:none">Continue to Setup →</button>
   </div>
 
-  <!-- TAB: RESUME -->
   <div id="tab-resume" style="display:none">
     <div class="section-head">In-Progress Matches</div>
     <div id="resume-list">
@@ -241,28 +235,23 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
-  <!-- TAB: EDIT MATCH -->
   <div id="tab-edit" style="display:none">
     <div class="section-head">Edit Completed / Any Match</div>
     <label>Select Match</label>
     <select id="sel-edit-match"><option value="">— Select —</option></select>
     <div id="edit-match-panel" style="display:none;margin-top:10px">
       <div class="card card-blue" id="edit-match-info"></div>
-      <!-- MOM edit -->
       <div class="section-head">Man of the Match</div>
       <div class="edit-mom-bar">
         <div>Current MOM: <span class="mom-name" id="current-mom">—</span></div>
         <button class="btn btn-xs btn-purple" onclick="openMomEdit()">Change</button>
       </div>
-      <!-- Result edit -->
       <div class="section-head">Result Description</div>
       <input type="text" id="edit-result-desc" placeholder="e.g. JW won by 5 wickets">
       <button class="btn btn-warn btn-sm" onclick="saveResultDesc()">Save Result Description</button>
-      <!-- Winner override -->
       <div class="section-head">Winner Override</div>
       <select id="edit-winner-sel"><option value="">— No winner / Tied —</option></select>
       <button class="btn btn-danger btn-sm" onclick="saveWinnerOverride()">Override Winner</button>
-      <!-- Abandoned -->
       <div class="section-head">Match Status</div>
       <select id="edit-status-sel">
         <option value="upcoming">upcoming</option>
@@ -276,7 +265,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
-  <!-- TAB: ADMIN -->
   <div id="tab-admin" style="display:none">
     <div class="section-head">Fantasy Phase Lock</div>
     <div id="phase-lock-list">
@@ -296,7 +284,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-<!-- ─────────── S2: MATCH SETUP ─────────── -->
 <div class="screen" id="s-setup">
   <div class="topbar">
     <div class="topbar-title">⚙️ Match Setup</div>
@@ -318,7 +305,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-success" style="margin-top:14px" onclick="saveToss()">✅ Save & Go to Innings Setup →</button>
 </div>
 
-<!-- ─────────── S3: INNINGS SETUP ─────────── -->
 <div class="screen" id="s-inn-setup">
   <div class="topbar">
     <div class="topbar-title" id="inn-setup-title">🏏 Innings Setup</div>
@@ -335,9 +321,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-success" style="margin-top:14px" onclick="startInnings()">🏏 Start Innings →</button>
 </div>
 
-<!-- ─────────── S4: LIVE SCORING ─────────── -->
 <div class="screen" id="s-score">
-  <!-- Scoreboard -->
   <div class="scorebar">
     <div style="display:flex;align-items:flex-end;justify-content:space-between">
       <div>
@@ -359,19 +343,14 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
-  <!-- Batters -->
   <div class="batter-row" id="batter-cards"></div>
 
-  <!-- Bowler -->
   <div class="bowler-bar" id="bowler-bar">🎳 —</div>
 
-  <!-- Over log -->
   <div class="over-log" id="over-log"></div>
 
-  <!-- Strike notice -->
   <div class="strike-notice" id="strike-notice">⚠️ Verify strike — tap batter card to give strike</div>
 
-  <!-- Ball buttons -->
   <div class="ball-section">
     <div class="ball-section-label">Runs off bat</div>
     <div class="ball-grid">
@@ -391,7 +370,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     <button class="b-swap" onclick="manualStrikeSwap()">⇄ Swap Strike</button>
   </div>
 
-  <!-- Quick actions -->
   <div class="row2" style="margin-top:10px">
     <button class="btn btn-teal btn-sm" onclick="openEditList()">✏️ Edit Delivery</button>
     <button class="btn btn-warn btn-sm" onclick="endEarly()">⏹ End Innings</button>
@@ -399,7 +377,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-gray btn-sm" onclick="openScoreEditInline()">🔧 Manual Score Override</button>
 </div>
 
-<!-- ─────────── S5: INNINGS END ─────────── -->
 <div class="screen" id="s-inn-end">
   <div class="topbar"><div class="topbar-title" id="inn-end-title">Innings Complete</div></div>
   <div class="card card-blue" id="inn-end-summary"></div>
@@ -408,7 +385,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-danger"  id="btn-endm"  onclick="go('s-result')" style="display:none">🏆 Enter Match Result →</button>
 </div>
 
-<!-- ─────────── S6: MATCH RESULT ─────────── -->
 <div class="screen" id="s-result">
   <div class="topbar"><div class="topbar-title">🏆 Match Result</div></div>
   <div class="card card-blue" id="result-summary"></div>
@@ -422,7 +398,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-gray btn-sm" onclick="finaliseNoMom()">Finalise without MOM (set later)</button>
 </div>
 
-<!-- ─────────── S7: EDIT LIST ─────────── -->
 <div class="screen" id="s-edit-list">
   <div class="topbar">
     <div class="topbar-title">✏️ Edit Delivery</div>
@@ -432,9 +407,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <div class="delivery-list" id="d-list"></div>
 </div>
 
-<!-- ═══════════ MODALS ═══════════ -->
-
-<!-- Extra modal -->
 <div class="modal-overlay" id="m-extra">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -478,7 +450,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-<!-- Wicket modal -->
 <div class="modal-overlay" id="m-wicket">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -516,7 +487,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-<!-- New over modal -->
 <div class="modal-overlay" id="m-over">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -534,7 +504,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-<!-- Edit delivery modal -->
 <div class="modal-overlay" id="m-edit">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -583,7 +552,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-<!-- MOM edit modal -->
 <div class="modal-overlay" id="m-mom">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -597,13 +565,11 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-<!-- Add inside edit-match-panel, after MOM section -->
 <div class="section-head">Fantasy Points</div>
 <button class="btn btn-teal btn-sm" onclick="recalcMatchFantasy()">
   🔄 Recalculate Fantasy Points for This Match
 </button>
 
-<!-- Manual score override modal -->
 <div class="modal-overlay" id="m-manual">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -623,9 +589,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-</div><!-- end #app -->
-
-<div class="toast" id="toast"></div>
+</div><div class="toast" id="toast"></div>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -1862,9 +1826,12 @@ async function togglePhaseLock(phaseId, currentlyLocked) {
   const action=currentlyLocked?'unlock':'lock';
   if(!confirm(`${action.toUpperCase()} this fantasy phase? This controls whether users can edit their teams.`)) return;
   const nowISO=new Date().toISOString();
+  
+  // NOTE: Removed `locked_by` to ensure compatibility with your PPL schema
   const upd=currentlyLocked
-    ?{is_locked:false, locked_at:null, locked_by:null}
+    ?{is_locked:false, locked_at:null}
     :{is_locked:true,  locked_at:nowISO};
+    
   const {error}=await sb.from('ppl_fantasy_days').update(upd).eq('id',phaseId);
   if(error){toast('Failed: '+error.message,'error');return;}
   toast(`✅ Phase ${action}ed!`);
@@ -2042,7 +2009,6 @@ function resetState() {
   };
 }
 
-// Fix typo in resume overs tag building
 document.getElementById('pin-input').focus();
 </script>
 </body>
