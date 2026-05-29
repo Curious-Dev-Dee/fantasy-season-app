@@ -7,14 +7,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --accent:        #9AE000;
       --accent-dim:    rgba(154,224,0,0.09);
       --accent-glow:   rgba(154,224,0,0.28);
-      --accent-mid:    rgba(154,224,0,0.18);
       --bg-page:       #020617;
       --bg-card:       #0d1625;
       --bg-card-alt:   #111e30;
@@ -31,326 +30,148 @@
       --rank-color:    #7cc4ff;
       --font-display:  'Barlow Condensed', sans-serif;
       --font-body:     'DM Sans', sans-serif;
-      --card-radius:   18px;
-      --card-radius-sm:12px;
+      --card-radius:   16px;
       --btn-radius:    12px;
       --nav-height:    65px;
-      --transition:    all 250ms cubic-bezier(0.4,0,0.2,1);
+      --transition:    all 200ms cubic-bezier(0.4,0,0.2,1);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--font-body);
-      background: var(--bg-page);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
+      font-family: var(--font-body); background: var(--bg-page); color: var(--text-primary);
+      min-height: 100vh; display: flex; justify-content: center;
     }
-    .app-wrap {
-      width: 100%;
-      max-width: 480px;
-      padding: 0 0 calc(var(--nav-height) + 24px);
-    }
+    .app-wrap { width: 100%; max-width: 480px; padding: 0 0 calc(var(--nav-height) + 24px); }
 
     /* ── HEADER ── */
     .app-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px 12px;
-      background: rgba(2,6,23,0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      min-height: 56px;
+      display: flex; align-items: center; gap: 12px; padding: 14px 16px 12px;
+      background: rgba(2,6,23,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50; min-height: 56px;
     }
     .icon-back {
-      width: 38px; height: 38px;
-      border-radius: var(--btn-radius);
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border-card);
-      color: var(--text-primary);
-      display: flex; align-items: center; justify-content: center;
-      text-decoration: none;
-      font-size: 15px;
-      flex-shrink: 0;
-      transition: var(--transition);
+      width: 38px; height: 38px; border-radius: var(--btn-radius); background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-card); color: var(--text-primary);
+      display: flex; align-items: center; justify-content: center; text-decoration: none;
+      font-size: 15px; flex-shrink: 0; transition: var(--transition);
     }
     .icon-back:hover { background: var(--accent-dim); border-color: var(--border-accent); color: var(--accent); }
     .page-title {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-primary);
-      margin: 0;
-      flex: 1;
+      font-family: var(--font-display); font-size: 20px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.5px; margin: 0; flex: 1;
     }
 
-    /* ── CONTENT ── */
     .content { padding: 16px; }
 
     /* ── SECTION LABEL ── */
     .section-label {
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      margin-bottom: 10px;
-      margin-top: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-family: var(--font-display); font-size: 11px; font-weight: 900; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; margin-top: 20px;
+      display: flex; align-items: center; gap: 8px;
     }
     .section-label:first-child { margin-top: 0; }
-    .section-label .dot {
-      width: 3px; height: 12px;
-      border-radius: 2px;
-    }
+    .section-label .dot { width: 3px; height: 12px; border-radius: 2px; }
     .dot-green  { background: var(--accent); }
     .dot-blue   { background: var(--rank-color); }
 
-    /* ── GROUP CARD ── */
-    .group-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius);
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-
-    /* ── TABLE HEADER ── */
-    .table-head {
-      display: grid;
-      grid-template-columns: 2fr 32px 32px 32px 52px 60px;
-      gap: 0;
-      padding: 8px 12px;
-      background: rgba(0,0,0,0.3);
-      border-bottom: 1px solid var(--border);
-    }
-    .th {
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-faint);
-      text-align: right;
-    }
+    /* ── GROUP CARD & TABLE ── */
+    .group-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--card-radius); overflow: hidden; margin-bottom: 12px; }
+    .table-head { display: grid; grid-template-columns: 2fr 32px 32px 32px 48px 64px; padding: 8px 12px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); }
+    .th { font-family: var(--font-display); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-faint); text-align: right; }
     .th:first-child { text-align: left; }
 
-    /* ── TEAM ROW ── */
     .team-row {
-      display: grid;
-      grid-template-columns: 2fr 32px 32px 32px 52px 60px;
-      gap: 0;
-      padding: 12px;
-      border-bottom: 1px solid var(--border-subtle);
-      align-items: center;
-      transition: background var(--transition);
-      position: relative;
+      display: grid; grid-template-columns: 2fr 32px 32px 32px 48px 64px; padding: 12px; border-bottom: 1px solid var(--border-subtle); align-items: center;
+      transition: background var(--transition); position: relative; cursor: pointer;
     }
     .team-row:last-child { border-bottom: none; }
-    .team-row:hover { background: rgba(255,255,255,0.02); }
+    .team-row:hover { background: rgba(255,255,255,0.04); }
+    .team-row:active { background: rgba(255,255,255,0.08); }
 
-    /* qualified rows get left accent */
-    .team-row.qualified {
-      background: rgba(154,224,0,0.03);
-    }
-    .team-row.qualified::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: var(--accent);
-    }
-    .team-row.eliminated::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: rgba(239,68,68,0.4);
-    }
+    .team-row.qualified { background: rgba(154,224,0,0.03); }
+    .team-row.qualified::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+    .team-row.eliminated::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: rgba(239,68,68,0.4); }
 
-    /* rank + team info */
-    .team-cell {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .team-rank {
-      font-family: var(--font-display);
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--text-faint);
-      width: 18px;
-      flex-shrink: 0;
-      text-align: center;
-    }
+    .team-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .team-rank { font-family: var(--font-display); font-size: 16px; font-weight: 900; color: var(--text-faint); width: 18px; flex-shrink: 0; text-align: center; }
     .team-rank.r1 { color: var(--gold); }
     .team-rank.r2 { color: var(--rank-color); }
-
-    .team-color-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
+    .team-color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .team-info { min-width: 0; flex: 1; }
-    .team-short {
-      font-family: var(--font-display);
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--text-primary);
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .team-full {
-      font-family: var(--font-body);
-      font-size: 10px;
-      color: var(--text-faint);
-      margin-top: 1px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .team-short { font-family: var(--font-display); font-size: 16px; font-weight: 900; color: var(--text-primary); line-height: 1; display: flex; align-items: center; gap: 5px; }
+    .team-full { font-family: var(--font-body); font-size: 10px; color: var(--text-faint); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* qualification badge */
-    .q-badge {
-      font-family: var(--font-display);
-      font-size: 8px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
+    .q-badge { font-family: var(--font-display); font-size: 8px; font-weight: 900; letter-spacing: 0.5px; padding: 1px 5px; border-radius: 4px; }
     .q-badge.qualified   { background: rgba(154,224,0,0.12); color: var(--accent); border: 1px solid var(--border-accent); }
     .q-badge.eliminated  { background: rgba(239,68,68,0.1);  color: var(--red);    border: 1px solid rgba(239,68,68,0.2); }
-    .q-badge.in_contention { background: rgba(251,146,60,0.1); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
-
-    /* stat cells */
-    .td {
-      font-family: var(--font-display);
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-dim);
-      text-align: right;
-    }
-    .td.pts {
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--rank-color);
-    }
+    
+    .td { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text-dim); text-align: right; }
+    .td.pts { font-size: 18px; font-weight: 900; color: var(--rank-color); }
     .td.nrr-pos { color: var(--accent); }
     .td.nrr-neg { color: var(--red); }
     .td.nrr-zero { color: var(--text-faint); }
 
-    /* ── QUALIFY NOTE ── */
-    .qualify-note {
-      font-family: var(--font-body);
-      font-size: 11px;
-      color: var(--text-faint);
-      padding: 10px 14px;
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .qualify-note { font-family: var(--font-body); font-size: 11px; color: var(--text-faint); padding: 10px 14px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 6px; }
     .qualify-note i { color: var(--accent); font-size: 10px; }
 
-    /* ── KNOCKOUT BRACKET ── */
-    .bracket-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius);
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-    .bracket-note {
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--text-faint);
-      text-align: center;
-      line-height: 1.6;
-      padding: 8px 0 4px;
-    }
-    .bracket-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .bracket-row:last-child { border-bottom: none; }
-    .bracket-label {
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      width: 52px;
-      flex-shrink: 0;
-    }
-    .bracket-match {
-      flex: 1;
-      font-family: var(--font-display);
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--text-primary);
-    }
-    .bracket-match .tbd { color: var(--text-faint); font-style: italic; }
+    /* ── NRR EXPLAINER & CALCULATOR BUTTON ── */
+    .nrr-card { background: linear-gradient(135deg, var(--bg-card), #162438); border: 1px solid var(--border-card); border-radius: var(--card-radius); padding: 18px; margin-top: 24px; position: relative; overflow: hidden;}
+    .nrr-card::before { content: '🧮'; position: absolute; right: -15px; top: -15px; font-size: 90px; opacity: 0.05; pointer-events: none; }
+    .nrr-card h3 { font-family: var(--font-display); font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: var(--text-primary); }
+    .nrr-card p { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 12px; }
+    .nrr-formula { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; color: var(--accent); margin-bottom: 12px; border: 1px dashed var(--border-subtle); }
+    .nrr-actions { display: flex; gap: 10px; align-items: center; }
+    
+    .btn-nrr { background: var(--accent); color: #000; font-family: var(--font-display); font-size: 14px; font-weight: 800; text-transform: uppercase; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; flex: 1; transition: transform 0.1s; }
+    .btn-nrr:active { transform: scale(0.96); }
+    .btn-espn { background: transparent; color: var(--rank-color); border: 1px solid var(--border-card); font-family: var(--font-display); font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 9px 12px; border-radius: 10px; text-decoration: none; transition: background 0.2s; }
+    .btn-espn:hover { background: rgba(124, 196, 255, 0.1); }
 
-    /* ── EMPTY / LOADING ── */
-    .loading {
-      text-align: center;
-      color: var(--text-faint);
-      padding: 40px 0;
-      font-size: 13px;
-    }
+    /* ── MODALS (Deep Dive & Calculator) ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 999; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-content { background: var(--bg-card); width: 100%; max-width: 480px; max-height: 90vh; border-radius: 24px 24px 0 0; padding: 24px 20px; border-top: 1px solid var(--border-accent); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow-y: auto; }
+    .modal-overlay.active .modal-content { transform: translateY(0); }
+    
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .modal-title { font-family: var(--font-display); font-size: 24px; font-weight: 900; text-transform: uppercase; color: var(--text-primary); line-height: 1.1; }
+    .modal-subtitle { font-size: 12px; color: var(--text-faint); margin-top: 4px; font-weight: 600; }
+    .btn-close { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-faint); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    
+    /* Team Modal Specifics */
+    .tm-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .tm-stat-box { background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); padding: 12px; border-radius: 12px; text-align: center; }
+    .tm-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .tm-stat-lbl { font-size: 10px; color: var(--text-faint); text-transform: uppercase; font-weight: 700; margin-top: 4px; letter-spacing: 0.5px;}
+    
+    .tm-section-title { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 4px;}
+    .tm-squad-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .tm-player-chip { background: var(--bg-card-alt); border: 1px solid var(--border-card); font-size: 11px; padding: 6px 10px; border-radius: 20px; color: var(--text-primary); font-weight: 600; }
+    .tm-match-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 6px; font-size: 12px; border: 1px solid var(--border-subtle);}
+    .tm-match-res { font-weight: 700; color: var(--accent); }
+
+    /* Calculator Specifics */
+    .calc-group { margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid var(--border-subtle); }
+    .calc-group h4 { font-family: var(--font-display); font-size: 14px; color: var(--gold); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .input-box label { display: block; font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
+    .input-box input[type="number"] { width: 100%; background: var(--bg-card); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; font-family: var(--font-body); font-size: 14px; outline: none; }
+    .input-box input:focus { border-color: var(--accent); }
+    
+    .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+    .checkbox-row input { accent-color: var(--accent); width: 16px; height: 16px; }
+    
+    .calc-result-box { text-align: center; padding: 20px; background: var(--accent-dim); border: 1px solid var(--border-accent); border-radius: 12px; margin-top: 20px; }
+    .calc-result-val { font-family: var(--font-display); font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .calc-result-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px; margin-top: 6px; }
 
     /* ── BOTTOM NAV ── */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: rgba(13,22,37,0.97);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-card);
-      display: flex;
-      align-items: center;
-      height: var(--nav-height);
-      z-index: 200;
-      padding: 0 8px;
-    }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 10px 6px;
-      text-decoration: none;
-      color: var(--text-faint);
-      font-family: var(--font-display);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      transition: var(--transition);
-    }
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(13,22,37,0.97); backdrop-filter: blur(20px); border-top: 1px solid var(--border-card); display: flex; align-items: center; height: var(--nav-height); z-index: 40; padding: 0 8px; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; text-decoration: none; color: var(--text-faint); font-family: var(--font-display); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; transition: var(--transition); }
     .nav-item i { font-size: 18px; }
     .nav-item.active { color: var(--accent); }
     .nav-item.active i { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+    .loading { text-align: center; color: var(--text-faint); padding: 40px 0; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -363,7 +184,7 @@
   </header>
 
   <div class="content" id="content">
-    <div class="loading">Loading standings…</div>
+    <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Loading standings…</div>
   </div>
 
 </div>
@@ -373,37 +194,125 @@
   <a class="nav-item" href="ppl-home.html"><i class="fas fa-house"></i><span>Home</span></a>
   <a class="nav-item" href="ppl-fixtures.html"><i class="fas fa-calendar-days"></i><span>Fixtures</span></a>
   <a class="nav-item" href="ppl-scorecard.html"><i class="fas fa-cricket-bat-ball"></i><span>Scores</span></a>
-  <a class="nav-item" href="ppl-stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+  <a class="nav-item active" href="ppl-points-table.html"><i class="fas fa-chart-bar"></i><span>Table</span></a>
   <a class="nav-item" href="ppl-fantasy.html"><i class="fas fa-bolt"></i><span>Fantasy</span></a>
 </nav>
+
+<!-- TEAM DEEP DIVE MODAL -->
+<div class="modal-overlay" id="teamModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="tmName">Team Name</div>
+        <div class="modal-subtitle" id="tmGroup">Group A</div>
+      </div>
+      <button class="btn-close" onclick="closeModal('teamModal')"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div class="tm-stats-grid">
+      <div class="tm-stat-box">
+        <div class="tm-stat-val" id="tmNrr">+0.000</div>
+        <div class="tm-stat-lbl">Net Run Rate</div>
+      </div>
+      <div class="tm-stat-box">
+        <div class="tm-stat-val" id="tmPts" style="color:var(--rank-color)">0</div>
+        <div class="tm-stat-lbl">Points</div>
+      </div>
+    </div>
+    
+    <div style="font-size:11px; color:var(--text-dim); text-align:center; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px dashed var(--border-subtle);">
+      <b>NRR Breakdown:</b> <span id="tmNrrDetail">0 runs / 0.0 ov (For) | 0 runs / 0.0 ov (Against)</span>
+    </div>
+
+    <div class="tm-section-title">Match History</div>
+    <div id="tmMatches" style="margin-bottom: 20px;">
+      <div class="loading" style="padding: 10px">Loading...</div>
+    </div>
+
+    <div class="tm-section-title">Official Squad</div>
+    <div class="tm-squad-list" id="tmSquad">
+      <div class="loading" style="padding: 10px">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- NRR CALCULATOR MODAL -->
+<div class="modal-overlay" id="calcModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" style="color: var(--gold)">NRR Calculator</div>
+        <div class="modal-subtitle">Test scenarios & net run rate math</div>
+      </div>
+      <button class="btn-close" onclick="closeModal('calcModal')"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div class="calc-group">
+      <h4>🏏 Your Team (For)</h4>
+      <div class="calc-row">
+        <div class="input-box">
+          <label>Runs Scored</label>
+          <input type="number" id="cRunsFor" placeholder="e.g. 65" oninput="runCalc()">
+        </div>
+        <div class="input-box">
+          <label>Overs Faced</label>
+          <input type="number" step="0.1" id="cOversFor" placeholder="e.g. 5.3" oninput="runCalc()">
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="cAllOutFor" onchange="runCalc()"> <label for="cAllOutFor" style="margin:0;cursor:pointer;">Team was All Out (uses allocated match overs)</label>
+      </div>
+    </div>
+
+    <div class="calc-group">
+      <h4>🎯 Opponent (Against)</h4>
+      <div class="calc-row">
+        <div class="input-box">
+          <label>Runs Conceded</label>
+          <input type="number" id="cRunsAgn" placeholder="e.g. 58" oninput="runCalc()">
+        </div>
+        <div class="input-box">
+          <label>Overs Bowled</label>
+          <input type="number" step="0.1" id="cOversAgn" placeholder="e.g. 6.0" oninput="runCalc()">
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="cAllOutAgn" onchange="runCalc()"> <label for="cAllOutAgn" style="margin:0;cursor:pointer;">Opponent was All Out (uses allocated match overs)</label>
+      </div>
+    </div>
+
+    <div class="input-box" style="width: 50%; margin: 0 auto;">
+      <label style="text-align: center;">Match Allocated Overs</label>
+      <input type="number" id="cMaxOvers" value="8" style="text-align:center" oninput="runCalc()">
+    </div>
+
+    <div class="calc-result-box">
+      <div class="calc-result-val" id="cResultVal">0.000</div>
+      <div class="calc-result-lbl">Calculated NRR</div>
+    </div>
+  </div>
+</div>
 
 <script>
 const SB_URL = 'https://tuvqgcosbweljslbfgqc.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
+let rawPointsData = [];
+
 async function init() {
-  const [{ data: ptRows }, { data: semis }, { data: finData }] = await Promise.all([
+  const [{ data: ptRows }] = await Promise.all([
     sb.from('ppl_points_table')
       .select('*, team:team_id(id,name,short_name,group_name,color)')
       .order('points', { ascending: false })
-      .order('nrr',    { ascending: false }),
-    sb.from('ppl_matches')
-      .select('id,match_number,status,result_description,team_a:team_a_id(name,short_name),team_b:team_b_id(name,short_name),winner:winner_id(name)')
-      .eq('match_type','knockout')
-      .eq('is_super_over',false)
-      .order('match_number'),
-    sb.from('ppl_matches')
-      .select('id,match_number,status,result_description,team_a:team_a_id(name,short_name),team_b:team_b_id(name,short_name),winner:winner_id(name)')
-      .eq('match_type','final')
-      .eq('is_super_over',false)
-      .limit(1)
+      .order('nrr',    { ascending: false })
   ]);
 
   const el = document.getElementById('content');
-  if (!ptRows) { el.innerHTML = '<div class="loading">Failed to load</div>'; return; }
+  if (!ptRows) { el.innerHTML = '<div class="loading">Failed to load data</div>'; return; }
+  
+  rawPointsData = ptRows; // Save for modal reference
 
-  // Group by group_name from points_table
   const groups = {};
   ptRows.forEach(r => {
     const g = r.team?.group_name || r.group_name || 'Group';
@@ -421,8 +330,7 @@ async function init() {
     const dotCls = grp === 'A' ? 'dot-green' : 'dot-blue';
     html += `
       <div class="section-label">
-        <span class="dot ${dotCls}"></span>
-        Group ${grp}
+        <span class="dot ${dotCls}"></span> Group ${grp}
       </div>
       <div class="group-card">
         <div class="table-head">
@@ -435,62 +343,28 @@ async function init() {
         </div>
         ${teams.map((t, i) => teamRow(t, i)).join('')}
         <div class="qualify-note">
-          <i class="fas fa-circle-check"></i>
-          Top 2 qualify for Semi Finals · Tiebreaker: NRR
+          <i class="fas fa-info-circle"></i> Click any team to view squad & NRR breakdown. Top 2 qualify.
         </div>
       </div>`;
   });
 
-  // ── KNOCKOUT BRACKET ──
-  const allKO = [...(semis||[]), ...(finData||[])];
-  if (allKO.length) {
-    html += `
-      <div class="section-label" style="margin-top:20px">
-        <span class="dot" style="background:var(--gold)"></span>
-        Knockout Stage
+  // ── NRR EXPLAINER & CALCULATOR BUTTON ──
+  html += `
+    <div class="nrr-card">
+      <h3>Net Run Rate (NRR)</h3>
+      <p>NRR evaluates a team's overall scoring speed against their opponents. It is calculated by taking the average runs scored per over and subtracting the average runs conceded per over.</p>
+      <div class="nrr-formula">
+        NRR = (Total Runs Scored ÷ Total Overs Faced) - (Total Runs Conceded ÷ Total Overs Bowled)
       </div>
-      <div class="bracket-card">
-        <div class="bracket-note">A1 vs B2 · A2 vs B1 · Winners meet in Final</div>`;
-
-    // Semi finals
-    (semis||[]).forEach((m, i) => {
-      const ta = m.team_a?.short_name || '?';
-      const tb = m.team_b?.short_name || '?';
-      const hasBoth = m.team_a && m.team_b;
-      const winnerName = m.winner?.name || '';
-      html += `
-        <div class="bracket-row">
-          <span class="bracket-label">SF ${i+1}</span>
-          <span class="bracket-match">
-            ${hasBoth
-              ? `${ta} <span style="color:var(--text-faint);font-size:12px">vs</span> ${tb}`
-              : `<span class="tbd">TBD</span>`}
-            ${winnerName ? `<span style="color:var(--accent);font-size:13px;margin-left:8px">→ ${winnerName}</span>` : ''}
-          </span>
-          <span style="font-family:var(--font-display);font-size:10px;font-weight:800;color:${statusColor(m.status)}">${statusLabel(m.status)}</span>
-        </div>`;
-    });
-
-    // Final
-    (finData||[]).forEach(m => {
-      const ta = m.team_a?.short_name || '?';
-      const tb = m.team_b?.short_name || '?';
-      const hasBoth = m.team_a && m.team_b;
-      html += `
-        <div class="bracket-row">
-          <span class="bracket-label" style="color:var(--gold)">Final</span>
-          <span class="bracket-match">
-            ${hasBoth
-              ? `${ta} <span style="color:var(--text-faint);font-size:12px">vs</span> ${tb}`
-              : `<span class="tbd">TBD</span>`}
-            ${m.winner?.name ? `<span style="color:var(--gold);font-size:13px;margin-left:8px">🏆 ${m.winner.name}</span>` : ''}
-          </span>
-          <span style="font-family:var(--font-display);font-size:10px;font-weight:800;color:${statusColor(m.status)}">${statusLabel(m.status)}</span>
-        </div>`;
-    });
-
-    html += `</div>`;
-  }
+      <p style="color:var(--red); font-weight:600;">⚠️ All-Out Rule:</p>
+      <p>If a team is bowled out before their full quota of overs is completed, their NRR is calculated as if they batted the <b>full allocated overs</b>.</p>
+      
+      <div class="nrr-actions">
+        <button class="btn-nrr" onclick="openCalcModal()"><i class="fas fa-calculator" style="margin-right:6px"></i> Calculator</button>
+        <a href="https://www.espncricinfo.com/story/how-net-run-rate-is-calculated-in-cricket-1436151" target="_blank" class="btn-espn">ESPN Guide <i class="fas fa-external-link-alt" style="font-size:10px;margin-left:4px"></i></a>
+      </div>
+    </div>
+  `;
 
   el.innerHTML = html;
 }
@@ -500,18 +374,15 @@ function teamRow(t, i) {
   const nrrStr = (nrr >= 0 ? '+' : '') + nrr.toFixed(3);
   const nrrCls = nrr > 0 ? 'nrr-pos' : nrr < 0 ? 'nrr-neg' : 'nrr-zero';
   const rankCls = i === 0 ? 'r1' : i === 1 ? 'r2' : '';
-  const rowCls = t.qualification_status === 'qualified' ? 'qualified'
-               : t.qualification_status === 'eliminated' ? 'eliminated' : '';
+  const rowCls = t.qualification_status === 'qualified' ? 'qualified' : t.qualification_status === 'eliminated' ? 'eliminated' : '';
   const color = t.team?.color || '#64748b';
 
   let qBadge = '';
-  if (t.qualification_status === 'qualified')
-    qBadge = '<span class="q-badge qualified">Q</span>';
-  else if (t.qualification_status === 'eliminated')
-    qBadge = '<span class="q-badge eliminated">OUT</span>';
+  if (t.qualification_status === 'qualified') qBadge = '<span class="q-badge qualified">Q</span>';
+  else if (t.qualification_status === 'eliminated') qBadge = '<span class="q-badge eliminated">OUT</span>';
 
   return `
-    <div class="team-row ${rowCls}">
+    <div class="team-row ${rowCls}" onclick="openTeamModal('${t.team_id}')">
       <div class="team-cell">
         <span class="team-rank ${rankCls}">${i+1}</span>
         <div class="team-color-dot" style="background:${color}"></div>
@@ -528,11 +399,109 @@ function teamRow(t, i) {
     </div>`;
 }
 
-function statusLabel(s) {
-  return s === 'completed' ? 'Done' : s === 'in_progress' ? '🔴 Live' : s === 'no_result' ? 'No Result' : 'Soon';
+// ── MODAL LOGIC ──
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
 }
-function statusColor(s) {
-  return (s === 'completed' || s === 'no_result') ? 'var(--accent)' : s === 'in_progress' ? 'var(--red)' : 'var(--text-faint)';
+
+// Team Deep Dive Modal
+async function openTeamModal(teamId) {
+  const modal = document.getElementById('teamModal');
+  modal.classList.add('active');
+  
+  const teamData = rawPointsData.find(r => r.team_id === teamId);
+  if (!teamData) return;
+
+  document.getElementById('tmName').textContent = teamData.team?.name;
+  document.getElementById('tmGroup').textContent = `Group ${teamData.team?.group_name || 'A'}`;
+  
+  const nrr = parseFloat(teamData.nrr) || 0;
+  document.getElementById('tmNrr').textContent = (nrr >= 0 ? '+' : '') + nrr.toFixed(3);
+  document.getElementById('tmPts').textContent = teamData.points || 0;
+
+  // Assuming runs_scored, overs_faced etc are in the points table view. If not, safe fallbacks.
+  const rf = teamData.runs_scored || 0;
+  const of = parseFloat(teamData.overs_faced || 0).toFixed(1);
+  const ra = teamData.runs_conceded || 0;
+  const oa = parseFloat(teamData.overs_bowled || 0).toFixed(1);
+  document.getElementById('tmNrrDetail').innerHTML = `<span style="color:var(--accent)">${rf}r / ${of}ov</span> (For) | <span style="color:var(--red)">${ra}r / ${oa}ov</span> (Against)`;
+
+  // Fetch Squad & Matches
+  document.getElementById('tmSquad').innerHTML = '<div class="loading" style="padding:10px">Loading squad...</div>';
+  document.getElementById('tmMatches').innerHTML = '<div class="loading" style="padding:10px">Loading matches...</div>';
+
+  const [playersRes, matchesRes] = await Promise.all([
+    sb.from('ppl_players').select('name, role').eq('team_id', teamId).order('name'),
+    sb.from('ppl_matches').select('match_number, status, result_description, team_a:team_a_id(short_name), team_b:team_b_id(short_name)')
+      .or(`team_a_id.eq.${teamId},team_b_id.eq.${teamId}`).order('match_number')
+  ]);
+
+  if (playersRes.data) {
+    document.getElementById('tmSquad').innerHTML = playersRes.data.map(p => `<div class="tm-player-chip">${p.name} <span style="color:var(--text-faint); font-weight:normal; margin-left:4px;">${p.role}</span></div>`).join('');
+  }
+
+  if (matchesRes.data && matchesRes.data.length > 0) {
+    document.getElementById('tmMatches').innerHTML = matchesRes.data.map(m => {
+      let resText = m.status === 'completed' ? m.result_description : m.status === 'in_progress' ? '🔴 Live Now' : 'Upcoming';
+      return `<div class="tm-match-row">
+        <div>M${m.match_number}: ${m.team_a?.short_name} vs ${m.team_b?.short_name}</div>
+        <div class="tm-match-res" style="color: ${m.status === 'completed' ? 'var(--accent)' : 'var(--text-faint)'}">${resText}</div>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('tmMatches').innerHTML = '<div style="font-size:12px;color:var(--text-faint)">No matches scheduled yet.</div>';
+  }
+}
+
+// Calculator Modal & Math
+function openCalcModal() {
+  // Reset fields
+  document.getElementById('cRunsFor').value = '';
+  document.getElementById('cOversFor').value = '';
+  document.getElementById('cAllOutFor').checked = false;
+  document.getElementById('cRunsAgn').value = '';
+  document.getElementById('cOversAgn').value = '';
+  document.getElementById('cAllOutAgn').checked = false;
+  runCalc();
+  document.getElementById('calcModal').classList.add('active');
+}
+
+function parseOversToBalls(ovStr) {
+  if (!ovStr) return 0;
+  const parts = ovStr.toString().split('.');
+  let overs = parseInt(parts[0]) || 0;
+  let balls = parseInt(parts[1]) || 0;
+  return (overs * 6) + balls;
+}
+
+function runCalc() {
+  const maxOvs = parseInt(document.getElementById('cMaxOvers').value) || 8;
+  const maxBalls = maxOvs * 6;
+
+  const rFor = parseInt(document.getElementById('cRunsFor').value) || 0;
+  let bFor = parseOversToBalls(document.getElementById('cOversFor').value);
+  if (document.getElementById('cAllOutFor').checked) bFor = maxBalls;
+
+  const rAgn = parseInt(document.getElementById('cRunsAgn').value) || 0;
+  let bAgn = parseOversToBalls(document.getElementById('cOversAgn').value);
+  if (document.getElementById('cAllOutAgn').checked) bAgn = maxBalls;
+
+  const rrFor = bFor > 0 ? (rFor / (bFor / 6)) : 0;
+  const rrAgn = bAgn > 0 ? (rAgn / (bAgn / 6)) : 0;
+  
+  // Only calculate if at least some balls have been entered to prevent 0.000 default showing early
+  if (bFor === 0 && bAgn === 0) {
+    document.getElementById('cResultVal').textContent = '0.000';
+    document.getElementById('cResultVal').style.color = 'var(--text-faint)';
+    return;
+  }
+
+  const nrr = rrFor - rrAgn;
+  const nrrStr = (nrr >= 0 ? '+' : '') + nrr.toFixed(3);
+  
+  const resEl = document.getElementById('cResultVal');
+  resEl.textContent = nrrStr;
+  resEl.style.color = nrr > 0 ? 'var(--accent)' : nrr < 0 ? 'var(--red)' : 'var(--text-faint)';
 }
 
 init();
