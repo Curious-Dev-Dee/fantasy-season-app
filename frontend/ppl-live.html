@@ -535,10 +535,27 @@ async function init() {
 }
 
 // ── ANIMATION TRIGGERS ────────────────────────────────────────
+
+// Now makes 6 do the Cannons (with a Blue theme)
 function triggerSix() {
+  const end = Date.now() + (1.5 * 1000);
+  const colors = ['#38bdf8', '#ffffff', '#60a5fa']; 
+  
+  (function frame() {
+    // Fire from left bottom corner
+    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0, y: 1 }, colors: colors, zIndex: 9999 });
+    // Fire from right bottom corner
+    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1, y: 1 }, colors: colors, zIndex: 9999 });
+    
+    if (Date.now() < end) requestAnimationFrame(frame);
+  }());
+}
+
+// Now makes 4 do the Fireworks (with a Green theme)
+function triggerFour() {
   const duration = 2.5 * 1000;
   const animationEnd = Date.now() + duration;
-  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999, colors: ['#4ade80', '#22c55e', '#ffffff'] };
 
   function randomInRange(min, max) { return Math.random() * (max - min) + min; }
 
@@ -549,20 +566,6 @@ function triggerSix() {
     // Shoot fireworks from random points
     confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 } }));
   }, 250);
-}
-
-function triggerFour() {
-  const end = Date.now() + (1.5 * 1000);
-  const colors = ['#22c55e', '#ffffff', '#4ade80']; // Green theme for 4s
-  
-  (function frame() {
-    // Fire from left bottom corner
-    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0, y: 1 }, colors: colors, zIndex: 9999 });
-    // Fire from right bottom corner
-    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1, y: 1 }, colors: colors, zIndex: 9999 });
-    
-    if (Date.now() < end) requestAnimationFrame(frame);
-  }());
 }
 
 function triggerWicket() {
