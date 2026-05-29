@@ -99,8 +99,7 @@
     .stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--text-primary); line-height: 1; }
     .stat-pct { font-size: 10px; color: var(--accent); font-weight: 700; margin-top: 2px; }
     .bg-progress { position: absolute; top: 0; left: 0; bottom: 0; background: linear-gradient(90deg, rgba(154,224,0,0.08) 0%, rgba(154,224,0,0.02) 100%); z-index: 0; pointer-events: none; border-radius: 12px; }
-    .player-row > * { position: relative; z-index: 1; } 
-
+.player-row > *:not(.bg-progress) { position: relative; z-index: 1; }
     .loading { text-align: center; color: var(--text-faint); padding: 50px 0; font-size: 13px; }
   </style>
 </head>
