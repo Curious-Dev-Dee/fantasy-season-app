@@ -71,6 +71,7 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 .btn-sm{padding:9px 12px;font-size:.78rem;margin-top:6px}
 .btn-xs{padding:6px 10px;font-size:.72rem;margin-top:4px;display:inline-block;width:auto}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
 
 /* ── CARDS / BOXES ── */
 .card{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:13px;margin-bottom:10px}
@@ -114,7 +115,7 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 .bt-W{background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
 .bt-Wd{background:rgba(245,158,11,.2);color:#fde68a;border:1px solid rgba(245,158,11,.3)}
 .bt-Nb{background:rgba(249,115,22,.2);color:#fdba74;border:1px solid rgba(249,115,22,.3)}
-.bt-B,.bt-Lb{background:rgba(56,189,248,.12);color:#bae6fd}
+.bt-M2{background:rgba(168,85,247,.2);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)}
 .ov-label{color:var(--text3);font-size:.68rem;margin-right:3px}
 
 /* ── BALL GRID ── */
@@ -129,8 +130,7 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 .b-6{background:linear-gradient(135deg,#1e3a8a,#1e40af);color:#93c5fd;font-size:1.3rem}
 .b-wide{background:linear-gradient(135deg,#78350f,#92400e);color:#fde68a;font-size:.9rem}
 .b-nb{background:linear-gradient(135deg,#7c2d12,#9a3412);color:#fed7aa;font-size:.9rem}
-.b-bye{background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#bae6fd;font-size:.85rem}
-.b-lb{background:linear-gradient(135deg,#2e1065,#4c1d95);color:#ddd6fe;font-size:.85rem}
+.b-m2{background:linear-gradient(135deg,#4c1d95,#6b21a8);color:#e9d5ff;font-size:1.1rem}
 .b-wkt{background:linear-gradient(135deg,#7f1d1d,#991b1b);color:#fca5a5;grid-column:span 2;font-size:1rem}
 .b-undo{background:var(--bg3);color:var(--text3);border:1px solid var(--border);grid-column:span 2;font-size:.85rem}
 .b-swap{background:rgba(56,189,248,.1);color:var(--blue);border:1.5px solid rgba(56,189,248,.25);font-size:.82rem;border-radius:10px;padding:9px;text-align:center;cursor:pointer;margin-top:6px;width:100%;font-family:var(--font);font-weight:600}
@@ -148,6 +148,7 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 /* ── STATUS BADGES ── */
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:.67rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 .badge-live{background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-free-hit{background:rgba(245,158,11,.2);color:var(--amber);border:1px solid rgba(245,158,11,.4); animation: livePulse 1s infinite;}
 .badge-done{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.25)}
 .badge-up{background:rgba(148,163,184,.1);color:var(--text2);border:1px solid var(--border)}
 
@@ -196,6 +197,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
 </head>
 <body>
 
+<!-- ═══════════════════════ PIN ═══════════════════════ -->
 <div id="pin-screen">
   <div class="pin-logo">🏏</div>
   <div class="pin-title">PPL 2026</div>
@@ -205,8 +207,10 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <div id="pin-err" style="color:var(--red);font-size:.8rem;display:none">Wrong PIN — try again</div>
 </div>
 
+<!-- ═══════════════════════ APP ═══════════════════════ -->
 <div id="app" style="display:none">
 
+<!-- ─────────── S1: HOME ─────────── -->
 <div class="screen active" id="s-home">
   <div class="topbar">
     <div class="topbar-title">🏏 PPL 2026 Admin</div>
@@ -220,6 +224,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     <div class="nav-tab" onclick="switchTab('admin')">⚙️ Admin</div>
   </div>
 
+  <!-- TAB: SCORE (select + start match) -->
   <div id="tab-score">
     <div class="section-head">Select Match to Score</div>
     <div id="match-list">
@@ -228,6 +233,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     <button class="btn btn-primary" id="btn-continue" onclick="goSetup()" style="display:none">Continue to Setup →</button>
   </div>
 
+  <!-- TAB: RESUME -->
   <div id="tab-resume" style="display:none">
     <div class="section-head">In-Progress Matches</div>
     <div id="resume-list">
@@ -235,23 +241,28 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
+  <!-- TAB: EDIT MATCH -->
   <div id="tab-edit" style="display:none">
     <div class="section-head">Edit Completed / Any Match</div>
     <label>Select Match</label>
     <select id="sel-edit-match"><option value="">— Select —</option></select>
     <div id="edit-match-panel" style="display:none;margin-top:10px">
       <div class="card card-blue" id="edit-match-info"></div>
+      <!-- MOM edit -->
       <div class="section-head">Man of the Match</div>
       <div class="edit-mom-bar">
         <div>Current MOM: <span class="mom-name" id="current-mom">—</span></div>
         <button class="btn btn-xs btn-purple" onclick="openMomEdit()">Change</button>
       </div>
+      <!-- Result edit -->
       <div class="section-head">Result Description</div>
       <input type="text" id="edit-result-desc" placeholder="e.g. JW won by 5 wickets">
       <button class="btn btn-warn btn-sm" onclick="saveResultDesc()">Save Result Description</button>
+      <!-- Winner override -->
       <div class="section-head">Winner Override</div>
       <select id="edit-winner-sel"><option value="">— No winner / Tied —</option></select>
       <button class="btn btn-danger btn-sm" onclick="saveWinnerOverride()">Override Winner</button>
+      <!-- Abandoned -->
       <div class="section-head">Match Status</div>
       <select id="edit-status-sel">
         <option value="upcoming">upcoming</option>
@@ -265,6 +276,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
+  <!-- TAB: ADMIN -->
   <div id="tab-admin" style="display:none">
     <div class="section-head">Fantasy Phase Lock</div>
     <div id="phase-lock-list">
@@ -284,6 +296,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- ─────────── S2: MATCH SETUP ─────────── -->
 <div class="screen" id="s-setup">
   <div class="topbar">
     <div class="topbar-title">⚙️ Match Setup</div>
@@ -305,6 +318,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-success" style="margin-top:14px" onclick="saveToss()">✅ Save & Go to Innings Setup →</button>
 </div>
 
+<!-- ─────────── S3: INNINGS SETUP ─────────── -->
 <div class="screen" id="s-inn-setup">
   <div class="topbar">
     <div class="topbar-title" id="inn-setup-title">🏏 Innings Setup</div>
@@ -321,7 +335,9 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-success" style="margin-top:14px" onclick="startInnings()">🏏 Start Innings →</button>
 </div>
 
+<!-- ─────────── S4: LIVE SCORING ─────────── -->
 <div class="screen" id="s-score">
+  <!-- Scoreboard -->
   <div class="scorebar">
     <div style="display:flex;align-items:flex-end;justify-content:space-between">
       <div>
@@ -332,6 +348,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
       </div>
       <div style="text-align:right">
         <div class="badge badge-live" id="sc-live-badge">● LIVE</div>
+        <div class="badge badge-free-hit" id="sc-free-hit" style="display:none; margin-left:4px;">FREE HIT</div>
         <div style="font-size:.7rem;color:var(--text3);margin-top:4px" id="sc-match-label"></div>
       </div>
     </div>
@@ -343,14 +360,19 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
+  <!-- Batters -->
   <div class="batter-row" id="batter-cards"></div>
 
+  <!-- Bowler -->
   <div class="bowler-bar" id="bowler-bar">🎳 —</div>
 
+  <!-- Over log -->
   <div class="over-log" id="over-log"></div>
 
+  <!-- Strike notice -->
   <div class="strike-notice" id="strike-notice">⚠️ Verify strike — tap batter card to give strike</div>
 
+  <!-- Ball buttons -->
   <div class="ball-section">
     <div class="ball-section-label">Runs off bat</div>
     <div class="ball-grid">
@@ -362,14 +384,14 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
       <button class="ball-btn b-6" onclick="ball(6)">6</button>
       <button class="ball-btn b-wide" onclick="openExtra('wide')">Wide</button>
       <button class="ball-btn b-nb" onclick="openExtra('no_ball')">No Ball</button>
-      <button class="ball-btn b-bye" onclick="openExtra('bye')">Bye</button>
-      <button class="ball-btn b-lb" onclick="openExtra('leg_bye')">Leg Bye</button>
+      <button class="ball-btn b-m2" onclick="ballMinusTwo()">-2</button>
       <button class="ball-btn b-wkt" onclick="openWicket()">🔴 WICKET</button>
       <button class="ball-btn b-undo" onclick="undoLast()">↩ Undo</button>
     </div>
     <button class="b-swap" onclick="manualStrikeSwap()">⇄ Swap Strike</button>
   </div>
 
+  <!-- Quick actions -->
   <div class="row2" style="margin-top:10px">
     <button class="btn btn-teal btn-sm" onclick="openEditList()">✏️ Edit Delivery</button>
     <button class="btn btn-warn btn-sm" onclick="endEarly()">⏹ End Innings</button>
@@ -377,6 +399,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-gray btn-sm" onclick="openScoreEditInline()">🔧 Manual Score Override</button>
 </div>
 
+<!-- ─────────── S5: INNINGS END ─────────── -->
 <div class="screen" id="s-inn-end">
   <div class="topbar"><div class="topbar-title" id="inn-end-title">Innings Complete</div></div>
   <div class="card card-blue" id="inn-end-summary"></div>
@@ -385,6 +408,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-danger"  id="btn-endm"  onclick="go('s-result')" style="display:none">🏆 Enter Match Result →</button>
 </div>
 
+<!-- ─────────── S6: MATCH RESULT ─────────── -->
 <div class="screen" id="s-result">
   <div class="topbar"><div class="topbar-title">🏆 Match Result</div></div>
   <div class="card card-blue" id="result-summary"></div>
@@ -398,6 +422,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <button class="btn btn-gray btn-sm" onclick="finaliseNoMom()">Finalise without MOM (set later)</button>
 </div>
 
+<!-- ─────────── S7: EDIT LIST ─────────── -->
 <div class="screen" id="s-edit-list">
   <div class="topbar">
     <div class="topbar-title">✏️ Edit Delivery</div>
@@ -407,42 +432,40 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   <div class="delivery-list" id="d-list"></div>
 </div>
 
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Extra modal -->
 <div class="modal-overlay" id="m-extra">
   <div class="modal">
     <span class="modal-handle"></span>
     <h3 id="extra-title">Extra</h3>
     <p class="hint" id="extra-hint" style="margin-bottom:10px;line-height:1.5"></p>
-    <div class="modal-grid">
-      <div>
-        <label style="margin-top:0">Extra runs (excl +1 penalty)</label>
+    
+    <div id="ex-runs-wrapper">
+        <label style="margin-top:0">Extra runs (off bat/free hit)</label>
         <select id="ex-runs">
           <option value="0">0</option><option value="1">1</option>
           <option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
         </select>
-      </div>
-      <div>
+    </div>
+    
+    <div id="ex-boundary-wrapper" style="margin-top: 8px;">
         <label style="margin-top:0">Boundary off extra?</label>
         <select id="ex-boundary">
           <option value="none">None</option>
           <option value="four">Four (4)</option>
           <option value="six">Six (6)</option>
         </select>
-      </div>
     </div>
-    <label>Strike after this ball?</label>
+
+    <label style="margin-top: 8px;">Strike after this ball?</label>
     <select id="ex-strike">
       <option value="auto">Auto-calculate</option>
       <option value="yes">Force swap</option>
       <option value="no">Keep same striker</option>
     </select>
-    <div id="ex-wicket-row" style="display:none;margin-top:8px">
-      <label>Run-out on this ball?</label>
-      <select id="ex-wicket-yn">
-        <option value="no">No</option>
-        <option value="yes">Yes — run out</option>
-      </select>
-    </div>
+    
     <div class="row2" style="margin-top:14px">
       <button class="btn btn-warn" onclick="confirmExtra()">Confirm</button>
       <button class="btn btn-gray" onclick="closeModal('m-extra')">Cancel</button>
@@ -450,10 +473,19 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- Wicket modal -->
 <div class="modal-overlay" id="m-wicket">
   <div class="modal">
     <span class="modal-handle"></span>
     <h3>🔴 Wicket</h3>
+    
+    <label style="color:var(--amber);">Delivery Type (Was this an Extra?)</label>
+    <select id="wkt-delivery-type" style="border-color:var(--amber2); margin-bottom: 8px;">
+      <option value="legal">Legal Ball</option>
+      <option value="wide">Wide (+1 extra)</option>
+      <option value="no_ball">No Ball (+1 extra)</option>
+    </select>
+
     <label>Dismissed batter</label>
     <select id="wkt-batter"></select>
     <label>Dismissal type</label>
@@ -475,7 +507,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
     <label>New batter <span style="color:var(--text3);font-size:.65rem">(blank = all out)</span></label>
     <select id="wkt-new-batter"></select>
-    <label>Runs off this ball</label>
+    <label>Runs off this ball (excluding the 1 run penalty for extra)</label>
     <select id="wkt-runs">
       <option value="0">0</option><option value="1">1</option>
       <option value="2">2</option><option value="3">3</option>
@@ -487,6 +519,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- New over modal -->
 <div class="modal-overlay" id="m-over">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -504,6 +537,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- Edit delivery modal -->
 <div class="modal-overlay" id="m-edit">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -512,7 +546,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
     <div class="modal-grid">
       <div>
         <label style="margin-top:0">Runs off bat</label>
-        <input type="number" id="edit-runs" value="0" min="0" max="6">
+        <input type="number" id="edit-runs" value="0" min="-2" max="6">
       </div>
       <div>
         <label style="margin-top:0">Extra type</label>
@@ -520,13 +554,12 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
           <option value="">None</option>
           <option value="wide">Wide</option>
           <option value="no_ball">No Ball</option>
-          <option value="bye">Bye</option>
-          <option value="leg_bye">Leg Bye</option>
+          <option value="penalty">Penalty (-2)</option>
         </select>
       </div>
     </div>
     <label>Extra runs (total)</label>
-    <input type="number" id="edit-extras" value="0" min="0">
+    <input type="number" id="edit-extras" value="0" min="-2">
     <label>Wicket?</label>
     <select id="edit-is-wkt" onchange="toggleEditWkt()">
       <option value="false">No</option>
@@ -552,6 +585,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- MOM edit modal -->
 <div class="modal-overlay" id="m-mom">
   <div class="modal">
     <span class="modal-handle"></span>
@@ -565,18 +599,20 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
+<!-- Add inside edit-match-panel, after MOM section -->
 <div class="section-head">Fantasy Points</div>
 <button class="btn btn-teal btn-sm" onclick="recalcMatchFantasy()">
   🔄 Recalculate Fantasy Points for This Match
 </button>
 
+<!-- Manual score override modal -->
 <div class="modal-overlay" id="m-manual">
   <div class="modal">
     <span class="modal-handle"></span>
     <h3>🔧 Manual Score Override</h3>
     <p class="hint" style="margin-bottom:10px">Use only to correct errors. Ball-by-ball data is separate.</p>
     <label>Total runs</label>
-    <input type="number" id="man-runs" min="0" value="0">
+    <input type="number" id="man-runs" min="-50" value="0">
     <label>Wickets fallen</label>
     <input type="number" id="man-wickets" min="0" max="10" value="0">
     <label>Overs completed (e.g. 4.3)</label>
@@ -589,7 +625,9 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
   </div>
 </div>
 
-</div><div class="toast" id="toast"></div>
+</div><!-- end #app -->
+
+<div class="toast" id="toast"></div>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -619,7 +657,9 @@ let S = {
   prevBowler: null,
   editDelvId: null,
   editMatchData: null,
-  editMatchPlayers: []
+  editMatchPlayers: [],
+  isFreeHit: false, // Tracks current free hit status
+  nextBallFreeHit: false // Queues up a free hit for the NEXT ball
 };
 
 // ═══════════════════════════════════════════════
@@ -687,11 +727,9 @@ function switchTab(tab) {
 }
 
 async function loadHome() {
-  // Load teams into memory
   const { data: teams } = await sb.from('ppl_teams').select('id,name,short_name,group_name');
   if (teams) teams.forEach(t => S.teams[t.id] = t.name);
 
-  // Load all non-completed matches for scoring
   const { data: matches } = await sb.from('ppl_matches')
     .select('*,team_a:team_a_id(id,name),team_b:team_b_id(id,name)')
     .eq('is_super_over', false)
@@ -706,7 +744,6 @@ async function loadHome() {
 
   renderMatchList(matches || []);
 
-  // Load all matches for edit tab
   const { data: allM } = await sb.from('ppl_matches')
     .select('*,team_a:team_a_id(id,name),team_b:team_b_id(id,name)')
     .eq('is_super_over', false)
@@ -724,7 +761,6 @@ async function loadHome() {
   });
   editSel.onchange = () => loadEditMatchPanel(editSel.value, allM);
 
-  // Abandoned select
   const abanSel = document.getElementById('sel-aban-match');
   abanSel.innerHTML = '<option value="">— Select match —</option>';
   if (allM) allM.filter(m=>m.status!=='completed').forEach(m => {
@@ -733,7 +769,6 @@ async function loadHome() {
     abanSel.innerHTML += `<option value="${m.id}">M${m.match_number}: ${ta} vs ${tb}</option>`;
   });
 
-  // Resume list
   const { data: inpM } = await sb.from('ppl_matches')
     .select('*,team_a:team_a_id(id,name),team_b:team_b_id(id,name)')
     .eq('is_super_over', false)
@@ -762,16 +797,11 @@ async function loadHome() {
       resumeList.appendChild(div);
     });
   }
-
   document.getElementById('home-day-label').textContent = `Day ${getCurrentDay()}`;
 }
 
-// Replace getCurrentDay() with:
 function getCurrentDay() {
-  // Fetch from match data instead of hardcoded dates
-  const inProgress = S.allMatches.filter(m => 
-    ['inprogress','live','inningsbreak'].includes(m.status)
-  );
+  const inProgress = S.allMatches.filter(m => ['in_progress','live','innings_break'].includes(m.status));
   if (inProgress.length) return inProgress[0].day;
   const upcoming = S.allMatches.filter(m => m.status === 'upcoming');
   if (upcoming.length) return upcoming[0].day;
@@ -838,14 +868,12 @@ async function loadEditMatchPanel(matchId, allM) {
   document.getElementById('edit-result-desc').value = m.result_description || '';
   document.getElementById('edit-status-sel').value = m.status || 'upcoming';
 
-  // Winner select
   const ws = document.getElementById('edit-winner-sel');
   ws.innerHTML = `<option value="">— No winner / Tied —</option>
     <option value="${m.team_a_id}">${ta}</option>
     <option value="${m.team_b_id}">${tb}</option>`;
   if (m.winner_id) ws.value = m.winner_id;
 
-  // Load all players for this match for MOM
   const { data: players } = await sb.from('ppl_players')
     .select('id,name,team_id,role')
     .in('team_id',[m.team_a_id, m.team_b_id])
@@ -877,24 +905,17 @@ async function saveMom() {
   if (!S.editMatchData) return;
   const mom = document.getElementById('sel-mom-edit').value || null;
   
-  const { error } = await sb.from('ppl_matches')
-    .update({ mom_player_id: mom })
-    .eq('id', S.editMatchData.id);
-  
+  const { error } = await sb.from('ppl_matches').update({ mom_player_id: mom }).eq('id', S.editMatchData.id);
   if (error) { toast('Failed: ' + error.message, 'error'); return; }
   
   S.editMatchData.mom_player_id = mom;
-  // Update display...
   closeModal('m-mom');
   toast('MOM saved!');
 
-  // ADD THIS: recalc fantasy points since MOM bonus changed
   if (mom && S.editMatchData.status === 'completed') {
     toast('Updating fantasy points for MOM...', 'info');
     try {
-      await sb.functions.invoke('recalc-fantasy-points', {
-        body: { match_id: S.editMatchData.id }
-      });
+      await sb.functions.invoke('recalc-fantasy-points', { body: { match_id: S.editMatchData.id } });
       toast('Fantasy points updated!', 'success');
     } catch(e) {
       toast('MOM saved. Run "Recalculate Stats" to update fantasy points.', 'warn');
@@ -904,20 +925,15 @@ async function saveMom() {
 
 async function recalcMatchFantasy() {
   if (!S.editMatchData) return;
-  if (S.editMatchData.status !== 'completed') {
-    toast('Match not completed yet', 'warn'); return;
-  }
+  if (S.editMatchData.status !== 'completed') { toast('Match not completed yet', 'warn'); return; }
   toast('Recalculating...', 'info');
   try {
-    const { error } = await sb.functions.invoke('recalc-fantasy-points', {
-      body: { match_id: S.editMatchData.id }
-    });
+    const { error } = await sb.functions.invoke('recalc-fantasy-points', { body: { match_id: S.editMatchData.id } });
     if (error) throw error;
     toast('Fantasy points updated!', 'success');
-  } catch(e) {
-    toast('Failed: ' + e.message, 'error');
-  }
+  } catch(e) { toast('Failed: ' + e.message, 'error'); }
 }
+
 async function saveResultDesc() {
   if (!S.editMatchData) return;
   const desc = document.getElementById('edit-result-desc').value;
@@ -950,9 +966,7 @@ async function saveMatchStatus() {
 async function goSetup() {
   if (!S.match) { toast('Select a match first','error'); return; }
   const m = S.match;
-  if (!m.team_a_id || !m.team_b_id) {
-    toast('Teams not confirmed yet — finish group stage first','error'); return;
-  }
+  if (!m.team_a_id || !m.team_b_id) { toast('Teams not confirmed yet — finish group stage first','error'); return; }
   const ta = m.team_a?.name || tName(m.team_a_id);
   const tb = m.team_b?.name || tName(m.team_b_id);
   document.getElementById('setup-info').innerHTML = `
@@ -1062,7 +1076,7 @@ async function startInnings() {
   if (error||!inn) { showErr('err-inn-setup','Failed: '+(error?.message||'?')); return; }
 
   S.innId=inn.id; S.runs=0; S.wkts=0; S.balls=0; S.extras=0;
-  S.curOver=[]; S.allOvers=[];
+  S.curOver=[]; S.allOvers=[]; S.isFreeHit=false; S.nextBallFreeHit=false;
   renderScore();
   document.getElementById('strike-notice').style.display='none';
   document.getElementById('sc-match-label').textContent = `M${S.match.match_number} · Inn ${S.innNum}`;
@@ -1073,6 +1087,14 @@ async function startInnings() {
 // LIVE SCORING
 // ═══════════════════════════════════════════════
 async function ball(runs) {
+  // If it's a legal delivery, process the queued free hit
+  if (S.nextBallFreeHit) {
+      S.isFreeHit = true;
+      S.nextBallFreeHit = false;
+  } else {
+      S.isFreeHit = false;
+  }
+
   await insertDelivery({
     runs_off_bat: runs, extras:0, extra_type:null,
     is_wicket:false, is_four:runs===4, is_six:runs===6,
@@ -1091,6 +1113,35 @@ async function ball(runs) {
   await afterLegalBall();
 }
 
+async function ballMinusTwo() {
+  if (S.nextBallFreeHit) {
+      S.isFreeHit = true;
+      S.nextBallFreeHit = false;
+  } else {
+      S.isFreeHit = false;
+  }
+
+  await insertDelivery({
+    runs_off_bat: 0, extras: -2, extra_type: 'penalty',
+    is_wicket: false, is_four: false, is_six: false,
+    is_legal_delivery: true, bat_runs: 0
+  });
+  
+  S.runs -= 2; 
+  S.balls++;
+  S.extras -= 2;
+  S.curOver.push('-2');
+
+  const bs = S.bStats[S.striker]; 
+  if(bs) bs.b++; // counts as ball faced
+  
+  const bw = S.bowlerStats[S.bowler]; 
+  if(bw) bw.legal++; // counts as legal delivery
+
+  await afterLegalBall();
+}
+
+
 function manualStrikeSwap() {
   [S.striker,S.nonStriker]=[S.nonStriker,S.striker];
   saveLive();
@@ -1105,52 +1156,63 @@ function handleBatterCardClick(id) {
 // ─── EXTRAS ───
 function openExtra(type) {
   S.extraType=type;
-  const titles={wide:'Wide',no_ball:'No Ball',bye:'Bye',leg_bye:'Leg Bye'};
+  const titles={wide:'Wide',no_ball:'No Ball'};
   const hints={
-    wide:    'Wide = +1 penalty. NOT a legal delivery. Enter any extra runs batter ran.',
-    no_ball: 'No Ball = +1 penalty. NOT a legal delivery. Enter runs scored off the free hit.',
-    bye:     'Bye = missed bat & keeper. LEGAL delivery. Runs not credited to batter.',
-    leg_bye: 'Leg bye = off body. LEGAL delivery. Runs not credited to batter.'
+    wide:    'Wide = +1 penalty run to the team. NOT a legal delivery.',
+    no_ball: 'No Ball = +1 penalty run to the team. NOT a legal delivery. Next ball is a FREE HIT. Enter runs scored off the free hit below.'
   };
   document.getElementById('extra-title').textContent = titles[type];
   document.getElementById('extra-hint').textContent  = hints[type];
+  
+  // Hide Extra Runs & Boundary input if it's a Wide (user said no extra runs on wide)
+  document.getElementById('ex-runs-wrapper').style.display = type === 'wide' ? 'none' : 'block';
+  document.getElementById('ex-boundary-wrapper').style.display = type === 'wide' ? 'none' : 'block';
+  
   document.getElementById('ex-runs').value     = '0';
   document.getElementById('ex-boundary').value = 'none';
   document.getElementById('ex-strike').value   = 'auto';
-  document.getElementById('ex-wicket-row').style.display = (type==='wide'||type==='no_ball')?'block':'none';
-  document.getElementById('ex-wicket-yn').value = 'no';
+  
   openModal('m-extra');
 }
 
 async function confirmExtra() {
   const type   = S.extraType;
-  const xruns  = parseInt(document.getElementById('ex-runs').value)||0;
-  const bnd    = document.getElementById('ex-boundary').value;
-  const strOpt = document.getElementById('ex-strike').value;
   const isWide = type==='wide', isNB=type==='no_ball';
-  const isLegal= !isWide && !isNB;
-  const total  = 1+xruns;
+  
+  // Force 0 extra runs if it's a wide
+  const xruns  = isWide ? 0 : (parseInt(document.getElementById('ex-runs').value)||0);
+  const bnd    = isWide ? 'none' : document.getElementById('ex-boundary').value;
+  const strOpt = document.getElementById('ex-strike').value;
+  
+  const isLegal= false; // Wides and No Balls are never legal
+  const total  = 1+xruns; // +1 penalty for wide/no_ball plus any runs off bat (for NB)
 
   const extraCols={};
   if(isWide) extraCols.wide_runs=total;
-  if(isNB)   extraCols.noball_runs=1;
-  if(type==='bye')     extraCols.bye_runs=xruns;
-  if(type==='leg_bye') extraCols.legbye_runs=xruns;
+  if(isNB)   extraCols.noball_runs=1; // The 1 penalty run
+
+  // If it's a no ball and they hit it, log the bat runs
+  const batRuns = isNB ? xruns : 0;
 
   await insertDelivery({
-    runs_off_bat:0, extras:total, extra_type:type,
-    is_wicket:false, is_four:bnd==='four', is_six:bnd==='six',
-    is_legal_delivery:isLegal, bat_runs:0,
-    is_bye: type==='bye', is_leg_bye: type==='leg_bye',
+    runs_off_bat: batRuns, extras: isWide ? 1 : 1, extra_type: type,
+    is_wicket: false, is_four: bnd==='four', is_six: bnd==='six',
+    is_legal_delivery: isLegal, bat_runs: batRuns,
     ...extraCols
   });
 
-  S.runs+=total; S.extras+=total;
-  if(isLegal){ S.balls++; const bs=S.bStats[S.striker]; if(bs) bs.b++; }
-  const bw=S.bowlerStats[S.bowler];
-  if(bw){ if(isLegal) bw.legal++; bw.runs+=total; }
+  S.runs += total; 
+  S.extras += (isWide ? 1 : 1);
+  
+  if (isNB && batRuns > 0) {
+      const bs=S.bStats[S.striker]; 
+      if(bs){ bs.r += batRuns; if(bnd==='four')bs.f++; if(bnd==='six')bs.s++; }
+  }
 
-  let tag=isWide?'Wd':isNB?'Nb':type==='bye'?'B':'Lb';
+  const bw=S.bowlerStats[S.bowler];
+  if(bw){ bw.runs+=total; }
+
+  let tag = isWide ? 'Wd' : 'Nb';
   if(xruns>0) tag+='+'+xruns;
   S.curOver.push(tag);
 
@@ -1159,8 +1221,14 @@ async function confirmExtra() {
   else if(strOpt==='yes') swap=true;
   if(swap)[S.striker,S.nonStriker]=[S.nonStriker,S.striker];
 
+  // Set Free Hit for next ball if No Ball
+  if (isNB) {
+      S.nextBallFreeHit = true;
+  }
+
   closeModal('m-extra');
-  if(isLegal){ await afterLegalBall(); } else { renderScore(); await saveLive(); }
+  renderScore(); 
+  await saveLive(); 
 }
 
 // ─── WICKET ───
@@ -1170,6 +1238,9 @@ function openWicket() {
   );
   const fielders=S.players.filter(p=>p.team_id===S.bowlId);
 
+  // Reset delivery type to legal
+  document.getElementById('wkt-delivery-type').value = 'legal';
+  
   document.getElementById('wkt-batter').innerHTML=
     [S.striker,S.nonStriker].filter(Boolean).map(id=>`<option value="${id}">${pName(id)}</option>`).join('');
   document.getElementById('wkt-fielder').innerHTML=
@@ -1191,44 +1262,77 @@ function wktTypeChange() {
 }
 
 async function confirmWicket() {
-  const dismissed=document.getElementById('wkt-batter').value;
-  const dType    =document.getElementById('wkt-type').value;
-  const fielder  =document.getElementById('wkt-fielder').value||null;
-  const asst     =document.getElementById('wkt-asst').value||null;
-  const newBatter=document.getElementById('wkt-new-batter').value||null;
-  const runs     =parseInt(document.getElementById('wkt-runs').value)||0;
-  const needF    =['caught','stumped','run_out'].includes(dType);
+  const deliveryType = document.getElementById('wkt-delivery-type').value;
+  const dismissed = document.getElementById('wkt-batter').value;
+  const dType     = document.getElementById('wkt-type').value;
+  const fielder   = document.getElementById('wkt-fielder').value||null;
+  const asst      = document.getElementById('wkt-asst').value||null;
+  const newBatter = document.getElementById('wkt-new-batter').value||null;
+  const batRuns   = parseInt(document.getElementById('wkt-runs').value)||0;
+  const needF     = ['caught','stumped','run_out'].includes(dType);
+
+  let isLegal = true;
+  let extType = null;
+  let extras = 0;
+  
+  if (deliveryType === 'wide') { isLegal = false; extType = 'wide'; extras = 1; }
+  if (deliveryType === 'no_ball') { isLegal = false; extType = 'no_ball'; extras = 1; S.nextBallFreeHit = true; }
+
+  // If Free Hit active, check if dismissal is allowed
+  if (S.isFreeHit && !['run_out', 'hit_wicket', 'retired_out'].includes(dType)) {
+      alert("Invalid dismissal! You cannot be out " + dType + " on a Free Hit.");
+      return;
+  }
+
+  // Clear Free Hit flag if it was a legal ball
+  if (isLegal) {
+      if (S.nextBallFreeHit) { S.isFreeHit = true; S.nextBallFreeHit = false; }
+      else { S.isFreeHit = false; }
+  }
+
+  const extraCols = {};
+  if (extType === 'wide') extraCols.wide_runs = 1;
+  if (extType === 'no_ball') extraCols.noball_runs = 1;
 
   await insertDelivery({
-    runs_off_bat:runs, extras:0, extra_type:null,
-    is_wicket:true, is_four:runs===4, is_six:runs===6,
-    is_legal_delivery:true, bat_runs:runs,
-    dismissal_type:dType,
-    dismissed_player_id:dismissed,
+    runs_off_bat: batRuns, extras: extras, extra_type: extType,
+    is_wicket: true, is_four: batRuns===4, is_six: batRuns===6,
+    is_legal_delivery: isLegal, bat_runs: batRuns,
+    dismissal_type: dType,
+    dismissed_player_id: dismissed,
     fielder_id: needF?fielder:null,
-    asst_fielder_id: dType==='run_out'?asst:null
+    asst_fielder_id: dType==='run_out'?asst:null,
+    ...extraCols
   });
 
-  S.runs+=runs; S.balls++; S.wkts++;
-  S.curOver.push('W');
+  S.runs += batRuns + extras; 
+  if (isLegal) S.balls++; 
+  S.wkts++;
+  S.extras += extras;
+  
+  let tag = extType === 'wide' ? 'Wd' : extType === 'no_ball' ? 'Nb' : '';
+  tag += 'W';
+  S.curOver.push(tag);
+  
   S.dismissed.push(dismissed);
 
-  const bs=S.bStats[dismissed]; if(bs){bs.r+=runs; bs.b++; bs.out=true;}
+  const bs=S.bStats[dismissed]; if(bs){bs.r+=batRuns; if(isLegal) bs.b++; bs.out=true;}
   const bw=S.bowlerStats[S.bowler];
-  if(bw){ bw.legal++; bw.runs+=runs; if(dType!=='run_out') bw.wkts++; }
+  if(bw){ if(isLegal) bw.legal++; bw.runs+=(batRuns+extras); if(dType!=='run_out') bw.wkts++; }
 
   if(dismissed===S.striker){
     S.striker=newBatter;
-    if(runs%2===1)[S.striker,S.nonStriker]=[S.nonStriker,S.striker];
+    if(batRuns%2===1)[S.striker,S.nonStriker]=[S.nonStriker,S.striker];
   } else {
     S.nonStriker=newBatter;
-    if(runs%2===1)[S.striker,S.nonStriker]=[S.nonStriker,S.striker];
+    if(batRuns%2===1)[S.striker,S.nonStriker]=[S.nonStriker,S.striker];
   }
   if(newBatter) initBS(newBatter);
   closeModal('m-wicket');
 
   if(S.wkts>=S.maxWkt||!newBatter){ await completeInnings(); return; }
-  await afterLegalBall();
+  if (isLegal) await afterLegalBall();
+  else { renderScore(); await saveLive(); }
 }
 
 // ─── AFTER LEGAL BALL ───
@@ -1307,7 +1411,7 @@ async function undoLast() {
 
   S.runs-=((last.runs_off_bat||0)+(last.extras||0));
   if(last.extras>0) S.extras-=(last.extras||0);
-  const wasLegal=last.extra_type!=='wide'&&last.extra_type!=='no_ball';
+  const wasLegal = last.is_legal_delivery;
   if(wasLegal) S.balls=Math.max(0,S.balls-1);
   if(last.is_wicket){
     S.wkts=Math.max(0,S.wkts-1);
@@ -1329,6 +1433,11 @@ async function undoLast() {
     bw.runs=Math.max(0,bw.runs-((last.runs_off_bat||0)+(last.extras||0)));
     if(last.is_wicket&&last.dismissal_type!=='run_out') bw.wkts=Math.max(0,bw.wkts-1);
   }
+  
+  // Free Hit Undo Logic (Crude fallback: if we undo, disable free hit to be safe)
+  S.isFreeHit = false;
+  S.nextBallFreeHit = false;
+  
   renderScore(); await saveLive();
   document.getElementById('strike-notice').style.display='block';
   toast('↩ Undone — verify strike','warn');
@@ -1734,10 +1843,9 @@ async function doResume(matchId) {
       if(d.is_wicket) tag='W';
       else if(d.runs_off_bat===4) tag='4';
       else if(d.runs_off_bat===6) tag='6';
-      else if(d.extra_type==='wide')    tag='Wd'+(d.extras>1?'+'+(d.extras-1):'');
+      else if(d.extra_type==='penalty') tag='-2';
+      else if(d.extra_type==='wide')    tag='Wd';
       else if(d.extra_type==='no_ball') tag='Nb';
-      else if(d.extra_type==='bye')     tag='B'+(d.extras?'+'+d.extras:'');
-      else if(d.extra_type==='leg_bye') tag='Lb'+(d.extras?'+'+d.extras:'');
       overMap[ov].push(tag);
 
       if(d.dismissed_player_id) S.dismissed.push(d.dismissed_player_id);
@@ -1746,7 +1854,7 @@ async function doResume(matchId) {
         initBS(d.batter_id);
         const bs=S.bStats[d.batter_id];
         bs.r+=(d.runs_off_bat||0);
-        if(d.extra_type!=='wide') bs.b++;
+        if(d.extra_type!=='wide' && d.extra_type!=='penalty') bs.b++;
         if(d.runs_off_bat===4) bs.f++;
         if(d.runs_off_bat===6) bs.s++;
         if(d.is_wicket&&d.dismissed_player_id===d.batter_id) bs.out=true;
@@ -1790,135 +1898,6 @@ async function doResume(matchId) {
 }
 
 // ═══════════════════════════════════════════════
-// ADMIN TAB
-// ═══════════════════════════════════════════════
-async function loadAdminTab() {
-  const {data:phases}=await sb.from('ppl_fantasy_days')
-    .select('*').order('phase');
-  const list=document.getElementById('phase-lock-list');
-  if(!phases||!phases.length){list.innerHTML='<p class="hint">No phases found.</p>';return;}
-  list.innerHTML='';
-  phases.forEach(ph=>{
-    const div=document.createElement('div');
-    div.className='card';
-    div.style.marginBottom='8px';
-    const lockedAt=ph.locked_at?new Date(ph.locked_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'—';
-    const deadline=ph.lock_deadline?new Date(ph.lock_deadline).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'—';
-    div.innerHTML=`
-      <div class="info-row"><span class="info-label">Phase</span><span class="info-val">${ph.phase_label||ph.phase}</span></div>
-      <div class="info-row"><span class="info-label">Deadline</span><span class="info-val">${deadline}</span></div>
-      <div class="info-row"><span class="info-label">Status</span><span class="info-val" style="color:${ph.is_locked?'var(--red)':'var(--green)'}">
-        ${ph.is_locked?'🔒 Locked':'🔓 Open'}
-      </span></div>
-      ${ph.is_locked?`<div class="info-row"><span class="info-label">Locked at</span><span class="info-val">${lockedAt}</span></div>`:''}
-      <div class="row2" style="margin-top:8px">
-        <button class="btn ${ph.is_locked?'btn-success':'btn-danger'} btn-sm" 
-          onclick="togglePhaseLock('${ph.id}',${ph.is_locked})">
-          ${ph.is_locked?'🔓 Unlock Phase':'🔒 Lock Phase Now'}
-        </button>
-        <button class="btn btn-gray btn-sm" onclick="editPhaseDeadline('${ph.id}','${ph.lock_deadline||''}')">✏️ Edit Deadline</button>
-      </div>`;
-    list.appendChild(div);
-  });
-}
-
-async function togglePhaseLock(phaseId, currentlyLocked) {
-  const action=currentlyLocked?'unlock':'lock';
-  if(!confirm(`${action.toUpperCase()} this fantasy phase? This controls whether users can edit their teams.`)) return;
-  const nowISO=new Date().toISOString();
-  
-  // NOTE: Removed `locked_by` to ensure compatibility with your PPL schema
-  const upd=currentlyLocked
-    ?{is_locked:false, locked_at:null}
-    :{is_locked:true,  locked_at:nowISO};
-    
-  const {error}=await sb.from('ppl_fantasy_days').update(upd).eq('id',phaseId);
-  if(error){toast('Failed: '+error.message,'error');return;}
-  toast(`✅ Phase ${action}ed!`);
-  loadAdminTab();
-}
-
-async function editPhaseDeadline(phaseId, currentDeadline) {
-  const val=prompt('Enter new deadline (YYYY-MM-DDTHH:MM:SS+05:30):',currentDeadline||'2026-05-29T16:00:00+05:30');
-  if(!val) return;
-  const {error}=await sb.from('ppl_fantasy_days').update({lock_deadline:val}).eq('id',phaseId);
-  if(error){toast('Failed: '+error.message,'error');return;}
-  toast('✅ Deadline updated!');
-  loadAdminTab();
-}
-
-async function confirmAban() {
-  hideErr('err-aban');
-  const matchId=document.getElementById('sel-aban-match').value;
-  const desc   =document.getElementById('inp-aban-desc').value||'No result';
-  if(!matchId){showErr('err-aban','Select a match first');return;}
-  if(!confirm('Mark as No Result? Both teams get 1 point each.')) return;
-
-  const {data:m}=await sb.from('ppl_matches')
-    .select('team_a_id,team_b_id').eq('id',matchId).single();
-  if(!m||!m.team_a_id||!m.team_b_id){
-    showErr('err-aban','Match teams not confirmed yet');return;
-  }
-  const {error}=await sb.from('ppl_matches').update({
-    status:'no_result',result_description:desc,winner_id:null,is_no_result:true
-  }).eq('id',matchId);
-  if(error){showErr('err-aban','Failed: '+error.message);return;}
-  toast('✅ No Result applied. 1 point each via DB trigger.');
-  document.getElementById('inp-aban-desc').value='';
-  loadHome();
-}
-
-async function recalcAllStats() {
-  if (!confirm('Recalculate all player stats from ball-by-ball data? This may take a moment.')) return;
-  toast('Recalculating...', 'info');
-  try {
-    const { error } = await sb.functions.invoke('recalc-fantasy-points', {
-      body: { recalc_all: true }
-    });
-    if (error) throw error;
-    toast('Stats recalculated successfully!', 'success');
-  } catch (e) {
-    toast('Failed: ' + (e.message || 'Edge function not deployed'), 'error');
-  }
-}
-
-// ═══════════════════════════════════════════════
-// DB HELPERS
-// ═══════════════════════════════════════════════
-async function insertDelivery(fields) {
-  const matchId=S.superMatchId||S.match.id;
-  const {error}=await sb.from('ppl_deliveries').insert({
-    innings_id:    S.innId,
-    match_id:      matchId,
-    over_number:   Math.floor(S.balls/6),
-    ball_number:   S.balls%6,
-    batter_id:     S.striker,
-    non_striker_id:S.nonStriker,
-    bowler_id:     S.bowler,
-    ...fields
-  });
-  if(error) console.error('[PPL del]',error.message);
-
-  await sb.from('ppl_innings').update({
-    current_striker_id:     S.striker,
-    current_non_striker_id: S.nonStriker,
-    current_bowler_id:      S.bowler
-  }).eq('id',S.innId);
-}
-
-async function saveLive() {
-  await sb.from('ppl_innings').update({
-    total_runs:             S.runs,
-    total_wickets:          S.wkts,
-    total_overs:            parseFloat(fmtOv(S.balls)),
-    extras:                 S.extras,
-    current_striker_id:     S.striker,
-    current_non_striker_id: S.nonStriker,
-    current_bowler_id:      S.bowler
-  }).eq('id',S.innId);
-}
-
-// ═══════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════
 function renderScore() {
@@ -1940,6 +1919,9 @@ function renderScore() {
   document.getElementById('sc-crr').textContent    = `CRR ${crr()}`;
   document.getElementById('sc-wkts-left').textContent = `${S.maxWkt-S.wkts} wkts left`;
   document.getElementById('sc-extras').textContent = `Extras ${S.extras}`;
+
+  // FREE HIT BADGE
+  document.getElementById('sc-free-hit').style.display = S.isFreeHit ? 'inline-flex' : 'none';
 
   // Batter cards
   const bc=document.getElementById('batter-cards');
@@ -1977,36 +1959,16 @@ function renderScore() {
       if(b==='0') cls='bt-0';
       else if(b==='4') cls='bt-4';
       else if(b==='6') cls='bt-6';
+      else if(b==='-2') cls='bt-M2';
       else if(b==='W') cls='bt-W';
       else if(b.startsWith('Wd')) cls='bt-Wd';
       else if(b.startsWith('Nb')) cls='bt-Nb';
-      else if(b.startsWith('B')) cls='bt-B';
-      else if(b.startsWith('Lb')) cls='bt-Lb';
+      else if(b.endsWith('W')) cls='bt-W'; // Covers WdW, NbW etc
       return `<span class="ball-tag ${cls}">${b}</span>`;
     }).join('');
     return `<span class="ov-label">Ov ${i+1}:</span>${tags}&nbsp;`;
   }).join('<br>');
   log.scrollTop=log.scrollHeight;
-}
-
-// ═══════════════════════════════════════════════
-// RESET STATE
-// ═══════════════════════════════════════════════
-function resetState() {
-  S={
-    match:null, allMatches:[], teams:{...S.teams}, players:[],
-    totalOvers:6, maxWkt:8,
-    innNum:1, isSuperOver:false,
-    superMatchId:null, superOverInnings:null, superOverWinner:null,
-    innId:null, batId:null, bowlId:null,
-    striker:null, nonStriker:null, bowler:null,
-    runs:0, wkts:0, balls:0, extras:0,
-    curOver:[], allOvers:[],
-    inn1Score:null, extraType:null,
-    dismissed:[], bStats:{}, bowlerStats:{},
-    prevBowler:null, editDelvId:null,
-    editMatchData:null, editMatchPlayers:[]
-  };
 }
 
 document.getElementById('pin-input').focus();
