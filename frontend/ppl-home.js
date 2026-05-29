@@ -159,15 +159,20 @@ async function fetchHomeData(userId) {
         supabase.from("ppl_fantasy_days").select("*").order("created_at")
     ]);
 
-    // Handle Match Cards (CRICBUZZ STACKED LAYOUT)
-    const liveMatch = (matches || []).find(m => m.status === 'in_progress');
+// Handle Match Cards (CRICBUZZ STACKED LAYOUT)
+    const liveMatch = (matches || []).find(m => ['toss_done', 'in_progress', 'live', 'innings_break'].includes(m.status));
     const nextMatch = (matches || []).find(m => m.status === 'upcoming');
     const bucket = supabase.storage.from("team-logos");
 
     const liveCard = document.getElementById("liveMatchCard");
     const nextCard = document.getElementById("nextMatchCard");
 
-    // Logic: Show Live if exists, else show Next. Never show both side-by-side to avoid clutter.
+    // Clear any existing countdown
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+
     if (liveMatch && liveCard) {
         liveCard.classList.remove("hidden");
         if (nextCard) nextCard.classList.add("hidden"); 
@@ -432,7 +437,12 @@ async function initLiveNav() {
 }
 
 function startCountdown(startTime) {
-    if (!startTime || countdownInterval) clearInterval(countdownInterval);
+    if (!startTime) {
+        document.getElementById("nextMatchTime").innerHTML = `<i class="far fa-clock"></i> Time TBD`;
+        return;
+    }
+    
+    if (countdownInterval) clearInterval(countdownInterval);
     const matchTime = new Date(startTime).getTime();
     const timeEl = document.getElementById("nextMatchTime");
 
@@ -440,7 +450,7 @@ function startCountdown(startTime) {
         const dist = matchTime - Date.now();
         if (dist <= 0) {
             clearInterval(countdownInterval);
-            if (timeEl) timeEl.textContent = "Match Started";
+            if (timeEl) timeEl.innerHTML = `<i class="far fa-clock"></i> Match Started`;
             return;
         }
 
