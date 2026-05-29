@@ -198,15 +198,43 @@
     .ball-badge.c-wkt  { background: rgba(239,68,68,0.2); color: var(--red); border-color: rgba(239,68,68,0.35); }
     .ball-badge.c-extra { background: rgba(245,158,11,0.1); color: var(--gold); border-color: rgba(245,158,11,0.2); font-size: 11px; }
 
-    /* ── SUMMARY PANEL LAYOUT ── */
-    .summary-block-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 4px;}
-    .mom-perf-box { background: var(--accent-dim); border: 1px solid var(--border-accent); border-radius: 10px; padding: 12px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; }
-    .top-performers-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .perf-mini-card { background: rgba(0,0,0,0.15); border-radius: 8px; padding: 10px; border: 1px solid var(--border-subtle); }
-    .pmc-label { font-size: 10px; text-transform: uppercase; color: var(--text-faint); font-weight: bold; margin-bottom: 2px;}
-    .pmc-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-    .pmc-val { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--accent); margin-top: 1px; }
+/* ── SUMMARY PANEL LAYOUT (PREMIUM UPGRADE) ── */
+    .summary-block-title { 
+      font-family: var(--font-display); font-size: 16px; font-weight: 900; 
+      color: var(--text-primary); margin-bottom: 16px; text-transform: uppercase; 
+      letter-spacing: 1px; display: flex; align-items: center; gap: 10px;
+    }
+    .summary-block-title::before {
+      content: ''; display: block; width: 4px; height: 16px; 
+      background: var(--accent); border-radius: 2px;
+    }
+    
+    .inn-header-row {
+      display: flex; justify-content: space-between; align-items: flex-end; 
+      margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle);
+    }
+    .inn-team-name { font-size: 14px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+    .inn-team-score { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1; }
+    
+    .top-performers-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px; }
+    .perf-mini-card { background: rgba(255,255,255,0.02); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle); }
+    .pmc-label { font-size: 10px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;}
+    .pmc-name { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 2px; }
+    .pmc-val { font-size: 14px; font-weight: 600; color: var(--text-dim); }
 
+    .mom-perf-box { 
+      background: linear-gradient(135deg, #1e1305, var(--bg-card)); 
+      border: 1px solid rgba(245, 158, 11, 0.25); 
+      border-radius: 12px; padding: 18px; margin-top: 10px; 
+      display: flex; align-items: center; justify-content: space-between; 
+      position: relative; overflow: hidden;
+    }
+    .mom-perf-box::before {
+      content: '⭐'; position: absolute; right: -10px; top: -20px; font-size: 100px; opacity: 0.04;
+    }
+    .mom-label { font-size: 11px; text-transform: uppercase; color: var(--gold); font-weight: 800; letter-spacing: 1px; margin-bottom: 6px; }
+    .mom-name { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: #fff; }
+    .mom-stats { text-align: right; font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text-primary); }
     /* ── GRAPH STYLING ── */
     .chart-container { position: relative; width: 100%; height: 240px; margin-bottom: 20px; }
     
@@ -328,14 +356,14 @@ function renderSummaryView(container) {
   const inns = (mData.innings || []).sort((a,b) => a.innings_number - b.innings_number);
   
   if (inns.length === 0) {
-    wrapper.innerHTML = '<div class="loading">Innings configurations will populate when live actions begin.</div>';
+    wrapper.innerHTML = '<div class="loading">Match overview will populate when actions begin.</div>';
     container.appendChild(wrapper);
     return;
   }
 
-  let htmlOutput = `<div class="summary-block-title">Match Performance Matrix</div>`;
+  let htmlOutput = `<div class="summary-block-title">Innings Breakdown</div>`;
 
-  // Dynamic loop through innings to compute top performers safely
+  // Dynamic loop through innings
   inns.forEach(inn => {
     const team = inn.batting_team_id === mData.team_a_id ? mData.team_a : mData.team_b;
     const delvs = dList.filter(d => d.innings_id === inn.id);
@@ -344,10 +372,11 @@ function renderSummaryView(container) {
     const batMap = {};
     delvs.forEach(d => {
       if (!d.batter_id) return;
-      if (!batMap[d.batter_id]) batMap[d.batter_id] = 0;
-      batMap[d.batter_id] += d.runs_off_bat || 0;
+      if (!batMap[d.batter_id]) batMap[d.batter_id] = { runs: 0, balls: 0 };
+      batMap[d.batter_id].runs += d.runs_off_bat || 0;
+      if (d.is_legal_delivery || d.extra_type === 'no_ball') batMap[d.batter_id].balls++;
     });
-    const sortedBatters = Object.entries(batMap).sort((a,b) => b[1] - a[1]).slice(0, 2);
+    const sortedBatters = Object.entries(batMap).sort((a,b) => b[1].runs - a[1].runs).slice(0, 2);
 
     // Crunch Bowling records
     const bowlMap = {};
@@ -363,39 +392,41 @@ function renderSummaryView(container) {
       if (b[1].wkts !== a[1].wkts) return b[1].wkts - a[1].wkts;
       const econA = a[1].balls > 0 ? (a[1].runs / (a[1].balls / 6)) : 999;
       const econB = b[1].balls > 0 ? (b[1].runs / (b[1].balls / 6)) : 999;
-      return econA - econB; // Tie breaker via lower economy
+      return econA - econB;
     }).slice(0, 1);
 
     htmlOutput += `
-      <div style="margin-bottom: 16px;">
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; display:flex; justify-content:space-between;">
-          <span>${team?.short_name} Innings</span>
-          <span style="color:var(--accent)">${inn.total_runs}/${inn.total_wickets} (${inn.total_overs} Ov)</span>
+      <div class="inn-header-row">
+        <div class="inn-team-name">${team?.short_name || 'TBA'}</div>
+        <div class="inn-team-score">${inn.total_runs}/${inn.total_wickets} <span style="font-size:13px; color:var(--text-faint); font-weight:normal;">(${inn.total_overs} Ov)</span></div>
+      </div>
+      
+      <div class="top-performers-layout">
+        <div class="perf-mini-card">
+          <div class="pmc-label">Top Batter</div>
+          <div class="pmc-name">${sortedBatters[0] ? pName(sortedBatters[0][0]) : '—'}</div>
+          <div class="pmc-val">${sortedBatters[0] ? `${sortedBatters[0][1].runs} <span style="font-size:11px; color:var(--text-faint)">(${sortedBatters[0][1].balls}b)</span>` : '—'}</div>
         </div>
-        <div class="top-performers-layout">
-          <div class="perf-mini-card">
-            <div class="pmc-label">Top Batter</div>
-            <div class="pmc-name">${sortedBatters[0] ? pName(sortedBatters[0][0]) : '—'}</div>
-            <div class="pmc-val">${sortedBatters[0] ? sortedBatters[0][1] + ' Runs' : '—'}</div>
-          </div>
-          <div class="perf-mini-card">
-            <div class="pmc-label">2nd Top Batter</div>
-            <div class="pmc-name">${sortedBatters[1] ? pName(sortedBatters[1][0]) : '—'}</div>
-            <div class="pmc-val">${sortedBatters[1] ? sortedBatters[1][1] + ' Runs' : '—'}</div>
-          </div>
-          <div class="perf-mini-card" style="grid-column: span 2;">
+        <div class="perf-mini-card">
+          <div class="pmc-label">2nd Batter</div>
+          <div class="pmc-name">${sortedBatters[1] ? pName(sortedBatters[1][0]) : '—'}</div>
+          <div class="pmc-val">${sortedBatters[1] ? `${sortedBatters[1][1].runs} <span style="font-size:11px; color:var(--text-faint)">(${sortedBatters[1][1].balls}b)</span>` : '—'}</div>
+        </div>
+        <div class="perf-mini-card" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center;">
+          <div>
             <div class="pmc-label">Impact Bowler</div>
             <div class="pmc-name">${sortedBowlers[0] ? pName(sortedBowlers[0][0]) : '—'}</div>
-            <div class="pmc-val">${sortedBowlers[0] ? `${sortedBowlers[0][1].wkts} Wkts (${(sortedBowlers[0][1].runs / (sortedBowlers[0][1].balls / 6 || 1)).toFixed(1)} Eco)` : '—'}</div>
+          </div>
+          <div class="pmc-val" style="text-align: right;">
+            ${sortedBowlers[0] ? `${sortedBowlers[0][1].wkts}-${sortedBowlers[0][1].runs} <span style="font-size:12px; color:var(--text-faint); font-weight:normal;">(${(sortedBowlers[0][1].runs / (sortedBowlers[0][1].balls / 6 || 1)).toFixed(1)} Eco)</span>` : '—'}
           </div>
         </div>
       </div>
     `;
   });
 
-  // Player of Match Metadata
+  // Match Laurels (MOM)
   if (mData.mom?.name) {
-    // Dynamically fetch stats for MOM across whole match
     let momRuns = 0, momWkts = 0;
     dList.forEach(d => {
       if (d.batter_id === mData.mom_player_id) momRuns += d.runs_off_bat || 0;
@@ -403,14 +434,15 @@ function renderSummaryView(container) {
     });
 
     htmlOutput += `
-      <div class="summary-block-title" style="margin-top: 20px;">Match Laurels</div>
+      <div class="summary-block-title" style="margin-top: 32px;">Match Laurels</div>
       <div class="mom-perf-box">
-        <div>
-          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-faint); font-weight: bold;">Player of the Match</div>
-          <div style="font-size: 16px; font-weight: 800; color: #fff;">${mData.mom.name}</div>
+        <div style="position: relative; z-index: 2;">
+          <div class="mom-label">Player of the Match</div>
+          <div class="mom-name">${mData.mom.name}</div>
         </div>
-        <div style="text-align: right; font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--gold);">
-          ${momRuns} Runs ${momWkts > 0 ? `| ${momWkts} Wkts` : ''}
+        <div class="mom-stats" style="position: relative; z-index: 2;">
+          ${momRuns} <span style="font-size:12px; font-weight:normal; color:var(--text-faint)">Runs</span>
+          ${momWkts > 0 ? `<br>${momWkts} <span style="font-size:12px; font-weight:normal; color:var(--text-faint)">Wkts</span>` : ''}
         </div>
       </div>
     `;
