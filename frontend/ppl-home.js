@@ -218,9 +218,11 @@ async function loadTournamentStats() {
     const grid = document.getElementById("topPerformersGrid");
     if (!grid) return;
 
-    const { data } = await supabase.from('ppl_player_stats')
-        .select('player_id, fantasy_points_total, ppl_players(name, role)')
-        .order('fantasy_points_total', { ascending: false })
+    // Fetch from our new aggregated view
+    const { data } = await supabase
+        .from('v_ppl_player_overall_stats')
+        .select('*')
+        .order('fantasy_points', { ascending: false })
         .limit(4);
 
     if (!data || data.length === 0) {
@@ -230,15 +232,17 @@ async function loadTournamentStats() {
 
     const roleIcons = { 'BAT': '🏏', 'BOWL': '🎳', 'AR': '⚡', 'WK': '🧤' };
     
-    grid.innerHTML = data.map((s, i) => {
-        const p = s.ppl_players;
+    grid.innerHTML = data.map((p, i) => {
         const isMvp = i === 0;
         return `
         <div class="stat-mini-card ${isMvp ? 'mvp' : ''}">
             <div class="sm-icon">${roleIcons[p.role] || '⭐'}</div>
             <div class="sm-role">${isMvp ? 'MVP' : p.role}</div>
             <div class="sm-name">${p.name.split(" ").pop()}</div>
-            <div class="sm-val">${s.fantasy_points_total}</div>
+            <div class="sm-val">${p.fantasy_points}</div>
+            <div style="font-size: 9px; color: var(--text-faint); margin-top: 4px; font-weight: 600;">
+                ${p.runs}R | ${p.wickets}W | ${p.fielding}F
+            </div>
         </div>`;
     }).join('');
 }

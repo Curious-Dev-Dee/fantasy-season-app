@@ -154,6 +154,61 @@ function render() {
     }
 }
 
+// Add this inside your ppl-stats.js file
+
+async function loadFantasyTab() {
+    const content = document.getElementById('statsContent');
+    content.innerHTML = '<div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Loading Fantasy Leaders...</div>';
+
+    // Fetch from the aggregated view
+    const { data, error } = await supabase
+        .from('v_ppl_player_overall_stats')
+        .select('*')
+        .order('fantasy_points', { ascending: false });
+
+    if (error || !data || data.length === 0) {
+        content.innerHTML = '<div class="empty">No fantasy data available yet. Check back after Match 1!</div>';
+        return;
+    }
+
+    content.innerHTML = '';
+
+    data.forEach((player, index) => {
+        const rank = index + 1;
+        
+        // Assign styling for Top 3
+        let rankClass = '';
+        if (rank === 1) rankClass = 'sr-top1';
+        else if (rank === 2) rankClass = 'sr-top2';
+        else if (rank === 3) rankClass = 'sr-top3';
+
+        const row = document.createElement('div');
+        row.className = `stat-row ${rankClass}`;
+        
+        row.innerHTML = `
+            <div class="sr-rank">${rank}</div>
+            <div class="sr-player">
+                <div class="sr-name">${player.name}</div>
+                <div class="sr-team">${player.team_name || 'TBA'} · ${player.role}</div>
+            </div>
+            <div class="sr-stats">
+                <div class="sr-stat-item">
+                    <span class="sr-stat-val highlight">${player.fantasy_points}</span>
+                    <span class="sr-stat-lbl">PTS</span>
+                </div>
+                <div class="sr-stat-item">
+                    <span class="sr-stat-val">${player.runs}</span>
+                    <span class="sr-stat-lbl">RUNS</span>
+                </div>
+                <div class="sr-stat-item">
+                    <span class="sr-stat-val">${player.wickets}</span>
+                    <span class="sr-stat-lbl">WKTS</span>
+                </div>
+            </div>
+        `;
+        content.appendChild(row);
+    });
+}
 // Global Nav Sync (Live dot indicator)
 async function initLiveNav() {
     const navLiveDot = document.getElementById("navLiveDot");
