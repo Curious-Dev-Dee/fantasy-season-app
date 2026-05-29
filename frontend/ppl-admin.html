@@ -1087,7 +1087,6 @@ async function startInnings() {
 // LIVE SCORING
 // ═══════════════════════════════════════════════
 async function ball(runs) {
-  // If it's a legal delivery, process the queued free hit
   if (S.nextBallFreeHit) {
       S.isFreeHit = true;
       S.nextBallFreeHit = false;
@@ -1133,14 +1132,13 @@ async function ballMinusTwo() {
   S.curOver.push('-2');
 
   const bs = S.bStats[S.striker]; 
-  if(bs) bs.b++; // counts as ball faced
+  if(bs) bs.b++; 
   
   const bw = S.bowlerStats[S.bowler]; 
-  if(bw) bw.legal++; // counts as legal delivery
+  if(bw) bw.legal++; 
 
   await afterLegalBall();
 }
-
 
 function manualStrikeSwap() {
   [S.striker,S.nonStriker]=[S.nonStriker,S.striker];
@@ -1164,7 +1162,6 @@ function openExtra(type) {
   document.getElementById('extra-title').textContent = titles[type];
   document.getElementById('extra-hint').textContent  = hints[type];
   
-  // Hide Extra Runs & Boundary input if it's a Wide (user said no extra runs on wide)
   document.getElementById('ex-runs-wrapper').style.display = type === 'wide' ? 'none' : 'block';
   document.getElementById('ex-boundary-wrapper').style.display = type === 'wide' ? 'none' : 'block';
   
@@ -1179,19 +1176,17 @@ async function confirmExtra() {
   const type   = S.extraType;
   const isWide = type==='wide', isNB=type==='no_ball';
   
-  // Force 0 extra runs if it's a wide
   const xruns  = isWide ? 0 : (parseInt(document.getElementById('ex-runs').value)||0);
   const bnd    = isWide ? 'none' : document.getElementById('ex-boundary').value;
   const strOpt = document.getElementById('ex-strike').value;
   
-  const isLegal= false; // Wides and No Balls are never legal
-  const total  = 1+xruns; // +1 penalty for wide/no_ball plus any runs off bat (for NB)
+  const isLegal= false; 
+  const total  = 1+xruns; 
 
   const extraCols={};
   if(isWide) extraCols.wide_runs=total;
-  if(isNB)   extraCols.noball_runs=1; // The 1 penalty run
+  if(isNB)   extraCols.noball_runs=1; 
 
-  // If it's a no ball and they hit it, log the bat runs
   const batRuns = isNB ? xruns : 0;
 
   await insertDelivery({
@@ -1221,7 +1216,6 @@ async function confirmExtra() {
   else if(strOpt==='yes') swap=true;
   if(swap)[S.striker,S.nonStriker]=[S.nonStriker,S.striker];
 
-  // Set Free Hit for next ball if No Ball
   if (isNB) {
       S.nextBallFreeHit = true;
   }
@@ -1238,7 +1232,6 @@ function openWicket() {
   );
   const fielders=S.players.filter(p=>p.team_id===S.bowlId);
 
-  // Reset delivery type to legal
   document.getElementById('wkt-delivery-type').value = 'legal';
   
   document.getElementById('wkt-batter').innerHTML=
@@ -1278,13 +1271,11 @@ async function confirmWicket() {
   if (deliveryType === 'wide') { isLegal = false; extType = 'wide'; extras = 1; }
   if (deliveryType === 'no_ball') { isLegal = false; extType = 'no_ball'; extras = 1; S.nextBallFreeHit = true; }
 
-  // If Free Hit active, check if dismissal is allowed
   if (S.isFreeHit && !['run_out', 'hit_wicket', 'retired_out'].includes(dType)) {
       alert("Invalid dismissal! You cannot be out " + dType + " on a Free Hit.");
       return;
   }
 
-  // Clear Free Hit flag if it was a legal ball
   if (isLegal) {
       if (S.nextBallFreeHit) { S.isFreeHit = true; S.nextBallFreeHit = false; }
       else { S.isFreeHit = false; }
@@ -1410,7 +1401,7 @@ async function undoLast() {
   await sb.from('ppl_deliveries').delete().eq('id',last.id);
 
   S.runs-=((last.runs_off_bat||0)+(last.extras||0));
-  if(last.extras>0) S.extras-=(last.extras||0);
+  if(last.extras !== 0) S.extras-=(last.extras||0);
   const wasLegal = last.is_legal_delivery;
   if(wasLegal) S.balls=Math.max(0,S.balls-1);
   if(last.is_wicket){
@@ -1434,7 +1425,6 @@ async function undoLast() {
     if(last.is_wicket&&last.dismissal_type!=='run_out') bw.wkts=Math.max(0,bw.wkts-1);
   }
   
-  // Free Hit Undo Logic (Crude fallback: if we undo, disable free hit to be safe)
   S.isFreeHit = false;
   S.nextBallFreeHit = false;
   
@@ -1798,103 +1788,131 @@ async function recalcFromDeliveries() {
 }
 
 // ═══════════════════════════════════════════════
-// RESUME
+// ADMIN TAB
 // ═══════════════════════════════════════════════
-async function doResume(matchId) {
+async function loadAdminTab() {
+  const {data:phases}=await sb.from('ppl_fantasy_days')
+    .select('*').order('phase');
+  const list=document.getElementById('phase-lock-list');
+  if(!phases||!phases.length){list.innerHTML='<p class="hint">No phases found.</p>';return;}
+  list.innerHTML='';
+  phases.forEach(ph=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.style.marginBottom='8px';
+    const lockedAt=ph.locked_at?new Date(ph.locked_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'—';
+    const deadline=ph.lock_deadline?new Date(ph.lock_deadline).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'—';
+    div.innerHTML=`
+      <div class="info-row"><span class="info-label">Phase</span><span class="info-val">${ph.phase_label||ph.phase}</span></div>
+      <div class="info-row"><span class="info-label">Deadline</span><span class="info-val">${deadline}</span></div>
+      <div class="info-row"><span class="info-label">Status</span><span class="info-val" style="color:${ph.is_locked?'var(--red)':'var(--green)'}">
+        ${ph.is_locked?'🔒 Locked':'🔓 Open'}
+      </span></div>
+      ${ph.is_locked?`<div class="info-row"><span class="info-label">Locked at</span><span class="info-val">${lockedAt}</span></div>`:''}
+      <div class="row2" style="margin-top:8px">
+        <button class="btn ${ph.is_locked?'btn-success':'btn-danger'} btn-sm" 
+          onclick="togglePhaseLock('${ph.id}',${ph.is_locked})">
+          ${ph.is_locked?'🔓 Unlock Phase':'🔒 Lock Phase Now'}
+        </button>
+        <button class="btn btn-gray btn-sm" onclick="editPhaseDeadline('${ph.id}','${ph.lock_deadline||''}')">✏️ Edit Deadline</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+async function togglePhaseLock(phaseId, currentlyLocked) {
+  const action=currentlyLocked?'unlock':'lock';
+  if(!confirm(`${action.toUpperCase()} this fantasy phase? This controls whether users can edit their teams.`)) return;
+  const nowISO=new Date().toISOString();
+  
+  const upd=currentlyLocked
+    ?{is_locked:false, locked_at:null}
+    :{is_locked:true,  locked_at:nowISO};
+    
+  const {error}=await sb.from('ppl_fantasy_days').update(upd).eq('id',phaseId).select();
+  if(error){toast('Failed: '+error.message,'error');return;}
+  toast(`✅ Phase ${action}ed!`);
+  loadAdminTab();
+}
+
+async function editPhaseDeadline(phaseId, currentDeadline) {
+  const val=prompt('Enter new deadline (YYYY-MM-DDTHH:MM:SS+05:30):',currentDeadline||'2026-05-29T16:00:00+05:30');
+  if(!val) return;
+  const {error}=await sb.from('ppl_fantasy_days').update({lock_deadline:val}).eq('id',phaseId);
+  if(error){toast('Failed: '+error.message,'error');return;}
+  toast('✅ Deadline updated!');
+  loadAdminTab();
+}
+
+async function confirmAban() {
+  hideErr('err-aban');
+  const matchId=document.getElementById('sel-aban-match').value;
+  const desc   =document.getElementById('inp-aban-desc').value||'No result';
+  if(!matchId){showErr('err-aban','Select a match first');return;}
+  if(!confirm('Mark as No Result? Both teams get 1 point each.')) return;
+
   const {data:m}=await sb.from('ppl_matches')
-    .select('*,team_a:team_a_id(id,name),team_b:team_b_id(id,name)')
-    .eq('id',matchId).single();
-  if(!m){toast('Could not load match','error');return;}
+    .select('team_a_id,team_b_id').eq('id',matchId).single();
+  if(!m||!m.team_a_id||!m.team_b_id){
+    showErr('err-aban','Match teams not confirmed yet');return;
+  }
+  const {error}=await sb.from('ppl_matches').update({
+    status:'no_result',result_description:desc,winner_id:null,is_no_result:true
+  }).eq('id',matchId);
+  if(error){showErr('err-aban','Failed: '+error.message);return;}
+  toast('✅ No Result applied. 1 point each via DB trigger.');
+  document.getElementById('inp-aban-desc').value='';
+  loadHome();
+}
 
-  S.match=m;
-  if(m.team_a) S.teams[m.team_a.id]=m.team_a.name;
-  if(m.team_b) S.teams[m.team_b.id]=m.team_b.name;
-  S.totalOvers=m.overs_per_side||6;
-  S.isSuperOver=false; S.superMatchId=null; S.superOverInnings=null;
-
-  const {data:inns}=await sb.from('ppl_innings')
-    .select('*').eq('match_id',matchId).eq('is_complete',false)
-    .order('innings_number',{ascending:false}).limit(1);
-  if(!inns||!inns.length){toast('No active innings found','error');return;}
-  const inn=inns[0];
-
-  S.innId=inn.id; S.innNum=inn.innings_number;
-  S.maxWkt=inn.max_wickets||8;
-  S.batId=inn.batting_team_id; S.bowlId=inn.bowling_team_id;
-  S.runs=inn.total_runs||0; S.wkts=inn.total_wickets||0;
-  S.balls=ovsToBalls(parseFloat(inn.total_overs)||0);
-
-  const {data:players}=await sb.from('ppl_players')
-    .select('id,name,team_id,role')
-    .in('team_id',[S.batId,S.bowlId]).eq('is_active',true).order('name');
-  S.players=players||[];
-
-  const {data:dels}=await sb.from('ppl_deliveries')
-    .select('*').eq('innings_id',inn.id).order('created_at',{ascending:true});
-
-  S.dismissed=[]; S.bStats={}; S.bowlerStats={}; S.curOver=[]; S.allOvers=[]; S.extras=0;
-
-  if(dels){
-    const overMap={};
-    dels.forEach(d=>{
-      const ov=d.over_number??0;
-      if(!overMap[ov]) overMap[ov]=[];
-      let tag=String(d.runs_off_bat||0);
-      if(d.is_wicket) tag='W';
-      else if(d.runs_off_bat===4) tag='4';
-      else if(d.runs_off_bat===6) tag='6';
-      else if(d.extra_type==='penalty') tag='-2';
-      else if(d.extra_type==='wide')    tag='Wd';
-      else if(d.extra_type==='no_ball') tag='Nb';
-      overMap[ov].push(tag);
-
-      if(d.dismissed_player_id) S.dismissed.push(d.dismissed_player_id);
-      S.extras+=(d.extras||0);
-      if(d.batter_id){
-        initBS(d.batter_id);
-        const bs=S.bStats[d.batter_id];
-        bs.r+=(d.runs_off_bat||0);
-        if(d.extra_type!=='wide' && d.extra_type!=='penalty') bs.b++;
-        if(d.runs_off_bat===4) bs.f++;
-        if(d.runs_off_bat===6) bs.s++;
-        if(d.is_wicket&&d.dismissed_player_id===d.batter_id) bs.out=true;
-      }
-      if(d.bowler_id){
-        initBW(d.bowler_id);
-        const bw=S.bowlerStats[d.bowler_id];
-        if(d.extra_type!=='wide'&&d.extra_type!=='no_ball') bw.legal++;
-        bw.runs+=(d.runs_off_bat||0)+(d.extras||0);
-        if(d.is_wicket&&d.dismissal_type!=='run_out') bw.wkts++;
-      }
+async function recalcAllStats() {
+  if (!confirm('Recalculate all player stats from ball-by-ball data? This may take a moment.')) return;
+  toast('Recalculating...', 'info');
+  try {
+    const { error } = await sb.functions.invoke('recalc-fantasy-points', {
+      body: { recalc_all: true }
     });
-
-    if(Object.keys(overMap).length>0){
-      const maxOv=Math.max(...Object.keys(overMap).map(Number));
-      for(let i=0;i<=maxOv;i++) S.allOvers.push(overMap[i]||[]);
-      const curOvNum=Math.floor(S.balls/6);
-      S.curOver=S.allOvers[curOvNum]||[];
-      S.allOvers=S.allOvers.slice(0,curOvNum);
-    }
+    if (error) throw error;
+    toast('Stats recalculated successfully!', 'success');
+  } catch (e) {
+    toast('Failed: ' + (e.message || 'Edge function not deployed'), 'error');
   }
+}
 
-  S.striker    = inn.current_striker_id     || (dels?.length?dels[dels.length-1].batter_id:null);
-  S.nonStriker = inn.current_non_striker_id || null;
-  S.bowler     = inn.current_bowler_id      || (dels?.length?dels[dels.length-1].bowler_id:null);
+// ═══════════════════════════════════════════════
+// DB HELPERS
+// ═══════════════════════════════════════════════
+async function insertDelivery(fields) {
+  const matchId=S.superMatchId||S.match.id;
+  const {error}=await sb.from('ppl_deliveries').insert({
+    innings_id:    S.innId,
+    match_id:      matchId,
+    over_number:   Math.floor(S.balls/6),
+    ball_number:   S.balls%6,
+    batter_id:     S.striker,
+    non_striker_id:S.nonStriker,
+    bowler_id:     S.bowler,
+    ...fields
+  });
+  if(error) console.error('[PPL del]',error.message);
 
-  if(S.innNum===2){
-    const {data:i1}=await sb.from('ppl_innings')
-      .select('*').eq('match_id',matchId).eq('innings_number',1).single();
-    if(i1) S.inn1Score={
-      runs:i1.total_runs, wkts:i1.total_wickets,
-      balls:ovsToBalls(parseFloat(i1.total_overs)||0),
-      team:i1.batting_team_id
-    };
-  }
+  await sb.from('ppl_innings').update({
+    current_striker_id:     S.striker,
+    current_non_striker_id: S.nonStriker,
+    current_bowler_id:      S.bowler
+  }).eq('id',S.innId);
+}
 
-  document.getElementById('sc-match-label').textContent=`M${S.match.match_number} · Inn ${S.innNum}`;
-  document.getElementById('strike-notice').style.display='none';
-  toast('✅ Match resumed!');
-  renderScore(); go('s-score');
+async function saveLive() {
+  await sb.from('ppl_innings').update({
+    total_runs:             S.runs,
+    total_wickets:          S.wkts,
+    total_overs:            parseFloat(fmtOv(S.balls)),
+    extras:                 S.extras,
+    current_striker_id:     S.striker,
+    current_non_striker_id: S.nonStriker,
+    current_bowler_id:      S.bowler
+  }).eq('id',S.innId);
 }
 
 // ═══════════════════════════════════════════════
@@ -1971,7 +1989,29 @@ function renderScore() {
   log.scrollTop=log.scrollHeight;
 }
 
+// ═══════════════════════════════════════════════
+// RESET STATE
+// ═══════════════════════════════════════════════
+function resetState() {
+  S={
+    match:null, allMatches:[], teams:{...S.teams}, players:[],
+    totalOvers:6, maxWkt:8,
+    innNum:1, isSuperOver:false,
+    superMatchId:null, superOverInnings:null, superOverWinner:null,
+    innId:null, batId:null, bowlId:null,
+    striker:null, nonStriker:null, bowler:null,
+    runs:0, wkts:0, balls:0, extras:0,
+    curOver:[], allOvers:[],
+    inn1Score:null, extraType:null,
+    dismissed:[], bStats:{}, bowlerStats:{},
+    prevBowler:null, editDelvId:null,
+    editMatchData:null, editMatchPlayers:[],
+    isFreeHit: false, nextBallFreeHit: false
+  };
+}
+
 document.getElementById('pin-input').focus();
 </script>
+
 </body>
 </html>
