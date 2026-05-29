@@ -42,7 +42,6 @@ const chatMessages = document.getElementById("chatMessages");
 const chatForm     = document.getElementById("chatForm");
 const chatInput    = document.getElementById("chatInput");
 
-
 /* ══════════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════════ */
@@ -160,36 +159,47 @@ async function fetchHomeData(userId) {
         supabase.from("ppl_fantasy_days").select("*").order("created_at")
     ]);
 
-    // Handle Match Cards
+    // Handle Match Cards (CRICBUZZ STACKED LAYOUT)
     const liveMatch = (matches || []).find(m => m.status === 'in_progress');
     const nextMatch = (matches || []).find(m => m.status === 'upcoming');
     const bucket = supabase.storage.from("team-logos");
 
     const liveCard = document.getElementById("liveMatchCard");
+    const nextCard = document.getElementById("nextMatchCard");
+
+    // Logic: Show Live if exists, else show Next. Never show both side-by-side to avoid clutter.
     if (liveMatch && liveCard) {
         liveCard.classList.remove("hidden");
-        document.getElementById("liveMatchTeams").textContent = `${liveMatch.team_a?.short_name || 'TBA'} vs ${liveMatch.team_b?.short_name || 'TBA'}`;
-        document.getElementById("liveMatchVenue").textContent = `🏟️ PPL Ground · Match ${liveMatch.match_number}`;
+        if (nextCard) nextCard.classList.add("hidden"); 
+
+        document.getElementById("liveMatchVenue").textContent = `Match ${liveMatch.match_number} • PPL Ground`;
+        document.getElementById("liveTeamAName").textContent = liveMatch.team_a?.short_name || 'TBA';
+        document.getElementById("liveTeamBName").textContent = liveMatch.team_b?.short_name || 'TBA';
+        
         const logoA = liveMatch.team_a?.photo_name ? bucket.getPublicUrl(liveMatch.team_a.photo_name).data.publicUrl : "images/default-team.png";
         const logoB = liveMatch.team_b?.photo_name ? bucket.getPublicUrl(liveMatch.team_b.photo_name).data.publicUrl : "images/default-team.png";
+        
         document.getElementById("liveTeamALogo").style.backgroundImage = `url('${logoA}')`;
         document.getElementById("liveTeamBLogo").style.backgroundImage = `url('${logoB}')`;
-    } else if (liveCard) {
-        liveCard.classList.add("hidden");
-    }
-
-    const nextCard = document.getElementById("nextMatchCard");
-    if (nextMatch && nextCard) {
+    } 
+    else if (nextMatch && nextCard) {
+        if (liveCard) liveCard.classList.add("hidden"); 
         nextCard.classList.remove("hidden");
-        document.getElementById("nextMatchTeams").textContent = `${nextMatch.team_a?.short_name || 'TBA'} vs ${nextMatch.team_b?.short_name || 'TBA'}`;
-        document.getElementById("nextMatchVenue").textContent = `🏟️ PPL Ground · Match ${nextMatch.match_number}`;
+
+        document.getElementById("nextMatchVenue").textContent = `Match ${nextMatch.match_number} • PPL Ground`;
+        document.getElementById("nextTeamAName").textContent = nextMatch.team_a?.short_name || 'TBA';
+        document.getElementById("nextTeamBName").textContent = nextMatch.team_b?.short_name || 'TBA';
+
         const logoA = nextMatch.team_a?.photo_name ? bucket.getPublicUrl(nextMatch.team_a.photo_name).data.publicUrl : "images/default-team.png";
         const logoB = nextMatch.team_b?.photo_name ? bucket.getPublicUrl(nextMatch.team_b.photo_name).data.publicUrl : "images/default-team.png";
+        
         document.getElementById("nextTeamALogo").style.backgroundImage = `url('${logoA}')`;
         document.getElementById("nextTeamBLogo").style.backgroundImage = `url('${logoB}')`;
+        
         startCountdown(nextMatch.actual_start_time || nextMatch.scheduled_time);
-    } else if (nextCard) {
-        nextCard.classList.add("hidden");
+    } else {
+        if (liveCard) liveCard.classList.add("hidden");
+        if (nextCard) nextCard.classList.add("hidden");
     }
 
     // Handle Fantasy Action Logic (Edit Team Enable/Disable)
@@ -218,7 +228,6 @@ async function loadTournamentStats() {
     const grid = document.getElementById("topPerformersGrid");
     if (!grid) return;
 
-    // Fetch all players from the aggregated view
     const { data } = await supabase
         .from('v_ppl_player_overall_stats')
         .select('*')
@@ -229,16 +238,9 @@ async function loadTournamentStats() {
         return;
     }
 
-    // 1. Man of the Series / MVP (Highest overall fantasy points)
     const mvp = data[0];
-
-    // 2. Top Batter (Highest runs) - Exclude the MVP if you want distinct players
     const topBatter = [...data].sort((a, b) => b.runs - a.runs)[0];
-
-    // 3. Top Bowler (Highest wickets)
     const topBowler = [...data].sort((a, b) => b.wickets - a.wickets)[0];
-
-    // 4. Top Fielder (Highest fielding involvements)
     const topFielder = [...data].sort((a, b) => b.fielding - a.fielding)[0];
 
     const cardsToRender = [
@@ -260,6 +262,7 @@ async function loadTournamentStats() {
         </div>
     `).join('');
 }
+
 async function loadGroupsPreview() {
     const grid = document.getElementById("groupsPreviewGrid");
     if (!grid) return;

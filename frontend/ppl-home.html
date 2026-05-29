@@ -24,6 +24,43 @@
   <script type="module" src="auth-guard.js"></script>
   
   <style>
+    /* ── PREMIUM CRICBUZZ STYLE SCORECARD ── */
+    .premium-match-card {
+        background: linear-gradient(180deg, var(--bg-card) 0%, #0b1121 100%);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 0;
+        overflow: hidden;
+        margin-bottom: 12px;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        transition: transform 0.1s ease;
+    }
+    .premium-match-card:active { transform: scale(0.98); }
+    .pmc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: rgba(0,0,0,0.25);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .pmc-badge { font-family: var(--font-display); font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+    .pmc-badge.live { background: rgba(239,68,68,0.15); color: #ef4444; animation: livePulse 2s infinite; }
+    .pmc-badge.live i { font-size: 8px; margin-right: 4px; vertical-align: middle; }
+    .pmc-badge.up { background: rgba(154,224,0,0.15); color: #9AE000; }
+    .pmc-venue { font-size: 11px; color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .pmc-body { padding: 16px 14px 14px; }
+    .pmc-team-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .pmc-team-row:last-of-type { margin-bottom: 16px; }
+    .pmc-team-info { display: flex; align-items: center; gap: 12px; }
+    .pmc-logo { width: 34px; height: 34px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.1); background-color: #1e293b; }
+    .pmc-team-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    
+    .pmc-status { font-size: 12px; font-weight: 600; text-align: left; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 12px; color: var(--text-dim); display: flex; align-items: center; justify-content: space-between;}
+    .pmc-status.countdown { color: #9AE000; }
+
     /* Stats Grid */
     .stats-grid-ppl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .stat-mini-card { background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px; text-align: center; }
@@ -109,42 +146,52 @@
     </div>
   </section>
 
-  <!-- 2. LIVE MATCH CARD -->
-  <section class="card match-card hidden" id="liveMatchCard" style="border-color: rgba(239,68,68,0.4); background: linear-gradient(145deg, #1a0a0a, var(--bg-card));">
-    <div class="match-card-header">
-      <span class="match-badge" style="background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.3);">● LIVE NOW</span>
-      <p id="liveMatchVenue" class="match-venue">PPL Ground</p>
+  <!-- 2. LIVE MATCH CARD (Cricbuzz Style) -->
+  <section class="premium-match-card hidden" id="liveMatchCard" onclick="location.href='ppl-live.html'">
+    <div class="pmc-header">
+      <span class="pmc-badge live"><i class="fas fa-circle"></i> LIVE</span>
+      <span class="pmc-venue" id="liveMatchVenue">PPL Ground</span>
     </div>
-    <div class="match-vs-row">
-      <div id="liveTeamALogo" class="team-logo"></div>
-      <div class="match-center">
-        <h2 class="match-teams" id="liveMatchTeams">-- vs --</h2>
-        <p class="match-time" style="color:var(--red); font-weight:800; font-size:14px; animation: livePulse 1.5s infinite;">
-          Action in progress
-        </p>
+    <div class="pmc-body">
+      <div class="pmc-team-row">
+        <div class="pmc-team-info">
+          <div class="pmc-logo" id="liveTeamALogo"></div>
+          <span class="pmc-team-name" id="liveTeamAName">--</span>
+        </div>
       </div>
-      <div id="liveTeamBLogo" class="team-logo"></div>
-    </div>
-    <div class="match-actions">
-      <button class="btn-primary full-width" onclick="location.href='ppl-live.html'" style="background:var(--red);color:#fff">View Live Match Center</button>
+      <div class="pmc-team-row">
+        <div class="pmc-team-info">
+          <div class="pmc-logo" id="liveTeamBLogo"></div>
+          <span class="pmc-team-name" id="liveTeamBName">--</span>
+        </div>
+      </div>
+      <div class="pmc-status" id="liveMatchStatus">
+        <span style="color: #ef4444;">Action in progress...</span>
+        <span style="color: var(--text-faint); font-size: 11px;"><i class="fas fa-chevron-right"></i></span>
+      </div>
     </div>
   </section>
 
-  <!-- 3. NEXT MATCH CARD -->
-  <section class="card match-card hidden" id="nextMatchCard">
-    <div class="match-card-header">
-      <span class="match-badge">NEXT MATCH</span>
-      <p id="nextMatchVenue" class="match-venue">PPL Ground</p>
+  <!-- 3. NEXT MATCH CARD (Cricbuzz Style) -->
+  <section class="premium-match-card hidden" id="nextMatchCard">
+    <div class="pmc-header">
+      <span class="pmc-badge up"><i class="fas fa-calendar-alt"></i> UPCOMING</span>
+      <span class="pmc-venue" id="nextMatchVenue">PPL Ground</span>
     </div>
-    <div class="match-vs-row">
-      <div id="nextTeamALogo" class="team-logo"></div>
-      <div class="match-center">
-        <h2 class="match-teams" id="nextMatchTeams">-- vs --</h2>
-        <p class="match-time neon-green" id="nextMatchTime">
-          <i class="far fa-clock"></i> Loading...
-        </p>
+    <div class="pmc-body">
+      <div class="pmc-team-row">
+        <div class="pmc-team-info">
+          <div class="pmc-logo" id="nextTeamALogo"></div>
+          <span class="pmc-team-name" id="nextTeamAName">--</span>
+        </div>
       </div>
-      <div id="nextTeamBLogo" class="team-logo"></div>
+      <div class="pmc-team-row">
+        <div class="pmc-team-info">
+          <div class="pmc-logo" id="nextTeamBLogo"></div>
+          <span class="pmc-team-name" id="nextTeamBName">--</span>
+        </div>
+      </div>
+      <div class="pmc-status countdown" id="nextMatchTime"><i class="far fa-clock"></i> Loading...</div>
     </div>
   </section>
 
