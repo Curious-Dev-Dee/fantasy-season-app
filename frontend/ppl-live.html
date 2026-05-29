@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PPL 2026 — Live</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -225,7 +225,7 @@
       margin-top: 2px;
     }
 
-    /* ── CURRENT OVER ── */
+    /* ── CURRENT OVER / BALL CHIPS ── */
     .section-label {
       font-family: var(--font-display);
       font-size: 10px;
@@ -236,32 +236,15 @@
       margin: 20px 16px 10px;
     }
     .current-over-wrap { margin: 0 16px; }
-    .over-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .over-num {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-dim);
-    }
-    .over-runs {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--accent);
-    }
     .balls-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
     .ball-chip {
-      width: 36px; height: 36px;
-      border-radius: 50%;
+      min-width: 34px; height: 34px;
+      padding: 0 6px;
+      border-radius: 8px; /* Safe rectangles to hold mixed string labels without distortion */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -269,15 +252,29 @@
       font-size: 14px;
       font-weight: 900;
       border: 1.5px solid transparent;
+      transition: var(--transition);
     }
-    .ball-chip.b-dot  { background: rgba(255,255,255,0.04); color: var(--text-faint); border-color: var(--border); }
-    .ball-chip.b-runs { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: var(--border-card); }
-    .ball-chip.b-four { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.3); }
-    .ball-chip.b-six  { background: rgba(96,165,250,0.15); color: #60a5fa; border-color: rgba(96,165,250,0.3); }
-    .ball-chip.b-wkt  { background: rgba(239,68,68,0.2); color: var(--red); border-color: rgba(239,68,68,0.4); }
-    .ball-chip.b-wide { background: rgba(251,146,60,0.12); color: var(--orange); border-color: rgba(251,146,60,0.25); font-size: 10px; }
-    .ball-chip.b-nb   { background: rgba(245,158,11,0.12); color: var(--gold); border-color: rgba(245,158,11,0.25); font-size: 10px; }
+    .ball-chip.b-dot   { background: rgba(255,255,255,0.04); color: var(--text-faint); border-color: var(--border); }
+    .ball-chip.b-runs  { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: var(--border-card); }
+    .ball-chip.b-four  { background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.3); animation: popScale 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .ball-chip.b-six   { background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.3); animation: popScale 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .ball-chip.b-wkt   { background: rgba(239,68,68,0.25); color: var(--red); border-color: rgba(239,68,68,0.45); animation: shakeFlash 0.4s ease-in-out; }
+    .ball-chip.b-wide  { background: rgba(251,146,60,0.12); color: var(--orange); border-color: rgba(251,146,60,0.25); font-size: 11px; }
+    .ball-chip.b-nb    { background: rgba(245,158,11,0.12); color: var(--gold); border-color: rgba(245,158,11,0.25); font-size: 11px; }
+    .ball-chip.b-m2    { background: rgba(168,85,247,0.15); color: #a78bfa; border-color: rgba(168,85,247,0.3); font-size: 12px; }
     .ball-chip.b-empty { background: rgba(255,255,255,0.02); border-color: var(--border-subtle); }
+
+    /* ── CORE ANIMATIONS FOR PREMIUM UX ── */
+    @keyframes popScale {
+      0% { transform: scale(0.4); opacity: 0; }
+      70% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shakeFlash {
+      0%, 100% { transform: translateX(0); background: rgba(239,68,68,0.25); }
+      20%, 60% { transform: translateX(-4px); background: rgba(239,68,68,0.6); }
+      40%, 80% { transform: translateX(4px); background: rgba(239,68,68,0.6); }
+    }
 
     /* ── AT THE CREASE ── */
     .crease-card {
@@ -439,44 +436,6 @@
       transition: var(--transition);
     }
 
-    /* ── RECENT MATCHES ── */
-    .match-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius);
-      padding: 13px 14px;
-      margin: 0 16px 8px;
-      cursor: pointer;
-      transition: var(--transition);
-      text-decoration: none;
-      display: block;
-    }
-    .match-card:active { transform: scale(0.98); }
-    .match-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .match-num { font-size: 11px; color: var(--text-faint); font-weight: 600; }
-    .status-pill {
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      padding: 2px 8px;
-      border-radius: 6px;
-    }
-    .s-completed { background: rgba(154,224,0,0.08); color: var(--accent); border: 1px solid var(--border-accent); }
-    .s-no_result { background: rgba(251,146,60,0.1); color: var(--orange); border: 1px solid rgba(251,146,60,0.25); }
-    .match-teams {
-      font-family: var(--font-display);
-      font-size: 19px;
-      font-weight: 900;
-      margin-bottom: 3px;
-    }
-    .match-result { font-size: 12px; color: var(--text-faint); }
-
     /* ── BOTTOM NAV ── */
     .bottom-nav {
       position: fixed;
@@ -563,7 +522,6 @@ async function init() {
 
 // ── LOAD DATA ─────────────────────────────────────────────────
 async function loadData() {
-  // 1. Find the match to display
   let matchQ = sb.from('ppl_matches')
     .select(`*, team_a:team_a_id(id,name,short_name), team_b:team_b_id(id,name,short_name),
              winner:winner_id(name), mom:mom_player_id(name,id),
@@ -575,7 +533,6 @@ async function loadData() {
     const { data } = await matchQ;
     matchData = data;
   } else {
-    // Auto-detect: live first, then most recent completed
     const { data: all } = await matchQ.order('match_number');
     if (!all) return renderNoMatch();
     matchData = all.find(m => m.status === 'in_progress') || all.filter(m => m.status === 'completed').pop();
@@ -583,20 +540,17 @@ async function loadData() {
 
   if (!matchData) return renderNoMatch(urlMatchId ? null : true);
 
-  // 2. Load deliveries for this match
   const { data: del } = await sb.from('ppl_deliveries')
     .select('*')
     .eq('match_id', matchData.id)
     .order('innings_id').order('over_number').order('ball_number');
   allDeliveries = del || [];
 
-  // 3. Load players for both teams
   const { data: pl } = await sb.from('ppl_players')
     .select('id,name,team_id')
     .in('team_id', [matchData.team_a_id, matchData.team_b_id].filter(Boolean));
   allPlayers = pl || [];
 
-  // 4. Load current innings state
   const { data: innsState } = await sb.from('ppl_innings')
     .select('*')
     .eq('match_id', matchData.id)
@@ -612,7 +566,6 @@ function render() {
   const isLive = m.status === 'in_progress';
   const inns = (m.innings || []).sort((a,b) => a.innings_number - b.innings_number);
 
-  // Header state
   const dot = document.getElementById('headerDot');
   const badge = document.getElementById('headerBadge');
   if (isLive) {
@@ -625,7 +578,6 @@ function render() {
     badge.textContent = 'RECENT';
   }
 
-  // Which innings is current (in progress) or last?
   const currentInn = isLive
     ? inns.find(i => !i.is_complete) || inns[inns.length - 1]
     : inns[inns.length - 1];
@@ -633,47 +585,39 @@ function render() {
   const secondInn = inns[1];
   const isSecondInnings = inns.length >= 2 && currentInn?.innings_number === 2;
 
-  // Deliveries for current innings
   const currDels = currentInn ? allDeliveries.filter(d => d.innings_id === currentInn.id) : [];
 
-  // Current over balls
   const lastOverNum = currDels.length > 0 ? currDels[currDels.length - 1].over_number : 0;
   const currentOverBalls = currDels.filter(d => d.over_number === lastOverNum);
   const overRunsThisOver = currentOverBalls.reduce((s,d) => s + (d.runs_off_bat||0) + (d.extras||0), 0);
   const currentOverNum = currentInn ? Math.floor(parseFloat(currentInn.total_overs || 0)) : 0;
 
-  // Current batters & bowler from ppl_innings state
   const strikerId = currentInn?.current_striker_id;
   const nonStrikerId = currentInn?.current_non_striker_id;
   const bowlerId = currentInn?.current_bowler_id;
 
-  // Batter stats from deliveries
+  function pName(id) { return allPlayers.find(p => p.id === id)?.name || '—'; }
+
   function getBatterStats(batterId) {
     const dels = currDels.filter(d => d.batter_id === batterId);
     return {
       runs: dels.reduce((s,d) => s + (d.runs_off_bat||0), 0),
-      balls: dels.filter(d => !d.extra_type || d.extra_type === 'no_ball').length, // No-balls count for batters
+      balls: dels.filter(d => d.is_legal_delivery || d.extra_type === 'no_ball').length,
       fours: dels.filter(d => d.is_four).length,
       sixes: dels.filter(d => d.is_six).length,
     };
   }
   
-  // Bowler stats from deliveries
   function getBowlerStats(bowlerId) {
     const bowlDels = currDels.filter(d => d.bowler_id === bowlerId);
-    // Wides and No Balls do NOT count as legal deliveries for a bowler
-    const legalBalls = bowlDels.filter(d => !d.extra_type || (d.extra_type !== 'wide' && d.extra_type !== 'no_ball')).length;
+    const legalBalls = bowlDels.filter(d => d.is_legal_delivery).length;
     return {
       overs: `${Math.floor(legalBalls/6)}.${legalBalls%6}`,
       runs: bowlDels.reduce((s,d) => s + (d.runs_off_bat||0) + (d.extras||0), 0),
-      // Fixed the database spelling of run_out
       wickets: bowlDels.filter(d => d.is_wicket && !['run_out','retired_out'].includes(d.dismissal_type)).length,
     };
   }
 
-  function pName(id) { return allPlayers.find(p => p.id === id)?.name || '—'; }
-
-  // CRR (Fixed Base-6 Math)
   const overs = parseFloat(currentInn?.total_overs || 0);
   const runs = currentInn?.total_runs || 0;
   const wickets = currentInn?.total_wickets || 0;
@@ -682,7 +626,6 @@ function render() {
   const crr = totalBallsBowled > 0 ? (runs / (totalBallsBowled / 6)).toFixed(2) : '0.00';
   const maxOvers = m.overs_per_side || 8;
 
-  // Target / RRR (2nd innings)
   let targetHtml = '';
   if (isSecondInnings && firstInn) {
     const target = (firstInn.total_runs || 0) + 1;
@@ -712,22 +655,40 @@ function render() {
     }
   }
 
-  // Ball chips for current over
+  // ── COMPATIBLE BALL-BY-BALL CHIP COMPILER ──
   const emptySlots = Math.max(0, 6 - currentOverBalls.length);
   const ballChips = currentOverBalls.map(d => {
-    if (d.is_wicket) return `<div class="ball-chip b-wkt">W</div>`;
-    if (d.extra_type === 'wide') return `<div class="ball-chip b-wide">Wd</div>`;
-    if (d.extra_type === 'no_ball') return `<div class="ball-chip b-nb">Nb</div>`;
-    if (d.is_six) return `<div class="ball-chip b-six">${d.runs_off_bat||6}</div>`;
-    if (d.is_four) return `<div class="ball-chip b-four">${d.runs_off_bat||4}</div>`;
-    const r = d.runs_off_bat || 0;
-    return r === 0
-      ? `<div class="ball-chip b-dot">·</div>`
-      : `<div class="ball-chip b-runs">${r}</div>`;
+    let label = '';
+    let chipClass = 'b-runs';
+    const batRuns = d.bat_runs ?? d.runs_off_bat ?? 0;
+
+    if (d.extra_type === 'penalty') {
+      label = '-2';
+      chipClass = 'b-m2';
+    } else if (d.extra_type === 'wide') {
+      label = 'Wd';
+      chipClass = 'b-wide';
+      if (batRuns > 0) label += `+${batRuns}`;
+    } else if (d.extra_type === 'no_ball') {
+      label = 'Nb';
+      chipClass = 'b-nb';
+      if (batRuns > 0) label += `+${batRuns}`;
+    } else {
+      label = batRuns === 0 ? '·' : batRuns;
+      if (batRuns === 0) chipClass = 'b-dot';
+      else if (d.is_six) chipClass = 'b-six';
+      else if (d.is_four) chipClass = 'b-four';
+    }
+
+    if (d.is_wicket) {
+      label += 'W';
+      chipClass = 'b-wkt';
+    }
+
+    return `<div class="ball-chip ${chipClass}">${label}</div>`;
   }).join('');
   const emptyChips = Array(emptySlots).fill('<div class="ball-chip b-empty"></div>').join('');
 
-  // Score block
   let scoreBlock = '';
   if (isSecondInnings && firstInn && secondInn) {
     const firstTeam = firstInn.batting_team_id === m.team_a_id ? m.team_a : m.team_b;
@@ -757,7 +718,6 @@ function render() {
       </div>`;
   }
 
-  // Crease info
   let creaseHtml = '';
   if (isLive && (strikerId || bowlerId)) {
     const strikerStats = strikerId ? getBatterStats(strikerId) : null;
@@ -800,7 +760,6 @@ function render() {
       </div>` : ''}`;
   }
 
-  // Scorecard link
   const scorecardLink = `
     <a class="scorecard-btn" href="ppl-scorecard.html?match=${m.id}">
       <div>
@@ -810,7 +769,6 @@ function render() {
       <i class="fas fa-chevron-right" style="color:var(--text-faint)"></i>
     </a>`;
 
-  // Completed state
   let completedInfo = '';
   if (!isLive && m.result_description) {
     completedInfo = `
@@ -872,6 +830,7 @@ function render() {
     ${isLive ? '<div class="refresh-note"><i class="fas fa-circle-notch fa-spin" id="spinIcon" style="display:none"></i> Updates in real-time</div>' : ''}
   `;
 }
+
 // ── NO MATCH STATE ─────────────────────────────────────────────
 function renderNoMatch(showAll) {
   document.getElementById('headerDot').classList.add('idle');
