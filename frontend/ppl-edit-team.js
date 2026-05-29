@@ -3,7 +3,7 @@ import { authReady } from "./auth-state.js";
 
 // No WK priority needed
 const ROLE_PRIORITY = { BAT: 1, AR: 2, BOWL: 3 };
-const MIN_REQ = { BAT: 3, AR: 1, BOWL: 3 }; 
+const MIN_REQ = { BAT: 3, AR: 1, BOWL: 2 }; 
 
 let state = {
     userId: null,
