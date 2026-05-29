@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 import { authReady } from "./auth-state.js";
 
 let statsData = [];
+let fantasyData = []; // Store our new view data here
 let playersMap = {};
 let activeTab = 'batting';
 
@@ -13,13 +14,20 @@ async function init() {
     }
 
     try {
-        const [{ data: pl }, { data: stats }] = await Promise.all([
-            supabase.from('ppl_players').select('id,name,team_id,ppl_teams(short_name)'),
-            supabase.from('ppl_player_stats').select('*')
+        // Fetch players, regular stats, AND the new overall fantasy view simultaneously
+        const [
+            { data: pl }, 
+            { data: stats }, 
+            { data: fantasy }
+        ] = await Promise.all([
+            supabase.from('ppl_players').select('id,name,team_id,ppl_teams(short_name),role'),
+            supabase.from('ppl_player_stats').select('*'),
+            supabase.from('v_ppl_player_overall_stats').select('*').order('fantasy_points', { ascending: false })
         ]);
         
         (pl || []).forEach(p => { playersMap[p.id] = p; });
         statsData = stats || [];
+        fantasyData = fantasy || [];
         
         setupListeners();
         render();
@@ -50,11 +58,54 @@ function render() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     const el = document.getElementById('statsContent');
 
-    if (!statsData.length) {
+    if (!statsData.length && !fantasyData.length) {
         el.innerHTML = '<div class="empty">No stats yet. Stats appear after matches are completed.</div>';
         return;
     }
 
+    // --- FANTASY TAB LOGIC ---
+    if (activeTab === 'fantasy') {
+        // Filter fantasy data by search query
+        const data = fantasyData.filter(s => {
+            return !q || (s.name || '').toLowerCase().includes(q) || (s.team_name || '').toLowerCase().includes(q);
+        });
+
+        if(data.length === 0) {
+            el.innerHTML = '<div class="empty">No players match your search.</div>';
+            return;
+        }
+
+        el.innerHTML = data.map((player, i) => {
+            const rowCls = i === 0 ? 'sr-top1' : i === 1 ? 'sr-top2' : i === 2 ? 'sr-top3' : '';
+            return `
+            <div class="stat-row ${rowCls}" onclick="location.href='ppl-player-profile.html?player=${player.id}'">
+                <div class="sr-rank">${i + 1}</div>
+                <div class="sr-player">
+                    <div class="sr-name">${player.name}</div>
+                    <div class="sr-team">${player.team_name || 'TBA'} · ${player.role || 'Unknown'}</div>
+                </div>
+                <div class="sr-stats">
+                    <div class="sr-stat-item">
+                        <span class="sr-stat-val highlight">${player.fantasy_points || 0}</span>
+                        <span class="sr-stat-lbl">PTS</span>
+                    </div>
+                    <div class="sr-stat-item">
+                        <span class="sr-stat-val">${player.runs || 0}</span>
+                        <span class="sr-stat-lbl">RUNS</span>
+                    </div>
+                    <div class="sr-stat-item">
+                        <span class="sr-stat-val">${player.wickets || 0}</span>
+                        <span class="sr-stat-lbl">WKTS</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+        return; // Exit render early since Fantasy is handled
+    }
+
+    // --- BATTING, BOWLING, FIELDING TAB LOGIC ---
+    
+    // Filter regular stats data by search query
     let data = statsData.filter(s => {
         const p = playersMap[s.player_id];
         return !q || (p?.name || '').toLowerCase().includes(q) || (p?.ppl_teams?.short_name || '').toLowerCase().includes(q);
@@ -125,28 +176,6 @@ function render() {
                 </div>
             </div>`;
         }).join('');
-    } 
-    else if (activeTab === 'fantasy') {
-        data = data.filter(s => (s.fantasy_points_total || 0) > 0)
-                   .sort((a, b) => (b.fantasy_points_total || 0) - (a.fantasy_points_total || 0));
-        el.innerHTML = data.map((s, i) => {
-            const p = playersMap[s.player_id];
-            const avg = s.matches > 0 ? (s.fantasy_points_total / s.matches).toFixed(1) : '-';
-            const rowCls = i === 0 ? 'sr-top1' : i === 1 ? 'sr-top2' : i === 2 ? 'sr-top3' : '';
-            return `
-            <div class="stat-row ${rowCls}" onclick="location.href='ppl-player-profile.html?player=${s.player_id}'">
-                <div class="sr-rank">${i+1}</div>
-                <div class="sr-player">
-                    <div class="sr-name">${p?.name || '?'}</div>
-                    <div class="sr-team">${p?.ppl_teams?.short_name || ''}</div>
-                </div>
-                <div class="sr-stats">
-                    <div class="sr-stat-item"><div class="sr-stat-val">${s.matches || 0}</div><div class="sr-stat-lbl">M</div></div>
-                    <div class="sr-stat-item"><div class="sr-stat-val">${avg}</div><div class="sr-stat-lbl">Avg</div></div>
-                    <div class="sr-stat-item"><div class="sr-stat-val highlight">${s.fantasy_points_total || 0}</div><div class="sr-stat-lbl">Pts</div></div>
-                </div>
-            </div>`;
-        }).join('');
     }
 
     if(data.length === 0) {
@@ -154,61 +183,6 @@ function render() {
     }
 }
 
-// Add this inside your ppl-stats.js file
-
-async function loadFantasyTab() {
-    const content = document.getElementById('statsContent');
-    content.innerHTML = '<div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Loading Fantasy Leaders...</div>';
-
-    // Fetch from the aggregated view
-    const { data, error } = await supabase
-        .from('v_ppl_player_overall_stats')
-        .select('*')
-        .order('fantasy_points', { ascending: false });
-
-    if (error || !data || data.length === 0) {
-        content.innerHTML = '<div class="empty">No fantasy data available yet. Check back after Match 1!</div>';
-        return;
-    }
-
-    content.innerHTML = '';
-
-    data.forEach((player, index) => {
-        const rank = index + 1;
-        
-        // Assign styling for Top 3
-        let rankClass = '';
-        if (rank === 1) rankClass = 'sr-top1';
-        else if (rank === 2) rankClass = 'sr-top2';
-        else if (rank === 3) rankClass = 'sr-top3';
-
-        const row = document.createElement('div');
-        row.className = `stat-row ${rankClass}`;
-        
-        row.innerHTML = `
-            <div class="sr-rank">${rank}</div>
-            <div class="sr-player">
-                <div class="sr-name">${player.name}</div>
-                <div class="sr-team">${player.team_name || 'TBA'} · ${player.role}</div>
-            </div>
-            <div class="sr-stats">
-                <div class="sr-stat-item">
-                    <span class="sr-stat-val highlight">${player.fantasy_points}</span>
-                    <span class="sr-stat-lbl">PTS</span>
-                </div>
-                <div class="sr-stat-item">
-                    <span class="sr-stat-val">${player.runs}</span>
-                    <span class="sr-stat-lbl">RUNS</span>
-                </div>
-                <div class="sr-stat-item">
-                    <span class="sr-stat-val">${player.wickets}</span>
-                    <span class="sr-stat-lbl">WKTS</span>
-                </div>
-            </div>
-        `;
-        content.appendChild(row);
-    });
-}
 // Global Nav Sync (Live dot indicator)
 async function initLiveNav() {
     const navLiveDot = document.getElementById("navLiveDot");

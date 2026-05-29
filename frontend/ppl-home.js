@@ -218,35 +218,48 @@ async function loadTournamentStats() {
     const grid = document.getElementById("topPerformersGrid");
     if (!grid) return;
 
-    // Fetch from our new aggregated view
+    // Fetch all players from the aggregated view
     const { data } = await supabase
         .from('v_ppl_player_overall_stats')
         .select('*')
-        .order('fantasy_points', { ascending: false })
-        .limit(4);
+        .order('fantasy_points', { ascending: false });
 
     if (!data || data.length === 0) {
         grid.innerHTML = '<p class="loading-inline" style="grid-column: span 2;">Stats appear after matches</p>';
         return;
     }
 
-    const roleIcons = { 'BAT': '🏏', 'BOWL': '🎳', 'AR': '⚡', 'WK': '🧤' };
-    
-    grid.innerHTML = data.map((p, i) => {
-        const isMvp = i === 0;
-        return `
-        <div class="stat-mini-card ${isMvp ? 'mvp' : ''}">
-            <div class="sm-icon">${roleIcons[p.role] || '⭐'}</div>
-            <div class="sm-role">${isMvp ? 'MVP' : p.role}</div>
-            <div class="sm-name">${p.name.split(" ").pop()}</div>
-            <div class="sm-val">${p.fantasy_points}</div>
-            <div style="font-size: 9px; color: var(--text-faint); margin-top: 4px; font-weight: 600;">
-                ${p.runs}R | ${p.wickets}W | ${p.fielding}F
-            </div>
-        </div>`;
-    }).join('');
-}
+    // 1. Man of the Series / MVP (Highest overall fantasy points)
+    const mvp = data[0];
 
+    // 2. Top Batter (Highest runs) - Exclude the MVP if you want distinct players
+    const topBatter = [...data].sort((a, b) => b.runs - a.runs)[0];
+
+    // 3. Top Bowler (Highest wickets)
+    const topBowler = [...data].sort((a, b) => b.wickets - a.wickets)[0];
+
+    // 4. Top Fielder (Highest fielding involvements)
+    const topFielder = [...data].sort((a, b) => b.fielding - a.fielding)[0];
+
+    const cardsToRender = [
+        { label: "Man of Series", icon: "⭐", p: mvp, isMvp: true },
+        { label: "Top Batter", icon: "🏏", p: topBatter },
+        { label: "Top Bowler", icon: "🎳", p: topBowler },
+        { label: "Top Fielder", icon: "🧤", p: topFielder }
+    ];
+
+    grid.innerHTML = cardsToRender.map(item => `
+        <div class="stat-mini-card ${item.isMvp ? 'mvp' : ''}">
+            <div class="sm-icon">${item.icon}</div>
+            <div class="sm-role">${item.label}</div>
+            <div class="sm-name">${item.p.name.split(" ").pop()}</div>
+            <div class="sm-val">${item.p.fantasy_points} <span style="font-size: 10px; font-weight: normal; color: var(--text-faint);">PTS</span></div>
+            <div style="font-size: 9px; color: var(--text-faint); margin-top: 4px; font-weight: 600;">
+                ${item.p.runs}R | ${item.p.wickets}W | ${item.p.fielding}F
+            </div>
+        </div>
+    `).join('');
+}
 async function loadGroupsPreview() {
     const grid = document.getElementById("groupsPreviewGrid");
     if (!grid) return;
