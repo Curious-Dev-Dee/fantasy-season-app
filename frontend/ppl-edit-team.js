@@ -197,7 +197,6 @@ function updateDashboard(stats) {
 
     const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setTxt("playerCountLabel", stats.count);
-    setTxt("starCountLabel", stats.stars);
     setTxt("creditCount", (100 - stats.credits).toFixed(1));
 
     const creditEl = document.getElementById("creditCount");
@@ -265,12 +264,10 @@ function renderList(containerId, list, isMyXi, stats) {
         const r = p.role === 'WK' ? 'BAT' : p.role;
         const isSelected = pState.selectedPlayers.some(sp => sp.id === p.id);
         const tooExpensive = p.fantasy_price > (100 - stats.credits + (isSelected ? p.fantasy_price : 0));
-        const starLimit = stats.stars >= 4 && p.is_star && !isSelected;
         const roleLocked = !isSelected && (11 - stats.count) <= neededSlots && (MIN_REQ[r] - stats.roles[r]) <= 0;
-        const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || starLimit || roleLocked);
+        const isDisabled = !isMyXi && !isSelected && (stats.count >= 11 || tooExpensive || roleLocked);
 
         const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
-        const starBadge = p.is_star ? '<span class="star-icon">⭐</span>' : "";
 
         const card = document.createElement("div");
         card.className = `player-card ${isSelected ? "selected" : ""} ${isDisabled ? "player-faded" : ""}`;
@@ -382,7 +379,7 @@ function togglePlayer(id) {
     render();
 
     const stats = calcStats();
-    const allRolesMet = stats.roles.BAT >= 3 && stats.roles.AR >= 1 && stats.roles.BOWL >= 3;
+const allRolesMet = stats.roles.BAT >= 3 && stats.roles.AR >= 1 && stats.roles.BOWL >= 2;
     if (stats.count === 11 && allRolesMet && (!pState.captainId || !pState.viceCaptainId)) {
         document.querySelector(".toggle-btn[data-mode='myxi']")?.click();
         showToast("11 players added! Now set your C & VC 👑", "success");
@@ -414,7 +411,7 @@ function updateSaveButton(stats) {
         [!pState.captainId || !pState.viceCaptainId, "SAVE TEAM", "Select your Captain & Vice-Captain"],
         [stats.roles.BAT < 3, "SAVE TEAM", "Need at least 3 Batters"],
         [stats.roles.AR < 1, "SAVE TEAM", "Need at least 1 All-Rounder"],
-        [stats.roles.BOWL < 3, "SAVE TEAM", "Need at least 3 Bowlers"],
+        [stats.roles.BOWL < 2, "SAVE TEAM", "Need at least 2 Bowlers"],
         [stats.stars > 4, "SAVE TEAM", "Max 4 Star Players allowed"],
         [stats.credits > 100.05, "SAVE TEAM", "Credits exceeded — remove a player"],
     ];
