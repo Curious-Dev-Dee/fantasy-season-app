@@ -845,6 +845,128 @@ function selectMatch(m) {
 }
 
 // ═══════════════════════════════════════════════
+// RESUME MATCH LOGIC
+// ═══════════════════════════════════════════════
+async function doResume(matchId) {
+  toast('Resuming match... fetching data', 'info');
+
+  // 1. Get Match Info
+  S.match = S.allMatches.find(m => m.id === matchId);
+  if (!S.match) { toast('Match not found. Refresh page.', 'error'); return; }
+
+  S.totalOvers = S.match.overs_per_side || 6;
+  S.maxWkt = 8;
+  S.isSuperOver = S.match.is_super_over || false;
+
+  // 2. Get Active Innings
+  const { data: innings } = await sb.from('ppl_innings')
+    .select('*').eq('match_id', matchId).order('innings_number', { ascending: false }).limit(1);
+
+  if (!innings || !innings.length) { toast('No innings found for this match.', 'error'); return; }
+  const inn = innings[0];
+
+  if (inn.is_complete) {
+    toast('Current innings is already complete. Cannot resume live scoring.', 'warn');
+    return;
+  }
+
+  // 3. Restore Core State
+  S.innId = inn.id;
+  S.innNum = inn.innings_number;
+  S.batId = inn.batting_team_id;
+  S.bowlId = inn.bowling_team_id;
+  S.runs = inn.total_runs || 0;
+  S.wkts = inn.total_wickets || 0;
+  S.balls = Math.floor(inn.total_overs || 0) * 6 + Math.round(((inn.total_overs || 0) % 1) * 10);
+  S.striker = inn.current_striker_id;
+  S.nonStriker = inn.current_non_striker_id;
+  S.bowler = inn.current_bowler_id;
+
+  // If Innings 2, fetch Innings 1 score for the Target tracker
+  if (S.innNum === 2) {
+    const { data: inn1 } = await sb.from('ppl_innings').select('*').eq('match_id', matchId).eq('innings_number', 1).single();
+    if (inn1) {
+      const b1 = Math.floor(inn1.total_overs) * 6 + Math.round((inn1.total_overs % 1) * 10);
+      S.inn1Score = { runs: inn1.total_runs, wkts: inn1.total_wickets, balls: b1, team: inn1.batting_team_id };
+    }
+  }
+
+  // 4. Load players for this innings
+  await loadPlayersForInnings(); 
+  
+  // (loadPlayersForInnings resets extras to 0, so we must restore it after)
+  S.extras = inn.extras || 0; 
+
+  // 5. Reconstruct Ball-by-Ball Stats & Over Logs from Database
+  const { data: dels } = await sb.from('ppl_deliveries').select('*').eq('innings_id', S.innId).order('over_number').order('ball_number');
+  
+  if (S.striker) initBS(S.striker);
+  if (S.nonStriker) initBS(S.nonStriker);
+  if (S.bowler) initBW(S.bowler);
+
+  let curOvIndex = 0;
+  let tempOv = [];
+
+  if (dels) {
+    dels.forEach(d => {
+      // Reconstruct Batting Stats
+      if (d.batter_id) {
+        initBS(d.batter_id);
+        const bs = S.bStats[d.batter_id];
+        bs.r += (d.bat_runs ?? d.runs_off_bat ?? 0);
+        if (d.is_legal_delivery) bs.b++;
+        if (d.is_four) bs.f++;
+        if (d.is_six) bs.s++;
+      }
+
+      // Reconstruct Bowling Stats
+      if (d.bowler_id) {
+        initBW(d.bowler_id);
+        const bw = S.bowlerStats[d.bowler_id];
+        if (d.is_legal_delivery) bw.legal++;
+        bw.runs += (d.bat_runs ?? d.runs_off_bat ?? 0) + (d.extras ?? 0);
+        if (d.is_wicket && d.dismissal_type !== 'run_out') bw.wkts++;
+      }
+
+      // Reconstruct Dismissed Players
+      if (d.is_wicket && d.dismissed_player_id) {
+        S.dismissed.push(d.dismissed_player_id);
+        if (!S.bStats[d.dismissed_player_id]) initBS(d.dismissed_player_id);
+        S.bStats[d.dismissed_player_id].out = true;
+      }
+
+      // Reconstruct the Over Log bubbles at the bottom
+      let tag = '';
+      const runs = d.runs_off_bat || 0;
+      if (d.extra_type === 'wide') tag += 'Wd';
+      else if (d.extra_type === 'no_ball') tag += 'Nb';
+      else if (d.extra_type === 'penalty') tag += '-2';
+      else tag += runs;
+
+      if ((d.extra_type === 'wide' || d.extra_type === 'no_ball') && (d.bat_runs || 0) > 0) {
+          tag += '+' + d.bat_runs;
+      }
+      if (d.is_wicket) tag += 'W';
+
+      // Group into overs
+      if (d.over_number > curOvIndex) {
+        S.allOvers.push([...tempOv]);
+        tempOv = [];
+        curOvIndex = d.over_number;
+      }
+      tempOv.push(tag);
+    });
+    S.curOver = [...tempOv];
+  }
+
+  // 6. Transition to Live Scoring Screen
+  document.getElementById('sc-match-label').textContent = `M${S.match.match_number} · Inn ${S.innNum}`;
+  document.getElementById('strike-notice').style.display = 'block';
+  renderScore();
+  go('s-score');
+  toast('Match Resumed successfully!', 'success');
+}
+// ═══════════════════════════════════════════════
 // EDIT MATCH PANEL
 // ═══════════════════════════════════════════════
 async function loadEditMatchPanel(matchId, allM) {
