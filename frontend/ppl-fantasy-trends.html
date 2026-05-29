@@ -29,115 +29,77 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--font-body);
-      background: var(--bg-page);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
+      font-family: var(--font-body); background: var(--bg-page); color: var(--text-primary);
+      min-height: 100vh; display: flex; justify-content: center;
     }
-    .app-wrap {
-      width: 100%;
-      max-width: 540px;
-      padding-bottom: 80px; /* Space for bottom nav if included */
-    }
+    .app-wrap { width: 100%; max-width: 540px; padding-bottom: 80px; }
 
     /* ── STICKY TOPBAR ── */
-    .sticky-navbar {
-      position: sticky;
-      top: 0;
-      background: rgba(2,6,23,0.95);
-      backdrop-filter: blur(20px);
-      z-index: 1000;
-      border-bottom: 1px solid var(--border);
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      padding: 14px 16px;
-    }
-    .back-btn {
-      font-size: 1.3rem;
-      cursor: pointer;
-      color: var(--accent);
-      text-decoration: none;
-      margin-right: 14px;
-    }
-    .topbar h2 {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+    .sticky-navbar { position: sticky; top: 0; background: rgba(2,6,23,0.95); backdrop-filter: blur(20px); z-index: 1000; border-bottom: 1px solid var(--border); }
+    .topbar { display: flex; align-items: center; padding: 14px 16px; }
+    .back-btn { font-size: 1.3rem; cursor: pointer; color: var(--accent); text-decoration: none; margin-right: 14px; }
+    .topbar h2 { font-family: var(--font-display); font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
     /* ── SUB-TAB SWITCHER ── */
-    .inn-switcher {
-      display: flex;
-      gap: 8px;
-      background: rgba(0,0,0,0.25);
-      padding: 4px;
-      border-radius: 10px;
-      margin: 16px;
-      border: 1px solid var(--border);
-    }
-    .inn-sub-tab {
-      flex: 1; text-align: center; font-family: var(--font-display); font-size: 13px; font-weight: 700;
-      color: var(--text-dim); padding: 10px 4px; border-radius: 7px; cursor: pointer; text-transform: uppercase;
-      display: flex; flex-direction: column; gap: 4px; align-items: center; letter-spacing: 0.5px;
-    }
+    .inn-switcher { display: flex; gap: 8px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 10px; margin: 16px; border: 1px solid var(--border); }
+    .inn-sub-tab { flex: 1; text-align: center; font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-dim); padding: 10px 4px; border-radius: 7px; cursor: pointer; text-transform: uppercase; display: flex; flex-direction: column; gap: 4px; align-items: center; letter-spacing: 0.5px; transition: 0.2s ease;}
     .inn-sub-tab i { font-size: 14px; }
-    .inn-sub-tab.active {
-      background: var(--bg-card-alt); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1);
-    }
+    .inn-sub-tab.active { background: var(--bg-card-alt); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); }
     .inn-sub-tab.active i { color: var(--accent); }
+
+    /* ── PODIUM LAYOUT ── */
+    .podium-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin: 20px 16px 30px; height: 170px; }
+    .podium-step { display: flex; flex-direction: column; align-items: center; width: 32%; position: relative; }
+    .podium-avatar { 
+      width: 50px; height: 50px; border-radius: 50%; background-color: var(--bg-card-alt); 
+      border: 2px solid var(--border); z-index: 2; margin-bottom: -10px;
+      background-size: cover; background-position: top center; 
+    }
+    .step-1 .podium-avatar { width: 64px; height: 64px; border-color: var(--gold); border-width: 3px; margin-bottom: -12px; }
+    .step-2 .podium-avatar { border-color: #cbd5e1; }
+    .step-3 .podium-avatar { border-color: #b45309; }
+    
+    .podium-box { 
+      width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-bottom: none; 
+      border-radius: 12px 12px 0 0; display: flex; flex-direction: column; align-items: center; 
+      padding: 16px 4px 8px; position: relative; 
+    }
+    .step-1 .podium-box { height: 110px; background: linear-gradient(to top, rgba(245,158,11,0.1), var(--bg-card)); border-color: rgba(245,158,11,0.3); }
+    .step-2 .podium-box { height: 90px; background: linear-gradient(to top, rgba(255,255,255,0.05), var(--bg-card)); }
+    .step-3 .podium-box { height: 75px; background: linear-gradient(to top, rgba(180,83,9,0.1), var(--bg-card)); border-color: rgba(180,83,9,0.2); }
+    
+    .podium-rank-badge { 
+      position: absolute; top: -10px; width: 20px; height: 20px; border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center; font-family: var(--font-display); 
+      font-size: 11px; font-weight: 900; background: var(--bg-page); border: 2px solid var(--border); 
+    }
+    .step-1 .podium-rank-badge { background: var(--gold); color: #000; border-color: var(--gold); width: 24px; height: 24px; font-size: 13px; top: -12px; }
+    .step-2 .podium-rank-badge { background: #cbd5e1; color: #000; border-color: #cbd5e1; }
+    .step-3 .podium-rank-badge { background: #b45309; color: #fff; border-color: #b45309; }
+    
+    .podium-name { font-size: 11px; font-weight: 700; text-align: center; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-bottom: 2px; }
+    .podium-stat { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .step-1 .podium-stat { font-size: 24px; }
+    .podium-lbl { font-size: 9px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 
     /* ── LIST CONTAINER ── */
     .trends-container { padding: 0 16px; }
-    .trends-header {
-      display: flex; justify-content: space-between; align-items: flex-end;
-      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
-    }
+    .trends-header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
     .th-title { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.5px;}
     .th-count { font-size: 11px; color: var(--text-dim); font-weight: 600;}
 
-    /* ── PLAYER ROW (PREMIUM) ── */
-    .player-row {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--bg-card); border: 1px solid var(--border-subtle);
-      border-radius: 12px; padding: 12px; margin-bottom: 10px;
-      position: relative; overflow: hidden;
-    }
-    .rank-col {
-      width: 24px; font-family: var(--font-display); font-size: 16px; font-weight: 900; 
-      color: var(--text-faint); text-align: center;
-    }
-    .rank-1 { color: var(--gold); font-size: 20px; }
-    .rank-2 { color: #cbd5e1; }
-    .rank-3 { color: #b45309; }
-
-    .avatar-col {
-      width: 44px; height: 44px; border-radius: 50%;
-      background-color: var(--bg-card-alt); background-size: cover; background-position: top center;
-      border: 1px solid var(--border); flex-shrink: 0;
-    }
+    /* ── PLAYER ROW ── */
+    .player-row { display: flex; align-items: center; gap: 12px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; margin-bottom: 10px; position: relative; overflow: hidden; }
+    .rank-col { width: 24px; font-family: var(--font-display); font-size: 16px; font-weight: 900; color: var(--text-faint); text-align: center; }
+    .avatar-col { width: 44px; height: 44px; border-radius: 50%; background-color: var(--bg-card-alt); background-size: cover; background-position: top center; border: 1px solid var(--border); flex-shrink: 0; }
     .info-col { flex: 1; min-width: 0; }
     .p-name { font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
     .p-meta { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
-    
-    .stat-col {
-      text-align: right; min-width: 60px;
-    }
+    .stat-col { text-align: right; min-width: 60px; }
     .stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--text-primary); line-height: 1; }
     .stat-pct { font-size: 10px; color: var(--accent); font-weight: 700; margin-top: 2px; }
-
-    /* Visual Background Progress Bar */
-    .bg-progress {
-      position: absolute; top: 0; left: 0; bottom: 0;
-      background: linear-gradient(90deg, rgba(154,224,0,0.08) 0%, rgba(154,224,0,0.02) 100%);
-      z-index: 0; pointer-events: none; border-radius: 12px;
-    }
-    .player-row > * { position: relative; z-index: 1; } /* Keep text above progress bar */
+    .bg-progress { position: absolute; top: 0; left: 0; bottom: 0; background: linear-gradient(90deg, rgba(154,224,0,0.08) 0%, rgba(154,224,0,0.02) 100%); z-index: 0; pointer-events: none; border-radius: 12px; }
+    .player-row > * { position: relative; z-index: 1; } 
 
     .loading { text-align: center; color: var(--text-faint); padding: 50px 0; font-size: 13px; }
   </style>
@@ -164,15 +126,10 @@
     </div>
   </div>
 
-  <div class="trends-container">
-    <div class="trends-header">
-      <div class="th-title" id="listTitle">Global Selection Stats</div>
-      <div class="th-count" id="totalTeamsLabel">Analyzing...</div>
-    </div>
-    <div id="trendsList">
-      <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Crunching Fantasy Data...</div>
-    </div>
+  <div id="trendsContainer">
+    <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> Crunching Fantasy Data...</div>
   </div>
+  
 </div>
 
 <script>
@@ -182,27 +139,24 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 
 let rawData = [];
 let totalUserTeams = 0;
-let currentMode = 'picked'; // 'picked', 'cap', 'vc'
+let currentMode = 'picked';
+
+const bucket = sb.storage.from("player-photos");
 
 async function init() {
-  // 1. Fetch total number of user teams created (for percentage calculation)
   const { count } = await sb.from('user_profiles').select('*', { count: 'exact', head: true }).eq('profile_completed', true);
-  totalUserTeams = count || 1; // Fallback to 1 to prevent division by zero
+  totalUserTeams = count || 1;
 
-  document.getElementById('totalTeamsLabel').textContent = `Based on ${totalUserTeams} Teams`;
-
-  // 2. Fetch all picks and all player details
   const [picksRes, playersRes] = await Promise.all([
     sb.from('ppl_user_team_players').select('player_id, is_captain, is_vice_captain'),
     sb.from('ppl_players').select('id, name, role, photo_url, team:team_id(short_name)')
   ]);
 
   if (picksRes.error || playersRes.error) {
-    document.getElementById('trendsList').innerHTML = '<div class="loading">Failed to load data.</div>';
+    document.getElementById('trendsContainer').innerHTML = '<div class="loading">Failed to load data.</div>';
     return;
   }
 
-  // 3. Aggregate Data
   const statsMap = {};
   playersRes.data.forEach(p => {
     statsMap[p.id] = { ...p, picked: 0, cap: 0, vc: 0 };
@@ -216,34 +170,53 @@ async function init() {
     }
   });
 
-  // Convert to array and remove players with 0 picks entirely to clean up the list
   rawData = Object.values(statsMap).filter(p => p.picked > 0);
-
-  renderList();
+  renderView();
 }
 
 function switchTab(mode) {
   currentMode = mode;
   document.querySelectorAll('.inn-sub-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + mode).classList.add('active');
-  
-  const titles = {
-    'picked': 'Most Selected Players',
-    'cap': 'Most Trusted Captains',
-    'vc': 'Popular Vice-Captains'
-  };
-  document.getElementById('listTitle').textContent = titles[mode];
-  
-  renderList();
+  renderView();
 }
 
-function renderList() {
-  const container = document.getElementById('trendsList');
-  
-  // Sort data based on active tab
-  let sortedData = [...rawData].sort((a, b) => b[currentMode] - a[currentMode]);
+function getPhotoUrl(path) {
+  return path ? bucket.getPublicUrl(path).data.publicUrl : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+}
 
-  // Filter out zero counts for specific tabs (e.g., don't show players with 0 captain picks in the Captain tab)
+function buildPodiumHtml(top3) {
+  if (top3.length === 0) return '';
+  
+  const getStepHtml = (playerObj, rank) => {
+    if (!playerObj) return `<div class="podium-step step-${rank}"></div>`;
+    const val = playerObj[currentMode];
+    const pct = ((val / totalUserTeams) * 100).toFixed(1);
+    
+    return `
+    <div class="podium-step step-${rank}">
+        <div class="podium-avatar" style="background-image: url('${getPhotoUrl(playerObj.photo_url)}')"></div>
+        <div class="podium-box">
+            <div class="podium-rank-badge">${rank}</div>
+            <div class="podium-name">${playerObj.name}</div>
+            <div class="podium-stat">${val}</div>
+            <div class="podium-lbl">${pct}% Teams</div>
+        </div>
+    </div>`;
+  };
+
+  return `
+  <div class="podium-wrapper">
+      ${getStepHtml(top3[1], 2)}
+      ${getStepHtml(top3[0], 1)}
+      ${getStepHtml(top3[2], 3)}
+  </div>`;
+}
+
+function renderView() {
+  const container = document.getElementById('trendsContainer');
+  
+  let sortedData = [...rawData].sort((a, b) => b[currentMode] - a[currentMode]);
   sortedData = sortedData.filter(p => p[currentMode] > 0);
 
   if (sortedData.length === 0) {
@@ -251,30 +224,35 @@ function renderList() {
     return;
   }
 
-  const bucket = sb.storage.from("player-photos");
-  let html = '';
+  const titles = { 'picked': 'Global Selection Stats', 'cap': 'Captaincy Distribution', 'vc': 'Vice-Captaincy Distribution' };
+  
+  const top3 = sortedData.slice(0, 3);
+  const rest = sortedData.slice(3);
 
-  sortedData.forEach((p, index) => {
-    const rank = index + 1;
-    const rankClass = rank <= 3 ? `rank-${rank}` : '';
-    const photoUrl = p.photo_url ? bucket.getPublicUrl(p.photo_url).data.publicUrl : "images/default-avatar.png";
-    const teamShort = p.team?.short_name || 'TBA';
-    
-    // Value and Percentage
+  let html = buildPodiumHtml(top3);
+
+  html += `
+  <div class="trends-container">
+    <div class="trends-header">
+      <div class="th-title">${titles[currentMode]}</div>
+      <div class="th-count">Based on ${totalUserTeams} Teams</div>
+    </div>
+  `;
+
+  rest.forEach((p, index) => {
+    const rank = index + 4;
     const val = p[currentMode];
     const pct = ((val / totalUserTeams) * 100).toFixed(1);
-    
-    // The subtle background bar width
     const bgWidth = Math.min(100, Math.max(2, pct)); 
 
     html += `
       <div class="player-row">
         <div class="bg-progress" style="width: ${bgWidth}%;"></div>
-        <div class="rank-col ${rankClass}">${rank}</div>
-        <div class="avatar-col" style="background-image: url('${photoUrl}')"></div>
+        <div class="rank-col">${rank}</div>
+        <div class="avatar-col" style="background-image: url('${getPhotoUrl(p.photo_url)}')"></div>
         <div class="info-col">
           <div class="p-name">${p.name}</div>
-          <div class="p-meta">${teamShort} • ${p.role}</div>
+          <div class="p-meta">${p.team?.short_name || 'TBA'} • ${p.role}</div>
         </div>
         <div class="stat-col">
           <div class="stat-val">${val}</div>
@@ -284,6 +262,7 @@ function renderList() {
     `;
   });
 
+  html += `</div>`;
   container.innerHTML = html;
 }
 
