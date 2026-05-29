@@ -290,7 +290,7 @@ function renderList(containerId, list, isMyXi, stats) {
             <span class="p-team-badge">${p.ppl_teams?.short_name || 'TBA'}</span>
         </div>
         <div class="player-info">
-            <strong class="p-name">${p.name} ${starBadge}</strong>
+<strong class="p-name">${p.name}</strong>
             <span class="p-meta">${p.fantasy_price} Cr · ${r}</span>
         </div>
         <div class="controls">
