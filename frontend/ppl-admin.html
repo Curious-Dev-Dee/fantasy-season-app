@@ -1336,14 +1336,11 @@ async function confirmExtra() {
   if(isWide) extraCols.wide_runs=total;
   if(isNB)   extraCols.noball_runs=1; 
 
-let batRuns = isNB ? xruns : 0;
-let isFour = false, isSix = false;
-if (isNB && bnd === 'four') { batRuns = 4; isFour = true; }
-if (isNB && bnd === 'six')  { batRuns = 6; isSix  = true; }
+  const batRuns = isNB ? xruns : 0;
 
   await insertDelivery({
     runs_off_bat: batRuns, extras: isWide ? 1 : 1, extra_type: type,
-    is_wicket: false, is_four: isFour, is_six: isSix,
+    is_wicket: false, is_four: bnd==='four', is_six: bnd==='six',
     is_legal_delivery: isLegal, bat_runs: batRuns,
     ...extraCols
   });
@@ -1382,17 +1379,11 @@ function openWicket() {
   const avail=S.players.filter(p=>
     p.team_id===S.batId && p.id!==S.striker && p.id!==S.nonStriker && !S.dismissed.includes(p.id)
   );
-  const fielders=S.players.filter(p=>p.team_id===S.bowlId);
-
   document.getElementById('wkt-delivery-type').value = 'legal';
   
-document.getElementById('wkt-batter').innerHTML=
-    '<option value="">— Select Batter —</option>' +
+  document.getElementById('wkt-batter').innerHTML=
+    '<option value="">— Select Batter —</option>'+
     [S.striker,S.nonStriker].filter(Boolean).map(id=>`<option value="${id}">${pName(id)}</option>`).join('');
-  document.getElementById('wkt-fielder').innerHTML=
-    fielders.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  document.getElementById('wkt-asst').innerHTML=
-    '<option value="">None</option>'+fielders.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('wkt-new-batter').innerHTML=
     '<option value="">— Select / All out —</option>'+avail.map(p=>`<option value="${p.id}">${p.name} (${p.role})</option>`).join('');
   document.getElementById('wkt-runs').value=0;
@@ -1418,11 +1409,8 @@ async function confirmWicket() {
   const deliveryType = document.getElementById('wkt-delivery-type').value;
   const dismissed = document.getElementById('wkt-batter').value;
   const dType     = document.getElementById('wkt-type').value;
-  const fielder   = document.getElementById('wkt-fielder').value||null;
-  const asst      = document.getElementById('wkt-asst').value||null;
   const newBatter = document.getElementById('wkt-new-batter').value||null;
   const batRuns   = parseInt(document.getElementById('wkt-runs').value)||0;
-  const needF     = ['caught','stumped','run_out'].includes(dType);
 
   let isLegal = true;
   let extType = null;
