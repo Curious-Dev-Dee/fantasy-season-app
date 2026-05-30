@@ -1267,24 +1267,30 @@ async function ball(runs) {
 
 async function ballMinusTwo() {
   setBallPending();
-  S.isFreeHit = false; S.nextBallFreeHit = false;
+  S.isFreeHit = false;
+  S.nextBallFreeHit = false;
 
   await insertDelivery({
-    runs_off_bat: 0, extras: -2, extra_type: 'penalty',
-    is_wicket: false, is_four: false, is_six: false,
-    is_legal_delivery: true, bat_runs: 0
+    runs_off_bat: -2,  // store -2 here so edit list shows it
+    extras: 0,         // NOT -2, extras untouched
+    extra_type: null,  // NOT 'penalty', DB accepts this fine
+    is_wicket: false,
+    is_four: false,
+    is_six: false,
+    is_legal_delivery: true,
+    bat_runs: -2
   });
-  
-  S.runs -= 2; 
-  S.balls++;
-  S.extras -= 2;
+
+  S.runs -= 2;   // deduct from team score
+  S.balls++;     // legal delivery, counts
+  // S.extras stays unchanged — -2 is NOT an extra
   S.curOver.push('-2');
 
-  const bs = S.bStats[S.striker]; 
-  if(bs) bs.b++; 
-  
-  const bw = S.bowlerStats[S.bowler]; 
-  if(bw) bw.legal++; 
+  const bs = S.bStats[S.striker];
+  if (bs) bs.b++;  // ball faced by batter
+
+  const bw = S.bowlerStats[S.bowler];
+  if (bw) { bw.legal++; }  // legal delivery for bowler
 
   await afterLegalBall();
 }
