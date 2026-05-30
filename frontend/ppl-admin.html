@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -116,6 +117,7 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 .bt-Wd{background:rgba(245,158,11,.2);color:#fde68a;border:1px solid rgba(245,158,11,.3)}
 .bt-Nb{background:rgba(249,115,22,.2);color:#fdba74;border:1px solid rgba(249,115,22,.3)}
 .bt-M2{background:rgba(168,85,247,.2);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)}
+.bt-D1{background:rgba(147,197,253,.15);color:#93c5fd;border:1px solid rgba(147,197,253,.3)}
 .ov-label{color:var(--text3);font-size:.68rem;margin-right:3px}
 
 /* ── BALL GRID ── */
@@ -133,7 +135,11 @@ input[type=number]::-webkit-inner-spin-button{display:none}
 .b-m2{background:linear-gradient(135deg,#4c1d95,#6b21a8);color:#e9d5ff;font-size:1.1rem}
 .b-wkt{background:linear-gradient(135deg,#7f1d1d,#991b1b);color:#fca5a5;grid-column:span 2;font-size:1rem}
 .b-undo{background:var(--bg3);color:var(--text3);border:1px solid var(--border);grid-column:span 2;font-size:.85rem}
+.b-dec1{background:linear-gradient(135deg,#1a3a5c,#1e4976);color:#93c5fd;border:1px solid #2a6099;font-size:.9rem}
 .b-swap{background:rgba(56,189,248,.1);color:var(--blue);border:1.5px solid rgba(56,189,248,.25);font-size:.82rem;border-radius:10px;padding:9px;text-align:center;cursor:pointer;margin-top:6px;width:100%;font-family:var(--font);font-weight:600}
+.ball-btn.btn-pending{background:#374151 !important;color:#6b7280 !important;border-color:#4b5563 !important;pointer-events:none;opacity:0.7}
+.ball-btn.btn-saved{background:linear-gradient(135deg,var(--green2),#15803d) !important;color:#fff !important;border:none !important}
+#finish-over-btn{display:none;width:100%;padding:14px;margin-top:8px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:var(--font-display);letter-spacing:.5px}
 
 /* ── MODALS ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:flex-end;justify-content:center;padding:0}
@@ -348,7 +354,6 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
       </div>
       <div style="text-align:right">
         <div class="badge badge-live" id="sc-live-badge">● LIVE</div>
-        <div class="badge badge-free-hit" id="sc-free-hit" style="display:none; margin-left:4px;">FREE HIT</div>
         <div style="font-size:.7rem;color:var(--text3);margin-top:4px" id="sc-match-label"></div>
       </div>
     </div>
@@ -384,10 +389,12 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
       <button class="ball-btn b-6" onclick="ball(6)">6</button>
       <button class="ball-btn b-wide" onclick="openExtra('wide')">Wide</button>
       <button class="ball-btn b-nb" onclick="openExtra('no_ball')">No Ball</button>
+      <button class="ball-btn b-dec1" onclick="ballDeclared()">Dec 1</button>
       <button class="ball-btn b-m2" onclick="ballMinusTwo()">-2</button>
       <button class="ball-btn b-wkt" onclick="openWicket()">🔴 WICKET</button>
       <button class="ball-btn b-undo" onclick="undoLast()">↩ Undo</button>
     </div>
+    <button id="finish-over-btn" onclick="openNewOverModal()">✅ Finish Over — Select Next Bowler</button>
     <button class="b-swap" onclick="manualStrikeSwap()">⇄ Swap Strike</button>
   </div>
 
@@ -496,15 +503,8 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
       <option value="run_out">Run Out</option>
       <option value="hit_wicket">Hit Wicket</option>
       <option value="retired_out">Retired Out</option>
+      <option value="declared_out">Declared Out (hit out of park)</option>
     </select>
-    <div id="wkt-fielder-row" style="display:none">
-      <label>Fielder (catch/stump/run out)</label>
-      <select id="wkt-fielder"></select>
-    </div>
-    <div id="wkt-asst-row" style="display:none">
-      <label>Assist / Thrower (run out)</label>
-      <select id="wkt-asst"><option value="">None</option></select>
-    </div>
     <label>New batter <span style="color:var(--text3);font-size:.65rem">(blank = all out)</span></label>
     <select id="wkt-new-batter"></select>
     <label>Runs off this ball (excluding the 1 run penalty for extra)</label>
@@ -574,6 +574,7 @@ hr{border:none;border-top:1px solid var(--border);margin:14px 0}
         <option value="run_out">Run Out</option>
         <option value="hit_wicket">Hit Wicket</option>
         <option value="retired_out">Retired Out</option>
+        <option value="declared_out">Declared Out (hit out of park)</option>
       </select>
     </div>
     <div class="err" id="edit-err"></div>
@@ -1097,7 +1098,7 @@ async function goSetup() {
     <div class="info-row"><span class="info-label">Type</span><span class="info-val">Day ${m.day} · ${m.match_type.toUpperCase()}</span></div>`;
 
   const tw = document.getElementById('sel-toss-winner');
-  tw.innerHTML = `<option value="${m.team_a_id}">${ta}</option><option value="${m.team_b_id}">${tb}</option>`;
+  tw.innerHTML = `<option value="">— Select —</option><option value="${m.team_a_id}">${ta}</option><option value="${m.team_b_id}">${tb}</option>`;
   document.getElementById('inp-overs').value = m.overs_per_side || 6;
   document.getElementById('inp-maxwkt').value = 8;
   if (m.toss_winner_id) {
@@ -1158,13 +1159,12 @@ async function loadPlayersForInnings() {
     <div class="info-row"><span class="info-label">Overs</span><span class="info-val">${S.totalOvers} | Max wkts: ${S.maxWkt}</span></div>`;
 
   const fill = (id, list) => {
-    document.getElementById(id).innerHTML = list.map(p =>
+    document.getElementById(id).innerHTML = '<option value="">— Select —</option>' + list.map(p =>
       `<option value="${p.id}">${p.name} (${p.role})</option>`).join('');
   };
   fill('sel-striker', batters);
   fill('sel-non-striker', batters);
   fill('sel-bowler', bowlers);
-  if (batters.length>1) document.getElementById('sel-non-striker').selectedIndex=1;
   hideErr('err-inn-setup');
 }
 
@@ -1208,13 +1208,44 @@ async function startInnings() {
 // ═══════════════════════════════════════════════
 // LIVE SCORING
 // ═══════════════════════════════════════════════
+
+// ─── BUTTON FEEDBACK ───
+function setBallPending() {
+  document.querySelectorAll('.ball-btn').forEach(b => {
+    b.classList.add('btn-pending');
+    b.classList.remove('btn-saved');
+  });
+}
+function setBallSaved() {
+  document.querySelectorAll('.ball-btn').forEach(b => {
+    b.classList.remove('btn-pending');
+    b.classList.add('btn-saved');
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.ball-btn').forEach(b => b.classList.remove('btn-saved'));
+  }, 1200);
+}
+
+// ─── DECLARED 1 (Dec 1) — 1 run to batter + team, NO strike change ───
+async function ballDeclared() {
+  setBallPending();
+  await insertDelivery({
+    runs_off_bat: 1, extras: 0, extra_type: null,
+    is_wicket: false, is_four: false, is_six: false,
+    is_legal_delivery: true, bat_runs: 1
+  });
+  S.runs += 1; S.balls++;
+  S.curOver.push('D1');
+  const bs = S.bStats[S.striker];
+  if (bs) { bs.r += 1; bs.b++; }
+  const bw = S.bowlerStats[S.bowler];
+  if (bw) { bw.legal++; bw.runs += 1; }
+  // NO strike change — batter hit the wall, stayed put
+  await afterLegalBall();
+}
 async function ball(runs) {
-  if (S.nextBallFreeHit) {
-      S.isFreeHit = true;
-      S.nextBallFreeHit = false;
-  } else {
-      S.isFreeHit = false;
-  }
+  setBallPending();
+  S.isFreeHit = false; S.nextBallFreeHit = false;
 
   await insertDelivery({
     runs_off_bat: runs, extras:0, extra_type:null,
@@ -1235,12 +1266,8 @@ async function ball(runs) {
 }
 
 async function ballMinusTwo() {
-  if (S.nextBallFreeHit) {
-      S.isFreeHit = true;
-      S.nextBallFreeHit = false;
-  } else {
-      S.isFreeHit = false;
-  }
+  setBallPending();
+  S.isFreeHit = false; S.nextBallFreeHit = false;
 
   await insertDelivery({
     runs_off_bat: 0, extras: -2, extra_type: 'penalty',
@@ -1309,11 +1336,14 @@ async function confirmExtra() {
   if(isWide) extraCols.wide_runs=total;
   if(isNB)   extraCols.noball_runs=1; 
 
-  const batRuns = isNB ? xruns : 0;
+let batRuns = isNB ? xruns : 0;
+let isFour = false, isSix = false;
+if (isNB && bnd === 'four') { batRuns = 4; isFour = true; }
+if (isNB && bnd === 'six')  { batRuns = 6; isSix  = true; }
 
   await insertDelivery({
     runs_off_bat: batRuns, extras: isWide ? 1 : 1, extra_type: type,
-    is_wicket: false, is_four: bnd==='four', is_six: bnd==='six',
+    is_wicket: false, is_four: isFour, is_six: isSix,
     is_legal_delivery: isLegal, bat_runs: batRuns,
     ...extraCols
   });
@@ -1356,24 +1386,32 @@ function openWicket() {
 
   document.getElementById('wkt-delivery-type').value = 'legal';
   
-  document.getElementById('wkt-batter').innerHTML=
+document.getElementById('wkt-batter').innerHTML=
+    '<option value="">— Select Batter —</option>' +
     [S.striker,S.nonStriker].filter(Boolean).map(id=>`<option value="${id}">${pName(id)}</option>`).join('');
   document.getElementById('wkt-fielder').innerHTML=
     fielders.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('wkt-asst').innerHTML=
     '<option value="">None</option>'+fielders.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('wkt-new-batter').innerHTML=
-    '<option value="">— All out —</option>'+avail.map(p=>`<option value="${p.id}">${p.name} (${p.role})</option>`).join('');
+    '<option value="">— Select / All out —</option>'+avail.map(p=>`<option value="${p.id}">${p.name} (${p.role})</option>`).join('');
   document.getElementById('wkt-runs').value=0;
-  document.getElementById('wkt-type').value='bowled';
-  wktTypeChange();
+  // FIX 7: No default dismissal type
+  document.getElementById('wkt-type').innerHTML = 
+    '<option value="">— Select Type —</option>' +
+    '<option value="bowled">Bowled</option>' +
+    '<option value="caught">Caught</option>' +
+    '<option value="stumped">Stumped</option>' +
+    '<option value="run_out">Run Out</option>' +
+    '<option value="hit_wicket">Hit Wicket</option>' +
+    '<option value="retired_out">Retired Out</option>' +
+    '<option value="declared_out">Declared Out (hit out of park)</option>';
+  document.getElementById('wkt-type').value = '';
   openModal('m-wicket');
 }
 
 function wktTypeChange() {
-  const t=document.getElementById('wkt-type').value;
-  document.getElementById('wkt-fielder-row').style.display=['caught','stumped','run_out'].includes(t)?'block':'none';
-  document.getElementById('wkt-asst-row').style.display=t==='run_out'?'block':'none';
+  // FIX 6: fielder rows removed — no-op
 }
 
 async function confirmWicket() {
@@ -1450,19 +1488,31 @@ async function confirmWicket() {
 
 // ─── AFTER LEGAL BALL ───
 async function afterLegalBall() {
+  setBallSaved();
   renderScore(); await saveLive();
   const overDone = S.balls%6===0 && S.balls>0;
   if (!overDone) return;
 
   const ovNum=Math.floor(S.balls/6);
-  S.allOvers.push([...S.curOver]); S.curOver=[];
-
+  // FIX 8: Don't auto-open new bowler modal — show "Finish Over" button instead
   if(ovNum>=S.totalOvers){ await completeInnings(); return; }
 
+  // Show the Finish Over button — admin taps it when ready (or undoes the ball first)
+  S._pendingOverEnd = true;
+  document.getElementById('finish-over-btn').style.display = 'block';
+}
+
+// FIX 8: Opened separately when admin clicks "Finish Over"
+function openNewOverModal() {
+  if (!S._pendingOverEnd) return;
+  S._pendingOverEnd = false;
+  document.getElementById('finish-over-btn').style.display = 'none';
+
+  S.allOvers.push([...S.curOver]); S.curOver=[];
+  const ovNum = Math.floor(S.balls/6);
   // Auto swap ends
   [S.striker,S.nonStriker]=[S.nonStriker,S.striker];
 
-  // Build over summary
   const lastOv=S.allOvers[S.allOvers.length-1];
   const ovRuns=lastOv.reduce((a,b)=>{
     const n=parseInt(b); return a+(isNaN(n)?0:n);
@@ -1473,17 +1523,18 @@ async function afterLegalBall() {
 
   const bowlers=S.players.filter(p=>p.team_id===S.bowlId);
   const nb=document.getElementById('new-bowler');
-  nb.innerHTML=bowlers.map(p=>{
+  // FIX 7: Default to "— Select —" 
+  nb.innerHTML='<option value="">— Select Bowler —</option>' + bowlers.map(p=>{
     const bw=S.bowlerStats[p.id];
     const info=bw?`${Math.floor(bw.legal/6)}.${bw.legal%6}ov ${bw.runs}r ${bw.wkts}w`:'0.0ov';
     const prev=p.id===S.bowler?' ⚠️':'';
     return `<option value="${p.id}">${p.name}${prev} · ${info}</option>`;
   }).join('');
-  const other=bowlers.find(p=>p.id!==S.bowler);
-  nb.value = other ? other.id : (bowlers[0]?.id||'');
 
   document.getElementById('same-bowler-warn').style.display='none';
+  // FIX 7: Default to "— Select —" for striker too
   document.getElementById('new-striker').innerHTML=
+    '<option value="">— Select Striker —</option>' +
     [S.striker,S.nonStriker].filter(Boolean).map(id=>
       `<option value="${id}">${pName(id)}</option>`).join('');
   openModal('m-over');
@@ -1549,6 +1600,8 @@ async function undoLast() {
   
   S.isFreeHit = false;
   S.nextBallFreeHit = false;
+  S._pendingOverEnd = false;
+  document.getElementById('finish-over-btn').style.display = 'none';
   
   renderScore(); await saveLive();
   document.getElementById('strike-notice').style.display='block';
@@ -2061,7 +2114,7 @@ function renderScore() {
   document.getElementById('sc-extras').textContent = `Extras ${S.extras}`;
 
   // FREE HIT BADGE
-  document.getElementById('sc-free-hit').style.display = S.isFreeHit ? 'inline-flex' : 'none';
+  // free hit removed
 
   // Batter cards
   const bc=document.getElementById('batter-cards');
