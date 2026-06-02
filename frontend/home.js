@@ -12,13 +12,13 @@ let currentUserPrivateRank  = Infinity;
 let pointsChannel           = null;
 let matchChannel            = null;
 let notifChannel            = null;
-let navChannel    = null;   // ← add this
+let navChannel              = null;
 
-const senderNameCache = new Map(); 
+const senderNameCache = new Map();
 let chatSubscription = null;
 let chatIsEmpty = true;
 const top3UserIds = new Map();
-let unreadCount = 0; // This keeps track of the number of messages
+let unreadCount = 0;
 
 // Chat DOM Elements
 const chatFab      = document.getElementById("chatFab");
@@ -30,7 +30,6 @@ const chatForm     = document.getElementById("chatForm");
 const chatInput    = document.getElementById("chatInput");
 const chatTitle    = document.getElementById("chatTitle");
 const unreadBadge  = document.getElementById("unreadBadge");
-
 
 /* ── ELEMENTS ── */
 const tournamentTitle        = document.getElementById("tournamentName");
@@ -75,8 +74,6 @@ function switchLeagueTab(tab) {
         tabMyLeague?.classList.remove("active");
     }
 }
-
-// Expose to HTML onclick attributes
 window.switchLeagueTab = switchLeagueTab;
 
 /* ══════════════════════════════════════════════════════
@@ -91,7 +88,6 @@ async function initApp() {
         console.warn("Auth failed:", err.message);
     }
 }
-
 initApp();
 
 /* ══════════════════════════════════════════════════════
@@ -120,11 +116,10 @@ async function initLiveNav() {
     if (!navMatchesBtn) return;
 
     const updateNavUI = async () => {
-        // Fetch only one match that is active/locked but not finished
         const { data: matches, error } = await supabase
             .from("matches")
             .select(`
-                id, 
+                id,
                 team_a:real_teams!matches_team_a_id_fkey(short_code),
                 team_b:real_teams!matches_team_b_id_fkey(short_code),
                 live_scores(team1_score, team1_wickets, team1_overs, team2_score, team2_wickets, team2_overs)
@@ -134,7 +129,6 @@ async function initLiveNav() {
             .limit(1);
 
         if (error || !matches || matches.length === 0 || !matches[0].live_scores) {
-            // NO LIVE MATCH: Reset to default "Matches" view
             navMatchLabel.textContent = "Matches";
             navLiveScore.classList.add("hidden");
             navLiveDot.classList.add("hidden");
@@ -142,17 +136,14 @@ async function initLiveNav() {
             return;
         }
 
-        const m = matches[0];
+        const m  = matches[0];
         const ls = m.live_scores;
 
-        // MATCH IS LIVE: Update UI
         navMatchesBtn.classList.add("is-live");
         navMatchLabel.textContent = "LIVE";
         navLiveDot.classList.remove("hidden");
         navLiveScore.classList.remove("hidden");
 
-        // Logic: Show the team currently batting
-        // If Team 2 has overs, they are batting (2nd innings). Otherwise, Team 1.
         if (ls.team2_overs > 0) {
             navLiveScore.textContent = `${m.team_b.short_code} ${ls.team2_score}/${ls.team2_wickets || 0}`;
         } else {
@@ -160,15 +151,13 @@ async function initLiveNav() {
         }
     };
 
-    // 1. Initial Load
     updateNavUI();
 
-    // 2. Realtime Listener: Refresh Nav whenever live_scores table updates
-navChannel = supabase.channel('nav-live-updates')
-    .on('postgres_changes', { event: '*', table: 'live_scores' }, () => {
-        updateNavUI();
-    })
-    .subscribe();
+    navChannel = supabase.channel("nav-live-updates")
+        .on("postgres_changes", { event: "*", table: "live_scores" }, () => {
+            updateNavUI();
+        })
+        .subscribe();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -180,45 +169,42 @@ async function startDashboard(userId) {
         console.warn("Notification hub error:", e);
     }
 
-    // ── REALTIME: My live points update ──
-pointsChannel = supabase.channel('my-live-points')
-    .on('postgres_changes', {
-        event: '*',
-        table: 'user_match_points',
-        filter: `user_id=eq.${userId}`
-    }, () => {
-        fetchHomeData(userId);
-    })
-    .subscribe();
+    pointsChannel = supabase.channel("my-live-points")
+        .on("postgres_changes", {
+            event: "*",
+            table: "user_match_points",
+            filter: `user_id=eq.${userId}`
+        }, () => {
+            fetchHomeData(userId);
+        })
+        .subscribe();
 
-// ── REALTIME: Match lock detector ──
-matchChannel = supabase.channel('match-lock-detector')
-    .on('postgres_changes', {
-        event: 'UPDATE',
-        table: 'matches'
-    }, (payload) => {
-        if (payload.new.status === 'locked') {
-            if (editButton) {
-                editButton.disabled            = true;
-                editButton.style.opacity       = "0.5";
-                editButton.style.pointerEvents = "none";
-                editButton.textContent         = "LOCKED";
+    matchChannel = supabase.channel("match-lock-detector")
+        .on("postgres_changes", {
+            event: "UPDATE",
+            table: "matches"
+        }, (payload) => {
+            if (payload.new.status === "locked") {
+                if (editButton) {
+                    editButton.disabled            = true;
+                    editButton.style.opacity       = "0.5";
+                    editButton.style.pointerEvents = "none";
+                    editButton.textContent         = "LOCKED";
+                }
+                if (matchTimeElement) matchTimeElement.textContent = "Match Live";
             }
-            if (matchTimeElement) matchTimeElement.textContent = "Match Live";
-        }
-    })
-    .subscribe();
+        })
+        .subscribe();
 
-// ── REALTIME: Bell notification badge ──
-notifChannel = supabase.channel('my-notifications')
-    .on('postgres_changes', {
-        event: 'INSERT',
-        table: 'notifications',
-        filter: `user_id=eq.${userId}`
-    }, () => {
-        try { initNotificationHub(userId); } catch (e) {}
-    })
-    .subscribe();
+    notifChannel = supabase.channel("my-notifications")
+        .on("postgres_changes", {
+            event: "INSERT",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`
+        }, () => {
+            try { initNotificationHub(userId); } catch (e) {}
+        })
+        .subscribe();
 
     setupHomeLeagueListeners(userId);
     switchLeagueTab("private");
@@ -227,7 +213,33 @@ notifChannel = supabase.channel('my-notifications')
         const { data: activeT } = await supabase
             .from("active_tournament").select("*").maybeSingle();
 
-        if (activeT) {
+        // ── ARCHIVED / OFF-SEASON STATE ──
+        // If no active tournament, both IPL and PPL are done.
+        // Show archived banner and hide live/upcoming match UI.
+        if (!activeT) {
+            activeTournamentId = null;
+            if (tournamentTitle) tournamentTitle.textContent = "Off-Season";
+
+            // Hide match countdown card
+            const matchCard = document.getElementById("matchCard");
+            if (matchCard) matchCard.style.display = "none";
+
+            // Hide tips card
+            const tipsCard = document.getElementById("tipsCard");
+            if (tipsCard) tipsCard.classList.add("hidden");
+
+            // Hide edit/view XI buttons — no active tournament
+            if (editButton) {
+                editButton.disabled            = true;
+                editButton.style.opacity       = "0.5";
+                editButton.style.pointerEvents = "none";
+                editButton.textContent         = "SEASON OVER";
+            }
+
+            // Show archive banner if element exists
+            const archiveBanner = document.getElementById("archiveBanner");
+            if (archiveBanner) archiveBanner.classList.remove("hidden");
+        } else {
             activeTournamentId = activeT.id;
             if (tournamentTitle) tournamentTitle.textContent = activeT.name;
             await initChat(userId, null, activeT.id);
@@ -262,17 +274,16 @@ async function loadFantasyTipsCard(upcomingMatch, matchNumber) {
     const ctaBtn  = document.getElementById("tipsCtaBtn");
     if (!card || !upcomingMatch) return;
 
-    const teamA = upcomingMatch.team_a_code;  // "KKR"
-    const teamB = upcomingMatch.team_b_code;  // "SRH"
+    const teamA = upcomingMatch.team_a_code;
+    const teamB = upcomingMatch.team_b_code;
 
-    // Use match number to find the EXACT article — avoids picking up old matches
     const { data: article } = await supabase
         .from("articles")
         .select("slug")
         .eq("published", true)
         .eq("category", "fantasy-preview")
-        .ilike("match_label", `%Match ${matchNumber}%`)  // ← "Match 6" or "Match 32"
-        .ilike("match_label", `%${teamA}%`)              // ← extra safety: team name check
+        .ilike("match_label", `%Match ${matchNumber}%`)
+        .ilike("match_label", `%${teamA}%`)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -280,8 +291,8 @@ async function loadFantasyTipsCard(upcomingMatch, matchNumber) {
     card.classList.remove("hidden");
 
     if (article) {
-titleEl.textContent = `${teamA} vs ${teamB} — Best XI & Captain Picks`;
-subEl.textContent   = "Don't lock your team before reading this ⚡";
+        titleEl.textContent = `${teamA} vs ${teamB} — Best XI & Captain Picks`;
+        subEl.textContent   = "Don't lock your team before reading this ⚡";
         card.classList.remove("tips-soon");
         card.classList.add("tips-live");
         if (ctaBtn) {
@@ -303,6 +314,7 @@ subEl.textContent   = "Don't lock your team before reading this ⚡";
         }
     }
 }
+
 /* ══════════════════════════════════════════════════════
    CORE DATA FETCH
 ══════════════════════════════════════════════════════ */
@@ -312,7 +324,6 @@ async function fetchHomeData(userId) {
 
     existingProfile = profile;
 
-    // Force profile modal if first time — name + team required
     if (!profile || !profile.profile_completed) {
         if (profileModal) {
             profileModal.classList.remove("hidden");
@@ -343,50 +354,48 @@ async function fetchHomeData(userId) {
     if (dash) {
         if (scoreElement) scoreElement.textContent = dash.total_points || 0;
 
-const hasEarnedPoints = (dash.total_points || 0) > 0;
-const displayRank = hasEarnedPoints && dash.user_rank > 0 ? `#${dash.user_rank}` : "Pre-Season";
-const isPreSeason = !hasEarnedPoints;
+        const hasEarnedPoints = (dash.total_points || 0) > 0;
+        const displayRank     = hasEarnedPoints && dash.user_rank > 0 ? `#${dash.user_rank}` : "Pre-Season";
+        const isPreSeason     = !hasEarnedPoints;
 
-if (rankElement) {
-    rankElement.textContent = displayRank;
-    rankElement.classList.toggle("pre-season", isPreSeason);
-}
+        if (rankElement) {
+            rankElement.textContent = displayRank;
+            rankElement.classList.toggle("pre-season", isPreSeason);
+        }
 
-const overallRankHeader = document.getElementById("overallUserRank");
-if (overallRankHeader) {
-    overallRankHeader.textContent = displayRank;
-    overallRankHeader.classList.toggle("pre-season", isPreSeason);
-}
+        const overallRankHeader = document.getElementById("overallUserRank");
+        if (overallRankHeader) {
+            overallRankHeader.textContent = displayRank;
+            overallRankHeader.classList.toggle("pre-season", isPreSeason);
+        }
 
         currentUserOverallRank = dash.user_rank || Infinity;
 
         if (dash.subs_remaining === 999) {
-if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "var(--accent)"; }
+            if (subsElement) { subsElement.textContent = "∞"; subsElement.style.color = "var(--accent)"; }
         } else {
             if (subsElement) { subsElement.textContent = dash.subs_remaining ?? 130; subsElement.style.color = ""; }
         }
 
-        
-        // Season progress bar
-const progressFill = document.getElementById("seasonProgressFill");
-const progressLabel = document.getElementById("seasonProgressLabel");
-if (progressFill && dash.current_match_number != null) {
-    const total = 74;
-    const current = Math.min(dash.current_match_number, total);
-    const pct = Math.round((current / total) * 100);
-requestAnimationFrame(() => {
-    setTimeout(() => { progressFill.style.width = `${pct}%`; }, 100);
-});
-    if (progressLabel) progressLabel.textContent = `Match ${current} of ${total}`;
-}
+        const progressFill  = document.getElementById("seasonProgressFill");
+        const progressLabel = document.getElementById("seasonProgressLabel");
+        if (progressFill && dash.current_match_number != null) {
+            const total   = 74;
+            const current = Math.min(dash.current_match_number, total);
+            const pct     = Math.round((current / total) * 100);
+            requestAnimationFrame(() => {
+                setTimeout(() => { progressFill.style.width = `${pct}%`; }, 100);
+            });
+            if (progressLabel) progressLabel.textContent = `Match ${current} of ${total}`;
+        }
 
-        if (dash.upcoming_match) {
+        // Only show upcoming match card if there IS an active tournament
+        if (dash.upcoming_match && activeTournamentId) {
             const match = dash.upcoming_match;
 
             if (matchTeamsElement) {
                 matchTeamsElement.textContent = `${match.team_a_code} vs ${match.team_b_code}`;
             }
-
 
             const venueEl = document.getElementById("matchVenue");
             if (venueEl) {
@@ -419,14 +428,13 @@ requestAnimationFrame(() => {
             }
 
             startCountdown(match.actual_start_time);
-    loadFantasyTipsCard(match, dash.current_match_number);  // ← pass match number too
-
+            loadFantasyTipsCard(match, dash.current_match_number);
 
         } else {
             if (matchTeamsElement) matchTeamsElement.textContent = "No Upcoming Matches";
             const venueEl = document.getElementById("matchVenue");
             if (venueEl) venueEl.textContent = "";
-            if (matchTimeElement) matchTimeElement.textContent = "Check back soon!";
+            if (matchTimeElement) matchTimeElement.textContent = activeTournamentId ? "Check back soon!" : "Season Ended";
         }
 
         if (boosterStatusEl) {
@@ -447,7 +455,6 @@ requestAnimationFrame(() => {
 async function initPushNotifications(userId) {
     try {
         window.OneSignalDeferred = window.OneSignalDeferred || [];
-
         window.OneSignalDeferred.push(async (OneSignal) => {
             await OneSignal.init({
                 appId:              "76bfec04-40bc-4a15-957b-f0c1c6e401d4",
@@ -472,7 +479,6 @@ async function initPushNotifications(userId) {
 
             const subscription = OneSignal.User.PushSubscription;
 
-            // ── CASE 1: Already subscribed — force save if missing in DB ──
             if (subscription.isSubscribed && subscription.id) {
                 const existingId = existingProfile?.onesignal_id;
                 if (!existingId || existingId !== subscription.id) {
@@ -485,12 +491,10 @@ async function initPushNotifications(userId) {
                 }
             }
 
-            // ── CASE 2: Not subscribed — show prompt ──
             if (!subscription.isSubscribed) {
                 await OneSignal.Slidedown.promptPush();
             }
 
-            // ── CASE 3: User subscribes now — save immediately ──
             OneSignal.User.PushSubscription.addEventListener("change", async (event) => {
                 if (!event.current.isSubscribed) return;
                 const playerId = event.current.id;
@@ -503,7 +507,6 @@ async function initPushNotifications(userId) {
                 else console.log("OneSignal ID saved on subscribe:", playerId);
             });
         });
-
     } catch (err) {
         console.warn("Push notification init failed:", err.message);
     }
@@ -522,19 +525,19 @@ function applyOwnFlair() {
 ══════════════════════════════════════════════════════ */
 async function loadLeaderboardPreview() {
     const [{ data: lb, error }, { count: userCount }] = await Promise.all([
-    supabase.from("leaderboard_view")
-        .select("team_name, total_points, rank, user_id")
-        .order("rank", { ascending: true })
-        .limit(3),
-    supabase.from("user_profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("profile_completed", true),
-]);
+        supabase.from("leaderboard_view")
+            .select("team_name, total_points, rank, user_id")
+            .order("rank", { ascending: true })
+            .limit(3),
+        supabase.from("user_profiles")
+            .select("*", { count: "exact", head: true })
+            .eq("profile_completed", true),
+    ]);
 
-const overallCountEl = document.getElementById("overallMemberCount");
-if (overallCountEl && userCount != null) {
-    overallCountEl.textContent = `${(10000 + userCount).toLocaleString()} managers`;
-}
+    const overallCountEl = document.getElementById("overallMemberCount");
+    if (overallCountEl && userCount != null) {
+        overallCountEl.textContent = `${(10000 + userCount).toLocaleString()} managers`;
+    }
 
     if (!leaderboardContainer) return;
 
@@ -555,16 +558,16 @@ if (overallCountEl && userCount != null) {
             };
 
             const rankSpan   = document.createElement("span");
-const rankTxt = document.createTextNode(row.total_points > 0 ? `#${row.rank} ` : "");
+            const rankTxt    = document.createTextNode(row.total_points > 0 ? `#${row.rank} ` : "");
             const nameStrong = document.createElement("strong");
             nameStrong.className   = "team-name-text";
             nameStrong.textContent = row.team_name || "Expert";
             rankSpan.append(rankTxt, nameStrong);
 
-const ptsPill     = document.createElement("span");
-const hasPoints   = row.total_points > 0;
-ptsPill.className = `pts-pill${hasPoints ? " has-pts" : ""}`;
-ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
+            const ptsPill     = document.createElement("span");
+            const hasPoints   = row.total_points > 0;
+            ptsPill.className = `pts-pill${hasPoints ? " has-pts" : ""}`;
+            ptsPill.textContent = hasPoints ? `${row.total_points} pts` : "Pre-season";
 
             rowDiv.append(rankSpan, ptsPill);
             leaderboardContainer.appendChild(rowDiv);
@@ -591,16 +594,13 @@ async function fetchPrivateLeagueData(userId) {
     const containerEl  = document.getElementById("privateLeaderboardContainer");
     const viewBtn      = document.getElementById("viewPrivateLeaderboard");
 
-    // ← REMOVED: const card = getElementById("privateLeagueCard") — no longer exists
-    // ← REMOVED: if (!card) return — was killing the whole function
-
     const { data: m, error } = await supabase
         .from("league_members")
         .select("league_id, leagues(name, invite_code)")
         .eq("user_id", userId)
         .maybeSingle();
 
-    console.log("League fetch:", m, error); // remove after confirming it works
+    console.log("League fetch:", m, error);
 
     if (error || !m) {
         contentEl?.classList.add("hidden");
@@ -720,17 +720,17 @@ function startCountdown(startTime) {
                 editButton.style.opacity       = "0.5";
                 editButton.style.pointerEvents = "none";
                 editButton.textContent         = "LOCKED";
-    
 
-            setTimeout(() => {
-                if (document.visibilityState !== "visible") return;
-                if (!profileModal?.hasAttribute("data-forced") &&
-                    profileModal?.classList.contains("hidden")) {
-                    window.location.reload();
-                }
-            }, 5000);
+                setTimeout(() => {
+                    if (document.visibilityState !== "visible") return;
+                    if (!profileModal?.hasAttribute("data-forced") &&
+                        profileModal?.classList.contains("hidden")) {
+                        window.location.reload();
+                    }
+                }, 5000);
+            }
             return;
-        }}
+        }
 
         const days    = Math.floor(dist / 86400000);
         const hours   = Math.floor((dist % 86400000) / 3600000);
@@ -755,7 +755,7 @@ function startCountdown(startTime) {
 
 window.addEventListener("pagehide", () => {
     if (countdownInterval) clearInterval(countdownInterval);
-    if (chatSubscription) supabase.removeChannel(chatSubscription); // <-- ADD THIS
+    if (chatSubscription) supabase.removeChannel(chatSubscription);
     supabase.removeChannel(navChannel);
     supabase.removeChannel(pointsChannel);
     supabase.removeChannel(matchChannel);
@@ -782,7 +782,7 @@ function setupHomeLeagueListeners(userId) {
         await supabase.from("league_members").insert([{ league_id: league.id, user_id: userId }]);
         window.showToast("League created! Share your code.", "success");
         await fetchPrivateLeagueData(userId);
-        switchLeagueTab("private"); // ← ADD THIS LINE
+        switchLeagueTab("private");
     };
 
     joinBtn.onclick = async () => {
@@ -797,26 +797,22 @@ function setupHomeLeagueListeners(userId) {
         if (error) return window.showToast("Already in this league or join failed.", "error");
         window.showToast("Joined league successfully!", "success");
         await fetchPrivateLeagueData(userId);
-        switchLeagueTab("private"); // ← ADD THIS LINE
+        switchLeagueTab("private");
     };
 }
 
 /* ══════════════════════════════════════════════════════
-   FIRST-TIME PROFILE MODAL (forced on new users)
-   ── Full name + team name required
-   ── Avatar optional
-   ── Locked forever after save
+   FIRST-TIME PROFILE MODAL
 ══════════════════════════════════════════════════════ */
 if (saveProfileBtn) {
     saveProfileBtn.onclick = async () => {
-if (!modalTeamName || !profileModal) return;
+        if (!modalTeamName || !profileModal) return;
 
-const fullName = "";
-const teamName = modalTeamName.value.trim();
-        const file     = avatarInput?.files[0];
+        const fullName    = "";
+        const teamName    = modalTeamName.value.trim();
+        const file        = avatarInput?.files[0];
         const isFirstTime = !existingProfile || !existingProfile.profile_completed;
 
-        // Name + team mandatory on first time
         if (isFirstTime && (!teamName)) {
             window.showToast("Please enter your team name to continue.", "error");
             return;
@@ -828,17 +824,14 @@ const teamName = modalTeamName.value.trim();
         try {
             let photoPath = existingProfile?.team_photo_url;
 
-            
-            // Upload avatar if selected (optional)
-// Upload avatar if selected (optional)
-if (file) {
-    if (file.size > 2 * 1024 * 1024) {
-        window.showToast("Photo must be under 2MB. Please choose a smaller image.", "error");
-        saveProfileBtn.disabled    = false;
-        saveProfileBtn.textContent = isFirstTime ? "Save & Start" : "Update Photo";
-        return;
-    }
-    const fileExt  = file.name.split(".").pop();
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    window.showToast("Photo must be under 2MB. Please choose a smaller image.", "error");
+                    saveProfileBtn.disabled    = false;
+                    saveProfileBtn.textContent = isFirstTime ? "Save & Start" : "Update Photo";
+                    return;
+                }
+                const fileExt  = file.name.split(".").pop();
                 const fileName = `${currentUserId}/avatar.${fileExt}`;
                 const { error: uploadError } = await supabase.storage
                     .from("team-avatars")
@@ -847,23 +840,21 @@ if (file) {
                 photoPath = `${fileName}?t=${Date.now()}`;
             }
 
-            // Build payload — name + team only set on first time, never again
-            // Check if match 1 has locked
-const { data: match1 } = await supabase
-    .from("matches")
-    .select("status")
-    .eq("match_number", 1)
-    .maybeSingle();
+            const { data: match1 } = await supabase
+                .from("matches")
+                .select("status")
+                .eq("match_number", 1)
+                .maybeSingle();
 
-const match1Locked = match1?.status === "locked";
+            const match1Locked = match1?.status === "locked";
 
-const updatePayload = { team_photo_url: photoPath };
-if (isFirstTime) {
-    updatePayload.team_name         = teamName;
-    updatePayload.profile_completed = true;
-} else if (!match1Locked && teamName) {
-    updatePayload.team_name = teamName;
-}
+            const updatePayload = { team_photo_url: photoPath };
+            if (isFirstTime) {
+                updatePayload.team_name         = teamName;
+                updatePayload.profile_completed = true;
+            } else if (!match1Locked && teamName) {
+                updatePayload.team_name = teamName;
+            }
 
             const { error: updateError } = await supabase
                 .from("user_profiles")
@@ -897,7 +888,6 @@ if (isFirstTime) {
     };
 }
 
-// Avatar file input — preview in modal
 if (avatarInput) {
     avatarInput.onchange = () => {
         const file = avatarInput.files[0];
@@ -913,7 +903,6 @@ if (avatarInput) {
     };
 }
 
-// Close button — only works if not forced
 const closeBtn = document.getElementById("closeProfileModal");
 if (closeBtn) {
     closeBtn.onclick = () => {
@@ -925,25 +914,16 @@ if (closeBtn) {
     };
 }
 
-/* ══════════════════════════════════════════════════════
-   AVATAR TAP — goes to profile page (photo change)
-   No modal reopening — cleaner UX
-══════════════════════════════════════════════════════ */
 if (avatarElement) {
     avatarElement.onclick = () => {
-        // If profile not completed yet, show the forced modal instead
         if (!existingProfile?.profile_completed) {
             profileModal?.classList.remove("hidden");
             return;
         }
-        // Profile completed — go to account page to change photo
         window.location.href = "profile.html";
     };
 }
 
-/* ══════════════════════════════════════════════════════
-   EDIT TEAM BUTTON
-══════════════════════════════════════════════════════ */
 if (editButton) {
     editButton.onclick = () => {
         if (!existingProfile?.profile_completed) {
@@ -955,9 +935,6 @@ if (editButton) {
     };
 }
 
-/* ══════════════════════════════════════════════════════
-   VIEW TEAM BUTTON
-══════════════════════════════════════════════════════ */
 if (viewXiBtn) {
     viewXiBtn.onclick = () => {
         if (!existingProfile?.profile_completed) {
@@ -970,7 +947,6 @@ if (viewXiBtn) {
     };
 }
 
-// Close modal on backdrop click
 window.addEventListener("click", (e) => {
     if (profileModal && e.target === profileModal &&
         !profileModal.hasAttribute("data-forced")) {
@@ -1023,18 +999,12 @@ window.showCustomPrompt = (title, placeholder) => {
     });
 };
 
-
-/* ─── CHAT MODULE ────────────────────────────────────────────────────────── */
-// BUG FIX #7: In-memory sender name cache — one profile fetch per user, not per message
-
-
-// BUG FIX #3: userId and leagueId passed in — no second getSession() call
+/* ─── CHAT MODULE ──────────────────────────────────── */
 async function initChat(userId, leagueId, tournamentId) {
     if (!chatFab) return;
 
     if (chatTitle) chatTitle.textContent = leagueId ? "League Banter" : "Global Banter";
 
-    // Fetch top 3 for flair
     const rankQuery = leagueId
         ? supabase.from("private_league_leaderboard").select("user_id, rank_in_league").eq("league_id", leagueId).lte("rank_in_league", 3)
         : supabase.from("leaderboard_view").select("user_id, rank").eq("tournament_id", tournamentId).lte("rank", 3);
@@ -1046,32 +1016,28 @@ async function initChat(userId, leagueId, tournamentId) {
         });
     }
 
-chatFab.onclick = () => {
-    chatPanel.classList.add("show");
-    chatBackdrop.classList.remove("hidden");
+    chatFab.onclick = () => {
+        chatPanel.classList.add("show");
+        chatBackdrop.classList.remove("hidden");
 
-    // --- RESET UNREAD COUNT ---
-    unreadCount = 0; 
-    if (unreadBadge) {
-        unreadBadge.textContent = ""; // Clear the number
-        unreadBadge.classList.add("hidden");
-        unreadBadge.style.display = "none";
-    }
+        unreadCount = 0;
+        if (unreadBadge) {
+            unreadBadge.textContent = "";
+            unreadBadge.classList.add("hidden");
+            unreadBadge.style.display = "none";
+        }
 
-    setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
+        setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
 
-    setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
-
-    // Inject in-page push banner once when chat opens
-    const bannerEl = document.getElementById("chatPushBanner");
-    if (bannerEl && !bannerEl.dataset.loaded) {
-        bannerEl.dataset.loaded = "true";
-        const s = document.createElement("script");
-        s.dataset.zone = "10746396";
-        s.src = "https://nap5k.com/tag.min.js";
-        bannerEl.appendChild(s);
-    }
-};
+        const bannerEl = document.getElementById("chatPushBanner");
+        if (bannerEl && !bannerEl.dataset.loaded) {
+            bannerEl.dataset.loaded = "true";
+            const s = document.createElement("script");
+            s.dataset.zone = "10746396";
+            s.src = "https://nap5k.com/tag.min.js";
+            bannerEl.appendChild(s);
+        }
+    };
 
     const closeChat = () => {
         chatPanel.classList.remove("show");
@@ -1087,7 +1053,6 @@ chatFab.onclick = () => {
             if (!msg) return;
             chatInput.value = "";
 
-            // Optimistic render — use cached or "You"
             renderMessage({
                 user_id: userId,
                 message: msg,
@@ -1105,7 +1070,6 @@ chatFab.onclick = () => {
     await loadChatHistory(userId, leagueId);
     subscribeToChat(userId, leagueId);
 
-    // BUG FIX #8: Unsubscribe on page hide
     window.addEventListener("pagehide", () => {
         if (chatSubscription) {
             supabase.removeChannel(chatSubscription);
@@ -1138,7 +1102,6 @@ async function loadChatHistory(userId, leagueId) {
     }
 
     chatIsEmpty = false;
-    // Seed the sender name cache from history — avoids per-message fetches later
     data.forEach(msg => {
         const name = msg.user_profiles?.team_name;
         if (name && !senderNameCache.has(msg.user_id)) {
@@ -1153,13 +1116,11 @@ function renderMessage(msgData, currentUserId) {
     if (!chatMessages) return;
     const isMe = msgData.user_id === currentUserId;
 
-    // BUG FIX #6: Use flag instead of innerHTML.includes()
     if (chatIsEmpty) {
         chatMessages.replaceChildren();
         chatIsEmpty = false;
     }
 
-    // BUG FIX #7: Use cache, never fetch inline
     const senderName = isMe
         ? "You"
         : msgData._senderName
@@ -1167,7 +1128,6 @@ function renderMessage(msgData, currentUserId) {
           || msgData.user_profiles?.team_name
           || "Expert";
 
-    // Update cache if we got a name from the message payload
     if (!isMe && senderName !== "Expert" && !senderNameCache.has(msgData.user_id)) {
         senderNameCache.set(msgData.user_id, senderName);
     }
@@ -1203,13 +1163,12 @@ function subscribeToChat(userId, leagueId) {
     chatSubscription = supabase
         .channel("public:game_chat")
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_chat" }, async payload => {
-            const newMsg = payload.new;
+            const newMsg  = payload.new;
             const isMatch = leagueId
                 ? newMsg.league_id === leagueId
                 : newMsg.league_id === null;
             if (!isMatch || newMsg.user_id === userId) return;
 
-            // BUG FIX #7: Check cache first — only fetch if name unknown
             if (!senderNameCache.has(newMsg.user_id)) {
                 const { data: profile } = await supabase
                     .from("user_profiles")
@@ -1221,21 +1180,21 @@ function subscribeToChat(userId, leagueId) {
                 }
             }
 
- newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
+            newMsg._senderName = senderNameCache.get(newMsg.user_id) || "Expert";
             renderMessage(newMsg, userId);
 
-            // --- UPDATED FOR NUMERIC BADGE ---
             if (!chatPanel?.classList.contains("show")) {
-                unreadCount++; // Add 1 to the count
+                unreadCount++;
                 if (unreadBadge) {
-                    unreadBadge.textContent = unreadCount; // Show the number (1, 2, 3...)
+                    unreadBadge.textContent = unreadCount;
                     unreadBadge.classList.remove("hidden");
-                    unreadBadge.style.display = "flex"; // Changed to flex to center the number
+                    unreadBadge.style.display = "flex";
                 }
             }
         })
         .subscribe();
 }
+
 /* ══════════════════════════════════════════════════════
    NETWORK STATUS
 ══════════════════════════════════════════════════════ */
