@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>CricExp – Fantasy Hub</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <!-- Fonts + icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="components.css" />
+
+  <!-- Fantasy page styles -->
+  <link rel="stylesheet" href="css/fantasy.css" />
+</head>
+<body>
+  <div class="fantasy-shell">
+    <header class="fantasy-header">
+      <button class="back-btn" onclick="window.location.href='home.html'">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <div class="fantasy-heading">
+        <p class="eyebrow">Fantasy</p>
+        <h1>Choose tournament</h1>
+      </div>
+    </header>
+
+    <main class="fantasy-main">
+      <!-- Ongoing -->
+      <section class="fantasy-section">
+        <h2 class="section-title">Ongoing</h2>
+        <div class="card muted">
+          <div class="card-left">
+            <div class="badge grey">Live</div>
+            <h3>No active fantasy tournaments</h3>
+            <p>
+              We will notify you here when a new fantasy season starts.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Upcoming -->
+      <section class="fantasy-section">
+        <h2 class="section-title">Upcoming</h2>
+        <button class="card upcoming" type="button">
+          <div class="card-left">
+            <div class="badge blue">Upcoming</div>
+            <h3>ICC T20 World Cup</h3>
+            <p>
+              Global season-long fantasy for the next ICC T20 World Cup is coming soon.
+            </p>
+          </div>
+          <div class="card-right">
+            <span class="soon-pill">Coming soon</span>
+          </div>
+        </button>
+      </section>
+
+      <!-- Finished -->
+      <section class="fantasy-section">
+        <h2 class="section-title">Finished</h2>
+
+        <!-- IPL 2026 fantasy block -->
+        <div class="card finished" id="iplCard">
+          <div class="card-left">
+            <div class="badge gold">Finished</div>
+            <h3>IPL 2026 – Season-long Fantasy</h3>
+            <p>
+              The 2026 IPL fantasy season is complete. See the final private league winners.
+            </p>
+            <button class="view-btn" type="button" data-target="iplDetails">
+              View IPL 2026 winners
+            </button>
+          </div>
+        </div>
+
+        <div class="details-card hidden" id="iplDetails">
+          <h4>Top 3 – Private League</h4>
+          <ol class="rank-list">
+            <li>
+              <span class="rank-pos">1</span>
+              <span class="team-name">Prediction Masters</span>
+              <span class="tag">Overall champions</span>
+            </li>
+            <li>
+              <span class="rank-pos">2</span>
+              <span class="team-name">All Stars XI</span>
+            </li>
+            <li>
+              <span class="rank-pos">3</span>
+              <span class="team-name">Rank 1 Warriors</span>
+            </li>
+          </ol>
+          <p class="thank-you">
+            Thank you for playing the IPL 2026 season-long fantasy league with CricExp.
+            Your support helps us bring better community tournaments every year.
+          </p>
+        </div>
+
+        <!-- PPL fantasy block -->
+        <div class="card finished" id="pplCard">
+          <div class="card-left">
+            <div class="badge gold">Finished</div>
+            <h3>PPL Fantasy – Season-long</h3>
+            <p>
+              The PPL fantasy league for this season has also wrapped up.
+            </p>
+            <button class="view-btn" type="button" data-target="pplDetails">
+              View PPL winners
+            </button>
+          </div>
+        </div>
+
+        <div class="details-card hidden" id="pplDetails">
+          <h4>Top 3 – PPL Fantasy League</h4>
+          <ol class="rank-list">
+            <li>
+              <span class="rank-pos">1</span>
+              <span class="team-name">PPL Champions XI</span>
+            </li>
+            <li>
+              <span class="rank-pos">2</span>
+              <span class="team-name">Local Heroes</span>
+            </li>
+            <li>
+              <span class="rank-pos">3</span>
+              <span class="team-name">Street Kings</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="fantasy-auth.js"></script>
+</body>
+</html>
