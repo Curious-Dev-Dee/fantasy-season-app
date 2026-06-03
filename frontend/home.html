@@ -2,510 +2,110 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cricket Experts | Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="robots" content="noindex, nofollow">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>CricExp – Home</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
-  <link rel="stylesheet" href="tokens.css">
-  <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="css/bottom-nav.css">
-  <link rel="stylesheet" href="css/animations.css">
-  <link rel="stylesheet" href="css/home.css">
-  <link rel="stylesheet" href="css/notifications.css">
+  <!-- Fonts + icons (same as landing) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Your shared tokens + components -->
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="components.css" />
 
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#9AE000">
-
-  <script src="/onesignal-scripts/OneSignalSDK.page.js" defer></script>
-  <script type="module" src="auth-guard.js"></script>
-
-  <!-- Vercel Analytics -->
-  <script defer src="/_vercel/insights/script.js"></script>
-
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BMYSEG9XNL"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-BMYSEG9XNL');
-  </script>
+  <!-- Home-only CSS -->
+  <link rel="stylesheet" href="css/home.css" />
 </head>
-
-<body class="loading-state">
-
-<!-- SKELETON SCREEN -->
-<div id="skeletonScreen">
-  <div class="sk-header">
-    <div class="sk-block" style="width:120px;height:18px;border-radius:6px"></div>
-    <div class="sk-block" style="width:34px;height:34px;border-radius:10px"></div>
-  </div>
-  <div class="sk-card">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-      <div class="sk-block sk-circle" style="width:46px;height:46px"></div>
-      <div style="flex:1">
-        <div class="sk-block" style="width:80px;height:10px;border-radius:4px;margin-bottom:6px"></div>
-        <div class="sk-block" style="width:140px;height:16px;border-radius:4px"></div>
-      </div>
-    </div>
-    <div class="sk-block" style="height:56px;border-radius:10px"></div>
-  </div>
-  <div class="sk-card">
-    <div class="sk-block" style="width:90px;height:10px;border-radius:4px;margin-bottom:14px"></div>
-    <div class="sk-block" style="height:80px;border-radius:10px;margin-bottom:12px"></div>
-    <div class="sk-block" style="height:44px;border-radius:10px"></div>
-  </div>
-  <div class="sk-card">
-    <div class="sk-block" style="height:60px;border-radius:10px"></div>
-  </div>
-  <div class="sk-card">
-    <div style="display:flex;gap:6px">
-      <div class="sk-block" style="flex:1;height:70px;border-radius:10px"></div>
-      <div class="sk-block" style="flex:1;height:70px;border-radius:10px"></div>
-      <div class="sk-block" style="flex:1;height:70px;border-radius:10px"></div>
-      <div class="sk-block" style="flex:1;height:70px;border-radius:10px"></div>
-    </div>
-  </div>
-</div>
-
-<div class="app-container page-with-nav">
-
-  <header class="app-header">
-    <div class="header-left">
-      <a href="more.html" class="header-more-btn" aria-label="More options">
-        <i class="fas fa-bars"></i>
-      </a>
-      <div class="tourney-toggle">
-        <a href="home.html" class="tt-btn active">IPL 2026</a>
-        <a href="ppl-home.html" class="tt-btn">PPL 2026</a>
-      </div>
-    </div>
-    <div class="header-right-group">
-      <div class="notif-trigger" id="notifTrigger">
-        <i class="fas fa-bell"></i>
-        <span id="notifBadge" class="notif-badge hidden">0</span>
-        <div id="notifPanel" class="notif-panel hidden">
-          <div class="notif-header">
-            <h3>Alerts</h3>
-            <button class="btn-mark-read" id="markAllRead">Mark all read</button>
-          </div>
-          <div id="notifList" class="notif-list">
-            <div class="empty-notif">Checking for updates...</div>
-          </div>
+<body>
+  <div class="home-shell">
+    <header class="home-header">
+      <div class="home-brand">
+        <div class="home-logo-mark">🏏</div>
+        <div>
+          <div class="home-brand-main">Cric<span class="brand-ce">Exp</span></div>
+          <div class="home-brand-sub">Fantasy & Official Scoring</div>
         </div>
       </div>
-    </div>
-  </header>
-
-  <!-- ═══════════════════════════════════════════════════
-       FIREWORK CANVAS — fixed, full screen, pointer-none
-       ═══════════════════════════════════════════════════ -->
-  <canvas id="fireworkCanvas" class="firework-canvas"></canvas>
-
-  <!-- ═══════════════════════════════════════════════════
-       SEASON ENDED SECTION
-       Hidden by default. JS shows this when
-       active_tournament returns null (season is over).
-       ═══════════════════════════════════════════════════ -->
-  <div id="seasonEndedSection" class="hidden">
-
-    <!-- Banner -->
-    <div class="season-over-banner">
-      <span class="season-over-crown">👑</span>
-      <div class="season-over-title">Season Over</div>
-      <div class="season-over-subtitle">IPL 2026 — Final Standings</div>
-      <div class="season-over-divider"></div>
-    </div>
-
-    <!-- Overall Top 3 -->
-    <div class="season-section">
-      <div class="season-section-eyebrow">Fantasy League</div>
-      <div class="season-section-title">Overall Top 3</div>
-      <div id="overallTop3Container">
-        <div class="loading-inline">Loading...</div>
-      </div>
-    </div>
-
-    <!-- Private League Season Final -->
-    <div class="season-section" id="privateLeagueSeasonSection">
-      <div class="season-section-eyebrow">Your Private League</div>
-      <div class="season-section-title" id="privateLeagueSeasonName">My League</div>
-      <div id="privateLeagueSeasonContainer">
-        <div class="loading-inline">Loading...</div>
-      </div>
-      <button class="btn-ghost-sm" id="viewPrivateLeaderboardSeason" style="margin-top:10px;width:100%;">
-        Full Leaderboard →
+      <button class="home-profile-btn" id="homeProfileBtn">
+        <i class="fa-regular fa-user"></i>
       </button>
-    </div>
+    </header>
 
-    <!-- Mini League Champions -->
-    <div class="season-section">
-      <div class="season-section-eyebrow">Season Winners</div>
-      <div class="season-section-title">Mini League Champions</div>
-      <div class="champions-grid">
-
-        <div class="champion-card">
-          <div class="champion-icon">⭐</div>
-          <div class="champion-info">
-            <span class="champion-label">All Stars Champion</span>
-            <span class="champion-name" id="champAllStarsName">Loading...</span>
-            <span class="champion-pts" id="champAllStarsPts"></span>
-          </div>
-          <span class="champion-trophy">🏆</span>
-        </div>
-
-        <div class="champion-card">
-          <div class="champion-icon">⚡</div>
-          <div class="champion-info">
-            <span class="champion-label">Daily Challenge Champion</span>
-            <span class="champion-name" id="champDailyName">Loading...</span>
-            <span class="champion-pts" id="champDailyPts"></span>
-          </div>
-          <span class="champion-trophy">🏆</span>
-        </div>
-
-        <div class="champion-card">
-          <div class="champion-icon">🔮</div>
-          <div class="champion-info">
-            <span class="champion-label">Prediction Masters</span>
-            <span class="champion-name" id="champPredictionName">Loading...</span>
-            <span class="champion-pts" id="champPredictionPts"></span>
-          </div>
-          <span class="champion-trophy">🏆</span>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- PPL Teaser -->
-    <div class="season-section" style="text-align:center;padding-bottom:24px;">
-      <div class="season-section-eyebrow" style="text-align:center;">Up Next</div>
-      <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--text-primary);margin-bottom:6px;">
-        🏏 Punjab Premier League
-      </div>
-      <div style="font-size:13px;color:var(--text-faint);margin-bottom:14px;">
-        Season 2026 coming soon — stay tuned!
-      </div>
-      <button class="btn-ghost-sm" onclick="window.location.href='ppl-home.html'" style="width:100%;">
-        Go to PPL →
-      </button>
-    </div>
-
-  </div>
-  <!-- ═══ end #seasonEndedSection ═══ -->
-
-
-  <!-- ═══════════════════════════════════════════════════
-       ACTIVE SEASON CONTENT
-       Everything below is the normal live-season UI.
-       JS hides these when season is over via
-       .season-over-hidden class.
-       ═══════════════════════════════════════════════════ -->
-
-  <!-- USER CARD — always visible (shows final stats when season over) -->
-  <section class="card user-card">
-    <div class="user-card-top">
-      <div class="team-avatar" id="teamAvatar"></div>
-      <div class="user-meta">
-        <p class="welcome-text" id="welcomeText">Welcome back, Expert</p>
-        <p class="team-subtitle" id="userTeamName">Set your team name</p>
-      </div>
-    </div>
-
-    <!-- Stats row -->
-    <div class="stats-row">
-      <div class="stat-cell">
-        <span class="stat-val" id="userScore">0</span>
-        <span class="stat-lbl">Score</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell rank-hero">
-        <span class="stat-val accent" id="userRank">--</span>
-        <span class="stat-lbl">Rank</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-val" id="subsRemaining">0</span>
-        <span class="stat-lbl">Subs</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-val" id="boosterStatus">--</span>
-        <span class="stat-lbl">Boost</span>
-      </div>
-    </div>
-    <div class="season-progress-bar">
-      <div class="season-progress-fill" id="seasonProgressFill"></div>
-    </div>
-    <p class="season-progress-label" id="seasonProgressLabel">Match 1 of 74</p>
-  </section>
-
-  <!-- NEXT MATCH CARD — hidden when season over -->
-  <section class="card match-card">
-    <div class="match-card-header">
-      <span class="match-badge">NEXT MATCH</span>
-      <p id="matchVenue" class="match-venue">??? Venue TBA</p>
-    </div>
-
-    <div class="match-vs-row">
-      <div id="teamALogo" class="team-logo"></div>
-      <div class="match-center">
-        <h2 class="match-teams" id="matchTeams">-- vs --</h2>
-        <p class="match-time neon-green" id="matchTime">
-          <i class="far fa-clock"></i> Loading...
+    <main class="home-main">
+      <section class="home-welcome">
+        <p class="home-eyebrow">Welcome back</p>
+        <h1 class="home-title">
+          Your <span class="accent">Cricket Hub</span>
+        </h1>
+        <p class="home-sub">
+          Play season-long fantasy, run official scoring for your tournaments, and track
+          all stats in one place.
         </p>
-      </div>
-      <div id="teamBLogo" class="team-logo"></div>
-    </div>
+      </section>
 
-    <div class="match-actions">
-      <button class="btn-primary full-width" id="editXiBtn">Edit Team</button>
-      <button class="btn-text-link" id="viewXiBtn">View my team</button>
-    </div>
-  </section>
+      <section class="home-quick-grid">
+        <a href="team-builder.html" class="home-card home-card-main">
+          <div class="home-card-icon main"><i class="fa-solid fa-trophy"></i></div>
+          <h2 class="home-card-title">Play Fantasy</h2>
+          <p class="home-card-body">
+            Join IPL / local fantasy leagues, manage your XI, boosters and subs across the season.
+          </p>
+          <span class="home-card-cta">Open fantasy centre →</span>
+        </a>
 
-  <!-- QUICK ACCESS STRIP — hidden when season over -->
-  <div class="quick-access-strip">
-    <p class="quick-access-label">Explore</p>
-    <div class="quick-access-row">
+        <a href="partner.html" class="home-card">
+          <div class="home-card-icon partner"><i class="fa-solid fa-handshake-angle"></i></div>
+          <h3 class="home-card-title-sm">Official Partner</h3>
+          <p class="home-card-body-sm">
+            Use CricExp as the scoring + fantasy partner for your academy or tournament.
+          </p>
+          <span class="home-card-cta-sm">View partner options →</span>
+        </a>
 
-      <a href="experts-dugout.html" class="qa-pill qa-dugout">
-        <div class="qa-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
-        <span class="qa-title">Dugout</span>
-      </a>
+        <a href="stats.html" class="home-card">
+          <div class="home-card-icon stats"><i class="fa-solid fa-chart-line"></i></div>
+          <h3 class="home-card-title-sm">Stats & Ranks</h3>
+          <p class="home-card-body-sm">
+            Season tables, fantasy ranks and player stats for every ball scored.
+          </p>
+          <span class="home-card-cta-sm">View stats →</span>
+        </a>
 
-      <a href="prediction.html" class="qa-pill qa-fun">
-        <div class="qa-badge">HOT</div>
-        <div class="qa-icon"><i class="fas fa-bolt"></i></div>
-        <span class="qa-title">Fun Zone</span>
-      </a>
+        <a href="https://wa.me/91XXXXXXXXXX" class="home-card" target="_blank" rel="noopener">
+          <div class="home-card-icon enquiry"><i class="fa-regular fa-envelope"></i></div>
+          <h3 class="home-card-title-sm">Enquiry</h3>
+          <p class="home-card-body-sm">
+            Have a league or academy? Get in touch for a custom scoring + fantasy setup.
+          </p>
+          <span class="home-card-cta-sm">WhatsApp / Email →</span>
+        </a>
+      </section>
+    </main>
 
-      <a href="stats.html" class="qa-pill qa-stats">
-        <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
-        <span class="qa-title">Stats</span>
-      </a>
-
-      <a href="leaderboard.html" class="qa-pill qa-ranks">
-        <div class="qa-icon"><i class="fas fa-ranking-star"></i></div>
-        <span class="qa-title">Ranks</span>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- UNIFIED STANDINGS CARD — hidden when season over -->
-  <section class="card unified-league-card" id="unifiedLeagueCard">
-
-    <!-- TABS -->
-    <div class="league-tabs">
-      <button class="league-tab active" id="tabMyLeague" onclick="switchLeagueTab('private')">
-        My League
+    <footer class="home-footer">
+      <button class="home-logout-btn" id="homeLogoutBtn">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
       </button>
-      <button class="league-tab" id="tabOverall" onclick="switchLeagueTab('overall')">
-        Overall
-      </button>
-    </div>
-
-    <!-- PANE 1: MY PRIVATE LEAGUE -->
-    <div class="league-tab-pane" id="panePrivate">
-
-      <!-- Has a league -->
-      <div id="privateLeagueContent" class="hidden">
-        <div class="league-pane-header">
-          <div class="league-pane-left">
-            <span class="card-eyebrow">My League</span>
-            <h3 class="league-name" id="privateLeagueName">…</h3>
-            <p class="league-member-count" id="privateLeagueMemberCount"></p>
-            <p class="league-code-row">
-              Code: <span id="privateInviteCode" class="league-code">--</span>
-            </p>
-          </div>
-          <div class="league-pane-right">
-            <span class="card-eyebrow">Your Rank</span>
-            <span id="privateLeagueRank" class="league-rank">#--</span>
-          </div>
-        </div>
-        <div id="privateLeaderboardContainer">
-          <p class="loading-inline">Fetching standings...</p>
-        </div>
-        <button class="btn-view-all" id="viewPrivateLeaderboard">
-          Full Leaderboard <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-
-      <!-- No league -->
-      <div id="noLeagueState" class="hidden no-league-pane">
-        <div class="no-league-emoji">🏆</div>
-        <p class="no-league-text">
-          You haven't joined a private league yet.<br>
-          Battle your friends for bragging rights!
-        </p>
-        <div class="no-league-actions">
-          <button id="homeCreateLeagueBtn" class="btn-primary">Create</button>
-          <button id="homeJoinLeagueBtn"   class="btn-secondary">Join</button>
-        </div>
-      </div>
-
-    </div><!-- end #panePrivate -->
-
-    <!-- PANE 2: OVERALL STANDINGS -->
-    <div class="league-tab-pane hidden" id="paneOverall">
-      <div class="league-pane-header">
-        <div class="league-pane-left">
-          <span class="card-eyebrow">Overall Standings</span>
-          <h3 class="league-name" style="color:var(--text-primary)">Top Experts</h3>
-          <p class="league-member-count" id="overallMemberCount"></p>
-        </div>
-        <div class="league-pane-right">
-          <span class="card-eyebrow">Your Rank</span>
-          <span id="overallUserRank" class="league-rank">#--</span>
-        </div>
-      </div>
-      <div id="leaderboardContainer">
-        <p class="loading-inline">Updating rankings...</p>
-      </div>
-      <button class="btn-view-all" id="viewFullLeaderboard">
-        Full Leaderboard <i class="fas fa-chevron-right"></i>
-      </button>
-    </div><!-- end #paneOverall -->
-
-  </section>
-  <!-- end UNIFIED STANDINGS CARD -->
-
-  <!-- SPONSORS SECTION — always visible -->
-  <section class="sponsors-section">
-    <div class="sponsors-mini">
-      <div class="sponsors-mini-header">
-        <div class="sponsors-mini-line"></div>
-        <span class="sponsors-mini-label">Sponsors</span>
-        <div class="sponsors-mini-line"></div>
-      </div>
-      <div class="sponsors-mini-row">
-        <div class="sponsor-mini-chip sponsor-title">
-          <span class="sponsor-mini-name">AJAK</span>
-          <span class="sponsor-mini-sub">Title Sponsor</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">ATT</span>
-          <span class="sponsor-mini-sub">T-Shirt</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">FFS</span>
-          <span class="sponsor-mini-sub">Cap</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">RZ</span>
-          <span class="sponsor-mini-sub">Trophy</span>
-        </div>
-        <div class="sponsor-mini-chip">
-          <span class="sponsor-mini-name">DD</span>
-          <span class="sponsor-mini-sub">Biryani</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</div><!-- end .app-container -->
-
-
-<!-- PROFILE MODAL -->
-<div id="profileModal" class="modal hidden">
-  <div class="modal-content">
-    <h2 class="modal-title">Complete Profile</h2>
-    <button class="close-modal" id="closeProfileModal">&times;</button>
-
-    <div class="avatar-upload-wrap">
-      <div id="modalAvatarPreview" class="avatar-preview"></div>
-      <label for="avatarInput" class="avatar-edit-btn" aria-label="Change photo">
-        <i class="fas fa-camera"></i>
-      </label>
-      <input type="file" id="avatarInput" accept="image/*" class="hidden" />
-    </div>
-
-    <div class="input-group">
-      <label for="modalTeamName">Team Name <span id="teamNameHint" style="font-size:10px;color:var(--text-faint);font-weight:400;">(editable until Match 1)</span></label>
-      <input type="text" id="modalTeamName" placeholder="e.g. AvengersCTC" autocomplete="off" />
-    </div>
-
-    <button id="saveProfileBtn" class="btn-primary full-width">Save & Start</button>
+    </footer>
   </div>
-</div>
 
-<!-- CUSTOM PROMPT MODAL -->
-<div id="customPromptOverlay" class="modal hidden" style="z-index:9999;">
-  <div class="modal-content prompt-modal">
-    <h3 id="promptTitle" class="prompt-title">Enter Value</h3>
-    <input type="text" id="promptInput" class="prompt-input" placeholder="...">
-    <div class="prompt-actions">
-      <button id="promptCancel"  class="btn-secondary">Cancel</button>
-      <button id="promptConfirm" class="btn-primary">Confirm</button>
-    </div>
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
   </div>
-</div>
 
-<!-- TOAST CONTAINER -->
-<div id="toastContainer" class="toast-container"></div>
-
-<div id="notificationPrompt" class="hidden"></div>
-
-<nav class="bottom-nav">
-  <a href="/home" class="active"><i class="fas fa-house"></i><span>Home</span></a>
-  <a href="experts-dugout.html"><i class="fas fa-magnifying-glass-chart"></i><span>Dugout</span></a>
-
-  <a href="matches.html" class="nav-match-center" id="navMatchesBtn">
-    <div class="nav-icon-stack">
-      <i class="fas fa-cricket-bat-ball" id="navMatchIcon"></i>
-      <span class="nav-live-dot hidden" id="navLiveDot"></span>
-    </div>
-    <span class="nav-label" id="navMatchLabel">Matches</span>
-    <span class="nav-score-sub hidden" id="navLiveScore">0/0</span>
-  </a>
-
-  <a href="prediction.html"><i class="fas fa-bolt"></i><span>Fun</span></a>
-  <a href="stats.html"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
-</nav>
-
-<script type="module" src="home.js"></script>
-<script src="transitions.js"></script>
-
-<!-- CHAT FAB -->
-<button id="chatFab" class="chat-fab" aria-label="Open chat">
-  <i class="fas fa-comment-dots"></i>
-  <span id="unreadBadge" class="unread-badge hidden" aria-label="Unread messages"></span>
-</button>
-
-<!-- CHAT BACKDROP -->
-<div id="chatBackdrop" class="chat-backdrop hidden"></div>
-
-<!-- CHAT PANEL -->
-<div id="chatPanel" class="chat-panel" role="dialog" aria-label="Chat">
-  <div class="chat-header">
-    <h3 id="chatTitle" class="chat-title">Global Banter</h3>
-    <button id="closeChatBtn" class="close-chat" aria-label="Close chat">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-  <div class="chat-push-banner" id="chatPushBanner"></div>
-  <div id="chatMessages" class="chat-messages"></div>
-  <form id="chatForm" class="chat-input-area">
-    <input type="text" id="chatInput"
-           placeholder="Say something…"
-           autocomplete="off"
-           maxlength="150"
-           required>
-    <button type="submit" id="sendChatBtn" aria-label="Send">
-      <i class="fas fa-paper-plane"></i>
-    </button>
-  </form>
-</div>
-
+  <script type="module" src="home-auth.js"></script>
 </body>
 </html>
