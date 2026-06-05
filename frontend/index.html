@@ -71,15 +71,19 @@
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    @keyframes spin       { to { transform: rotate(360deg); } }
-    @keyframes pulseGlow  {
+    @keyframes spin      { to { transform: rotate(360deg); } }
+    @keyframes pulseGlow {
       0%,100% { box-shadow: 0 0 6px var(--accent-glow); }
       50%     { box-shadow: 0 0 18px var(--accent-glow); }
     }
-    @keyframes livePulse  { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
+    @keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
     @keyframes modalIn {
       from { opacity:0; transform: translateY(24px) scale(0.97); }
       to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
     }
 
     .page-enter        { animation: pageFadeIn 0.35s var(--ease-out) both; }
@@ -108,10 +112,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .logo {
-      display: flex; align-items: center; gap: 8px;
-      text-decoration: none;
-    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
     .logo-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--accent);
@@ -125,55 +126,31 @@
     }
     .logo-text .ce { color: var(--accent); }
 
-    /* Header right — shows either Login button OR user avatar */
     .header-right { display: flex; align-items: center; gap: 10px; }
 
     .header-login-btn {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      padding: 8px 16px;
-      border-radius: var(--btn-radius);
-      font-family: var(--font-display);
-      font-size: 13px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.4px;
-      cursor: pointer;
+      background: var(--accent); color: #000; border: none;
+      padding: 8px 16px; border-radius: var(--btn-radius);
+      font-family: var(--font-display); font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer;
       transition: box-shadow 0.2s, transform 0.15s;
     }
-    .header-login-btn:hover {
-      box-shadow: 0 4px 16px var(--accent-glow);
-      transform: translateY(-1px);
-    }
+    .header-login-btn:hover { box-shadow: 0 4px 16px var(--accent-glow); transform: translateY(-1px); }
 
-    /* Avatar shown when logged in */
-    .header-avatar {
-      display: none; /* shown by JS when user is logged in */
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      text-decoration: none;
-    }
+    .header-avatar { display: none; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
     .avatar-circle {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--accent-dim);
-      border: 1.5px solid var(--accent);
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent-dim); border: 1.5px solid var(--accent);
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; color: var(--accent);
-      overflow: hidden;
+      font-size: 12px; font-weight: 700; color: var(--accent); overflow: hidden;
     }
     .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
     .go-home-btn {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid var(--border-accent);
-      padding: 7px 14px;
-      border-radius: var(--btn-radius);
-      font-family: var(--font-display);
-      font-size: 13px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.3px;
-      cursor: pointer;
-      text-decoration: none;
+      background: var(--accent-dim); color: var(--accent);
+      border: 1px solid var(--border-accent); padding: 7px 14px;
+      border-radius: var(--btn-radius); font-family: var(--font-display);
+      font-size: 13px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.3px; cursor: pointer; text-decoration: none;
       display: inline-flex; align-items: center; gap: 5px;
     }
 
@@ -185,6 +162,7 @@
       border: 1px solid var(--border-accent);
       padding: 20px 18px 18px;
       position: relative; overflow: hidden;
+      min-height: 140px;
     }
     .hero::after {
       content: ''; position: absolute; top: 0; right: 0;
@@ -198,12 +176,34 @@
       border-radius: var(--card-radius) var(--card-radius) 0 0;
     }
 
+    /* Hero skeleton */
+    .hero-skeleton {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .skel {
+      background: linear-gradient(90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.09) 50%,
+        rgba(255,255,255,0.04) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.6s ease-in-out infinite;
+      border-radius: 8px;
+    }
+    .skel-tag  { height: 22px; width: 100px; border-radius: 20px; }
+    .skel-h1   { height: 30px; width: 75%; }
+    .skel-h2   { height: 30px; width: 55%; margin-top: -4px; }
+    .skel-meta { height: 14px; width: 60%; }
+    .skel-btns { display: flex; gap: 10px; margin-top: 4px; }
+    .skel-btn  { height: 42px; flex: 1; border-radius: var(--btn-radius); }
+
+    /* Hero content */
+    .hero-content { display: none; }
+    .hero-content.loaded { display: block; }
+
     .hero-tag {
       display: inline-flex; align-items: center; gap: 6px;
-      background: var(--accent-dim);
-      border: 1px solid var(--border-accent);
-      border-radius: var(--pill-radius);
-      padding: 4px 12px; margin-bottom: 12px;
+      background: var(--accent-dim); border: 1px solid var(--border-accent);
+      border-radius: var(--pill-radius); padding: 4px 12px; margin-bottom: 12px;
     }
     .hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
     .hero-tag-text {
@@ -212,11 +212,9 @@
     }
 
     .hero-tournament {
-      font-family: var(--font-display);
-      font-size: 26px; font-weight: 900;
-      color: var(--text-primary);
-      line-height: 1.1; text-transform: uppercase; letter-spacing: 0.3px;
-      margin-bottom: 5px;
+      font-family: var(--font-display); font-size: 26px; font-weight: 900;
+      color: var(--text-primary); line-height: 1.1; text-transform: uppercase;
+      letter-spacing: 0.3px; margin-bottom: 5px;
     }
     .hero-meta { font-size: 12px; color: var(--text-faint); margin-bottom: 16px; }
 
@@ -226,11 +224,10 @@
       text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;
     }
     .deadline-val {
-      font-family: var(--font-display);
-      font-size: 14px; font-weight: 800; color: var(--orange);
+      font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--orange);
     }
 
-    .hero-btns { display: flex; gap: 10px; }
+    .hero-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .btn-primary {
       background: var(--accent); color: #000; border: none;
@@ -251,55 +248,34 @@
       transition: background 0.2s, border-color 0.2s, color 0.2s; white-space: nowrap;
       text-decoration: none; display: inline-flex; align-items: center;
     }
-    .btn-secondary:hover {
-      background: var(--accent-dim); border-color: var(--border-accent); color: var(--accent);
-    }
+    .btn-secondary:hover { background: var(--accent-dim); border-color: var(--border-accent); color: var(--accent); }
 
-    /* ─── STATS ROW (only shown when logged in) ── */
-    .stats-row {
-      display: none; /* JS sets to flex when user is confirmed logged in */
-      gap: 10px; margin: 12px 14px 0;
-    }
+    /* ─── STATS ROW ───────────────────────────── */
+    .stats-row { display: none; gap: 10px; margin: 12px 14px 0; }
     .stat-chip {
-      flex: 1; background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius-sm);
-      padding: 11px 10px; text-align: center;
+      flex: 1; background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm); padding: 11px 10px; text-align: center;
     }
-    .stat-num {
-      display: block; font-family: var(--font-display);
-      font-size: 18px; font-weight: 900; color: var(--text-primary);
-    }
+    .stat-num { display: block; font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--text-primary); }
     .stat-num.accent { color: var(--accent); }
-    .stat-lbl {
-      display: block; font-size: 9px; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px;
-    }
+    .stat-lbl { display: block; font-size: 9px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
 
     /* ─── SECTIONS ────────────────────────────── */
     .section { padding: 0 14px; margin-top: 20px; }
-    .section-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-    }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .section-title {
       font-family: var(--font-display); font-size: 11px; font-weight: 700;
       color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.2px;
     }
-    .see-all {
-      font-size: 11px; font-weight: 600; color: var(--accent);
-      text-decoration: none; cursor: pointer;
-    }
+    .see-all { font-size: 11px; font-weight: 600; color: var(--accent); text-decoration: none; cursor: pointer; }
     .see-all:hover { text-decoration: underline; }
 
     /* ─── TOURNAMENT CARDS ────────────────────── */
     .t-card {
       display: flex; align-items: center; gap: 13px;
-      padding: 13px 14px; background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: var(--card-radius-sm);
-      margin-bottom: 10px; cursor: pointer;
-      text-decoration: none;
-      transition: border-color 0.2s, background 0.2s;
+      padding: 13px 14px; background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm); margin-bottom: 10px; cursor: pointer;
+      text-decoration: none; transition: border-color 0.2s, background 0.2s;
       position: relative; overflow: hidden;
     }
     .t-card::before {
@@ -308,10 +284,19 @@
       pointer-events: none;
     }
     .t-card:hover { border-color: var(--border-accent); background: var(--bg-card-alt); }
-    .t-card.featured {
-      border-color: var(--border-accent);
-      background: linear-gradient(135deg, var(--bg-card), rgba(154,224,0,0.025));
+    .t-card.featured { border-color: var(--border-accent); background: linear-gradient(135deg, var(--bg-card), rgba(154,224,0,0.025)); }
+
+    /* Card skeleton */
+    .t-card-skel {
+      display: flex; align-items: center; gap: 13px;
+      padding: 13px 14px; background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm); margin-bottom: 10px;
     }
+    .skel-flag  { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; }
+    .skel-info  { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .skel-name  { height: 14px; width: 70%; }
+    .skel-meta2 { height: 11px; width: 50%; }
+    .skel-badge { width: 50px; height: 22px; border-radius: 20px; }
 
     .t-flag {
       width: 40px; height: 40px; border-radius: 11px;
@@ -334,10 +319,10 @@
       font-family: var(--font-display); font-size: 10px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.3px;
     }
-    .badge-open   { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-accent); }
-    .badge-live   { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
-    .badge-ended  { background: rgba(100,116,139,0.1); color: var(--text-faint); border: 1px solid rgba(100,116,139,0.15); }
-    .badge-soon   { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.2); }
+    .badge-open  { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-accent); }
+    .badge-live  { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+    .badge-ended { background: rgba(100,116,139,0.1); color: var(--text-faint); border: 1px solid rgba(100,116,139,0.15); }
+    .badge-soon  { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.2); }
     .badge-live-dot {
       width: 5px; height: 5px; border-radius: 50%; background: var(--red);
       animation: livePulse 1.4s ease-in-out infinite;
@@ -346,25 +331,18 @@
     /* ─── PILLARS ─────────────────────────────── */
     .pillars { display: flex; gap: 10px; margin-top: 12px; }
     .pillar {
-      flex: 1; background: var(--bg-card);
-      border-radius: var(--card-radius-sm);
+      flex: 1; background: var(--bg-card); border-radius: var(--card-radius-sm);
       padding: 14px 12px; border: 1px solid var(--border-card);
     }
-    .pillar.green {
-      border-color: var(--border-accent);
-      background: linear-gradient(135deg, var(--bg-card), rgba(154,224,0,0.03));
-    }
-    .pillar.cyan {
-      border-color: rgba(0,242,255,0.18);
-      background: linear-gradient(135deg, var(--bg-card), rgba(0,242,255,0.03));
-    }
-    .pillar-icon { font-size: 20px; margin-bottom: 8px; }
-    .pillar-name {
+    .pillar.green { border-color: var(--border-accent); background: linear-gradient(135deg, var(--bg-card), rgba(154,224,0,0.03)); }
+    .pillar.cyan  { border-color: rgba(0,242,255,0.18); background: linear-gradient(135deg, var(--bg-card), rgba(0,242,255,0.03)); }
+    .pillar-icon  { font-size: 20px; margin-bottom: 8px; }
+    .pillar-name  {
       font-family: var(--font-display); font-size: 13px; font-weight: 800;
       color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;
     }
-    .pillar-desc { font-size: 11px; color: var(--text-faint); line-height: 1.55; }
-    .pillar-tag {
+    .pillar-desc  { font-size: 11px; color: var(--text-faint); line-height: 1.55; }
+    .pillar-tag   {
       display: inline-block; margin-top: 10px; padding: 2px 9px;
       border-radius: var(--pill-radius); font-size: 9px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.4px;
@@ -372,58 +350,34 @@
     .tag-green { background: var(--accent-dim); color: var(--accent); }
     .tag-cyan  { background: var(--accent-2-dim); color: var(--accent-2); }
 
-    /* ─── LOGIN MODAL OVERLAY ─────────────────── */
-    /*
-      This replaces the old "scroll to login card" pattern.
-      A bottom-sheet style modal appears when a gated action is triggered.
-      The rest of the page stays visible underneath — user never loses context.
-    */
+    /* ─── LOGIN MODAL ─────────────────────────── */
     .modal-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 1000;
+      display: none; position: fixed; inset: 0; z-index: 1000;
       background: rgba(2,6,23,0.80);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      align-items: flex-end; justify-content: center;
-      padding: 0;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      align-items: flex-end; justify-content: center; padding: 0;
     }
     .modal-overlay.open { display: flex; }
 
     .login-sheet {
-      width: 100%; max-width: 480px;
-      background: var(--bg-elevated);
-      border-radius: 24px 24px 0 0;
-      border-top: 1px solid var(--border-card);
-      padding: 10px 22px 36px;
-      animation: modalIn 0.3s var(--ease-bounce) both;
+      width: 100%; max-width: 480px; background: var(--bg-elevated);
+      border-radius: 24px 24px 0 0; border-top: 1px solid var(--border-card);
+      padding: 10px 22px 36px; animation: modalIn 0.3s var(--ease-bounce) both;
+      position: relative;
     }
-    .sheet-handle {
-      width: 36px; height: 4px;
-      background: var(--border-card);
-      border-radius: 2px;
-      margin: 10px auto 20px;
-    }
+    .sheet-handle { width: 36px; height: 4px; background: var(--border-card); border-radius: 2px; margin: 10px auto 20px; }
 
-    /* Context message — changes per trigger (e.g. "to join this league") */
     .sheet-context {
       display: flex; align-items: center; gap: 10px;
-      background: var(--accent-dim);
-      border: 1px solid var(--border-accent);
-      border-radius: var(--card-radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 18px;
+      background: var(--accent-dim); border: 1px solid var(--border-accent);
+      border-radius: var(--card-radius-sm); padding: 10px 14px; margin-bottom: 18px;
     }
     .sheet-context-icon { font-size: 18px; flex-shrink: 0; }
     .sheet-context-text { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
     .sheet-context-text strong { color: var(--text-primary); font-weight: 600; }
 
-    .sheet-title {
-      font-family: var(--font-display);
-      font-size: 22px; font-weight: 900;
-      color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 5px;
-    }
-    .sheet-sub { font-size: 13px; color: var(--text-faint); line-height: 1.5; margin-bottom: 20px; }
+    .sheet-title { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .sheet-sub   { font-size: 13px; color: var(--text-faint); line-height: 1.5; margin-bottom: 20px; }
 
     .google-btn {
       display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -439,31 +393,21 @@
     .google-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
     .g-badge {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: #fff; color: #4285f4;
+      width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #4285f4;
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; font-weight: 900; flex-shrink: 0;
     }
-    .spin-ico {
-      display: none; width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid rgba(0,0,0,0.25); border-left-color: #000;
-      animation: spin 0.7s linear infinite;
-    }
+    .spin-ico { display: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.25); border-left-color: #000; animation: spin 0.7s linear infinite; }
     .spin-ico.on { display: inline-block; }
 
     .sheet-dismiss {
-      position: absolute; top: 14px; right: 18px;
-      background: none; border: none;
-      font-size: 20px; color: var(--text-faint); cursor: pointer;
-      line-height: 1; padding: 4px;
+      position: absolute; top: 14px; right: 18px; background: none; border: none;
+      font-size: 20px; color: var(--text-faint); cursor: pointer; line-height: 1; padding: 4px;
       transition: color 0.2s;
     }
     .sheet-dismiss:hover { color: var(--text-primary); }
 
-    .auth-footnote {
-      font-size: 10px; color: var(--text-faint);
-      margin-top: 10px; line-height: 1.5; text-align: center;
-    }
+    .auth-footnote { font-size: 10px; color: var(--text-faint); margin-top: 10px; line-height: 1.5; text-align: center; }
     .auth-error {
       display: none; margin-top: 12px; font-size: 12px; text-align: center;
       background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
@@ -472,16 +416,10 @@
     .auth-error.show { display: block; }
 
     /* ─── FOOTER ──────────────────────────────── */
-    .site-footer {
-      margin-top: 36px; padding: 20px 18px 28px;
-      border-top: 1px solid var(--border); text-align: center;
-    }
+    .site-footer { margin-top: 36px; padding: 20px 18px 28px; border-top: 1px solid var(--border); text-align: center; }
     .footer-logo { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 8px; }
     .footer-logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-    .footer-logo-text {
-      font-family: var(--font-display); font-size: 14px; font-weight: 900;
-      color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.8px;
-    }
+    .footer-logo-text { font-family: var(--font-display); font-size: 14px; font-weight: 900; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.8px; }
     .footer-logo-text .ce { color: var(--accent); }
     .footer-copy { font-size: 11px; color: var(--text-faint); line-height: 1.5; }
   </style>
@@ -497,9 +435,7 @@
       <div class="logo-text">Cric<span class="ce">Exp</span></div>
     </a>
     <div class="header-right">
-      <!-- Shown when NOT logged in -->
       <button class="header-login-btn" id="headerLoginBtn">Sign In</button>
-      <!-- Shown when logged in — JS toggles visibility -->
       <a href="/home" class="go-home-btn" id="goHomeBtn" style="display:none">
         <i class="fa-solid fa-cricket-bat-ball" style="font-size:12px"></i> My Dashboard
       </a>
@@ -510,44 +446,23 @@
   </header>
 
   <!-- ── HERO ───────────────────────────────────── -->
-  <div class="hero page-enter-delay">
-
-    <div class="hero-deadline" id="heroDeadline" style="display:none">
-      <div class="deadline-label">Deadline</div>
-      <div class="deadline-val" id="heroDeadlineVal"></div>
+  <div class="hero page-enter-delay" id="heroCard">
+    <!-- Skeleton shown while loading -->
+    <div class="hero-skeleton" id="heroSkeleton">
+      <div class="skel skel-tag"></div>
+      <div class="skel skel-h1"></div>
+      <div class="skel skel-h2"></div>
+      <div class="skel skel-meta"></div>
+      <div class="skel-btns">
+        <div class="skel skel-btn"></div>
+        <div class="skel skel-btn"></div>
+      </div>
     </div>
-
-    <div class="hero-tag">
-      <div class="hero-tag-dot"></div>
-      <span class="hero-tag-text">Now Open</span>
-    </div>
-
-    <div class="hero-tournament">ICC Women's<br>T20 WC 2026</div>
-    <div class="hero-meta">Fantasy league · 18 matches · Starts Jun 15</div>
-
-    <div class="hero-btns">
-      <!--
-        data-gated="true"       → requires login before proceeding
-        data-dest="/icc-wt20"   → where to go once logged in (or immediately if already logged in)
-        data-context="..."      → message shown in the login sheet
-      -->
-      <button class="btn-primary"
-        data-gated="true"
-        data-dest="/icc-wt20-2026"
-        data-context="Sign in to join the ICC Women's T20 WC 2026 fantasy league">
-        <i class="fa-solid fa-bolt"></i> Join Fantasy
-      </button>
-      <!--
-        View Fixtures is NOT gated — anyone can browse fixtures without logging in.
-        Update href to your actual fixtures page.
-      -->
-      <a href="/icc-wt20-2026/fixtures" class="btn-secondary">
-        View Fixtures
-      </a>
-    </div>
+    <!-- Populated by JS -->
+    <div class="hero-content" id="heroContent"></div>
   </div>
 
-  <!-- ── STATS ROW — only shown when logged in ─── -->
+  <!-- ── STATS ROW ──────────────────────────────── -->
   <div class="stats-row" id="statsRow">
     <div class="stat-chip">
       <span class="stat-num" id="statLeagues">—</span>
@@ -567,59 +482,21 @@
   <section class="section page-enter-delay2">
     <div class="section-header">
       <span class="section-title">All Tournaments</span>
-      <!--
-        "See all" goes to a public page — no gate needed.
-        Update this href when you have a /tournaments page.
-      -->
       <a class="see-all" href="/tournaments">See all →</a>
     </div>
-
-    <!--
-      Gated cards: data-gated="true" triggers login sheet.
-      Non-open tournaments (Ended) have no gate — they just go to their results page.
-    -->
-    <div class="t-card featured"
-      data-gated="true"
-      data-dest="/icc-wt20-2026"
-      data-context="Sign in to join the ICC Women's T20 WC 2026 fantasy league">
-      <div class="t-flag">🌏</div>
-      <div class="t-info">
-        <div class="t-name">ICC Women's T20 WC 2026</div>
-        <div class="t-meta">Fantasy league · 18 matches · Starts Jun 15</div>
+    <!-- Skeletons shown while loading -->
+    <div id="tournamentList">
+      <div class="t-card-skel">
+        <div class="skel skel-flag"></div>
+        <div class="skel-info"><div class="skel skel-name"></div><div class="skel skel-meta2"></div></div>
+        <div class="skel skel-badge"></div>
       </div>
-      <div class="t-right">
-        <span class="badge badge-open">Open</span>
+      <div class="t-card-skel">
+        <div class="skel skel-flag"></div>
+        <div class="skel-info"><div class="skel skel-name"></div><div class="skel skel-meta2"></div></div>
+        <div class="skel skel-badge"></div>
       </div>
     </div>
-
-    <!-- Local tournament: live scoring is public, fantasy requires login -->
-    <div class="t-card"
-      data-gated="true"
-      data-dest="/local-tournament"
-      data-context="Sign in to join the fantasy league for this tournament">
-      <div class="t-flag">🏆</div>
-      <div class="t-info">
-        <div class="t-name">Local Tournament</div>
-        <div class="t-meta">Live scoring + Fantasy · Official Partner</div>
-      </div>
-      <div class="t-right">
-        <span class="badge badge-live">
-          <span class="badge-live-dot"></span>Live
-        </span>
-      </div>
-    </div>
-
-    <!-- IPL 2026 ended — not gated, just browse results -->
-    <a class="t-card" href="/ipl-2026">
-      <div class="t-flag">🏏</div>
-      <div class="t-info">
-        <div class="t-name">IPL 2026</div>
-        <div class="t-meta">Season long fantasy · Season ended</div>
-      </div>
-      <div class="t-right">
-        <span class="badge badge-ended">Ended</span>
-      </div>
-    </a>
   </section>
 
   <!-- ── WHAT IS CRICEXP ────────────────────────── -->
@@ -654,41 +531,26 @@
 
 </div><!-- /page-wrap -->
 
-
-<!--
-  ═══════════════════════════════════════════════
-  LOGIN MODAL (bottom sheet)
-  Shown when user clicks any gated action while
-  not logged in. Page stays visible underneath.
-  ═══════════════════════════════════════════════
--->
+<!-- ── LOGIN MODAL ────────────────────────────── -->
 <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-label="Sign in">
   <div class="login-sheet">
     <button class="sheet-dismiss" id="sheetDismiss" aria-label="Close">✕</button>
     <div class="sheet-handle"></div>
-
-    <!-- Context strip — updated by JS to reflect what the user was trying to do -->
     <div class="sheet-context" id="sheetContext">
       <span class="sheet-context-icon">🏏</span>
-      <span class="sheet-context-text" id="sheetContextText">
-        Sign in to join this fantasy league.
-      </span>
+      <span class="sheet-context-text" id="sheetContextText">Sign in to join this fantasy league.</span>
     </div>
-
     <div class="sheet-title">Sign In</div>
     <div class="sheet-sub">Free to play. Takes 10 seconds.</div>
-
     <button class="google-btn" id="googleLoginBtn">
       <div class="g-badge">G</div>
       <span class="btn-text">Continue with Google</span>
       <span class="spin-ico" id="spinIco"></span>
     </button>
-
     <p class="auth-footnote">By continuing you agree to receive updates about your leagues and tournaments.</p>
     <div id="authError" role="alert" aria-live="polite" class="auth-error"></div>
   </div>
 </div>
-
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
@@ -699,58 +561,38 @@ const sb = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0.doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
 );
 
-/* ════════════════════════════════════════════
-   AUTH STATE — check silently in background.
-   Page is ALWAYS shown first. No redirect.
-   ════════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   AUTH STATE
+════════════════════════════════════════ */
 let currentUser = null;
-// Where to send user after login (set when gated action is triggered)
 let pendingDest  = null;
 
 sb.auth.getSession().then(({ data: { session } }) => {
-  if (session?.user) {
-    currentUser = session.user;
-    onUserLoggedIn(session.user);
-  }
+  if (session?.user) { currentUser = session.user; onUserLoggedIn(session.user); }
 });
 
-// Also listen for auth changes (e.g. after OAuth redirect comes back)
 sb.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && session?.user) {
     currentUser = session.user;
     onUserLoggedIn(session.user);
-    // If user just logged in and there's a pending destination, go there
-    if (pendingDest) {
-      window.location.href = pendingDest;
-    }
+    if (pendingDest) window.location.href = pendingDest;
   }
-  if (event === "SIGNED_OUT") {
-    currentUser = null;
-    onUserLoggedOut();
-  }
+  if (event === "SIGNED_OUT") { currentUser = null; onUserLoggedOut(); }
 });
 
 function onUserLoggedIn(user) {
-  // Swap header: hide "Sign In", show avatar + "My Dashboard"
   document.getElementById("headerLoginBtn").style.display = "none";
   document.getElementById("goHomeBtn").style.display      = "inline-flex";
-
   const avatarEl = document.getElementById("headerAvatar");
   const circleEl = document.getElementById("avatarCircle");
   avatarEl.style.display = "flex";
-
   if (user.user_metadata?.avatar_url) {
     circleEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" alt="avatar" />`;
   } else {
-    // Initials fallback
     const name = user.user_metadata?.full_name || user.email || "?";
     circleEl.textContent = name.slice(0,2).toUpperCase();
   }
-
-  // Show stats row (with placeholders — wire up real data from your DB if you want)
   document.getElementById("statsRow").style.display = "flex";
-
-  // Close modal if somehow it was open
   closeModal();
 }
 
@@ -761,80 +603,243 @@ function onUserLoggedOut() {
   document.getElementById("statsRow").style.display       = "none";
 }
 
-/* ════════════════════════════════════════════
-   GATED ACTIONS
-   Any element with data-gated="true" triggers
-   this. If already logged in → go to data-dest.
-   If not → show login sheet, set pendingDest.
-   ════════════════════════════════════════════ */
-function handleGatedClick(el) {
-  const dest    = el.dataset.dest    || "/home";
-  const context = el.dataset.context || "Sign in to continue.";
+/* ════════════════════════════════════════
+   TOURNAMENT DATA — from Supabase RPC
+════════════════════════════════════════ */
 
-  if (currentUser) {
-    // Already logged in — just navigate
-    window.location.href = dest;
+// Status → badge HTML
+function makeBadge(status) {
+  if (status === 'ongoing')            return `<span class="badge badge-live"><span class="badge-live-dot"></span>Live</span>`;
+  if (status === 'registration_open')  return `<span class="badge badge-open">Open</span>`;
+  if (status === 'upcoming')           return `<span class="badge badge-soon">Soon</span>`;
+  if (status === 'completed')          return `<span class="badge badge-ended">Ended</span>`;
+  return `<span class="badge badge-ended">${status}</span>`;
+}
+
+// Status → human-readable tag for hero
+function heroTagLabel(status) {
+  if (status === 'ongoing')           return 'Live Now';
+  if (status === 'registration_open') return 'Now Open';
+  if (status === 'upcoming')          return 'Coming Soon';
+  if (status === 'completed')         return 'Season Ended';
+  return 'Tournament';
+}
+
+// Build meta line under tournament name
+function buildMeta(t) {
+  const parts = [];
+  if (t.kind === 'global') parts.push('Fantasy league');
+  if (t.kind === 'local')  parts.push('Live scoring');
+  if (t.has_fantasy && t.kind === 'local') parts.push('Fantasy');
+  // date range
+  const fmt = d => new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+  parts.push(`${fmt(t.start_date)} – ${fmt(t.end_date)}`);
+  return parts.join(' · ');
+}
+
+// Render hero from a tournament row
+function renderHero(t) {
+  const heroContent = document.getElementById("heroContent");
+  const heroSkeleton = document.getElementById("heroSkeleton");
+
+  // Determine primary CTA
+  const isCompleted = t.status === 'completed';
+  const primaryBtn = isCompleted
+    ? `<a href="${t.fantasy_url_path || '/'}" class="btn-primary"><i class="fa-solid fa-trophy"></i> View Results</a>`
+    : `<button class="btn-primary" data-gated="true" data-dest="${t.fantasy_url_path || '/home'}" data-context="Sign in to join the ${t.name} fantasy league"><i class="fa-solid fa-bolt"></i> Join Fantasy</button>`;
+
+  const fixturesBtn = t.fixtures_url_path
+    ? `<a href="${t.fixtures_url_path}" class="btn-secondary">View Fixtures</a>`
+    : '';
+
+  const liveScoringBtn = (t.has_live_scoring && t.live_scoring_url_path)
+    ? `<a href="${t.live_scoring_url_path}" class="btn-secondary"><i class="fa-solid fa-circle" style="color:var(--red);font-size:7px;vertical-align:middle"></i> Live Score</a>`
+    : '';
+
+  // Deadline countdown only for registration_open
+  const deadlineHtml = (t.status === 'registration_open' && t.registration_deadline)
+    ? `<div class="hero-deadline" id="heroDeadline">
+         <div class="deadline-label">Deadline</div>
+         <div class="deadline-val" id="heroDeadlineVal">--</div>
+       </div>`
+    : '';
+
+  heroContent.innerHTML = `
+    ${deadlineHtml}
+    <div class="hero-tag">
+      <div class="hero-tag-dot"></div>
+      <span class="hero-tag-text">${heroTagLabel(t.status)}</span>
+    </div>
+    <div class="hero-tournament">${t.name}</div>
+    <div class="hero-meta">${buildMeta(t)}</div>
+    <div class="hero-btns">
+      ${primaryBtn}
+      ${liveScoringBtn || fixturesBtn}
+    </div>
+  `;
+
+  heroSkeleton.style.display = "none";
+  heroContent.classList.add("loaded");
+
+  // Wire gated buttons added dynamically
+  heroContent.querySelectorAll("[data-gated='true']").forEach(el => {
+    el.addEventListener("click", e => { e.preventDefault(); handleGatedClick(el); });
+  });
+
+  // Countdown
+  if (t.registration_deadline) {
+    startCountdown(t.registration_deadline);
+  }
+}
+
+// Render all tournament cards
+function renderCards(tournaments) {
+  const list = document.getElementById("tournamentList");
+  if (!tournaments || tournaments.length === 0) {
+    list.innerHTML = `<p style="color:var(--text-faint);font-size:13px;padding:12px 0">No tournaments found.</p>`;
     return;
   }
 
-  // Not logged in — show login sheet with context
+  list.innerHTML = tournaments.map(t => {
+    const isCompleted = t.status === 'completed';
+    const href = isCompleted
+      ? (t.fantasy_url_path || t.live_scoring_url_path || '#')
+      : '#';
+
+    const featuredClass = t.is_featured ? ' featured' : '';
+
+    // Gated or plain link
+    const gatedAttrs = (!isCompleted && t.has_fantasy)
+      ? `data-gated="true" data-dest="${t.fantasy_url_path || '/home'}" data-context="Sign in to join the ${t.name} fantasy league"`
+      : '';
+
+    // Meta line
+    const kindLabel = t.kind === 'local'
+      ? `Live scoring${t.has_fantasy ? ' + Fantasy' : ''}`
+      : `Fantasy league`;
+
+    const fmt = d => new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    const meta = `${kindLabel} · ${fmt(t.start_date)} – ${fmt(t.end_date)}`;
+
+    if (isCompleted) {
+      return `
+        <a class="t-card${featuredClass}" href="${href}">
+          <div class="t-flag">${t.flag_emoji || '🏏'}</div>
+          <div class="t-info">
+            <div class="t-name">${t.name}</div>
+            <div class="t-meta">${meta}</div>
+          </div>
+          <div class="t-right">${makeBadge(t.status)}</div>
+        </a>`;
+    } else {
+      return `
+        <div class="t-card${featuredClass}" ${gatedAttrs}>
+          <div class="t-flag">${t.flag_emoji || '🏏'}</div>
+          <div class="t-info">
+            <div class="t-name">${t.name}</div>
+            <div class="t-meta">${meta}</div>
+          </div>
+          <div class="t-right">${makeBadge(t.status)}</div>
+        </div>`;
+    }
+  }).join('');
+
+  // Wire gated cards
+  list.querySelectorAll("[data-gated='true']").forEach(el => {
+    el.addEventListener("click", e => { e.preventDefault(); handleGatedClick(el); });
+  });
+}
+
+// Main loader
+async function loadTournaments() {
+  try {
+    const { data, error } = await sb.rpc('get_all_tournaments_for_home');
+    if (error) throw error;
+
+    // Hero = first featured, or first ongoing/open, or just first
+    const hero = data.find(t => t.is_featured)
+               || data.find(t => t.status === 'ongoing')
+               || data.find(t => t.status === 'registration_open')
+               || data.find(t => t.status === 'upcoming')
+               || data[0];
+
+    if (hero) renderHero(hero);
+    else {
+      document.getElementById("heroSkeleton").style.display = "none";
+      document.getElementById("heroContent").innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:8px 0">No active tournaments right now.</div>`;
+      document.getElementById("heroContent").classList.add("loaded");
+    }
+
+    renderCards(data);
+  } catch (err) {
+    console.error("Failed to load tournaments:", err);
+    // Fallback: hide skeleton, show error
+    document.getElementById("heroSkeleton").style.display = "none";
+    document.getElementById("heroContent").innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:8px 0">Could not load tournaments.</div>`;
+    document.getElementById("heroContent").classList.add("loaded");
+    document.getElementById("tournamentList").innerHTML = `<p style="color:var(--text-faint);font-size:12px;padding:8px 0">Failed to load. Please refresh.</p>`;
+  }
+}
+
+loadTournaments();
+
+/* ════════════════════════════════════════
+   COUNTDOWN TIMER
+════════════════════════════════════════ */
+let countdownTimer = null;
+function startCountdown(deadlineISO) {
+  if (countdownTimer) clearInterval(countdownTimer);
+  function tick() {
+    const deadlineEl = document.getElementById("heroDeadlineVal");
+    if (!deadlineEl) { clearInterval(countdownTimer); return; }
+    const diff = new Date(deadlineISO) - Date.now();
+    if (diff <= 0) { deadlineEl.textContent = "Closed"; clearInterval(countdownTimer); return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    deadlineEl.textContent = d > 0 ? `${d}d ${h}h left` : `${h}h ${m}m left`;
+  }
+  tick();
+  countdownTimer = setInterval(tick, 30000);
+}
+
+/* ════════════════════════════════════════
+   GATED ACTIONS
+════════════════════════════════════════ */
+function handleGatedClick(el) {
+  const dest    = el.dataset.dest    || "/home";
+  const context = el.dataset.context || "Sign in to continue.";
+  if (currentUser) { window.location.href = dest; return; }
   pendingDest = dest;
   document.getElementById("sheetContextText").textContent = context;
   openModal();
 }
 
-// Wire up all gated elements
-document.querySelectorAll("[data-gated='true']").forEach(el => {
-  el.addEventListener("click", (e) => {
-    e.preventDefault();
-    handleGatedClick(el);
-  });
-});
-
-// Header "Sign In" button
 document.getElementById("headerLoginBtn")?.addEventListener("click", () => {
   pendingDest = "/home";
-  document.getElementById("sheetContextText").textContent =
-    "Sign in to access your leagues, team and leaderboards.";
+  document.getElementById("sheetContextText").textContent = "Sign in to access your leagues, team and leaderboards.";
   openModal();
 });
 
-/* ════════════════════════════════════════════
+/* ════════════════════════════════════════
    MODAL OPEN / CLOSE
-   ════════════════════════════════════════════ */
+════════════════════════════════════════ */
 function openModal() {
   document.getElementById("loginModal").classList.add("open");
-  document.body.style.overflow = "hidden"; // prevent scroll behind sheet
+  document.body.style.overflow = "hidden";
 }
-
 function closeModal() {
   document.getElementById("loginModal").classList.remove("open");
   document.body.style.overflow = "";
 }
 
 document.getElementById("sheetDismiss")?.addEventListener("click", closeModal);
+document.getElementById("loginModal")?.addEventListener("click", e => { if (e.target === e.currentTarget) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
-// Tap backdrop to close
-document.getElementById("loginModal")?.addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) closeModal();
-});
-
-// Escape key
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeModal();
-});
-
-/* ════════════════════════════════════════════
+/* ════════════════════════════════════════
    GOOGLE LOGIN
-   After OAuth, Supabase redirects back here.
-   onAuthStateChange catches SIGNED_IN and
-   then navigates to pendingDest.
-
-   Important: redirectTo stays as origin (/) so
-   the page reloads here, not to /home.
-   The SIGNED_IN handler above then navigates
-   to pendingDest (whatever the user wanted).
-   ════════════════════════════════════════════ */
+════════════════════════════════════════ */
 const googleBtn = document.getElementById("googleLoginBtn");
 const spinIco   = document.getElementById("spinIco");
 const errEl     = document.getElementById("authError");
@@ -856,23 +861,14 @@ function showErr(msg) {
 
 async function doLogin() {
   let status;
-  try { status = await checkRegistrationOpen(); }
-  catch (_) { status = { open: true }; }
-
-  if (status?.open === false) {
-    showRegistrationClosed(status.reason);
-    return;
-  }
+  try { status = await checkRegistrationOpen(); } catch (_) { status = { open: true }; }
+  if (status?.open === false) { showRegistrationClosed(status.reason); return; }
 
   setLoading(true);
   try {
     const { error } = await sb.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        // Redirect back to this same page (not /home).
-        // onAuthStateChange handles the forward navigation to pendingDest.
-        redirectTo: window.location.origin + window.location.pathname,
-      },
+      options: { redirectTo: window.location.origin + window.location.pathname },
     });
     if (error) throw error;
   } catch (err) {
@@ -882,26 +878,6 @@ async function doLogin() {
 }
 
 googleBtn?.addEventListener("click", doLogin);
-
-/* ════════════════════════════════════════════
-   COUNTDOWN TIMER
-   ════════════════════════════════════════════ */
-const DEADLINE = "2026-06-14T23:59:00+05:30"; // update to real deadline
-const deadlineWrap = document.getElementById("heroDeadline");
-const deadlineVal  = document.getElementById("heroDeadlineVal");
-
-if (deadlineWrap && deadlineVal) {
-  deadlineWrap.style.display = "block";
-  (function tick() {
-    const diff = new Date(DEADLINE) - Date.now();
-    if (diff <= 0) { deadlineVal.textContent = "Closed"; return; }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    deadlineVal.textContent = d > 0 ? `${d}d ${h}h left` : `${h}h ${m}m left`;
-    setTimeout(tick, 30000);
-  })();
-}
 </script>
 
 </body>
