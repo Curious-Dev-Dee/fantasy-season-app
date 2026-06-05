@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>IPL 2026 – CricExp</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root{--accent:#9AE000;--accent-dim:rgba(154,224,0,0.09);--accent-glow:rgba(154,224,0,0.28);--bg-page:#020617;--bg-card:#0d1625;--bg-card-alt:#111e30;--bg-elevated:#0d1a2d;--border:rgba(255,255,255,0.07);--border-card:rgba(255,255,255,0.10);--border-accent:rgba(154,224,0,0.22);--text-primary:#f0f4f8;--text-dim:#94a3b8;--text-faint:#64748b;--red:#ef4444;--orange:#fb923c;--gold:#f59e0b;--font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif;--card-radius:18px;--card-radius-sm:12px;--btn-radius:12px;--pill-radius:20px;--ease-out:cubic-bezier(0.4,0,0.2,1);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg-page);color:var(--text-primary);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;background-image:radial-gradient(ellipse at top left,rgba(154,224,0,0.06) 0%,transparent 55%),radial-gradient(ellipse at bottom right,rgba(0,242,255,0.04) 0%,transparent 55%);background-attachment:fixed;}
+    @keyframes pageFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulseGlow{0%,100%{box-shadow:0 0 6px var(--accent-glow)}50%{box-shadow:0 0 18px var(--accent-glow)}}
+    @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+    .fade-in{animation:pageFadeIn .35s var(--ease-out) both;}
+    .fade-in-1{animation:pageFadeIn .35s var(--ease-out) .08s both;}
+    .fade-in-2{animation:pageFadeIn .35s var(--ease-out) .16s both;}
+    .page-wrap{max-width:480px;margin:0 auto;padding:0 0 48px;}
+    .site-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;position:sticky;top:0;z-index:200;background:rgba(2,6,23,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+    .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulseGlow 2.5s ease-in-out infinite;}
+    .logo-text{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--text-primary);letter-spacing:1px;text-transform:uppercase;}
+    .logo-text .ce{color:var(--accent);}
+    .back-btn{background:var(--accent-dim);color:var(--accent);border:1px solid var(--border-accent);padding:7px 14px;border-radius:var(--btn-radius);font-family:var(--font-display);font-size:13px;font-weight:800;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+    /* HERO BANNER */
+    .t-hero{margin:14px 14px 0;background:var(--bg-card);border:1px solid var(--border-accent);border-radius:var(--card-radius);padding:20px 18px 18px;position:relative;overflow:hidden;}
+    .t-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);border-radius:var(--card-radius) var(--card-radius) 0 0;}
+    .t-hero-flag{font-size:36px;margin-bottom:10px;}
+    .t-hero-name{font-family:var(--font-display);font-size:30px;font-weight:900;text-transform:uppercase;color:var(--text-primary);letter-spacing:.3px;}
+    .t-hero-sub{font-size:12px;color:var(--text-faint);margin-top:4px;}
+    .ended-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(100,116,139,.1);color:var(--text-faint);border:1px solid rgba(100,116,139,.2);border-radius:var(--pill-radius);padding:4px 12px;font-family:var(--font-display);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:12px;}
+    /* NAV TABS */
+    .nav-tabs{display:flex;gap:0;margin:14px 14px 0;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);padding:4px;overflow-x:auto;scrollbar-width:none;}
+    .nav-tabs::-webkit-scrollbar{display:none;}
+    .nav-tab{flex:1;padding:9px 12px;border-radius:9px;font-family:var(--font-display);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;border:none;background:transparent;color:var(--text-faint);cursor:pointer;white-space:nowrap;text-align:center;transition:background .2s,color .2s;}
+    .nav-tab.active{background:var(--bg-card-alt);color:var(--text-primary);}
+    /* PANEL */
+    .panel{display:none;padding:0 14px;margin-top:18px;}
+    .panel.active{display:block;}
+    /* LEADERBOARD */
+    .lb-table{width:100%;border-collapse:collapse;}
+    .lb-table th{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.6px;padding:0 12px 10px;text-align:left;}
+    .lb-table th:last-child{text-align:right;}
+    .lb-row{background:var(--bg-card);border-bottom:1px solid var(--border);}
+    .lb-row:last-child{border-bottom:none;}
+    .lb-row td{padding:11px 12px;font-size:13px;color:var(--text-primary);}
+    .lb-row td:last-child{text-align:right;font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--accent);}
+    .lb-rank{font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--text-faint);width:28px;}
+    .lb-rank.gold{color:var(--gold);}
+    .lb-rank.silver{color:#94a3b8;}
+    .lb-rank.bronze{color:#b45309;}
+    .lb-name{font-weight:600;}
+    .lb-wrap{background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);overflow:hidden;}
+    /* MATCHES */
+    .match-card{background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);padding:13px 14px;margin-bottom:10px;}
+    .match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .match-num{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;}
+    .match-date{font-size:11px;color:var(--text-faint);}
+    .match-teams{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .match-team{flex:1;text-align:center;}
+    .match-team-name{font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--text-primary);text-transform:uppercase;}
+    .match-score{font-size:11px;color:var(--text-dim);margin-top:2px;}
+    .match-vs{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text-faint);flex-shrink:0;}
+    .match-result{margin-top:8px;font-size:11px;color:var(--accent);font-weight:600;}
+    .skel{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:400px 100%;animation:shimmer 1.6s ease-in-out infinite;border-radius:8px;}
+    .empty-msg{color:var(--text-faint);font-size:13px;padding:20px 0;text-align:center;}
+    .section-title{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;}
+    .site-footer{margin-top:36px;padding:20px 18px 28px;border-top:1px solid var(--border);text-align:center;}
+    .footer-copy{font-size:11px;color:var(--text-faint);}
+    .my-rank-card{background:linear-gradient(135deg,var(--bg-card),rgba(154,224,0,.03));border:1px solid var(--border-accent);border-radius:var(--card-radius-sm);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+    .my-rank-icon{font-size:28px;}
+    .my-rank-info{flex:1;}
+    .my-rank-label{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;}
+    .my-rank-val{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--accent);}
+    .my-rank-pts{font-size:11px;color:var(--text-dim);margin-top:1px;}
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header class="site-header fade-in">
+    <a href="/" class="logo"><div class="logo-dot"></div><div class="logo-text">Cric<span class="ce">Exp</span></div></a>
+    <div><a href="/" class="back-btn"><i class="fa-solid fa-arrow-left" style="font-size:11px"></i> Home</a></div>
+  </header>
+
+  <div class="t-hero fade-in-1">
+    <div class="t-hero-flag">🏏</div>
+    <div class="t-hero-name">IPL 2026</div>
+    <div class="t-hero-sub">Indian Premier League · Season-long fantasy · 74 matches</div>
+    <div class="ended-badge"><i class="fa-solid fa-flag-checkered" style="font-size:10px"></i> Season Ended</div>
+  </div>
+
+  <div class="nav-tabs fade-in-1">
+    <button class="nav-tab active" data-tab="leaderboard">Leaderboard</button>
+    <button class="nav-tab" data-tab="matches">Matches</button>
+    <button class="nav-tab" data-tab="myteam">My Team</button>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="panel active" id="tab-leaderboard">
+    <div id="lbContent">
+      <div style="padding:20px 0;display:flex;flex-direction:column;gap:10px;">
+        <div class="skel" style="height:44px;border-radius:var(--card-radius-sm)"></div>
+        <div class="skel" style="height:44px;border-radius:var(--card-radius-sm)"></div>
+        <div class="skel" style="height:44px;border-radius:var(--card-radius-sm)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCHES -->
+  <div class="panel" id="tab-matches">
+    <div id="matchesContent">
+      <div style="padding:20px 0;display:flex;flex-direction:column;gap:10px;">
+        <div class="skel" style="height:80px;border-radius:var(--card-radius-sm)"></div>
+        <div class="skel" style="height:80px;border-radius:var(--card-radius-sm)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY TEAM -->
+  <div class="panel" id="tab-myteam">
+    <div id="myteamContent">
+      <div class="empty-msg">Loading your team…</div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p class="footer-copy">CricExp · IPL 2026 · Season Ended</p>
+  </footer>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
+
+const sb = createClient(
+  "https://tuvqgcosbweljslbfgqc.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
+);
+
+// Tab switching
+document.querySelectorAll(".nav-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+  });
+});
+
+const { data: { session } } = await sb.auth.getSession();
+const userId = session?.user?.id || null;
+
+// Load all data
+await Promise.all([loadLeaderboard(), loadMatches(), userId ? loadMyTeam(userId) : showLoginPrompt()]);
+
+async function loadLeaderboard() {
+  const { data } = await sb.from("user_tournament_points")
+    .select("user_id, total_points, rank, user_profiles(full_name, avatar_url)")
+    .order("rank", { ascending: true })
+    .limit(50);
+
+  const lbContent = document.getElementById("lbContent");
+  if (!data?.length) { lbContent.innerHTML = `<div class="empty-msg">No leaderboard data yet.</div>`; return; }
+
+  // My rank card if logged in
+  let myCard = "";
+  if (userId) {
+    const mine = data.find(r => r.user_id === userId);
+    if (mine) {
+      myCard = `<div class="my-rank-card">
+        <div class="my-rank-icon">🏆</div>
+        <div class="my-rank-info">
+          <div class="my-rank-label">Your Rank</div>
+          <div class="my-rank-val">#${mine.rank}</div>
+          <div class="my-rank-pts">${mine.total_points} points</div>
+        </div>
+      </div>`;
+    }
+  }
+
+  const rankColors = ['gold','silver','bronze'];
+  const rows = data.map((r, i) => {
+    const name = r.user_profiles?.full_name || "Player";
+    const rc = i < 3 ? rankColors[i] : '';
+    return `<tr class="lb-row">
+      <td class="lb-rank ${rc}">${r.rank || i+1}</td>
+      <td class="lb-name">${name}</td>
+      <td>${r.total_points ?? 0}</td>
+    </tr>`;
+  }).join("");
+
+  lbContent.innerHTML = `
+    ${myCard}
+    <div class="lb-wrap">
+      <table class="lb-table">
+        <thead><tr><th>#</th><th>Player</th><th style="text-align:right">Pts</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+async function loadMatches() {
+  const { data } = await sb.from("matches")
+    .select("id, match_number, home_team, away_team, match_date, home_score, away_score, result, venue")
+    .order("match_number", { ascending: true });
+
+  const matchesContent = document.getElementById("matchesContent");
+  if (!data?.length) { matchesContent.innerHTML = `<div class="empty-msg">No match data found.</div>`; return; }
+
+  matchesContent.innerHTML = data.map(m => {
+    const date = new Date(m.match_date).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
+    return `<div class="match-card">
+      <div class="match-top">
+        <span class="match-num">Match ${m.match_number}</span>
+        <span class="match-date">${date}</span>
+      </div>
+      <div class="match-teams">
+        <div class="match-team">
+          <div class="match-team-name">${m.home_team || "—"}</div>
+          <div class="match-score">${m.home_score || ""}</div>
+        </div>
+        <div class="match-vs">VS</div>
+        <div class="match-team">
+          <div class="match-team-name">${m.away_team || "—"}</div>
+          <div class="match-score">${m.away_score || ""}</div>
+        </div>
+      </div>
+      ${m.result ? `<div class="match-result">🏆 ${m.result}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+async function loadMyTeam(uid) {
+  const { data } = await sb.from("user_match_teams")
+    .select("match_id, total_points, user_match_team_players(player_id, is_captain, is_vice_captain, players(name, role))")
+    .eq("user_id", uid)
+    .order("total_points", { ascending: false })
+    .limit(10);
+
+  const el = document.getElementById("myteamContent");
+  if (!data?.length) { el.innerHTML = `<div class="empty-msg">You didn't join any matches in IPL 2026.</div>`; return; }
+
+  el.innerHTML = `<div class="section-title">Your Best Teams</div>` + data.map(t => {
+    const players = t.user_match_team_players || [];
+    const playerList = players.map(p => {
+      const role = p.players?.role || "";
+      const cap = p.is_captain ? " (C)" : p.is_vice_captain ? " (VC)" : "";
+      return `<span style="font-size:12px;color:var(--text-dim);margin-right:8px">${p.players?.name || "?"}${cap}</span>`;
+    }).join("");
+    return `<div class="match-card">
+      <div class="match-top">
+        <span class="match-num">Match ${t.match_id}</span>
+        <span style="font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--accent)">${t.total_points ?? 0} pts</span>
+      </div>
+      <div style="margin-top:6px;line-height:2">${playerList}</div>
+    </div>`;
+  }).join("");
+}
+
+function showLoginPrompt() {
+  document.getElementById("myteamContent").innerHTML = `
+    <div style="text-align:center;padding:40px 0 20px;">
+      <div style="font-size:32px;margin-bottom:12px">🔒</div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--text-primary);text-transform:uppercase;margin-bottom:6px">Sign In to View</div>
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:18px">See your IPL 2026 team and stats</div>
+      <a href="/" style="background:var(--accent);color:#000;padding:11px 22px;border-radius:var(--btn-radius);font-family:var(--font-display);font-size:14px;font-weight:800;text-transform:uppercase;text-decoration:none">Sign In</a>
+    </div>`;
+}
+</script>
+</body>
+</html>
