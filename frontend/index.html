@@ -2,62 +2,907 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>CricExp – Fantasy & Official Scoring</title>
-  <meta
-    name="description"
-    content="CricExp – Fantasy leagues and official live scoring partner for cricket tournaments."
-  />
+  <meta name="description" content="Season-long fantasy leagues and live scoring partner for cricket tournaments. IPL, ICC, BBL and your local tournament — all on CricExp." />
   <link rel="icon" type="image/png" href="favicon.png" />
 
-  <!-- Fonts + Icons (same as main app) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <!-- Minimal auth styles -->
-  <link rel="stylesheet" href="css/auth.css" />
+  <style>
+    /* ─── TOKENS ─────────────────────────────── */
+    :root {
+      --accent:       #9AE000;
+      --accent-dim:   rgba(154, 224, 0, 0.09);
+      --accent-mid:   rgba(154, 224, 0, 0.18);
+      --accent-glow:  rgba(154, 224, 0, 0.28);
+      --accent-2:     #00f2ff;
+      --accent-2-dim: rgba(0, 242, 255, 0.07);
+
+      --bg-page:     #020617;
+      --bg-card:     #0d1625;
+      --bg-card-alt: #111e30;
+      --bg-elevated: #0d1a2d;
+
+      --border:        rgba(255,255,255,0.07);
+      --border-card:   rgba(255,255,255,0.10);
+      --border-accent: rgba(154,224,0,0.22);
+
+      --text-primary: #f0f4f8;
+      --text-dim:     #94a3b8;
+      --text-faint:   #64748b;
+
+      --red:    #ef4444;
+      --orange: #fb923c;
+      --gold:   #f59e0b;
+
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+
+      --card-radius:    18px;
+      --card-radius-sm: 12px;
+      --btn-radius:     12px;
+      --pill-radius:    20px;
+
+      --ease-out:    cubic-bezier(0.4,0,0.2,1);
+      --ease-bounce: cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+      background-image:
+        radial-gradient(ellipse at top left,  rgba(154,224,0,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom right, rgba(0,242,255,0.04) 0%, transparent 55%);
+      background-attachment: fixed;
+    }
+
+    /* ─── ANIMATIONS ─────────────────────────── */
+    @keyframes pageFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin       { to { transform: rotate(360deg); } }
+    @keyframes pulseGlow  {
+      0%,100% { box-shadow: 0 0 6px var(--accent-glow); }
+      50%     { box-shadow: 0 0 18px var(--accent-glow); }
+    }
+    @keyframes livePulse  { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
+    @keyframes modalIn {
+      from { opacity:0; transform: translateY(24px) scale(0.97); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    .page-enter        { animation: pageFadeIn 0.35s var(--ease-out) both; }
+    .page-enter-delay  { animation: pageFadeIn 0.35s var(--ease-out) 0.08s both; }
+    .page-enter-delay2 { animation: pageFadeIn 0.35s var(--ease-out) 0.16s both; }
+    .page-enter-delay3 { animation: pageFadeIn 0.35s var(--ease-out) 0.24s both; }
+
+    /* ─── LAYOUT ──────────────────────────────── */
+    .page-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 40px;
+    }
+
+    /* ─── HEADER ──────────────────────────────── */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 12px;
+      position: sticky;
+      top: 0; z-index: 200;
+      background: rgba(2,6,23,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none;
+    }
+    .logo-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulseGlow 2.5s ease-in-out infinite;
+    }
+    .logo-text {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .logo-text .ce { color: var(--accent); }
+
+    /* Header right — shows either Login button OR user avatar */
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .header-login-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--btn-radius);
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .header-login-btn:hover {
+      box-shadow: 0 4px 16px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    /* Avatar shown when logged in */
+    .header-avatar {
+      display: none; /* shown by JS when user is logged in */
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .avatar-circle {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1.5px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      overflow: hidden;
+    }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .go-home-btn {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--border-accent);
+      padding: 7px 14px;
+      border-radius: var(--btn-radius);
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.3px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+
+    /* ─── HERO ────────────────────────────────── */
+    .hero {
+      margin: 14px 14px 0;
+      background: var(--bg-card);
+      border-radius: var(--card-radius);
+      border: 1px solid var(--border-accent);
+      padding: 20px 18px 18px;
+      position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ''; position: absolute; top: 0; right: 0;
+      width: 160px; height: 100%;
+      background: linear-gradient(135deg, transparent, rgba(154,224,0,0.03));
+      pointer-events: none;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--accent);
+      border-radius: var(--card-radius) var(--card-radius) 0 0;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--pill-radius);
+      padding: 4px 12px; margin-bottom: 12px;
+    }
+    .hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .hero-tag-text {
+      font-family: var(--font-display); font-size: 11px; font-weight: 700;
+      color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px;
+    }
+
+    .hero-tournament {
+      font-family: var(--font-display);
+      font-size: 26px; font-weight: 900;
+      color: var(--text-primary);
+      line-height: 1.1; text-transform: uppercase; letter-spacing: 0.3px;
+      margin-bottom: 5px;
+    }
+    .hero-meta { font-size: 12px; color: var(--text-faint); margin-bottom: 16px; }
+
+    .hero-deadline { position: absolute; top: 20px; right: 18px; text-align: right; }
+    .deadline-label {
+      font-size: 9px; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;
+    }
+    .deadline-val {
+      font-family: var(--font-display);
+      font-size: 14px; font-weight: 800; color: var(--orange);
+    }
+
+    .hero-btns { display: flex; gap: 10px; }
+
+    .btn-primary {
+      background: var(--accent); color: #000; border: none;
+      padding: 12px 20px; border-radius: var(--btn-radius);
+      font-family: var(--font-display); font-weight: 800; font-size: 14px;
+      letter-spacing: 0.4px; text-transform: uppercase; cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s; white-space: nowrap;
+    }
+    .btn-primary:hover { box-shadow: 0 6px 20px var(--accent-glow); transform: translateY(-1px); }
+    .btn-primary:active { transform: scale(0.97); box-shadow: none; }
+
+    .btn-secondary {
+      background: transparent; color: var(--text-dim);
+      border: 1px solid var(--border-card);
+      padding: 12px 18px; border-radius: var(--btn-radius);
+      font-family: var(--font-display); font-weight: 700; font-size: 14px;
+      letter-spacing: 0.3px; text-transform: uppercase; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s; white-space: nowrap;
+      text-decoration: none; display: inline-flex; align-items: center;
+    }
+    .btn-secondary:hover {
+      background: var(--accent-dim); border-color: var(--border-accent); color: var(--accent);
+    }
+
+    /* ─── STATS ROW (only shown when logged in) ── */
+    .stats-row {
+      display: none; /* JS sets to flex when user is confirmed logged in */
+      gap: 10px; margin: 12px 14px 0;
+    }
+    .stat-chip {
+      flex: 1; background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm);
+      padding: 11px 10px; text-align: center;
+    }
+    .stat-num {
+      display: block; font-family: var(--font-display);
+      font-size: 18px; font-weight: 900; color: var(--text-primary);
+    }
+    .stat-num.accent { color: var(--accent); }
+    .stat-lbl {
+      display: block; font-size: 9px; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px;
+    }
+
+    /* ─── SECTIONS ────────────────────────────── */
+    .section { padding: 0 14px; margin-top: 20px; }
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display); font-size: 11px; font-weight: 700;
+      color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.2px;
+    }
+    .see-all {
+      font-size: 11px; font-weight: 600; color: var(--accent);
+      text-decoration: none; cursor: pointer;
+    }
+    .see-all:hover { text-decoration: underline; }
+
+    /* ─── TOURNAMENT CARDS ────────────────────── */
+    .t-card {
+      display: flex; align-items: center; gap: 13px;
+      padding: 13px 14px; background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--card-radius-sm);
+      margin-bottom: 10px; cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .t-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+      pointer-events: none;
+    }
+    .t-card:hover { border-color: var(--border-accent); background: var(--bg-card-alt); }
+    .t-card.featured {
+      border-color: var(--border-accent);
+      background: linear-gradient(135deg, var(--bg-card), rgba(154,224,0,0.025));
+    }
+
+    .t-flag {
+      width: 40px; height: 40px; border-radius: 11px;
+      background: var(--bg-card-alt); border: 1px solid var(--border-card);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .t-info { flex: 1; min-width: 0; }
+    .t-name {
+      font-family: var(--font-display); font-size: 14px; font-weight: 800;
+      color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .t-meta { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+    .t-right { text-align: right; flex-shrink: 0; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: var(--pill-radius);
+      font-family: var(--font-display); font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .badge-open   { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-accent); }
+    .badge-live   { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+    .badge-ended  { background: rgba(100,116,139,0.1); color: var(--text-faint); border: 1px solid rgba(100,116,139,0.15); }
+    .badge-soon   { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.2); }
+    .badge-live-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--red);
+      animation: livePulse 1.4s ease-in-out infinite;
+    }
+
+    /* ─── PILLARS ─────────────────────────────── */
+    .pillars { display: flex; gap: 10px; margin-top: 12px; }
+    .pillar {
+      flex: 1; background: var(--bg-card);
+      border-radius: var(--card-radius-sm);
+      padding: 14px 12px; border: 1px solid var(--border-card);
+    }
+    .pillar.green {
+      border-color: var(--border-accent);
+      background: linear-gradient(135deg, var(--bg-card), rgba(154,224,0,0.03));
+    }
+    .pillar.cyan {
+      border-color: rgba(0,242,255,0.18);
+      background: linear-gradient(135deg, var(--bg-card), rgba(0,242,255,0.03));
+    }
+    .pillar-icon { font-size: 20px; margin-bottom: 8px; }
+    .pillar-name {
+      font-family: var(--font-display); font-size: 13px; font-weight: 800;
+      color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;
+    }
+    .pillar-desc { font-size: 11px; color: var(--text-faint); line-height: 1.55; }
+    .pillar-tag {
+      display: inline-block; margin-top: 10px; padding: 2px 9px;
+      border-radius: var(--pill-radius); font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .tag-green { background: var(--accent-dim); color: var(--accent); }
+    .tag-cyan  { background: var(--accent-2-dim); color: var(--accent-2); }
+
+    /* ─── LOGIN MODAL OVERLAY ─────────────────── */
+    /*
+      This replaces the old "scroll to login card" pattern.
+      A bottom-sheet style modal appears when a gated action is triggered.
+      The rest of the page stays visible underneath — user never loses context.
+    */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(2,6,23,0.80);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .login-sheet {
+      width: 100%; max-width: 480px;
+      background: var(--bg-elevated);
+      border-radius: 24px 24px 0 0;
+      border-top: 1px solid var(--border-card);
+      padding: 10px 22px 36px;
+      animation: modalIn 0.3s var(--ease-bounce) both;
+    }
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--border-card);
+      border-radius: 2px;
+      margin: 10px auto 20px;
+    }
+
+    /* Context message — changes per trigger (e.g. "to join this league") */
+    .sheet-context {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--card-radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 18px;
+    }
+    .sheet-context-icon { font-size: 18px; flex-shrink: 0; }
+    .sheet-context-text { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+    .sheet-context-text strong { color: var(--text-primary); font-weight: 600; }
+
+    .sheet-title {
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 900;
+      color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .sheet-sub { font-size: 13px; color: var(--text-faint); line-height: 1.5; margin-bottom: 20px; }
+
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; background: var(--accent); color: #000; border: none;
+      border-radius: var(--btn-radius); padding: 14px 20px;
+      font-family: var(--font-display); font-size: 15px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .google-btn:hover:not(:disabled) { box-shadow: 0 7px 28px var(--accent-glow); transform: translateY(-1px); }
+    .google-btn:active:not(:disabled) { transform: scale(0.97); box-shadow: none; }
+    .google-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .g-badge {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; color: #4285f4;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; flex-shrink: 0;
+    }
+    .spin-ico {
+      display: none; width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.25); border-left-color: #000;
+      animation: spin 0.7s linear infinite;
+    }
+    .spin-ico.on { display: inline-block; }
+
+    .sheet-dismiss {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: none;
+      font-size: 20px; color: var(--text-faint); cursor: pointer;
+      line-height: 1; padding: 4px;
+      transition: color 0.2s;
+    }
+    .sheet-dismiss:hover { color: var(--text-primary); }
+
+    .auth-footnote {
+      font-size: 10px; color: var(--text-faint);
+      margin-top: 10px; line-height: 1.5; text-align: center;
+    }
+    .auth-error {
+      display: none; margin-top: 12px; font-size: 12px; text-align: center;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      color: #fca5a5; padding: 9px 12px; border-radius: 9px;
+    }
+    .auth-error.show { display: block; }
+
+    /* ─── FOOTER ──────────────────────────────── */
+    .site-footer {
+      margin-top: 36px; padding: 20px 18px 28px;
+      border-top: 1px solid var(--border); text-align: center;
+    }
+    .footer-logo { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+    .footer-logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .footer-logo-text {
+      font-family: var(--font-display); font-size: 14px; font-weight: 900;
+      color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .footer-logo-text .ce { color: var(--accent); }
+    .footer-copy { font-size: 11px; color: var(--text-faint); line-height: 1.5; }
+  </style>
 </head>
 <body>
-  <div class="auth-wrapper">
-    <div class="auth-card">
-      <div class="auth-logo">
-        <!-- Replace with your logo image if you have one -->
-        <div class="auth-logo-mark">🏏</div>
-        <div class="auth-logo-text">
-          <span class="auth-brand-main">Cric<span class="brand-ce">Exp</span></span>
-          <span class="auth-brand-sub">Fantasy & Official Scoring</span>
-        </div>
+
+<div class="page-wrap">
+
+  <!-- ── HEADER ─────────────────────────────────── -->
+  <header class="site-header page-enter">
+    <a href="/" class="logo">
+      <div class="logo-dot"></div>
+      <div class="logo-text">Cric<span class="ce">Exp</span></div>
+    </a>
+    <div class="header-right">
+      <!-- Shown when NOT logged in -->
+      <button class="header-login-btn" id="headerLoginBtn">Sign In</button>
+      <!-- Shown when logged in — JS toggles visibility -->
+      <a href="/home" class="go-home-btn" id="goHomeBtn" style="display:none">
+        <i class="fa-solid fa-cricket-bat-ball" style="font-size:12px"></i> My Dashboard
+      </a>
+      <div class="header-avatar" id="headerAvatar" style="display:none">
+        <div class="avatar-circle" id="avatarCircle"></div>
       </div>
+    </div>
+  </header>
 
-      <p class="auth-tagline">
-        Season-long fantasy leagues and live scoring partner for your cricket tournaments.
-      </p>
+  <!-- ── HERO ───────────────────────────────────── -->
+  <div class="hero page-enter-delay">
 
-      <button class="google-btn" id="googleLoginBtn">
-        <span class="g-badge">G</span>
-        <span class="btn-text">Continue with Google</span>
-        <span class="spin-ico" id="spinIco"></span>
+    <div class="hero-deadline" id="heroDeadline" style="display:none">
+      <div class="deadline-label">Deadline</div>
+      <div class="deadline-val" id="heroDeadlineVal"></div>
+    </div>
+
+    <div class="hero-tag">
+      <div class="hero-tag-dot"></div>
+      <span class="hero-tag-text">Now Open</span>
+    </div>
+
+    <div class="hero-tournament">ICC Women's<br>T20 WC 2026</div>
+    <div class="hero-meta">Fantasy league · 18 matches · Starts Jun 15</div>
+
+    <div class="hero-btns">
+      <!--
+        data-gated="true"       → requires login before proceeding
+        data-dest="/icc-wt20"   → where to go once logged in (or immediately if already logged in)
+        data-context="..."      → message shown in the login sheet
+      -->
+      <button class="btn-primary"
+        data-gated="true"
+        data-dest="/icc-wt20-2026"
+        data-context="Sign in to join the ICC Women's T20 WC 2026 fantasy league">
+        <i class="fa-solid fa-bolt"></i> Join Fantasy
       </button>
-
-      <p class="auth-footnote">
-        By continuing you agree to receive updates about your leagues and tournaments.
-      </p>
-
-      <div id="authError" role="alert" aria-live="polite" class="auth-error"></div>
+      <!--
+        View Fixtures is NOT gated — anyone can browse fixtures without logging in.
+        Update href to your actual fixtures page.
+      -->
+      <a href="/icc-wt20-2026/fixtures" class="btn-secondary">
+        View Fixtures
+      </a>
     </div>
   </div>
 
-  <script type="module" src="auth.js"></script>
+  <!-- ── STATS ROW — only shown when logged in ─── -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-chip">
+      <span class="stat-num" id="statLeagues">—</span>
+      <span class="stat-lbl">My Leagues</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num accent" id="statPoints">—</span>
+      <span class="stat-lbl">My Points</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num" id="statRank">—</span>
+      <span class="stat-lbl">Best Rank</span>
+    </div>
+  </div>
+
+  <!-- ── ALL TOURNAMENTS ────────────────────────── -->
+  <section class="section page-enter-delay2">
+    <div class="section-header">
+      <span class="section-title">All Tournaments</span>
+      <!--
+        "See all" goes to a public page — no gate needed.
+        Update this href when you have a /tournaments page.
+      -->
+      <a class="see-all" href="/tournaments">See all →</a>
+    </div>
+
+    <!--
+      Gated cards: data-gated="true" triggers login sheet.
+      Non-open tournaments (Ended) have no gate — they just go to their results page.
+    -->
+    <div class="t-card featured"
+      data-gated="true"
+      data-dest="/icc-wt20-2026"
+      data-context="Sign in to join the ICC Women's T20 WC 2026 fantasy league">
+      <div class="t-flag">🌏</div>
+      <div class="t-info">
+        <div class="t-name">ICC Women's T20 WC 2026</div>
+        <div class="t-meta">Fantasy league · 18 matches · Starts Jun 15</div>
+      </div>
+      <div class="t-right">
+        <span class="badge badge-open">Open</span>
+      </div>
+    </div>
+
+    <!-- Local tournament: live scoring is public, fantasy requires login -->
+    <div class="t-card"
+      data-gated="true"
+      data-dest="/local-tournament"
+      data-context="Sign in to join the fantasy league for this tournament">
+      <div class="t-flag">🏆</div>
+      <div class="t-info">
+        <div class="t-name">Local Tournament</div>
+        <div class="t-meta">Live scoring + Fantasy · Official Partner</div>
+      </div>
+      <div class="t-right">
+        <span class="badge badge-live">
+          <span class="badge-live-dot"></span>Live
+        </span>
+      </div>
+    </div>
+
+    <!-- IPL 2026 ended — not gated, just browse results -->
+    <a class="t-card" href="/ipl-2026">
+      <div class="t-flag">🏏</div>
+      <div class="t-info">
+        <div class="t-name">IPL 2026</div>
+        <div class="t-meta">Season long fantasy · Season ended</div>
+      </div>
+      <div class="t-right">
+        <span class="badge badge-ended">Ended</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- ── WHAT IS CRICEXP ────────────────────────── -->
+  <section class="section page-enter-delay2" style="margin-top:22px">
+    <div class="section-header">
+      <span class="section-title">What is CricExp?</span>
+    </div>
+    <div class="pillars">
+      <div class="pillar green">
+        <div class="pillar-icon">🌍</div>
+        <div class="pillar-name">Global Fantasy</div>
+        <div class="pillar-desc">Season-long fantasy for IPL, ICC, BBL, LCPL and more premier leagues.</div>
+        <span class="pillar-tag tag-green">Fantasy Leagues</span>
+      </div>
+      <div class="pillar cyan">
+        <div class="pillar-icon">🏟️</div>
+        <div class="pillar-name">Local Tournaments</div>
+        <div class="pillar-desc">Official live scoring, points table, NRR and stats — like Cricbuzz for your local game.</div>
+        <span class="pillar-tag tag-cyan">Live Scoring</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-logo">
+      <div class="footer-logo-dot"></div>
+      <div class="footer-logo-text">Cric<span class="ce">Exp</span></div>
+    </div>
+    <p class="footer-copy">Fantasy &amp; Official Scoring Platform · 2026</p>
+  </footer>
+
+</div><!-- /page-wrap -->
+
+
+<!--
+  ═══════════════════════════════════════════════
+  LOGIN MODAL (bottom sheet)
+  Shown when user clicks any gated action while
+  not logged in. Page stays visible underneath.
+  ═══════════════════════════════════════════════
+-->
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-label="Sign in">
+  <div class="login-sheet">
+    <button class="sheet-dismiss" id="sheetDismiss" aria-label="Close">✕</button>
+    <div class="sheet-handle"></div>
+
+    <!-- Context strip — updated by JS to reflect what the user was trying to do -->
+    <div class="sheet-context" id="sheetContext">
+      <span class="sheet-context-icon">🏏</span>
+      <span class="sheet-context-text" id="sheetContextText">
+        Sign in to join this fantasy league.
+      </span>
+    </div>
+
+    <div class="sheet-title">Sign In</div>
+    <div class="sheet-sub">Free to play. Takes 10 seconds.</div>
+
+    <button class="google-btn" id="googleLoginBtn">
+      <div class="g-badge">G</div>
+      <span class="btn-text">Continue with Google</span>
+      <span class="spin-ico" id="spinIco"></span>
+    </button>
+
+    <p class="auth-footnote">By continuing you agree to receive updates about your leagues and tournaments.</p>
+    <div id="authError" role="alert" aria-live="polite" class="auth-error"></div>
+  </div>
+</div>
+
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
+import { checkRegistrationOpen, showRegistrationClosed } from "./registration-guard.js";
+
+const sb = createClient(
+  "https://tuvqgcosbweljslbfgqc.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0.doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
+);
+
+/* ════════════════════════════════════════════
+   AUTH STATE — check silently in background.
+   Page is ALWAYS shown first. No redirect.
+   ════════════════════════════════════════════ */
+let currentUser = null;
+// Where to send user after login (set when gated action is triggered)
+let pendingDest  = null;
+
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user) {
+    currentUser = session.user;
+    onUserLoggedIn(session.user);
+  }
+});
+
+// Also listen for auth changes (e.g. after OAuth redirect comes back)
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session?.user) {
+    currentUser = session.user;
+    onUserLoggedIn(session.user);
+    // If user just logged in and there's a pending destination, go there
+    if (pendingDest) {
+      window.location.href = pendingDest;
+    }
+  }
+  if (event === "SIGNED_OUT") {
+    currentUser = null;
+    onUserLoggedOut();
+  }
+});
+
+function onUserLoggedIn(user) {
+  // Swap header: hide "Sign In", show avatar + "My Dashboard"
+  document.getElementById("headerLoginBtn").style.display = "none";
+  document.getElementById("goHomeBtn").style.display      = "inline-flex";
+
+  const avatarEl = document.getElementById("headerAvatar");
+  const circleEl = document.getElementById("avatarCircle");
+  avatarEl.style.display = "flex";
+
+  if (user.user_metadata?.avatar_url) {
+    circleEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" alt="avatar" />`;
+  } else {
+    // Initials fallback
+    const name = user.user_metadata?.full_name || user.email || "?";
+    circleEl.textContent = name.slice(0,2).toUpperCase();
+  }
+
+  // Show stats row (with placeholders — wire up real data from your DB if you want)
+  document.getElementById("statsRow").style.display = "flex";
+
+  // Close modal if somehow it was open
+  closeModal();
+}
+
+function onUserLoggedOut() {
+  document.getElementById("headerLoginBtn").style.display = "block";
+  document.getElementById("goHomeBtn").style.display      = "none";
+  document.getElementById("headerAvatar").style.display   = "none";
+  document.getElementById("statsRow").style.display       = "none";
+}
+
+/* ════════════════════════════════════════════
+   GATED ACTIONS
+   Any element with data-gated="true" triggers
+   this. If already logged in → go to data-dest.
+   If not → show login sheet, set pendingDest.
+   ════════════════════════════════════════════ */
+function handleGatedClick(el) {
+  const dest    = el.dataset.dest    || "/home";
+  const context = el.dataset.context || "Sign in to continue.";
+
+  if (currentUser) {
+    // Already logged in — just navigate
+    window.location.href = dest;
+    return;
+  }
+
+  // Not logged in — show login sheet with context
+  pendingDest = dest;
+  document.getElementById("sheetContextText").textContent = context;
+  openModal();
+}
+
+// Wire up all gated elements
+document.querySelectorAll("[data-gated='true']").forEach(el => {
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    handleGatedClick(el);
+  });
+});
+
+// Header "Sign In" button
+document.getElementById("headerLoginBtn")?.addEventListener("click", () => {
+  pendingDest = "/home";
+  document.getElementById("sheetContextText").textContent =
+    "Sign in to access your leagues, team and leaderboards.";
+  openModal();
+});
+
+/* ════════════════════════════════════════════
+   MODAL OPEN / CLOSE
+   ════════════════════════════════════════════ */
+function openModal() {
+  document.getElementById("loginModal").classList.add("open");
+  document.body.style.overflow = "hidden"; // prevent scroll behind sheet
+}
+
+function closeModal() {
+  document.getElementById("loginModal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("sheetDismiss")?.addEventListener("click", closeModal);
+
+// Tap backdrop to close
+document.getElementById("loginModal")?.addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+});
+
+/* ════════════════════════════════════════════
+   GOOGLE LOGIN
+   After OAuth, Supabase redirects back here.
+   onAuthStateChange catches SIGNED_IN and
+   then navigates to pendingDest.
+
+   Important: redirectTo stays as origin (/) so
+   the page reloads here, not to /home.
+   The SIGNED_IN handler above then navigates
+   to pendingDest (whatever the user wanted).
+   ════════════════════════════════════════════ */
+const googleBtn = document.getElementById("googleLoginBtn");
+const spinIco   = document.getElementById("spinIco");
+const errEl     = document.getElementById("authError");
+
+function setLoading(on) {
+  if (!googleBtn) return;
+  googleBtn.disabled = on;
+  spinIco?.classList.toggle("on", on);
+  const txt = googleBtn.querySelector(".btn-text");
+  if (txt) txt.textContent = on ? "Connecting…" : "Continue with Google";
+}
+
+function showErr(msg) {
+  if (!errEl) return;
+  errEl.textContent = msg;
+  errEl.classList.add("show");
+  setTimeout(() => errEl.classList.remove("show"), 5000);
+}
+
+async function doLogin() {
+  let status;
+  try { status = await checkRegistrationOpen(); }
+  catch (_) { status = { open: true }; }
+
+  if (status?.open === false) {
+    showRegistrationClosed(status.reason);
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        // Redirect back to this same page (not /home).
+        // onAuthStateChange handles the forward navigation to pendingDest.
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+    if (error) throw error;
+  } catch (err) {
+    setLoading(false);
+    showErr(!navigator.onLine ? "No internet, try again." : (err.message || "Sign in failed."));
+  }
+}
+
+googleBtn?.addEventListener("click", doLogin);
+
+/* ════════════════════════════════════════════
+   COUNTDOWN TIMER
+   ════════════════════════════════════════════ */
+const DEADLINE = "2026-06-14T23:59:00+05:30"; // update to real deadline
+const deadlineWrap = document.getElementById("heroDeadline");
+const deadlineVal  = document.getElementById("heroDeadlineVal");
+
+if (deadlineWrap && deadlineVal) {
+  deadlineWrap.style.display = "block";
+  (function tick() {
+    const diff = new Date(DEADLINE) - Date.now();
+    if (diff <= 0) { deadlineVal.textContent = "Closed"; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    deadlineVal.textContent = d > 0 ? `${d}d ${h}h left` : `${h}h ${m}m left`;
+    setTimeout(tick, 30000);
+  })();
+}
+</script>
+
 </body>
 </html>
