@@ -2,110 +2,301 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
-  <title>CricExp – Home</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
-
-  <!-- Fonts + icons (same as landing) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>My Dashboard – CricExp</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --accent:#9AE000;--accent-dim:rgba(154,224,0,0.09);--accent-glow:rgba(154,224,0,0.28);
+      --accent-2:#00f2ff;--accent-2-dim:rgba(0,242,255,0.07);
+      --bg-page:#020617;--bg-card:#0d1625;--bg-card-alt:#111e30;--bg-elevated:#0d1a2d;
+      --border:rgba(255,255,255,0.07);--border-card:rgba(255,255,255,0.10);--border-accent:rgba(154,224,0,0.22);
+      --text-primary:#f0f4f8;--text-dim:#94a3b8;--text-faint:#64748b;
+      --red:#ef4444;--orange:#fb923c;--gold:#f59e0b;
+      --font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif;
+      --card-radius:18px;--card-radius-sm:12px;--btn-radius:12px;--pill-radius:20px;
+      --ease-out:cubic-bezier(0.4,0,0.2,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg-page);color:var(--text-primary);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;
+      background-image:radial-gradient(ellipse at top left,rgba(154,224,0,0.06) 0%,transparent 55%),radial-gradient(ellipse at bottom right,rgba(0,242,255,0.04) 0%,transparent 55%);
+      background-attachment:fixed;}
+    @keyframes pageFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulseGlow{0%,100%{box-shadow:0 0 6px var(--accent-glow)}50%{box-shadow:0 0 18px var(--accent-glow)}}
+    @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+    @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.35}}
+    .fade-in{animation:pageFadeIn .35s var(--ease-out) both;}
+    .fade-in-1{animation:pageFadeIn .35s var(--ease-out) .08s both;}
+    .fade-in-2{animation:pageFadeIn .35s var(--ease-out) .16s both;}
+    .fade-in-3{animation:pageFadeIn .35s var(--ease-out) .24s both;}
+    .page-wrap{max-width:480px;margin:0 auto;padding:0 0 48px;}
 
-  <!-- Your shared tokens + components -->
-  <link rel="stylesheet" href="tokens.css" />
-  <link rel="stylesheet" href="components.css" />
+    /* HEADER */
+    .site-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;position:sticky;top:0;z-index:200;background:rgba(2,6,23,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+    .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulseGlow 2.5s ease-in-out infinite;}
+    .logo-text{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--text-primary);letter-spacing:1px;text-transform:uppercase;}
+    .logo-text .ce{color:var(--accent);}
+    .header-right{display:flex;align-items:center;gap:10px;}
+    .avatar-circle{width:32px;height:32px;border-radius:50%;background:var(--accent-dim);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);overflow:hidden;cursor:pointer;}
+    .avatar-circle img{width:100%;height:100%;object-fit:cover;}
+    .sign-out-btn{background:none;border:1px solid var(--border-card);color:var(--text-faint);padding:7px 13px;border-radius:var(--btn-radius);font-family:var(--font-display);font-size:12px;font-weight:700;text-transform:uppercase;cursor:pointer;transition:color .2s,border-color .2s;}
+    .sign-out-btn:hover{color:var(--text-primary);border-color:var(--border-accent);}
 
-  <!-- Home-only CSS -->
-  <link rel="stylesheet" href="css/home.css" />
+    /* GREETING */
+    .greeting{margin:16px 14px 0;padding:18px;background:var(--bg-card);border:1px solid var(--border-accent);border-radius:var(--card-radius);position:relative;overflow:hidden;}
+    .greeting::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);border-radius:var(--card-radius) var(--card-radius) 0 0;}
+    .greeting-hi{font-family:var(--font-display);font-size:22px;font-weight:900;text-transform:uppercase;color:var(--text-primary);letter-spacing:.3px;}
+    .greeting-hi .name{color:var(--accent);}
+    .greeting-sub{font-size:12px;color:var(--text-faint);margin-top:4px;}
+
+    /* KPI ROW */
+    .kpi-row{display:flex;gap:10px;margin:12px 14px 0;}
+    .kpi{flex:1;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);padding:12px 10px;text-align:center;}
+    .kpi-num{display:block;font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--text-primary);}
+    .kpi-num.accent{color:var(--accent);}
+    .kpi-lbl{display:block;font-size:9px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.6px;margin-top:2px;}
+
+    /* SECTION */
+    .section{padding:0 14px;margin-top:22px;}
+    .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+    .section-title{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.2px;}
+    .see-all{font-size:11px;font-weight:600;color:var(--accent);text-decoration:none;}
+    .see-all:hover{text-decoration:underline;}
+
+    /* LEAGUE CARD */
+    .league-card{display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);margin-bottom:10px;text-decoration:none;transition:border-color .2s,background .2s;cursor:pointer;}
+    .league-card:hover{border-color:var(--border-accent);background:var(--bg-card-alt);}
+    .league-flag{width:40px;height:40px;border-radius:11px;background:var(--bg-card-alt);border:1px solid var(--border-card);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .league-info{flex:1;min-width:0;}
+    .league-name{font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--text-primary);text-transform:uppercase;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .league-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+    .league-right{text-align:right;flex-shrink:0;}
+    .league-pts{font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--accent);}
+    .league-rank{font-size:10px;color:var(--text-faint);margin-top:1px;}
+
+    /* BADGE */
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--pill-radius);font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+    .badge-open{background:var(--accent-dim);color:var(--accent);border:1px solid var(--border-accent);}
+    .badge-live{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+    .badge-ended{background:rgba(100,116,139,.1);color:var(--text-faint);border:1px solid rgba(100,116,139,.15);}
+    .badge-soon{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);}
+    .badge-live-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:livePulse 1.4s ease-in-out infinite;}
+
+    /* QUICK LINKS */
+    .quick-links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+    .ql-card{background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);padding:14px;text-decoration:none;transition:border-color .2s,background .2s;display:block;}
+    .ql-card:hover{border-color:var(--border-accent);background:var(--bg-card-alt);}
+    .ql-icon{font-size:22px;margin-bottom:8px;}
+    .ql-name{font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--text-primary);text-transform:uppercase;letter-spacing:.3px;}
+    .ql-desc{font-size:11px;color:var(--text-faint);margin-top:3px;line-height:1.4;}
+
+    /* SKELETON */
+    .skel{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:400px 100%;animation:shimmer 1.6s ease-in-out infinite;border-radius:8px;}
+
+    /* LOADING OVERLAY */
+    .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:14px;}
+    .loading-spinner{width:32px;height:32px;border-radius:50%;border:3px solid var(--accent-dim);border-top-color:var(--accent);animation:spin .8s linear infinite;}
+    .loading-text{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:.8px;}
+
+    /* GATE WALL */
+    .gate-wall{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:18px;padding:0 24px;text-align:center;}
+    .gate-icon{font-size:40px;}
+    .gate-title{font-family:var(--font-display);font-size:24px;font-weight:900;text-transform:uppercase;color:var(--text-primary);}
+    .gate-sub{font-size:13px;color:var(--text-faint);line-height:1.6;max-width:280px;}
+    .btn-primary{background:var(--accent);color:#000;border:none;padding:13px 24px;border-radius:var(--btn-radius);font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s,transform .15s;}
+    .btn-primary:hover{box-shadow:0 6px 20px var(--accent-glow);transform:translateY(-1px);}
+
+    /* FOOTER */
+    .site-footer{margin-top:36px;padding:20px 18px 28px;border-top:1px solid var(--border);text-align:center;}
+    .footer-copy{font-size:11px;color:var(--text-faint);}
+  </style>
 </head>
 <body>
-  <div class="home-shell">
-    <header class="home-header">
-      <div class="home-brand">
-        <div class="home-logo-mark">🏏</div>
-        <div>
-          <div class="home-brand-main">Cric<span class="brand-ce">Exp</span></div>
-          <div class="home-brand-sub">Fantasy & Official Scoring</div>
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <header class="site-header fade-in">
+    <a href="/" class="logo">
+      <div class="logo-dot"></div>
+      <div class="logo-text">Cric<span class="ce">Exp</span></div>
+    </a>
+    <div class="header-right">
+      <button class="sign-out-btn" id="signOutBtn">Sign Out</button>
+      <div class="avatar-circle" id="avatarCircle"></div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT — swapped by JS based on auth state -->
+  <div id="mainContent">
+    <!-- Loading spinner shown first -->
+    <div class="loading-wrap">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading…</div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
+
+const sb = createClient(
+  "https://tuvqgcosbweljslbfgqc.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
+);
+
+const mainContent = document.getElementById("mainContent");
+const avatarCircle = document.getElementById("avatarCircle");
+
+/* ── AUTH CHECK ── */
+const { data: { session } } = await sb.auth.getSession();
+if (!session?.user) {
+  showGate();
+} else {
+  setAvatar(session.user);
+  await loadDashboard(session.user);
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT") window.location.href = "/";
+});
+
+document.getElementById("signOutBtn")?.addEventListener("click", async () => {
+  await sb.auth.signOut();
+  window.location.href = "/";
+});
+
+function setAvatar(user) {
+  if (user.user_metadata?.avatar_url) {
+    avatarCircle.innerHTML = `<img src="${user.user_metadata.avatar_url}" alt="avatar" />`;
+  } else {
+    const name = user.user_metadata?.full_name || user.email || "?";
+    avatarCircle.textContent = name.slice(0,2).toUpperCase();
+  }
+}
+
+function showGate() {
+  mainContent.innerHTML = `
+    <div class="gate-wall">
+      <div class="gate-icon">🔒</div>
+      <div class="gate-title">Sign In Required</div>
+      <div class="gate-sub">Sign in to access your fantasy leagues, team, and leaderboards.</div>
+      <button class="btn-primary" onclick="window.location.href='/'">
+        <i class="fa-solid fa-arrow-left"></i> Back to Home
+      </button>
+    </div>`;
+}
+
+async function loadDashboard(user) {
+  const displayName = user.user_metadata?.full_name?.split(" ")[0] || "Champ";
+
+  // Fetch user's tournament points across all leagues
+  const { data: pts } = await sb.from("user_tournament_points")
+    .select("total_points, rank, tournament_id")
+    .eq("user_id", user.id)
+    .order("total_points", { ascending: false });
+
+  // Fetch all tournaments from registry
+  const { data: tournaments } = await sb.rpc("get_all_tournaments_for_home");
+
+  const totalLeagues  = pts?.length || 0;
+  const totalPoints   = pts?.reduce((s, r) => s + (r.total_points || 0), 0) || 0;
+  const bestRank      = pts?.length ? Math.min(...pts.map(r => r.rank || 9999)) : "—";
+  const bestRankDisplay = bestRank === 9999 ? "—" : `#${bestRank}`;
+
+  // Build league cards using tournament registry
+  const leagueRows = (pts || []).map(p => {
+    const t = (tournaments || []).find(x => x.tournament_id === p.tournament_id || x.id === p.tournament_id);
+    const name   = t?.name  || "League";
+    const flag   = t?.flag_emoji || "🏏";
+    const status = t?.status || "completed";
+    const path   = t?.fantasy_url_path || "#";
+    const badge  = makeBadge(status);
+    return `
+      <a class="league-card" href="${path}">
+        <div class="league-flag">${flag}</div>
+        <div class="league-info">
+          <div class="league-name">${name}</div>
+          <div class="league-meta">Fantasy League · ${badge}</div>
         </div>
+        <div class="league-right">
+          <div class="league-pts">${p.total_points ?? "—"}</div>
+          <div class="league-rank">${p.rank ? '#'+p.rank : ''} pts</div>
+        </div>
+      </a>`;
+  }).join("") || `<p style="color:var(--text-faint);font-size:13px;padding:8px 0">You haven't joined any leagues yet.</p>`;
+
+  mainContent.innerHTML = `
+    <!-- GREETING -->
+    <div class="greeting fade-in">
+      <div class="greeting-hi">Welcome back, <span class="name">${displayName}</span> 👋</div>
+      <div class="greeting-sub">Here's your fantasy summary across all tournaments.</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row fade-in-1">
+      <div class="kpi"><span class="kpi-num">${totalLeagues}</span><span class="kpi-lbl">Leagues</span></div>
+      <div class="kpi"><span class="kpi-num accent">${totalPoints}</span><span class="kpi-lbl">Total Pts</span></div>
+      <div class="kpi"><span class="kpi-num">${bestRankDisplay}</span><span class="kpi-lbl">Best Rank</span></div>
+    </div>
+
+    <!-- MY LEAGUES -->
+    <section class="section fade-in-2">
+      <div class="section-header">
+        <span class="section-title">My Leagues</span>
+        <a class="see-all" href="/tournaments">All Tournaments →</a>
       </div>
-      <button class="home-profile-btn" id="homeProfileBtn">
-        <i class="fa-regular fa-user"></i>
-      </button>
-    </header>
+      ${leagueRows}
+    </section>
 
-    <main class="home-main">
-      <section class="home-welcome">
-        <p class="home-eyebrow">Welcome back</p>
-        <h1 class="home-title">
-          Your <span class="accent">Cricket Hub</span>
-        </h1>
-        <p class="home-sub">
-          Play season-long fantasy, run official scoring for your tournaments, and track
-          all stats in one place.
-        </p>
-      </section>
-
-      <section class="home-quick-grid">
-<a href="fantasy.html" class="home-card home-card-main">
-            <div class="home-card-icon main"><i class="fa-solid fa-trophy"></i></div>
-          <h2 class="home-card-title">Play Fantasy</h2>
-          <p class="home-card-body">
-            Join IPL / local fantasy leagues, manage your XI, boosters and subs across the season.
-          </p>
-          <span class="home-card-cta">Open fantasy centre →</span>
+    <!-- QUICK LINKS -->
+    <section class="section fade-in-3">
+      <div class="section-header">
+        <span class="section-title">Quick Access</span>
+      </div>
+      <div class="quick-links">
+        <a class="ql-card" href="/ipl-2026">
+          <div class="ql-icon">🏏</div>
+          <div class="ql-name">IPL 2026</div>
+          <div class="ql-desc">View results & final leaderboard</div>
         </a>
-
-        <a href="partner.html" class="home-card">
-          <div class="home-card-icon partner"><i class="fa-solid fa-handshake-angle"></i></div>
-          <h3 class="home-card-title-sm">Official Partner</h3>
-          <p class="home-card-body-sm">
-            Use CricExp as the scoring + fantasy partner for your academy or tournament.
-          </p>
-          <span class="home-card-cta-sm">View partner options →</span>
+        <a class="ql-card" href="/local-tournament">
+          <div class="ql-icon">🏆</div>
+          <div class="ql-name">PPL 2026</div>
+          <div class="ql-desc">Points table, stats & scoring</div>
         </a>
-
-        <a href="stats.html" class="home-card">
-          <div class="home-card-icon stats"><i class="fa-solid fa-chart-line"></i></div>
-          <h3 class="home-card-title-sm">Stats & Ranks</h3>
-          <p class="home-card-body-sm">
-            Season tables, fantasy ranks and player stats for every ball scored.
-          </p>
-          <span class="home-card-cta-sm">View stats →</span>
+        <a class="ql-card" href="/tournaments">
+          <div class="ql-icon">📅</div>
+          <div class="ql-name">All Events</div>
+          <div class="ql-desc">Browse upcoming tournaments</div>
         </a>
-
-        <a href="https://wa.me/91XXXXXXXXXX" class="home-card" target="_blank" rel="noopener">
-          <div class="home-card-icon enquiry"><i class="fa-regular fa-envelope"></i></div>
-          <h3 class="home-card-title-sm">Enquiry</h3>
-          <p class="home-card-body-sm">
-            Have a league or academy? Get in touch for a custom scoring + fantasy setup.
-          </p>
-          <span class="home-card-cta-sm">WhatsApp / Email →</span>
+        <a class="ql-card" href="/">
+          <div class="ql-icon">🏠</div>
+          <div class="ql-name">Home</div>
+          <div class="ql-desc">Back to CricExp home page</div>
         </a>
-      </section>
-    </main>
+      </div>
+    </section>
 
-    <footer class="home-footer">
-      <button class="home-logout-btn" id="homeLogoutBtn">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        <span>Logout</span>
-      </button>
+    <footer class="site-footer">
+      <p class="footer-copy">CricExp · Fantasy & Official Scoring · 2026</p>
     </footer>
-  </div>
+  `;
+}
 
-  <div id="loadingOverlay" class="loading-overlay hidden">
-    <div class="spinner"></div>
-  </div>
-
-  <script type="module" src="home-auth.js"></script>
+function makeBadge(status) {
+  if (status === 'ongoing')           return `<span class="badge badge-live" style="font-size:9px;padding:2px 7px"><span class="badge-live-dot"></span>Live</span>`;
+  if (status === 'registration_open') return `<span class="badge badge-open" style="font-size:9px;padding:2px 7px">Open</span>`;
+  if (status === 'upcoming')          return `<span class="badge badge-soon" style="font-size:9px;padding:2px 7px">Soon</span>`;
+  return `<span class="badge badge-ended" style="font-size:9px;padding:2px 7px">Ended</span>`;
+}
+</script>
 </body>
 </html>
