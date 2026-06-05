@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>All Tournaments – CricExp</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root{--accent:#9AE000;--accent-dim:rgba(154,224,0,0.09);--accent-glow:rgba(154,224,0,0.28);--accent-2:#00f2ff;--bg-page:#020617;--bg-card:#0d1625;--bg-card-alt:#111e30;--bg-elevated:#0d1a2d;--border:rgba(255,255,255,0.07);--border-card:rgba(255,255,255,0.10);--border-accent:rgba(154,224,0,0.22);--text-primary:#f0f4f8;--text-dim:#94a3b8;--text-faint:#64748b;--red:#ef4444;--orange:#fb923c;--gold:#f59e0b;--font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif;--card-radius:18px;--card-radius-sm:12px;--btn-radius:12px;--pill-radius:20px;--ease-out:cubic-bezier(0.4,0,0.2,1);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg-page);color:var(--text-primary);font-family:var(--font-body);min-height:100vh;-webkit-tap-highlight-color:transparent;background-image:radial-gradient(ellipse at top left,rgba(154,224,0,0.06) 0%,transparent 55%),radial-gradient(ellipse at bottom right,rgba(0,242,255,0.04) 0%,transparent 55%);background-attachment:fixed;}
+    @keyframes pageFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulseGlow{0%,100%{box-shadow:0 0 6px var(--accent-glow)}50%{box-shadow:0 0 18px var(--accent-glow)}}
+    @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+    @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.35}}
+    @keyframes modalIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .fade-in{animation:pageFadeIn .35s var(--ease-out) both;}
+    .fade-in-1{animation:pageFadeIn .35s var(--ease-out) .08s both;}
+    .fade-in-2{animation:pageFadeIn .35s var(--ease-out) .16s both;}
+    .page-wrap{max-width:480px;margin:0 auto;padding:0 0 48px;}
+    .site-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;position:sticky;top:0;z-index:200;background:rgba(2,6,23,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+    .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulseGlow 2.5s ease-in-out infinite;}
+    .logo-text{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--text-primary);letter-spacing:1px;text-transform:uppercase;}
+    .logo-text .ce{color:var(--accent);}
+    .header-right{display:flex;align-items:center;gap:10px;}
+    .back-btn{background:var(--accent-dim);color:var(--accent);border:1px solid var(--border-accent);padding:7px 14px;border-radius:var(--btn-radius);font-family:var(--font-display);font-size:13px;font-weight:800;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+    .page-title-bar{padding:18px 14px 0;}
+    .page-title{font-family:var(--font-display);font-size:28px;font-weight:900;text-transform:uppercase;color:var(--text-primary);letter-spacing:.3px;}
+    .page-sub{font-size:12px;color:var(--text-faint);margin-top:4px;}
+
+    /* FILTER TABS */
+    .filter-tabs{display:flex;gap:8px;padding:14px 14px 0;overflow-x:auto;scrollbar-width:none;}
+    .filter-tabs::-webkit-scrollbar{display:none;}
+    .tab{padding:6px 16px;border-radius:var(--pill-radius);font-family:var(--font-display);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border:1px solid var(--border-card);background:transparent;color:var(--text-faint);cursor:pointer;white-space:nowrap;transition:background .2s,border-color .2s,color .2s;}
+    .tab.active{background:var(--accent-dim);border-color:var(--border-accent);color:var(--accent);}
+
+    .section{padding:0 14px;margin-top:18px;}
+    .section-title{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;}
+    .t-card{display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);margin-bottom:10px;cursor:pointer;text-decoration:none;transition:border-color .2s,background .2s;position:relative;overflow:hidden;}
+    .t-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);}
+    .t-card:hover{border-color:var(--border-accent);background:var(--bg-card-alt);}
+    .t-card.featured{border-color:var(--border-accent);background:linear-gradient(135deg,var(--bg-card),rgba(154,224,0,.025));}
+    .t-flag{width:40px;height:40px;border-radius:11px;background:var(--bg-card-alt);border:1px solid var(--border-card);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .t-info{flex:1;min-width:0;}
+    .t-name{font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--text-primary);text-transform:uppercase;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .t-meta{font-size:11px;color:var(--text-faint);margin-top:2px;}
+    .t-right{text-align:right;flex-shrink:0;}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--pill-radius);font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+    .badge-open{background:var(--accent-dim);color:var(--accent);border:1px solid var(--border-accent);}
+    .badge-live{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+    .badge-ended{background:rgba(100,116,139,.1);color:var(--text-faint);border:1px solid rgba(100,116,139,.15);}
+    .badge-soon{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);}
+    .badge-live-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:livePulse 1.4s ease-in-out infinite;}
+    .skel{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:400px 100%;animation:shimmer 1.6s ease-in-out infinite;border-radius:8px;}
+    .t-card-skel{display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius-sm);margin-bottom:10px;}
+    .skel-flag{width:40px;height:40px;border-radius:11px;flex-shrink:0;}
+    .skel-info{flex:1;display:flex;flex-direction:column;gap:6px;}
+    .skel-name{height:14px;width:70%;}
+    .skel-meta{height:11px;width:50%;}
+    .skel-badge{width:50px;height:22px;border-radius:20px;}
+    .kind-tag{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:var(--pill-radius);margin-right:5px;}
+    .kind-global{background:var(--accent-dim);color:var(--accent);}
+    .kind-local{background:var(--accent-2-dim,rgba(0,242,255,.07));color:var(--accent-2);}
+    /* LOGIN MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(2,6,23,.80);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .login-sheet{width:100%;max-width:480px;background:var(--bg-elevated);border-radius:24px 24px 0 0;border-top:1px solid var(--border-card);padding:10px 22px 36px;animation:modalIn .3s cubic-bezier(.175,.885,.32,1.275) both;position:relative;}
+    .sheet-handle{width:36px;height:4px;background:var(--border-card);border-radius:2px;margin:10px auto 20px;}
+    .sheet-title{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--text-primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+    .sheet-sub{font-size:13px;color:var(--text-faint);line-height:1.5;margin-bottom:20px;}
+    .sheet-context{display:flex;align-items:center;gap:10px;background:var(--accent-dim);border:1px solid var(--border-accent);border-radius:var(--card-radius-sm);padding:10px 14px;margin-bottom:18px;}
+    .sheet-context-icon{font-size:18px;flex-shrink:0;}
+    .sheet-context-text{font-size:13px;color:var(--text-dim);line-height:1.5;}
+    .google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--btn-radius);padding:14px 20px;font-family:var(--font-display);font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 20px var(--accent-glow);transition:box-shadow .2s,transform .15s;}
+    .google-btn:hover:not(:disabled){box-shadow:0 7px 28px var(--accent-glow);transform:translateY(-1px);}
+    .google-btn:disabled{opacity:.55;cursor:not-allowed;}
+    .g-badge{width:22px;height:22px;border-radius:50%;background:#fff;color:#4285f4;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;}
+    .spin-ico{display:none;width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,0,0,.25);border-left-color:#000;animation:spin .7s linear infinite;}
+    .spin-ico.on{display:inline-block;}
+    .sheet-dismiss{position:absolute;top:14px;right:18px;background:none;border:none;font-size:20px;color:var(--text-faint);cursor:pointer;padding:4px;transition:color .2s;}
+    .sheet-dismiss:hover{color:var(--text-primary);}
+    .auth-footnote{font-size:10px;color:var(--text-faint);margin-top:10px;line-height:1.5;text-align:center;}
+    .auth-error{display:none;margin-top:12px;font-size:12px;text-align:center;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:9px 12px;border-radius:9px;}
+    .auth-error.show{display:block;}
+    .site-footer{margin-top:36px;padding:20px 18px 28px;border-top:1px solid var(--border);text-align:center;}
+    .footer-copy{font-size:11px;color:var(--text-faint);}
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header class="site-header fade-in">
+    <a href="/" class="logo"><div class="logo-dot"></div><div class="logo-text">Cric<span class="ce">Exp</span></div></a>
+    <div class="header-right">
+      <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left" style="font-size:11px"></i> Home</a>
+    </div>
+  </header>
+
+  <div class="page-title-bar fade-in-1">
+    <div class="page-title">All Tournaments</div>
+    <div class="page-sub">Fantasy leagues &amp; local scoring events on CricExp</div>
+  </div>
+
+  <!-- FILTER TABS -->
+  <div class="filter-tabs fade-in-1">
+    <button class="tab active" data-filter="all">All</button>
+    <button class="tab" data-filter="ongoing">Live</button>
+    <button class="tab" data-filter="registration_open">Open</button>
+    <button class="tab" data-filter="upcoming">Upcoming</button>
+    <button class="tab" data-filter="completed">Ended</button>
+    <button class="tab" data-filter="global">Global</button>
+    <button class="tab" data-filter="local">Local</button>
+  </div>
+
+  <section class="section fade-in-2">
+    <div id="tournamentList">
+      <div class="t-card-skel"><div class="skel skel-flag"></div><div class="skel-info"><div class="skel skel-name"></div><div class="skel skel-meta"></div></div><div class="skel skel-badge"></div></div>
+      <div class="t-card-skel"><div class="skel skel-flag"></div><div class="skel-info"><div class="skel skel-name"></div><div class="skel skel-meta"></div></div><div class="skel skel-badge"></div></div>
+      <div class="t-card-skel"><div class="skel skel-flag"></div><div class="skel-info"><div class="skel skel-name"></div><div class="skel skel-meta"></div></div><div class="skel skel-badge"></div></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p class="footer-copy">CricExp · Fantasy &amp; Official Scoring · 2026</p>
+  </footer>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="login-sheet">
+    <button class="sheet-dismiss" id="sheetDismiss">✕</button>
+    <div class="sheet-handle"></div>
+    <div class="sheet-context"><span class="sheet-context-icon">🏏</span><span class="sheet-context-text" id="sheetContextText">Sign in to join this league.</span></div>
+    <div class="sheet-title">Sign In</div>
+    <div class="sheet-sub">Free to play. Takes 10 seconds.</div>
+    <button class="google-btn" id="googleLoginBtn"><div class="g-badge">G</div><span class="btn-text">Continue with Google</span><span class="spin-ico" id="spinIco"></span></button>
+    <p class="auth-footnote">By continuing you agree to receive updates about your leagues.</p>
+    <div id="authError" class="auth-error"></div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
+import { checkRegistrationOpen, showRegistrationClosed } from "./registration-guard.js";
+
+const sb = createClient(
+  "https://tuvqgcosbweljslbfgqc.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1dnFnY29zYndlbGpzbGJmZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkyNTgsImV4cCI6MjA4NjIzNTI1OH0._doWGRcUdRamCyd4i9YJd8vwZEGtfX5hwsAHtb1zKZo"
+);
+
+let allTournaments = [];
+let currentUser = null;
+let pendingDest  = null;
+
+const { data: { session } } = await sb.auth.getSession();
+if (session?.user) currentUser = session.user;
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session?.user) {
+    currentUser = session.user;
+    closeModal();
+    if (pendingDest) window.location.href = pendingDest;
+  }
+});
+
+/* Load tournaments */
+const { data, error } = await sb.rpc("get_all_tournaments_for_home");
+allTournaments = data || [];
+renderList("all");
+
+/* Filter tabs */
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    renderList(tab.dataset.filter);
+  });
+});
+
+function renderList(filter) {
+  const list = document.getElementById("tournamentList");
+  let filtered = allTournaments;
+  if (filter === "global")   filtered = allTournaments.filter(t => t.kind === "global");
+  else if (filter === "local") filtered = allTournaments.filter(t => t.kind === "local");
+  else if (filter !== "all") filtered = allTournaments.filter(t => t.status === filter);
+
+  if (!filtered.length) {
+    list.innerHTML = `<p style="color:var(--text-faint);font-size:13px;padding:12px 0">No tournaments found.</p>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(t => {
+    const isCompleted = t.status === "completed";
+    const kindTag = t.kind === "local"
+      ? `<span class="kind-tag kind-local">Local</span>`
+      : `<span class="kind-tag kind-global">Global</span>`;
+    const fmt = d => new Date(d).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"2-digit" });
+    const meta = `${kindTag}${fmt(t.start_date)} – ${fmt(t.end_date)}`;
+
+    if (isCompleted) {
+      return `<a class="t-card${t.is_featured?' featured':''}" href="${t.fantasy_url_path || t.live_scoring_url_path || '#'}">
+        <div class="t-flag">${t.flag_emoji||'🏏'}</div>
+        <div class="t-info"><div class="t-name">${t.name}</div><div class="t-meta">${meta}</div></div>
+        <div class="t-right">${makeBadge(t.status)}</div>
+      </a>`;
+    }
+    return `<div class="t-card${t.is_featured?' featured':''}" data-gated="true" data-dest="${t.fantasy_url_path||'/home'}" data-context="Sign in to join ${t.name}">
+      <div class="t-flag">${t.flag_emoji||'🏏'}</div>
+      <div class="t-info"><div class="t-name">${t.name}</div><div class="t-meta">${meta}</div></div>
+      <div class="t-right">${makeBadge(t.status)}</div>
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll("[data-gated='true']").forEach(el => {
+    el.addEventListener("click", e => { e.preventDefault(); handleGatedClick(el); });
+  });
+}
+
+function makeBadge(status) {
+  if (status==='ongoing')           return `<span class="badge badge-live"><span class="badge-live-dot"></span>Live</span>`;
+  if (status==='registration_open') return `<span class="badge badge-open">Open</span>`;
+  if (status==='upcoming')          return `<span class="badge badge-soon">Soon</span>`;
+  return `<span class="badge badge-ended">Ended</span>`;
+}
+
+function handleGatedClick(el) {
+  const dest = el.dataset.dest || "/home";
+  if (currentUser) { window.location.href = dest; return; }
+  pendingDest = dest;
+  document.getElementById("sheetContextText").textContent = el.dataset.context || "Sign in to continue.";
+  openModal();
+}
+
+function openModal()  { document.getElementById("loginModal").classList.add("open"); document.body.style.overflow="hidden"; }
+function closeModal() { document.getElementById("loginModal").classList.remove("open"); document.body.style.overflow=""; }
+document.getElementById("sheetDismiss")?.addEventListener("click", closeModal);
+document.getElementById("loginModal")?.addEventListener("click", e => { if (e.target===e.currentTarget) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key==="Escape") closeModal(); });
+
+const googleBtn = document.getElementById("googleLoginBtn");
+const spinIco   = document.getElementById("spinIco");
+const errEl     = document.getElementById("authError");
+
+async function doLogin() {
+  let status;
+  try { status = await checkRegistrationOpen(); } catch(_) { status={open:true}; }
+  if (status?.open===false) { showRegistrationClosed(status.reason); return; }
+  googleBtn.disabled=true; spinIco.classList.add("on");
+  googleBtn.querySelector(".btn-text").textContent="Connecting…";
+  try {
+    const { error } = await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin+window.location.pathname } });
+    if (error) throw error;
+  } catch(err) {
+    googleBtn.disabled=false; spinIco.classList.remove("on");
+    googleBtn.querySelector(".btn-text").textContent="Continue with Google";
+    errEl.textContent = err.message||"Sign in failed."; errEl.classList.add("show");
+    setTimeout(()=>errEl.classList.remove("show"),5000);
+  }
+}
+googleBtn?.addEventListener("click", doLogin);
+</script>
+</body>
+</html>
